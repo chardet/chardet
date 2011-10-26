@@ -7,10 +7,10 @@ if not hasattr(DistributionMetadata, 'classifiers'):
     DistributionMetadata.classifiers = None
 if not hasattr(DistributionMetadata, 'download_url'):
     DistributionMetadata.download_url = None
-    
+
 setup(
     name = 'chardet',
-    version = '1.0.1',
+    version = '1.0.2',
     description = 'Universal encoding detector',
     long_description = """\
 Universal character encoding detector
