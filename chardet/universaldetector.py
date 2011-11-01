@@ -32,6 +32,9 @@ from mbcsgroupprober import MBCSGroupProber # multi-byte character sets
 from sbcsgroupprober import SBCSGroupProber # single-byte character sets
 from escprober import EscCharSetProber # ISO-2122, etc.
 import re
+import logging
+
+logger = logging.getLogger(__name__)
 
 MINIMUM_THRESHOLD = 0.20
 ePureAscii = 0
@@ -112,11 +115,14 @@ class UniversalDetector:
             if not self._mCharSetProbers:
                 self._mCharSetProbers = [MBCSGroupProber(), SBCSGroupProber(), Latin1Prober()]
             for prober in self._mCharSetProbers:
-                if prober.feed(aBuf) == constants.eFoundIt:
-                    self.result = {'encoding': prober.get_charset_name(),
-                                   'confidence': prober.get_confidence()}
-                    self.done = constants.True
-                    break
+                try:
+                    if prober.feed(aBuf) == constants.eFoundIt:
+                        self.result = {'encoding': prober.get_charset_name(),
+                                       'confidence': prober.get_confidence()}
+                        self.done = constants.True
+                        break
+                except (UnicodeDecodeError, UnicodeEncodeError), e:
+                    logger.exception(e)
 
     def close(self):
         if self.done: return
