@@ -10,7 +10,7 @@ if not hasattr(DistributionMetadata, 'download_url'):
 
 setup(
     name = 'chardet',
-    version = '1.0.3',
+    version = '1.1',
     description = 'Universal encoding detector',
     long_description = """\
 Universal character encoding detector
@@ -30,6 +30,17 @@ Detects
  - TIS-620 (Thai)
 
 Requires Python 2.1 or later
+
+Command-line Tool
+-----------------
+
+chardet comes with a command-line script which reports on the encodings of one
+or more files::
+
+    % chardetect.py somefile someotherfile
+    somefile: windows-1252 with confidence 0.5
+    someotherfile: ascii with confidence 1.0
+
 """,
     author='Mark Pilgrim',
     author_email = 'mark@diveintomark.org',
@@ -48,5 +59,6 @@ Requires Python 2.1 or later
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: Text Processing :: Linguistic",
         ],
+    scripts=['bin/chardetect.py'],
     packages = ['chardet']
     )
