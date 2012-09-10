@@ -1,0 +1,107 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Usage [Universal Encoding Detector]</title>
+<link rel="stylesheet" href="css/chardet.css" type="text/css">
+<link rev="made" href="mailto:mark@diveintomark.org">
+<meta name="generator" content="DocBook XSL Stylesheets V1.65.1">
+<meta name="keywords" content="character, set, encoding, detection, Python, XML, feed">
+<link rel="start" href="index.html" title="Documentation">
+<link rel="up" href="index.html" title="Documentation">
+<link rel="prev" href="supported-encodings.html" title="Supported encodings">
+<link rel="next" href="how-it-works.html" title="How it works">
+</head>
+<body id="chardet-feedparser-org" class="docs">
+<div class="z" id="intro"><div class="sectionInner"><div class="sectionInner2">
+<div class="s" id="pageHeader">
+<h1><a href="/">Universal Encoding Detector</a></h1>
+<p>Character encoding auto-detection in Python.  As smart as your browser.  Open source.</p>
+</div>
+<div class="s" id="quickSummary"><ul>
+<li class="li1">
+<a href="http://chardet.feedparser.org/download/">Download</a> ·</li>
+<li class="li2">
+<a href="index.html">Documentation</a> ·</li>
+<li class="li3"><a href="faq.html" title="Frequently Asked Questions">FAQ</a></li>
+</ul></div>
+</div></div></div>
+<div id="main"><div id="mainInner">
+<p id="breadcrumb">You are here: <a href="index.html">Documentation</a> → <span class="thispage">Usage</span></p>
+<div class="section" lang="en">
+<div class="titlepage">
+<div><div><h2 class="title">
+<a name="usage" class="skip" href="#usage" title="link to this section"><img src="images/permalink.gif" alt="[link]" title="link to this section" width="8" height="9"></a> Usage</h2></div></div>
+<div></div>
+</div>
+<div class="section" lang="en">
+<div class="titlepage">
+<div><div><h3 class="title">
+<a name="usage.basic" class="skip" href="#usage.basic" title="link to this section"><img src="images/permalink.gif" alt="[link]" title="link to this section" width="8" height="9"></a> Basic usage</h3></div></div>
+<div></div>
+</div>
+<p>The easiest way to use the <span class="application">Universal Encoding Detector</span> library is with the <tt class="function">detect</tt> function.</p>
+<div class="example">
+<a name="example.basic.detect" class="skip" href="#example.basic.detect" title="link to this example"><img src="images/permalink.gif" alt="[link]" title="link to this example" width="8" height="9"></a> <h3 class="title">Example: Using the <tt class="function">detect</tt> function</h3>
+<p>The <tt class="function">detect</tt> function takes one argument, a non-Unicode string.  It returns a dictionary containing the auto-detected character encoding and a confidence level from <tt class="constant">0</tt> to <tt class="constant">1</tt>.</p>
+<pre class="screen"><tt class="prompt">&gt;&gt;&gt; </tt><span class="userinput"><font color='navy'><b>import</b></font> urllib</span>
+<tt class="prompt">&gt;&gt;&gt; </tt><span class="userinput">rawdata = urllib.urlopen(<font color='olive'>'http://yahoo.co.jp/'</font>).read()</span>
+<tt class="prompt">&gt;&gt;&gt; </tt><span class="userinput"><font color='navy'><b>import</b></font> chardet</span>
+<tt class="prompt">&gt;&gt;&gt; </tt><span class="userinput">chardet.detect(rawdata)</span>
+<span class="computeroutput">{'encoding': 'EUC-JP', 'confidence': 0.99}</span></pre>
+</div>
+</div>
+<div class="section" lang="en">
+<div class="titlepage">
+<div><div><h3 class="title">
+<a name="usage.advanced" class="skip" href="#usage.advanced" title="link to this section"><img src="images/permalink.gif" alt="[link]" title="link to this section" width="8" height="9"></a> Advanced usage</h3></div></div>
+<div></div>
+</div>
+<p>If you’re dealing with a large amount of text, you can call the <span class="application">Universal Encoding Detector</span> library incrementally, and it will stop as soon as it is confident enough to report its results.</p>
+<p>Create a <tt class="classname">UniversalDetector</tt> object, then call its <tt class="methodname">feed</tt> method repeatedly with each block of text.  If the detector reaches a minimum threshold of confidence, it will set <tt class="varname">detector.done</tt> to <tt class="constant">True</tt>.</p>
+<p>Once you’ve exhausted the source text, call <tt class="methodname">detector.close()</tt>, which will do some final calculations in case the detector didn’t hit its minimum confidence threshold earlier.  Then <tt class="varname">detector.result</tt> will be a dictionary containing the auto-detected character encoding and confidence level (the same as <a href="usage.html#example.basic.detect" title="Example: Using the detect function">the <tt class="function">chardet.detect</tt> function returns</a>).</p>
+<div class="example">
+<a name="example.multiline" class="skip" href="#example.multiline" title="link to this example"><img src="images/permalink.gif" alt="[link]" title="link to this example" width="8" height="9"></a> <h3 class="title">Example: Detecting encoding incrementally</h3>
+<pre class="programlisting python"><font color='navy'><b>import</b></font> urllib
+<font color='navy'><b>from</b></font> chardet.universaldetector <font color='navy'><b>import</b></font> UniversalDetector
+
+usock = urllib.urlopen(<font color='olive'>'http://yahoo.co.jp/'</font>)
+detector = UniversalDetector()
+<font color='navy'><b>for</b></font> line <font color='navy'><b>in</b></font> usock.readlines():
+    detector.feed(line)
+    <font color='navy'><b>if</b></font> detector.done: <font color='navy'><b>break</b></font>
+detector.close()
+usock.close()
+<font color='navy'><b>print</b></font> detector.result</pre>
+<pre class="screen"><span class="computeroutput">{'encoding': 'EUC-JP', 'confidence': 0.99}</span></pre>
+</div>
+<p>If you want to detect the encoding of multiple texts (such as separate files), you can re-use a single <tt class="classname">UniversalDetector</tt> object.  Just call <tt class="methodname">detector.reset()</tt> at the start of each file, call <tt class="methodname">detector.feed</tt> as many times as you like, and then call <tt class="methodname">detector.close()</tt> and check the <tt class="varname">detector.result</tt> dictionary for the file’s results.</p>
+<div class="example">
+<a name="advanced.multifile.multiline" class="skip" href="#advanced.multifile.multiline" title="link to this example"><img src="images/permalink.gif" alt="[link]" title="link to this example" width="8" height="9"></a> <h3 class="title">Example: Detecting encodings of multiple files</h3>
+<pre class="programlisting python"><font color='navy'><b>import</b></font> glob
+<font color='navy'><b>from</b></font> chardet.universaldetector <font color='navy'><b>import</b></font> UniversalDetector
+
+detector = UniversalDetector()
+<font color='navy'><b>for</b></font> filename <font color='navy'><b>in</b></font> glob.glob(<font color='olive'>'*.xml'</font>):
+    <font color='navy'><b>print</b></font> filename.ljust(60),
+    detector.reset()
+    <font color='navy'><b>for</b></font> line <font color='navy'><b>in</b></font> file(filename, <font color='olive'>'rb'</font>):
+        detector.feed(line)
+        <font color='navy'><b>if</b></font> detector.done: <font color='navy'><b>break</b></font>
+    detector.close()
+    <font color='navy'><b>print</b></font> detector.result
+</pre>
+</div>
+</div>
+</div>
+<div class="footernavigation">
+<div style="float: left">← <a class="NavigationArrow" href="supported-encodings.html">Supported encodings</a>
+</div>
+<div style="text-align: right">
+<a class="NavigationArrow" href="how-it-works.html">How it works</a> →</div>
+</div>
+<hr>
+<div id="footer"><p class="copyright">Copyright © 2006, 2007, 2008 Mark Pilgrim · <a href="mailto:mark@diveintomark.org">mark@diveintomark.org</a> · <a href="license.html">Terms of use</a></p></div>
+</div></div>
+</body>
+</html>
