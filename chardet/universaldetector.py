@@ -72,9 +72,9 @@ class UniversalDetector:
             # 00 00 FE FF  UTF-32, big-endian BOM
             ('\x00\x00\xFE\xFF', {'encoding': "UTF-32BE", 'confidence': 1.0}),
             # FE FF 00 00  UCS-4, unusual octet order BOM (3412)
-            (u'\xFE\xFF\x00\x00', {'encoding': "X-ISO-10646-UCS-4-3412", 'confidence': 1.0}),
+            ('\xFE\xFF\x00\x00', {'encoding': "X-ISO-10646-UCS-4-3412", 'confidence': 1.0}),
             # 00 00 FF FE  UCS-4, unusual octet order BOM (2143)
-            (u'\x00\x00\xFF\xFE', {'encoding': "X-ISO-10646-UCS-4-2143", 'confidence': 1.0}),
+            ('\x00\x00\xFF\xFE', {'encoding': "X-ISO-10646-UCS-4-2143", 'confidence': 1.0}),
             # FF FE  UTF-16, little endian BOM
             ('\xFF\xFE', {'encoding': "UTF-16LE", 'confidence': 1.0}),
             # FE FF  UTF-16, big endian BOM
