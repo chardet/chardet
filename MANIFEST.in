@@ -1,0 +1,2 @@
+include COPYING
+recursive-include docs *.html *.css *.png *.gif
