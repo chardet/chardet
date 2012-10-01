@@ -10,7 +10,7 @@ if not hasattr(DistributionMetadata, 'download_url'):
 
 setup(
     name = 'chardet',
-    version = '1.1',
+    version = '2.1.1',
     description = 'Universal encoding detector',
     long_description = """\
 Universal character encoding detector
