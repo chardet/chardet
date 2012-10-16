@@ -28,6 +28,7 @@
 
 import constants, sys
 from latin1prober import Latin1Prober # windows-1252
+from macromanprober import MacRomanProber # MacRoman
 from mbcsgroupprober import MBCSGroupProber # multi-byte character sets
 from sbcsgroupprober import SBCSGroupProber # single-byte character sets
 from escprober import EscCharSetProber # ISO-2122, etc.
@@ -113,7 +114,7 @@ class UniversalDetector:
                 self.done = constants.True
         elif self._mInputState == eHighbyte:
             if not self._mCharSetProbers:
-                self._mCharSetProbers = [MBCSGroupProber(), SBCSGroupProber(), Latin1Prober()]
+                self._mCharSetProbers = [MBCSGroupProber(), SBCSGroupProber(), Latin1Prober(), MacRomanProber()]
             for prober in self._mCharSetProbers:
                 try:
                     if prober.feed(aBuf) == constants.eFoundIt:
