@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="GB2312"?><!-- generator="wordpress/1.5.2" -->
+<!--
+Source: http://kelet.512j.com/wp-rss2.php
+Expect: GB18030
+-->
+<rss version="2.0" 
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns="http://purl.org/rss/1.0/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+>
+<channel>
+	<title>Hanging Garden</title>
+	<link>http://www.plastiku.com</link>
+	<description>自己对自己里的别人说话,自己在自己内部旅行.-----杨炼</description>
+    <image><url>http://kelet.512j.com/images/logo1.gif</url> <link>http://kelet.512j.com</link> </image>
+	<pubDate>Thu, 29 Dec 2005 15:45:38 +0000</pubDate>
+	<generator>http://wordpress.org/?v=1.5.2</generator>
+	<language>en</language>
+
+		<item>
+		<title>【译】常见CSS和HTML的代码问题(二)</title>
+		<link>http://www.plastiku.com/index.php/183/</link>
+		<comments>http://www.plastiku.com/index.php/183/#comments</comments>
+		<pubDate>Tue, 13 Dec 2005 14:05:03 +0000</pubDate>
+		<dc:creator>Kelet</dc:creator>
+		
+	<dc:subject>CssStaff</dc:subject><dc:subject>css</dc:subject><dc:subject>translation</dc:subject><dc:subject>webdesign</dc:subject>
+		<guid>http://www.plastiku.com/index.php/183/</guid>
+		<description><![CDATA[<p>接以前翻译一半的<a href="http://www.plastiku.com/index.php/23/">那篇</a>，不过这次仍旧是一部分。下次应该会再接再厉把它翻完吧。发现事隔一年之久自己的理解强于以前了，所以顺便将原来那部分翻译的有不当的地方给更新了一下。</p>
+<p>原文地址:<a href="http://www.positioniseverything.net/articles/common.html">Common  Code Problem with CSS and HTML</a></p>
+<h3>MIME类型</h3>
+<p>MIME是多用途的网际邮件扩充协议的缩写。对于诸如网络服务器或者浏览器程序来说，按照MIME类型将页面内容分类是一种标准方法，并且这些程序都含有一个MIME类型列表以便于在跨做操作系统的环境下用相同的方法传输同类型文本内容。</p>
+<p>当某一服务器中的一个页面需要读取远程CSS文件的时候，根据MIME类型的定义（通常情况下是"text/css"），这个样式表文件带有.css的文件扩展名。然而服务器有时却会错误的将.css文件的MIME类型判断为"text/plain"或者是"text/html"。因此当一个标准编译下的页面（也就是采用完整文档声明的页面）调用这个CSS文件的时候就会被判别为不相符的MIME类型，此时基于Gecko的浏览器就会忽略远程样式表，与我们事先想象中那样美丽的网页相反，它们会将页面展现为无任何样式定义的样子。</p>
+<p>解决这个问题的一种方法是联系服务器管理员将.css的MIME类型设置为正确的"text/css"。对于Apache服务器来说，另一种可行的方法是在你的站点根目录下的.htaccess文件中写进这样一行:</p>
+<code>AddType text/css .css </code>
+<p>这样一来.css文件就会被当作"text/css"类型来编译。如果你的服务器管理员限制了你修改.htaccess文件，那么你就需要联系他(她)以取得权限修改这一MIME类型。</p>
+
+<h3>XML声明</h3>
+<p>很多人爱在XHTML页面的顶部声明XML，因为他们错以为这样的声明是必要的。实际上，只有当页面是XML形式或者非XHTML形式时才需要这行声明。否则的话这行声明会把IE6扔进一个混乱的编译模式中，并且会由对这一行为处理的不熟悉而带来一系列严重的后果。其它先进的浏览器在识别这行声明时都没有困难，但是IE6不能处理这一情况。所以除非你真的是在写一个XML页面否则的话还是把那行声明注释掉吧。更多有关编译模式和XML声明的信息请参照这篇文章<a href="http://www.positioniseverything.net/articles/doctypes.html">Rendering Mode and Doctype Switching</a></p>
+<h3>书写 <code>url( )</code>和<code>@import</code>路径</h3>
+<p>当在文件中采用相对相对路径来引入样式表链接地址的时候，有两个重点值得我们注意。一个是所要读取的文件（例如背景图片文件）的相对路径的“相对”指的是相对于.CSS文件本身，而不是HTML页面文件，除非CSS代码是包含在HTML页面中（而不是作为单独的文件存在的）。Netscape 4在处理这一问题时就有问题，不过同时它也是唯一会有问题的浏览器。</p>
+<p>第二个是关于相对和绝对路径在<code>url()</code>的()中该如何书写。使用除下面所给出的表达方式之外的任何一种形式来书写路径都有可能导致个别浏览器（尤其是比较老的浏览器）无法正常读取　CSS文件；</p>
+<code>&#60;style type="text/css"&#62;<br />
+@import url(../stylesfolder/mainstyles.css);
+background-image: url(../images/bg-image.jpg);
+&#60;/style&#62;</code> 
+<p>在链接地址前后使用单引号的表达式会导致MAC下的IE5不能应用着一样式。而且这样的表达式在调用背景图片以及css中任何采用这一表达式所读取的地址都不能正常工作。</p>
+<p>除非你试图在老式的浏览器或者IE5/Mac下隐藏CSS样式，否则我们建议您最好使用不带引号的表达式以避免不必要的问题。您可以查看下面的两个页面以获取有关这一问题的信息；</p>
+<ul>
+<li><a href=" http://www.l-c-n.com/IE5tests/hiding/index.shtml">Linking and Hiding Styles in IE5/Mac</a></li>
+<li><a href="http://w3development.de/css/hide_css_from_browsers/import/">Hide CSS from browsers - @import</a></li>
+</ul>
+<h3>列表零值化</h3>
+<p>通常当代码师将一系列链接以列表的形式来表达的话，他们就会遇到各种各样关于空白(spacing)的问题。在一个浏览器中看起来完好的样式在另一个浏览器中可能就不能对齐显示。并且如果你妄图极力去调节属性值以达到对齐可能只会使页面变得更加糟糕而已。这的确让人发疯，但是有着合理的解释，当然更重要的是我们有可以解决这一问题的方法。</p>
+<p>问题的根源在于当不同的浏览器遇到列表标记，他们自动会采用不同的css代码值以保证在其下基本列表能正常显示为默认样式。在一种浏览器下使用补白（<code>padding</code>）就能实现列表的间距，但是在另一个浏览器下要达到这样的效果只能通过设置边界（<code>margin</code>）来实现。 你可以想象一下如果我们不事先知道这些不同点的话，那么这些浏览器会根据我们所设置的变量值展现出来的页面效果会变得怎么样。显然最后让我们精神分裂时很有可能的。</p>
+<p>幸运的是，我们有一个简单的方法来阻止这样的错乱发生。亦即只要简单的零值化所有列表本身以及其内部元素的边界(<code>margin</code>)和补白(<code>padding</code>)就可以了。</p>
+<code>ol, ul, li {margin: 0; padding: 0;}</code>
+<p>这么设置以后，接下来我们就可以在调和各种属性的默认值的情况下继续赋予边界或者补白不同的值。Ahhh，那样就好多了！</p>]]></description>
+		<content:encoded><![CDATA[<p>接以前翻译一半的<a href="http://www.plastiku.com/index.php/23/">那篇</a>，不过这次仍旧是一部分。下次应该会再接再厉把它翻完吧。发现事隔一年之久自己的理解强于以前了，所以顺便将原来那部分翻译的有不当的地方给更新了一下。</p>
+<p>原文地址:<a href="http://www.positioniseverything.net/articles/common.html">Common  Code Problem with CSS and HTML</a></p>
+<h3>MIME类型</h3>
+<p>MIME是多用途的网际邮件扩充协议的缩写。对于诸如网络服务器或者浏览器程序来说，按照MIME类型将页面内容分类是一种标准方法，并且这些程序都含有一个MIME类型列表以便于在跨做操作系统的环境下用相同的方法传输同类型文本内容。</p>
+<p>当某一服务器中的一个页面需要读取远程CSS文件的时候，根据MIME类型的定义（通常情况下是"text/css"），这个样式表文件带有.css的文件扩展名。然而服务器有时却会错误的将.css文件的MIME类型判断为"text/plain"或者是"text/html"。因此当一个标准编译下的页面（也就是采用完整文档声明的页面）调用这个CSS文件的时候就会被判别为不相符的MIME类型，此时基于Gecko的浏览器就会忽略远程样式表，与我们事先想象中那样美丽的网页相反，它们会将页面展现为无任何样式定义的样子。</p>
+<p>解决这个问题的一种方法是联系服务器管理员将.css的MIME类型设置为正确的"text/css"。对于Apache服务器来说，另一种可行的方法是在你的站点根目录下的.htaccess文件中写进这样一行:</p>
+<code>AddType text/css .css </code>
+<p>这样一来.css文件就会被当作"text/css"类型来编译。如果你的服务器管理员限制了你修改.htaccess文件，那么你就需要联系他(她)以取得权限修改这一MIME类型。</p>
+
+<h3>XML声明</h3>
+<p>很多人爱在XHTML页面的顶部声明XML，因为他们错以为这样的声明是必要的。实际上，只有当页面是XML形式或者非XHTML形式时才需要这行声明。否则的话这行声明会把IE6扔进一个混乱的编译模式中，并且会由对这一行为处理的不熟悉而带来一系列严重的后果。其它先进的浏览器在识别这行声明时都没有困难，但是IE6不能处理这一情况。所以除非你真的是在写一个XML页面否则的话还是把那行声明注释掉吧。更多有关编译模式和XML声明的信息请参照这篇文章<a href="http://www.positioniseverything.net/articles/doctypes.html">Rendering Mode and Doctype Switching</a></p>
+<h3>书写 <code>url( )</code>和<code>@import</code>路径</h3>
+<p>当在文件中采用相对相对路径来引入样式表链接地址的时候，有两个重点值得我们注意。一个是所要读取的文件（例如背景图片文件）的相对路径的“相对”指的是相对于.CSS文件本身，而不是HTML页面文件，除非CSS代码是包含在HTML页面中（而不是作为单独的文件存在的）。Netscape 4在处理这一问题时就有问题，不过同时它也是唯一会有问题的浏览器。</p>
+<p>第二个是关于相对和绝对路径在<code>url()</code>的()中该如何书写。使用除下面所给出的表达方式之外的任何一种形式来书写路径都有可能导致个别浏览器（尤其是比较老的浏览器）无法正常读取　CSS文件；</p>
+<code>&#60;style type="text/css"&#62;<br />
+@import url(../stylesfolder/mainstyles.css);
+background-image: url(../images/bg-image.jpg);
+&#60;/style&#62;</code> 
+<p>在链接地址前后使用单引号的表达式会导致MAC下的IE5不能应用着一样式。而且这样的表达式在调用背景图片以及css中任何采用这一表达式所读取的地址都不能正常工作。</p>
+<p>除非你试图在老式的浏览器或者IE5/Mac下隐藏CSS样式，否则我们建议您最好使用不带引号的表达式以避免不必要的问题。您可以查看下面的两个页面以获取有关这一问题的信息；</p>
+<ul>
+<li><a href=" http://www.l-c-n.com/IE5tests/hiding/index.shtml">Linking and Hiding Styles in IE5/Mac</a></li>
+<li><a href="http://w3development.de/css/hide_css_from_browsers/import/">Hide CSS from browsers - @import</a></li>
+</ul>
+<h3>列表零值化</h3>
+<p>通常当代码师将一系列链接以列表的形式来表达的话，他们就会遇到各种各样关于空白(spacing)的问题。在一个浏览器中看起来完好的样式在另一个浏览器中可能就不能对齐显示。并且如果你妄图极力去调节属性值以达到对齐可能只会使页面变得更加糟糕而已。这的确让人发疯，但是有着合理的解释，当然更重要的是我们有可以解决这一问题的方法。</p>
+<p>问题的根源在于当不同的浏览器遇到列表标记，他们自动会采用不同的css代码值以保证在其下基本列表能正常显示为默认样式。在一种浏览器下使用补白（<code>padding</code>）就能实现列表的间距，但是在另一个浏览器下要达到这样的效果只能通过设置边界（<code>margin</code>）来实现。 你可以想象一下如果我们不事先知道这些不同点的话，那么这些浏览器会根据我们所设置的变量值展现出来的页面效果会变得怎么样。显然最后让我们精神分裂时很有可能的。</p>
+<p>幸运的是，我们有一个简单的方法来阻止这样的错乱发生。亦即只要简单的零值化所有列表本身以及其内部元素的边界(<code>margin</code>)和补白(<code>padding</code>)就可以了。</p>
+<code>ol, ul, li {margin: 0; padding: 0;}</code>
+<p>这么设置以后，接下来我们就可以在调和各种属性的默认值的情况下继续赋予边界或者补白不同的值。Ahhh，那样就好多了！</p>]]></content:encoded>
+		<wfw:commentRSS>http://www.plastiku.com/index.php/183/feed/</wfw:commentRSS>
+	</item>
+		<item>
+		<title>双子所好SilversunPickups</title>
+		<link>http://www.plastiku.com/index.php/182/</link>
+		<comments>http://www.plastiku.com/index.php/182/#comments</comments>
+		<pubDate>Mon, 12 Dec 2005 15:04:11 +0000</pubDate>
+		<dc:creator>Kelet</dc:creator>
+		
+	<dc:subject>音乐虫子/music</dc:subject>
+	<dc:subject>BlogStaff</dc:subject><dc:subject>music</dc:subject><dc:subject>silversunpickups</dc:subject>
+		<guid>http://www.plastiku.com/index.php/182/</guid>
+		<description><![CDATA[<blockquote>她的心里一个声音在喊叫着：请再power一些。</blockquote>
+<p><img src="http://www.threeimaginarygirls.com/silversunbrandon05nov3.jpg" class="left"/>于是翻出不可小看的silversunpickups，当时只是蜻蜓点水（将comeback  kid作为背景音），经过几个月播放率的检验，依旧在我的硬盘占有一席之地。那我就得好好琢磨一下我到底为什么留下他们。比较可笑的是我第一次听他们并没有听出到底是女主音还是男主音。（又想起Kim Gordon的那把迷人嗓音了）渐渐的才发现门道，比较甜美沉静的那个是男声，比较粗糙狂野的那个是女声。好吧，让我接受这个事实，因为不论男女声走的都是我喜欢的路线。他们的<a href="http://www.silversunpickups.com">网站</a>找些线索看得我眼花缭乱，卖相真的不敢恭维。看到女声的主人俨然是个长腿美人，于是双子开始咆哮了：让这错乱来得更猛烈些吧。</p>
+<p>我是个厂牌盲，他们隶属于<a href="http://www.dangerbirdrecords.com/">DangerBirdRecords</a>，但是旗下我并不知道还有其他什么认识的团队，那么就你拟定为下一阶段的研究对象吧。发现根据你喜欢的团队去翻厂牌找自己喜欢的其他东西很省力，这其中的一大原理就跟龙生龙，凤生凤一样的道理，讲究点遗传基因的。</p>
+]]></description>
+		<content:encoded><![CDATA[<blockquote>她的心里一个声音在喊叫着：请再power一些。</blockquote>
+<p><img src="http://www.threeimaginarygirls.com/silversunbrandon05nov3.jpg" class="left"/>于是翻出不可小看的silversunpickups，当时只是蜻蜓点水（将comeback  kid作为背景音），经过几个月播放率的检验，依旧在我的硬盘占有一席之地。那我就得好好琢磨一下我到底为什么留下他们。比较可笑的是我第一次听他们并没有听出到底是女主音还是男主音。（又想起Kim Gordon的那把迷人嗓音了）渐渐的才发现门道，比较甜美沉静的那个是男声，比较粗糙狂野的那个是女声。好吧，让我接受这个事实，因为不论男女声走的都是我喜欢的路线。他们的<a href="http://www.silversunpickups.com">网站</a>找些线索看得我眼花缭乱，卖相真的不敢恭维。看到女声的主人俨然是个长腿美人，于是双子开始咆哮了：让这错乱来得更猛烈些吧。</p>
+<p>我是个厂牌盲，他们隶属于<a href="http://www.dangerbirdrecords.com/">DangerBirdRecords</a>，但是旗下我并不知道还有其他什么认识的团队，那么就你拟定为下一阶段的研究对象吧。发现根据你喜欢的团队去翻厂牌找自己喜欢的其他东西很省力，这其中的一大原理就跟龙生龙，凤生凤一样的道理，讲究点遗传基因的。</p>
+]]></content:encoded>
+		<wfw:commentRSS>http://www.plastiku.com/index.php/182/feed/</wfw:commentRSS>
+	</item>
+		<item>
+		<title>冬日下午的阳光</title>
+		<link>http://www.plastiku.com/index.php/181/</link>
+		<comments>http://www.plastiku.com/index.php/181/#comments</comments>
+		<pubDate>Fri, 09 Dec 2005 17:30:33 +0000</pubDate>
+		<dc:creator>Kelet</dc:creator>
+		
+	<dc:subject>lifeplay</dc:subject>
+		<guid>http://www.plastiku.com/index.php/181/</guid>
+		<description><![CDATA[<p><a href="http://www.flickr.com/photos/nuanc/62044624/"><img src="http://static.flickr.com/25/62044624_b262c5140b_m.jpg" alt="flickr share"/></a>不知为何天气变冷之后，每到下午望着那充沛的阳光，就总会想起大学宿舍没有课的下午，几个人在宿舍聊天或者看书，也是这么暖的阳光。只是地点和人物都不对了。是否会和我一样漂浮起这样的心情呢？仿佛还穿梭在那狭长的走廊,暖暖的阳光让我想起的是你们干燥真诚的笑脸，凌乱仓促的笔记，闪烁金色光芒的头发梢，亲切的口头禅。走进教室你们都还在，回到宿舍你们都还在。</p>
+<blockquote>
+<p>
+不知不觉巳经过了好多年<br />
+我却特别容易想念你<br />
+就让世界因为我停下来<br />
+寻找我们天真的爱<br />
+我们错在以为自已太成熟<br />
+原来原谅好难说出口<br />
+在生命之中只是擦肩而过<br />
+但你对我特别重要<br />
+又过了一个秋天冬天快来<br />
+特别容易想念<br />
+桌上的照片我们羞涩的脸<br />
+从来没有改变</p>
+<p class="quoteinfo"><strong>取了秋天冬天的部分歌词</strong></p>
+</blockquote>
+<embed src="http://218.95.47.91/musicdata/hong/0/666338027/751948989.mp3" autostart="true" loop="true" hidden="false" width="120" height="50"></embed>
+<p>Bgsound:张震岳《秋天冬天》，标题是他的另一首歌曲拿来用着了。比较喜欢张震岳的慢歌，也是震荡形的感动，层层叠叠拖沓而出的几个简单音符串就将你的情绪调拨到最应景的状态。</p>]]></description>
+		<content:encoded><![CDATA[<p><a href="http://www.flickr.com/photos/nuanc/62044624/"><img src="http://static.flickr.com/25/62044624_b262c5140b_m.jpg" alt="flickr share"/></a>不知为何天气变冷之后，每到下午望着那充沛的阳光，就总会想起大学宿舍没有课的下午，几个人在宿舍聊天或者看书，也是这么暖的阳光。只是地点和人物都不对了。是否会和我一样漂浮起这样的心情呢？仿佛还穿梭在那狭长的走廊,暖暖的阳光让我想起的是你们干燥真诚的笑脸，凌乱仓促的笔记，闪烁金色光芒的头发梢，亲切的口头禅。走进教室你们都还在，回到宿舍你们都还在。</p>
+<blockquote>
+<p>
+不知不觉巳经过了好多年<br />
+我却特别容易想念你<br />
+就让世界因为我停下来<br />
+寻找我们天真的爱<br />
+我们错在以为自已太成熟<br />
+原来原谅好难说出口<br />
+在生命之中只是擦肩而过<br />
+但你对我特别重要<br />
+又过了一个秋天冬天快来<br />
+特别容易想念<br />
+桌上的照片我们羞涩的脸<br />
+从来没有改变</p>
+<p class="quoteinfo"><strong>取了秋天冬天的部分歌词</strong></p>
+</blockquote>
+<embed src="http://218.95.47.91/musicdata/hong/0/666338027/751948989.mp3" autostart="true" loop="true" hidden="false" width="120" height="50"></embed>
+<p>Bgsound:张震岳《秋天冬天》，标题是他的另一首歌曲拿来用着了。比较喜欢张震岳的慢歌，也是震荡形的感动，层层叠叠拖沓而出的几个简单音符串就将你的情绪调拨到最应景的状态。</p>]]></content:encoded>
+		<wfw:commentRSS>http://www.plastiku.com/index.php/181/feed/</wfw:commentRSS>
+<enclosure url='http://218.95.47.91/musicdata/hong/0/666338027/751948989.mp3' length='3845406' type='audio/mpeg'/>
+	</item>
+		<item>
+		<title>Think about sonic guitar</title>
+		<link>http://www.plastiku.com/index.php/180/</link>
+		<comments>http://www.plastiku.com/index.php/180/#comments</comments>
+		<pubDate>Sun, 04 Dec 2005 03:50:28 +0000</pubDate>
+		<dc:creator>Kelet</dc:creator>
+		
+	<dc:subject>音乐虫子/music</dc:subject><dc:subject>Grunge</dc:subject><dc:subject>sonicyouth</dc:subject>
+		<guid>http://www.plastiku.com/index.php/180/</guid>
+		<description><![CDATA[<p><img class="left" src="http://grungeriot.no.sapo.pt/sonic_youth.jpg" alt="sonic youth"/>由于Kim Gordon那种沙哑的被腐蚀般性感的声音，所以奉为我最喜欢的女声主唱。至于Thurston拥有一副受欢迎的标准外表，外加他的声音也是持续不老的保持着令人迷恋的标准摇滚腔。（为什么他们的声音都不会老呢？！！）耳种环绕着高密度的吉他旋律，讶异于这样“玩命地”刷着琴弦他们怎么不会累呢，然后仿佛自问自答般找到一个合理解释，为什么有三把吉他呢，大概累的时候还可以轮换一下吧。自我感觉thurston的吉他比较文静一些（只能想到这个词了鉴于他的外貌和一幅誓把shoegazing进行到底的腔调），就算玩花样还是很谦和的；但是Jim就不一样，把琴颠来倒去的很有pose的样子，而且很会照顾台下观众似的。Lee的声音也还不错，但是在如此闪耀的另外两位的声音下实在不太引人注意阿。-_,-</p>
+<blockquote>
+<strong>12月radio全部都是sonic youth,更新如下:</strong>
+<ol>
+<li>01 - Teen Age Riot《 Daydream Nation》</li>
+<li>02 - Silver Rocket《 Daydream Nation》</li>
+<li>03 - Hey Joni《 Daydream Nation》</li>
+<li>04 - Candle《 Daydream Nation》</li>
+<li>05 - Sugar Kane《Dirty》 </li>
+<li> 06 - Starfield Road《Expermental Jet Set 》 </li>
+<li> 07 - Nevermind (What Was It Anyway)《NYC Ghosts &#038; Flowers 》</li>
+<li>08 - NYC Ghosts &#038; Flowers《NYC Ghosts &#038; Flowers 》</li>
+<li>09 - I Love Golden Blue《Sonic Nurse》</li>
+<li>10- Peace Attack《Sonic Nurse》</li>
+</ol>
+</blockquote>
+<p>另：Alien的<a href="http://feeds.feedburner.com/KommSusserTod?m=216">blog</a>上面介绍的A Northern Chorus超赞。也许它的专辑的宣传语可以这么写：for the winter ,for the people in th winter </p>]]></description>
+		<content:encoded><![CDATA[<p><img class="left" src="http://grungeriot.no.sapo.pt/sonic_youth.jpg" alt="sonic youth"/>由于Kim Gordon那种沙哑的被腐蚀般性感的声音，所以奉为我最喜欢的女声主唱。至于Thurston拥有一副受欢迎的标准外表，外加他的声音也是持续不老的保持着令人迷恋的标准摇滚腔。（为什么他们的声音都不会老呢？！！）耳种环绕着高密度的吉他旋律，讶异于这样“玩命地”刷着琴弦他们怎么不会累呢，然后仿佛自问自答般找到一个合理解释，为什么有三把吉他呢，大概累的时候还可以轮换一下吧。自我感觉thurston的吉他比较文静一些（只能想到这个词了鉴于他的外貌和一幅誓把shoegazing进行到底的腔调），就算玩花样还是很谦和的；但是Jim就不一样，把琴颠来倒去的很有pose的样子，而且很会照顾台下观众似的。Lee的声音也还不错，但是在如此闪耀的另外两位的声音下实在不太引人注意阿。-_,-</p>
+<blockquote>
+<strong>12月radio全部都是sonic youth,更新如下:</strong>
+<ol>
+<li>01 - Teen Age Riot《 Daydream Nation》</li>
+<li>02 - Silver Rocket《 Daydream Nation》</li>
+<li>03 - Hey Joni《 Daydream Nation》</li>
+<li>04 - Candle《 Daydream Nation》</li>
+<li>05 - Sugar Kane《Dirty》 </li>
+<li> 06 - Starfield Road《Expermental Jet Set 》 </li>
+<li> 07 - Nevermind (What Was It Anyway)《NYC Ghosts &#038; Flowers 》</li>
+<li>08 - NYC Ghosts &#038; Flowers《NYC Ghosts &#038; Flowers 》</li>
+<li>09 - I Love Golden Blue《Sonic Nurse》</li>
+<li>10- Peace Attack《Sonic Nurse》</li>
+</ol>
+</blockquote>
+<p>另：Alien的<a href="http://feeds.feedburner.com/KommSusserTod?m=216">blog</a>上面介绍的A Northern Chorus超赞。也许它的专辑的宣传语可以这么写：for the winter ,for the people in th winter </p>]]></content:encoded>
+		<wfw:commentRSS>http://www.plastiku.com/index.php/180/feed/</wfw:commentRSS>
+	</item>
+		<item>
+		<title>记得《正午的寺》</title>
+		<link>http://www.plastiku.com/index.php/179/</link>
+		<comments>http://www.plastiku.com/index.php/179/#comments</comments>
+		<pubDate>Sat, 26 Nov 2005 12:48:13 +0000</pubDate>
+		<dc:creator>Kelet</dc:creator>
+		
+	<dc:subject>读文记</dc:subject>
+	<dc:subject>Digest</dc:subject>
+		<guid>http://www.plastiku.com/index.php/179/</guid>
+		<description><![CDATA[<p>偶然再次读到这首，就像遇见多年不见的老友，没有之前刻意的寻找，但是遇见时充满着妙不可言的喜悦。当年摘录的本子早已不见，只记得题目和诗人的名字，以及那烂熟于心的第三段，砰然打中那为成长所迷茫和为学习所累的心，第一次开始为诗歌而感动。
+</p>
+<blockquote><ul>
+<li><strong>《正午的寺》</strong></li>
+<li>                                            阿信</li>
+<li>青草的气息熏人欲酔。玛曲以西</li>
+<li>六只藏身图乎寺壁画上的白兔</li>
+<li>眯缝起眼睛。一小块阴影</li>
+<li>随着赛仓喇嘛</li>
+<li>大脑中早年留下的一点点心病</li>
+<li>在白塔和经堂之间的空地上缓缓移动</li>
+<br />
+<li>当然没有风。铜在出汗经幡扎眼</li>
+<li>石关里一头狮子</li>
+<li>正梦见佛在打盹鹰在睡觉</li>
+<li>野花的香气垂向一个弯曲的午后</li>
+<li>山坡上一匹白马的安静，与寺院金顶</li>
+<li>构成一种让人心虚不已的角度</li>
+<br />
+<li>而拉萨不远，北京和纽约也更其遥远</li>
+<li>触手可及的经卷、巨镬、僧舌，以及</li>
+<li>娜夜的发辫，似乎更远――当那个</li>
+<li>在昏睡中打坐的僧人</li>
+<li>无意间回头看了我一眼</li>
+<br />
+<li>我总得回去。但也不是</li>
+<li>仓皇间的逃亡。当我在山下地溪水旁坐地</li>
+<li>水漫过脚背，总觉得身体中一些很沉的</li>
+<li>东西，已经永远地御在了</li>
+<li>夏日群山的年图乎寺。</li>
+</ul>
+</blockquote>
+<embed src="http://www.plastiku.com/wp-content/nothing_but_the_sky.mp3" autostart="true" loop="true" hidden="false" width="120" height="50"></embed>
+<p>Bgsound: IVY -Nothing but the sky</p>]]></description>
+		<content:encoded><![CDATA[<p>偶然再次读到这首，就像遇见多年不见的老友，没有之前刻意的寻找，但是遇见时充满着妙不可言的喜悦。当年摘录的本子早已不见，只记得题目和诗人的名字，以及那烂熟于心的第三段，砰然打中那为成长所迷茫和为学习所累的心，第一次开始为诗歌而感动。
+</p>
+<blockquote><ul>
+<li><strong>《正午的寺》</strong></li>
+<li>                                            阿信</li>
+<li>青草的气息熏人欲酔。玛曲以西</li>
+<li>六只藏身图乎寺壁画上的白兔</li>
+<li>眯缝起眼睛。一小块阴影</li>
+<li>随着赛仓喇嘛</li>
+<li>大脑中早年留下的一点点心病</li>
+<li>在白塔和经堂之间的空地上缓缓移动</li>
+<br />
+<li>当然没有风。铜在出汗经幡扎眼</li>
+<li>石关里一头狮子</li>
+<li>正梦见佛在打盹鹰在睡觉</li>
+<li>野花的香气垂向一个弯曲的午后</li>
+<li>山坡上一匹白马的安静，与寺院金顶</li>
+<li>构成一种让人心虚不已的角度</li>
+<br />
+<li>而拉萨不远，北京和纽约也更其遥远</li>
+<li>触手可及的经卷、巨镬、僧舌，以及</li>
+<li>娜夜的发辫，似乎更远――当那个</li>
+<li>在昏睡中打坐的僧人</li>
+<li>无意间回头看了我一眼</li>
+<br />
+<li>我总得回去。但也不是</li>
+<li>仓皇间的逃亡。当我在山下地溪水旁坐地</li>
+<li>水漫过脚背，总觉得身体中一些很沉的</li>
+<li>东西，已经永远地御在了</li>
+<li>夏日群山的年图乎寺。</li>
+</ul>
+</blockquote>
+<embed src="http://www.plastiku.com/wp-content/nothing_but_the_sky.mp3" autostart="true" loop="true" hidden="false" width="120" height="50"></embed>
+<p>Bgsound: IVY -Nothing but the sky</p>]]></content:encoded>
+		<wfw:commentRSS>http://www.plastiku.com/index.php/179/feed/</wfw:commentRSS>
+<enclosure url='http://www.plastiku.com/wp-content/nothing_but_the_sky.mp3' length='8709268' type='audio/mpeg'/>
+	</item>
+		<item>
+		<title>第三次接龙</title>
+		<link>http://www.plastiku.com/index.php/178/</link>
+		<comments>http://www.plastiku.com/index.php/178/#comments</comments>
+		<pubDate>Tue, 22 Nov 2005 12:02:20 +0000</pubDate>
+		<dc:creator>Kelet</dc:creator>
+		
+	<dc:subject>小玩意</dc:subject>
+		<guid>http://www.plastiku.com/index.php/178/</guid>
+		<description><![CDATA[<p><a href="http://art.mblogger.cn/aston/posts/83649.aspx#FeedBack">aston</a>的这个接力赛让我第一次开始想了想这个问题。。也许是件好事。
+</p>
+<p><strong>主题：写下八个你理想伴侣的条件。</strong>
+<br />规则照旧是找五个接班人，在文末附上这五个人的链接，并且到这些人的blog上留下：“你被贴了。”这五个被tag到的人，于自己的blog内注明（并附上链接）是从哪个blogger那里受到的邀请。然后写下答案，再去贴另外五个人。如此往复。</p>
+<p>本人在认真思考之后终于拼足八点：
+<ol>
+<li>真诚</li>
+<li>正直</li>
+<li>爱国</li>
+<li>不聒噪</li>
+<li>不多愁善感</li>
+<li>趣味相投</li>
+<li>无异味</li>
+<li>五官还是要端正的吧。。。</li>
+</ol>
+</p>
+<p>接着玩吧，各位：<a href="http://waggle.blogbus.com">waggle</a>，<a href="http://vare.blogone.net"> pukka</a>，<a href="http://www.lazyday.org/blog">懒</a>，<a href="http://ash_deepshen.blogone.net">往往</a>，以及<a href="\">愿意留言在此自爆的你</a></p>]]></description>
+		<content:encoded><![CDATA[<p><a href="http://art.mblogger.cn/aston/posts/83649.aspx#FeedBack">aston</a>的这个接力赛让我第一次开始想了想这个问题。。也许是件好事。
+</p>
+<p><strong>主题：写下八个你理想伴侣的条件。</strong>
+<br />规则照旧是找五个接班人，在文末附上这五个人的链接，并且到这些人的blog上留下：“你被贴了。”这五个被tag到的人，于自己的blog内注明（并附上链接）是从哪个blogger那里受到的邀请。然后写下答案，再去贴另外五个人。如此往复。</p>
+<p>本人在认真思考之后终于拼足八点：
+<ol>
+<li>真诚</li>
+<li>正直</li>
+<li>爱国</li>
+<li>不聒噪</li>
+<li>不多愁善感</li>
+<li>趣味相投</li>
+<li>无异味</li>
+<li>五官还是要端正的吧。。。</li>
+</ol>
+</p>
+<p>接着玩吧，各位：<a href="http://waggle.blogbus.com">waggle</a>，<a href="http://vare.blogone.net"> pukka</a>，<a href="http://www.lazyday.org/blog">懒</a>，<a href="http://ash_deepshen.blogone.net">往往</a>，以及<a href="\">愿意留言在此自爆的你</a></p>]]></content:encoded>
+		<wfw:commentRSS>http://www.plastiku.com/index.php/178/feed/</wfw:commentRSS>
+	</item>
+		<item>
+		<title>导航栏的错位视觉</title>
+		<link>http://www.plastiku.com/index.php/176/</link>
+		<comments>http://www.plastiku.com/index.php/176/#comments</comments>
+		<pubDate>Sat, 19 Nov 2005 06:22:48 +0000</pubDate>
+		<dc:creator>Kelet</dc:creator>
+		
+	<dc:subject>CssStaff</dc:subject>
+	<dc:subject>BlogStaff</dc:subject>
+	<dc:subject>Design</dc:subject>
+		<guid>http://www.plastiku.com/index.php/176/</guid>
+		<description><![CDATA[<p>由于某个错误,突然就改变了我一贯对于导航栏应当工整的观念.无心插柳的我将错就错,所以最终出来的就是某种视觉错位的<a href="http://www.plastiku.com/20051119nav.html">导航栏</a>,或者说当鼠标滑过的时候,它们就仿佛在凹凸的城墙之间与你捉迷藏.其实是挺简单的一个小布局。</p>
+<p>从此扩展出去，如果我们将这个方法用在站点友情链接的布局方式上面，那么我们可以做出一种有别于一般的一个简单链接列表的链接汇集方式出来：将链接数量除以4，得到的那个数字（暂时不考虑余数）就是你每一行链接的数量，然后我们将所有这些横向‘导航条’y向延伸，放在一个div中，那么就可以最终形成一个矩形区域的链接地图，而我们所有要做的改动仅仅是在html中编辑链接而已，css保持原样就ok.(详细请查看该页面源码)</p>
+<p>当然如果你还有什么更好玩的导航样式,大可以加以更多的新奇改造.当把我们司空见惯的属性赋予一种新的图形定义,那么你也许就可以得到让你惊喜风格的导航栏.一直有关注每个好站点的导航设计,很多时候这些看似页面上很小面积的一部分,就完全能体现页面设计上的闪光点出来.已经陆续有搜集不同的站点导航栏，会挑其中比较好的几种进行仿照搭建后将实现过程写点什么</p>]]></description>
+		<content:encoded><![CDATA[<p>由于某个错误,突然就改变了我一贯对于导航栏应当工整的观念.无心插柳的我将错就错,所以最终出来的就是某种视觉错位的<a href="http://www.plastiku.com/20051119nav.html">导航栏</a>,或者说当鼠标滑过的时候,它们就仿佛在凹凸的城墙之间与你捉迷藏.其实是挺简单的一个小布局。</p>
+<p>从此扩展出去，如果我们将这个方法用在站点友情链接的布局方式上面，那么我们可以做出一种有别于一般的一个简单链接列表的链接汇集方式出来：将链接数量除以4，得到的那个数字（暂时不考虑余数）就是你每一行链接的数量，然后我们将所有这些横向‘导航条’y向延伸，放在一个div中，那么就可以最终形成一个矩形区域的链接地图，而我们所有要做的改动仅仅是在html中编辑链接而已，css保持原样就ok.(详细请查看该页面源码)</p>
+<p>当然如果你还有什么更好玩的导航样式,大可以加以更多的新奇改造.当把我们司空见惯的属性赋予一种新的图形定义,那么你也许就可以得到让你惊喜风格的导航栏.一直有关注每个好站点的导航设计,很多时候这些看似页面上很小面积的一部分,就完全能体现页面设计上的闪光点出来.已经陆续有搜集不同的站点导航栏，会挑其中比较好的几种进行仿照搭建后将实现过程写点什么</p>]]></content:encoded>
+		<wfw:commentRSS>http://www.plastiku.com/index.php/176/feed/</wfw:commentRSS>
+	</item>
+	</channel>
+</rss>

@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="gb2312"?>
+<!--
+Source: http://blog.online-edu.org/minjuan/index.rdf
+Expect: GB18030
+-->
+
+<rdf:RDF
+  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+  xmlns:dc="http://purl.org/dc/elements/1.1/"
+  xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+  xmlns:admin="http://webns.net/mvcb/"
+  xmlns:cc="http://web.resource.org/cc/"
+  xmlns="http://purl.org/rss/1.0/">
+
+<channel rdf:about="http://blog.online-edu.org/minjuan/">
+<title>Going Global (大篷车)</title>
+<link>http://blog.online-edu.org/minjuan/</link>
+<description><![CDATA[Life, work, thougts of the moment...what blog is for.</p>
+
+Link to--<a href="http://gingermoon.yourblog.org/">--北美生活边走边唱</a> （文学作品生活故事）。但重点从此转移到这个更学术的博客。<a href="http://gingermoon.multiply.com/photos/album/19">加州生活相册</a>||| <a href="http://www.onlinesjtu.com/yuanfang/">上海交大网志：远方</a> ]]></description>
+<dc:language>en-us</dc:language>
+<dc:creator></dc:creator>
+<dc:date>2005-11-19T16:31:31-05:00</dc:date>
+<admin:generatorAgent rdf:resource="http://www.movabletype.org/?v=3.15" />
+<cc:license rdf:resource="http://creativecommons.org/licenses/by-nd/1.0/" />
+
+
+<items>
+<rdf:Seq><rdf:li rdf:resource="http://blog.online-edu.org/minjuan/#005788" />
+<rdf:li rdf:resource="http://blog.online-edu.org/minjuan/#005787" />
+<rdf:li rdf:resource="http://blog.online-edu.org/minjuan/#005762" />
+<rdf:li rdf:resource="http://blog.online-edu.org/minjuan/#005752" />
+<rdf:li rdf:resource="http://blog.online-edu.org/minjuan/#005652" />
+<rdf:li rdf:resource="http://blog.online-edu.org/minjuan/#005634" />
+<rdf:li rdf:resource="http://blog.online-edu.org/minjuan/#005625" />
+<rdf:li rdf:resource="http://blog.online-edu.org/minjuan/#005615" />
+<rdf:li rdf:resource="http://blog.online-edu.org/minjuan/#005603" />
+<rdf:li rdf:resource="http://blog.online-edu.org/minjuan/#005602" />
+<rdf:li rdf:resource="http://blog.online-edu.org/minjuan/#005601" />
+<rdf:li rdf:resource="http://blog.online-edu.org/minjuan/#005600" />
+<rdf:li rdf:resource="http://blog.online-edu.org/minjuan/#005599" />
+<rdf:li rdf:resource="http://blog.online-edu.org/minjuan/#005572" />
+<rdf:li rdf:resource="http://blog.online-edu.org/minjuan/#005571" />
+</rdf:Seq>
+</items>
+
+</channel>
+
+<item rdf:about="http://blog.online-edu.org/minjuan/#005788">
+<title>卖给公司的万金油</title>
+<link>http://blog.online-edu.org/minjuan/#005788</link>
+<description>摘自：http://learningcircuits.blogspot.com/ We are the Problem: We’re Selling Snake Oil--几个Learning Professionals 的告白。 Sam began with 4 simple, but powerful statements: · Training does not work. · eLearning does not work. · Blending Learning does not work. · Knowledge Management does not work. 整个教育技术领域都面临挑战；因为该发现的都发现了，剩下的就是跟着科技跑，blog, wiki, mobile learning,podcasting...所有中上产阶层才会热衷的东西。做公司培训的人们常常换汤不换药，不断推出新模式把自己包装成专家。目前我最有兴趣的是中国农村的小学教育。为Corporate America 赚钱跟我的人生理念相背。Educational Technologists 应当以让生活学习和别人更美好为目标，而不是卖嘴和卖万金油。...</description>
+<dc:subject></dc:subject>
+<dc:creator>minjuan</dc:creator>
+<dc:date>2005-11-19T16:31:31-05:00</dc:date>
+</item>
+<item rdf:about="http://blog.online-edu.org/minjuan/#005787">
+<title>Blog 研究课题</title>
+<link>http://blog.online-edu.org/minjuan/#005787</link>
+<description>一个很有思想的学生Loret在研究公司对网志的应用。美国公司里不断有人因为写网志被开除；在欧洲人看来，美国没有什么言论自由。我们在温哥华的会议演说全场爆满！虽然科技发展很快，人们对博克的热情不减。毕竟，博克至今使人们表达自己的最好方式。所有适应人性的工具一定会飞翔。她正在看的网志： the support one from Articulate (http://blog.articulate.com/wom/) and the CEO one from SUN (http://blogs.sun.com/roller/page/jonathan). Other alternatives could be from Learning Circuits, Cisco, Google, Quickbooks, or HP: - http://learningcircuits.blogspot.com/- http://www.cisco.com/web/about/gov/blog/index.html- http://googleblog.blogspot.com/ - http://quickbooks_online_blog.typepad.com/blogmain/- http://h71028.www7.hp.com/enterprise/cache/104417-0-0-0-121.aspx...</description>
+<dc:subject></dc:subject>
+<dc:creator>minjuan</dc:creator>
+<dc:date>2005-11-19T16:19:10-05:00</dc:date>
+</item>
+<item rdf:about="http://blog.online-edu.org/minjuan/#005762">
+<title>21st 世纪的学生</title>
+<link>http://blog.online-edu.org/minjuan/#005762</link>
+<description>DON&apos;T BE LEFT IN THE E-DUST （不要被遗落在电子灰尘中） &quot;He sits at the computer with headphones piping music from an iPOD to his ears. Ten different MSN chat windows blink and chime on the computer screen. An online role-playing game is minimized on the Windows taskbar. A music video blares from a...</description>
+<dc:subject></dc:subject>
+<dc:creator>minjuan</dc:creator>
+<dc:date>2005-11-12T15:47:10-05:00</dc:date>
+</item>
+<item rdf:about="http://blog.online-edu.org/minjuan/#005752">
+<title>热门话题：podcasting</title>
+<link>http://blog.online-edu.org/minjuan/#005752</link>
+<description>http://edweb.sdsu.edu/courses/edtec700/pod/ 我们系刚开的一门课，专门看Podcasting的方方面面。 相关资料：http://edweb.sdsu.edu/courses/edtec700/pod/podquest.htm Middle East Geography &amp; Travel Mr. Mayo.org - Podcast #6 Online Literature Websites ACPS: This Day in History Is Fluoride Good for Us? Smart Solutions Episode 2 – First Impressions Podcast Design Elements （设计的方方面面）...</description>
+<dc:subject></dc:subject>
+<dc:creator>minjuan</dc:creator>
+<dc:date>2005-11-11T20:37:09-05:00</dc:date>
+</item>
+<item rdf:about="http://blog.online-edu.org/minjuan/#005652">
+<title>What Makes a Good Teacher</title>
+<link>http://blog.online-edu.org/minjuan/#005652</link>
+<description>好老师的十大特征： 1. Good Teachers Really Want to Be Good Teachers 2. Good Teachers Take Risks 4. Good Teachers Never Have Enough Time 7. Good Teachers Try to Keep Students-And Themselves-Off Balance 9. Good Teachers Do Not Trust Student Evaluations &quot;I have learned that when I am comfortable, complacent, and sure...</description>
+<dc:subject></dc:subject>
+<dc:creator>minjuan</dc:creator>
+<dc:date>2005-10-02T23:50:32-05:00</dc:date>
+</item>
+<item rdf:about="http://blog.online-edu.org/minjuan/#005634">
+<title>Educate Net Generation</title>
+<link>http://blog.online-edu.org/minjuan/#005634</link>
+<description>一本很有启发的书，所有教育者的必读！本书对美国的3代人做了详细比较：Baby boomer (1946-1964); Generation X (1965-1982); Net Generation (1982-1994) 其中的Generation X 最有精神追求也容易过分关注内心，相当于中国70年代的人， 多愁善感。 http://www.educause.edu/ir/library/pdf/pub7101.pdf &quot;The Net Generation has grown up with information technology. The aptitudes, attitudes, expectations, and learning styles of Net Gen students reflect the environment in which they were raised -- one that is decidedly different from that...</description>
+<dc:subject></dc:subject>
+<dc:creator>minjuan</dc:creator>
+<dc:date>2005-09-19T14:11:13-05:00</dc:date>
+</item>
+<item rdf:about="http://blog.online-edu.org/minjuan/#005625">
+<title>The Learner&apos;s Search for Meaning</title>
+<link>http://blog.online-edu.org/minjuan/#005625</link>
+<description>--from Chief Learning Officer 在《〈人类对意义的寻找〉》一书中，Dr. Victor Frankel 描述了人类所必需的维持生存和活动的力量。二战时的集中营里，活下来的是那些从社会，家庭，或者信仰中找到了生存意义的人。 学习也是一样的，先要了解学生（或受培训人员）的个人目标和学习目标， 课程的设计要试图把两者相结合。“To help others find the intersection of personal and organizational meaning that advances the interests of customers, shareholders, and employers.&quot;...</description>
+<dc:subject></dc:subject>
+<dc:creator>minjuan</dc:creator>
+<dc:date>2005-09-13T14:49:49-05:00</dc:date>
+</item>
+<item rdf:about="http://blog.online-edu.org/minjuan/#005615">
+<title>灿烂的大自然</title>
+<link>http://blog.online-edu.org/minjuan/#005615</link>
+<description>去北边的Torre Pines Beach, 先是看到满天的飞鸟，在一片湖边，它们先集合，再 飞散，再集合，仿佛在军训，准备一场鸟类大战。 而后看到灿烂的落日。看海，触摸落阳，对着太阳的舞，太阳舞。那一刻，世界缩 小了，只有我，太平洋，太阳，和拍打着赤脚的海水。 领略了自然的光辉，才有好心情开始这一周的工作；等待下一次跟落日重逢。 http://gingermoon.multiply.com/photos/album/11...</description>
+<dc:subject></dc:subject>
+<dc:creator>minjuan</dc:creator>
+<dc:date>2005-09-06T12:40:19-05:00</dc:date>
+</item>
+<item rdf:about="http://blog.online-edu.org/minjuan/#005603">
+<title>关于教育研究和评估的网路资源</title>
+<link>http://blog.online-edu.org/minjuan/#005603</link>
+<description>http://edweb.sdsu.edu/courses/ed690sp05/TipsEvaluationBC1.htm 我自己的收集；很受学生们欢迎。这年头，谁还去图书馆呢？网上的东西，取之不尽，用之不完。...</description>
+<dc:subject></dc:subject>
+<dc:creator>minjuan</dc:creator>
+<dc:date>2005-09-04T02:36:17-05:00</dc:date>
+</item>
+<item rdf:about="http://blog.online-edu.org/minjuan/#005602">
+<title>远程教学研究方法</title>
+<link>http://blog.online-edu.org/minjuan/#005602</link>
+<description>Ten Efficient Research Strategies For Distance Learning Source: Online Journal of Distance Learning Administration Today&apos;s distance education administrator, frequently with an expertise in another academic discipline, is also supposed to be a distance education scholar. http://www.distance-educator.com/dnews/Article11772.phtml...</description>
+<dc:subject></dc:subject>
+<dc:creator>minjuan</dc:creator>
+<dc:date>2005-09-04T02:10:44-05:00</dc:date>
+</item>
+<item rdf:about="http://blog.online-edu.org/minjuan/#005601">
+<title>独成一体的 Internet Research</title>
+<link>http://blog.online-edu.org/minjuan/#005601</link>
+<description>Internet Research Tracings: Towards Non-Reductionist Methodology Internet research has become a &quot;field&quot; in its own right in the social sciences, already boasting a number of peer-reviewed journals, a plethora of book titles, and an international association that draws hundreds of researchers from across the globe to its annual conference. Full...</description>
+<dc:subject></dc:subject>
+<dc:creator>minjuan</dc:creator>
+<dc:date>2005-09-04T02:08:06-05:00</dc:date>
+</item>
+<item rdf:about="http://blog.online-edu.org/minjuan/#005600">
+<title>不负责任的编辑</title>
+<link>http://blog.online-edu.org/minjuan/#005600</link>
+<description>发表文章是所有学术人的一大任务，或者是我们生活的一部分。Publish or Perish! 这样就养活了一大批杂志和编辑，也给这些编辑一些权威。他们不喜欢你的文章，哭天喊地都没用。大部分编辑还不错，有一些却是些不负责但滥用权威的平庸之辈。 过去一年里，运气不好，遇到两个，一个收到稿子压着不看，差点耽误了杨帆毕业。另一个，要我改很多，在长城改在武汉改，眼睛都直了。结果他把旧的排上去了，又花了我一上午重新编排。 如果我还是个有大把时间的学生，就罢了；偏偏我的青春比他们的粗心值钱。但为了大局，还是忍辱负重。等文章发了，必定写信到杂志社去弹劾他们。有些人，总以为自己是大人物，可以在后辈面前为所欲为。岂不知将来的天下总是后辈的。70年代的人，很快将是社会的中流。连伊索寓言上都是这么说的，老鼠可以杀死大象，千万不要得罪小人物。加州州长都被人们回收了，何况一个小小杂志编辑。我绝不是那种要报复的人，实在看不过，维护一下学术界的公正。事不关己高高挂起的时代已经过去了，不负责任的人，早早晚晚会再影响到你。...</description>
+<dc:subject></dc:subject>
+<dc:creator>minjuan</dc:creator>
+<dc:date>2005-09-03T17:00:30-05:00</dc:date>
+</item>
+<item rdf:about="http://blog.online-edu.org/minjuan/#005599">
+<title>全球教育网设计闪亮登场</title>
+<link>http://blog.online-edu.org/minjuan/#005599</link>
+<description>supported by the OITC Global Education Foundation. 我的学生Brett是好莱坞的录像制作人，不知道他从那里结识了这一批要投资教育的人。Mission: to solve the most critical educational challenges throughout the world. 目标是建一个Portal, 提供课程，学习资料，和各种资源。使用人：全球的老师和学生，以亚洲美国为主。设计投资：80万$$；总投资600万。 我自然成了亚洲方面的联络人，组织了咨询智囊团，交大的申院长，师大的余老师在邀请之列。在北美，做什么事情都要钱，不象中国，大学的实验室就可以作出很多大项目，有大批研究生贡献力量。美国人，很多时候载在形式和小节上，而且有大量资金浪费在筹备和开会上。希望这个项目顺利进行，走向全球！...</description>
+<dc:subject></dc:subject>
+<dc:creator>minjuan</dc:creator>
+<dc:date>2005-09-03T16:47:52-05:00</dc:date>
+</item>
+<item rdf:about="http://blog.online-edu.org/minjuan/#005572">
+<title>圣地亚哥州立大学教育技术系</title>
+<link>http://blog.online-edu.org/minjuan/#005572</link>
+<description>才想起来,还没有给我么系写过网志. 请看: http://edtec.sdsu.edu美国历史最悠久的教育技术系之一,排名前三. 共有八名教授（秋天会招收两名），两个硕士program, 其中一个是网路硕士，学生来自世界各地．三个博士班，正在筹建一个完全网路的博士学位． 课程实际耐用,　桃李遍天下，包括白宫，国会图书馆，交通安全部，海军，诺基亚，和全国很多软件和培训公司． 本系名人: Bernie Dodge, Allison Rossett 位于美国最好的城市：圣地亚哥　（San Diego), America&apos;s Finest City, 海滩，文化，生化工业，和大学．http://www.signonsandiego.com 除了房价赶上旧金山之外，别的都很好．...</description>
+<dc:subject></dc:subject>
+<dc:creator>minjuan</dc:creator>
+<dc:date>2005-08-24T01:36:39-05:00</dc:date>
+</item>
+<item rdf:about="http://blog.online-edu.org/minjuan/#005571">
+<title>E-Learning Conference (October)</title>
+<link>http://blog.online-edu.org/minjuan/#005571</link>
+<description>http://www.aace.org 温哥华，加拿大的明珠之城。我们的演说是: The Use of Blogs in Teaching, Knowledge Management, and Performance Improvement Abstract: The number of web logs (‘blogs’), or online personal journals, is on the rise. While this trend may reflect a human propensity for self-indulgent introspection, it may also be propelled by the many advantages of blogs....</description>
+<dc:subject></dc:subject>
+<dc:creator>minjuan</dc:creator>
+<dc:date>2005-08-24T01:26:30-05:00</dc:date>
+</item>
+
+
+</rdf:RDF>
