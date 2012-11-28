@@ -12,7 +12,7 @@ Example::
 """
 from sys import argv
 
-from chardet.universaldetector import UniversalDetector
+from charade.universaldetector import UniversalDetector
 
 
 def description_of(path):

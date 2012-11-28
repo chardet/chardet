@@ -18,7 +18,7 @@
 __version__ = "1.1"
 
 def detect(aBuf):
-    import universaldetector
+    from charade import universaldetector
     u = universaldetector.UniversalDetector()
     u.reset()
     u.feed(aBuf)
