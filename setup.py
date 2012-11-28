@@ -31,5 +31,5 @@ setup(
         "Topic :: Text Processing :: Linguistic",
     ],
     scripts=['bin/chardetect.py'],
-    packages=['chardet']
+    packages=['charade']
 )
