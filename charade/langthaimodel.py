@@ -25,8 +25,6 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-import constants
-
 # 255: Control characters that usually does not exist in any text
 # 254: Carriage/Return
 # 253: symbol (punctuation) that does not belong to word
@@ -35,7 +33,7 @@ import constants
 # The following result for thai was collected from a limited sample (1M). 
 
 # Character Mapping Table:
-TIS620CharToOrderMap = ( \
+TIS620CharToOrderMap = (
 255,255,255,255,255,255,255,255,255,255,254,255,255,254,255,255,  # 00
 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,  # 10
 253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,  # 20
@@ -60,7 +58,7 @@ TIS620CharToOrderMap = ( \
 # first 1024 sequences:7.3177%
 # rest  sequences:     1.0230%
 # negative sequences:  0.0436% 
-ThaiLangModel = ( \
+ThaiLangModel = (
 0,1,3,3,3,3,0,0,3,3,0,3,3,0,3,3,3,3,3,3,3,3,0,0,3,3,3,0,3,3,3,3,
 0,3,3,0,0,0,1,3,0,3,3,2,3,3,0,1,2,3,3,3,3,0,2,0,2,0,0,3,2,1,2,2,
 3,0,3,3,2,3,0,0,3,3,0,3,3,0,3,3,3,3,3,3,3,3,3,0,3,2,3,0,2,2,2,3,
@@ -191,10 +189,12 @@ ThaiLangModel = ( \
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 )
 
-TIS620ThaiModel = { \
+TIS620ThaiModel = {
   'charToOrderMap': TIS620CharToOrderMap,
   'precedenceMatrix': ThaiLangModel,
   'mTypicalPositiveRatio': 0.926386,
-  'keepEnglishLetter': constants.False,
+  'keepEnglishLetter': False,
   'charsetName': "TIS-620"
 }
+
+# flake8: noqa

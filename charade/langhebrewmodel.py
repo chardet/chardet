@@ -27,8 +27,6 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-import constants
-
 # 255: Control characters that usually does not exist in any text
 # 254: Carriage/Return
 # 253: symbol (punctuation) that does not belong to word
@@ -36,7 +34,7 @@ import constants
 
 # Windows-1255 language model
 # Character Mapping Table:
-win1255_CharToOrderMap = ( \
+win1255_CharToOrderMap = (
 255,255,255,255,255,255,255,255,255,255,254,255,255,254,255,255,  # 00
 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,  # 10
 253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,  # 20
@@ -61,7 +59,7 @@ win1255_CharToOrderMap = ( \
 # first 1024 sequences: 1.5981%
 # rest  sequences:      0.087%
 # negative sequences:   0.0015% 
-HebrewLangModel = ( \
+HebrewLangModel = (
 0,3,3,3,3,3,3,3,3,3,3,2,3,3,3,3,3,3,3,3,3,3,3,2,3,2,1,2,0,1,0,0,
 3,0,3,1,0,0,1,3,2,0,1,1,2,0,2,2,2,1,1,1,1,2,1,1,1,2,0,0,2,2,0,1,
 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,2,2,2,2,
@@ -192,10 +190,12 @@ HebrewLangModel = ( \
 0,0,0,0,0,0,0,0,0,0,1,2,1,0,0,0,0,0,1,1,1,1,1,0,1,0,0,0,1,1,0,0,
 )
 
-Win1255HebrewModel = { \
+Win1255HebrewModel = {
   'charToOrderMap': win1255_CharToOrderMap,
   'precedenceMatrix': HebrewLangModel,
   'mTypicalPositiveRatio': 0.984004,
-  'keepEnglishLetter': constants.False,
+  'keepEnglishLetter': False,
   'charsetName': "windows-1255"
 }
+
+# flake8: noqa

@@ -25,15 +25,13 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-import constants
-
 # 255: Control characters that usually does not exist in any text
 # 254: Carriage/Return
 # 253: symbol (punctuation) that does not belong to word
 # 252: 0 - 9
 
 # Character Mapping Table:
-Latin7_CharToOrderMap = ( \
+Latin7_CharToOrderMap = (
 255,255,255,255,255,255,255,255,255,255,254,255,255,254,255,255,  # 00
 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,  # 10
 253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,  # 20
@@ -52,7 +50,7 @@ Latin7_CharToOrderMap = ( \
   9,  8, 14,  7,  2, 12, 28, 23, 42, 24, 64, 75, 19, 26, 27,253,  # f0
 )
 
-win1253_CharToOrderMap = ( \
+win1253_CharToOrderMap = (
 255,255,255,255,255,255,255,255,255,255,254,255,255,254,255,255,  # 00
 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,  # 10
 253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,  # 20
@@ -77,7 +75,7 @@ win1253_CharToOrderMap = ( \
 # first 1024 sequences:1.7001%
 # rest  sequences:     0.0359%
 # negative sequences:  0.0148% 
-GreekLangModel = ( \
+GreekLangModel = (
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,3,2,2,3,3,3,3,3,3,3,3,1,3,3,3,0,2,2,3,3,0,3,0,3,2,0,3,3,3,0,
@@ -208,18 +206,20 @@ GreekLangModel = ( \
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 )
 
-Latin7GreekModel = { \
-  'charToOrderMap': Latin7_CharToOrderMap,
-  'precedenceMatrix': GreekLangModel,
-  'mTypicalPositiveRatio': 0.982851,
-  'keepEnglishLetter': constants.False,
-  'charsetName': "ISO-8859-7"
+Latin7GreekModel = {
+    'charToOrderMap': Latin7_CharToOrderMap,
+    'precedenceMatrix': GreekLangModel,
+    'mTypicalPositiveRatio': 0.982851,
+    'keepEnglishLetter': False,
+    'charsetName': "ISO-8859-7"
 }
 
-Win1253GreekModel = { \
-  'charToOrderMap': win1253_CharToOrderMap,
-  'precedenceMatrix': GreekLangModel,
-  'mTypicalPositiveRatio': 0.982851,
-  'keepEnglishLetter': constants.False,
-  'charsetName': "windows-1253"
+Win1253GreekModel = {
+    'charToOrderMap': win1253_CharToOrderMap,
+    'precedenceMatrix': GreekLangModel,
+    'mTypicalPositiveRatio': 0.982851,
+    'keepEnglishLetter': False,
+    'charsetName': "windows-1253"
 }
+
+# flake8: noqa
