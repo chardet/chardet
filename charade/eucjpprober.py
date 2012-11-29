@@ -26,7 +26,7 @@
 ######################### END LICENSE BLOCK #########################
 
 import sys
-from charade import constants
+from . import constants
 from .mbcharsetprober import MultiByteCharSetProber
 from .codingstatemachine import CodingStateMachine
 from .chardistribution import EUCJPDistributionAnalysis

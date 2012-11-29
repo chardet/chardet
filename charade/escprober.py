@@ -25,7 +25,7 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-from charade import constants
+from . import constants
 from .escsm import (HZSMModel, ISO2022CNSMModel, ISO2022JPSMModel,
                     ISO2022KRSMModel)
 from .charsetprober import CharSetProber
