@@ -28,8 +28,7 @@
 
 from .charsetprober import CharSetProber
 from .constants import eError, eNotMe
-from functools import reduce
-import operator
+from .compat import wrap_ord
 
 FREQ_CAT_NUM = 4
 
@@ -112,7 +111,7 @@ class Latin1Prober(CharSetProber):
         aBuf = self.filter_with_english_letters(aBuf)
         for c in aBuf:
             try:
-                charClass = Latin1_CharToClass[ord(c)]
+                charClass = Latin1_CharToClass[wrap_ord(c)]
             except IndexError:
                 return eError
             freq = Latin1ClassModel[(self._mLastCharClass * CLASS_NUM)
@@ -129,7 +128,7 @@ class Latin1Prober(CharSetProber):
         if self.get_state() == eNotMe:
             return 0.01
 
-        total = reduce(operator.add, self._mFreqCounter)
+        total = sum(self._mFreqCounter)
         if total < 0.01:
             confidence = 0.0
         else:
