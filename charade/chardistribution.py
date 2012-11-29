@@ -25,7 +25,6 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-from charade import constants
 from .euctwfreq import (EUCTWCharToFreqOrder, EUCTW_TABLE_SIZE,
                         EUCTW_TYPICAL_DISTRIBUTION_RATIO)
 from .euckrfreq import (EUCKRCharToFreqOrder, EUCKR_TABLE_SIZE,
@@ -60,7 +59,7 @@ class CharDistributionAnalysis:
         """reset analyser, clear any state"""
         # If this flag is set to constants.True, detection is done and
         # conclusion has been made
-        self._mDone = constants.False
+        self._mDone = False
         # Total characters encountered
         self._mTotalChars = 0
         # The number of characters whose frequency order is less than 512
