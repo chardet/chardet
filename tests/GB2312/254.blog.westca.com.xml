@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="gb2312" ?><!-- generator="b2evolution/0.8.6.2" -->
+<!--
+Source: http://blog.westca.com/xmlsrv/rdf.php?blog=254
+Expect: GB18030
+-->
+<rdf:RDF xmlns="http://purl.org/rss/1.0/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"         xmlns:admin="http://webns.net/mvcb/" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+<channel rdf:about="http://blog.westca.com/blog_ zhalimuto/index.html">
+  <title>胡不归画廊</title>
+  <link>http://blog.westca.com/blog_ zhalimuto/index.html</link>
+  <description>胡不归画廊</description>
+  <dc:language>zh</dc:language>
+  <admin:generatorAgent rdf:resource="http://b2evolution.net/?v=0.8.6.2"/>
+  <sy:updatePeriod>hourly</sy:updatePeriod>
+  <sy:updateFrequency>1</sy:updateFrequency>
+  <sy:updateBase>2000-01-01T12:00+00:00</sy:updateBase>
+  <items>
+    <rdf:Seq>
+          <rdf:li rdf:resource="http://blog.westca.com/blog_ zhalimuto/p_full/51616.html"/>
+          <rdf:li rdf:resource="http://blog.westca.com/blog_ zhalimuto/p_full/51091.html"/>
+          <rdf:li rdf:resource="http://blog.westca.com/blog_ zhalimuto/p_full/50833.html"/>
+          <rdf:li rdf:resource="http://blog.westca.com/blog_ zhalimuto/p_full/50832.html"/>
+          <rdf:li rdf:resource="http://blog.westca.com/blog_ zhalimuto/p_full/50801.html"/>
+        </rdf:Seq>
+  </items>
+</channel>
+<item rdf:about="http://blog.westca.com/blog_ zhalimuto/p_full/51616.html">
+  <title>不归移民漫画系列：专业工作</title>
+  <link>http://blog.westca.com/blog_ zhalimuto/p_full/51616.html</link>
+  <dc:date>2005-12-27T06:52:52Z</dc:date>
+  <dc:creator>胡不归</dc:creator>
+  <dc:subject>環球華報漫畫連載 Cartoon</dc:subject>
+  <description>
+
+
+</description>
+  <content:encoded><![CDATA[<p><img alt="" src="http://www.bmzw.com/modules/coppermine/albums/userpics/11371/x05_9-05_01_600.jpg" /></p>
+<p><img alt="" src="http://www.bmzw.com/modules/coppermine/albums/userpics/11371/x05_9-05_02_600.jpg" /></p>
+<p><img alt="" src="http://www.bmzw.com/modules/coppermine/albums/userpics/11371/x05_9-05_03_600.jpg" /></p>
+<p><img alt="" src="http://www.bmzw.com/modules/coppermine/albums/userpics/11371/x05_9-05_04_600.jpg" /></p>]]></content:encoded>
+</item>
+<item rdf:about="http://blog.westca.com/blog_ zhalimuto/p_full/51091.html">
+  <title>In your eyes(你的眼神）</title>
+  <link>http://blog.westca.com/blog_ zhalimuto/p_full/51091.html</link>
+  <dc:date>2005-12-21T06:35:13Z</dc:date>
+  <dc:creator>胡不归</dc:creator>
+  <dc:subject>2d Digital painting</dc:subject>
+  <description>It's not the first time that my audiences told me that they like the eyes of the characters in my paintings, 
+it looks like they are telling the story of the characters, of their soul world, 
+yes, that's sth i am always trying to catch in my painting,
+I should admit i am an eyes-fetish, hahah :&#62;&#62;</description>
+  <content:encoded><![CDATA[<p>It's not the first time that my audiences told me that they like the eyes of the characters in my paintings, </p>
+<p>it looks like they are telling the story of the characters, of their soul world, </p>
+<p>yes, that's sth i am always trying to catch in my painting,</p>
+<p>I should admit i am an eyes-fetish, hahah :&#62;&#62;<img alt="" src="http://www.bmzw.com/modules/coppermine/albums/userpics/11371/caucationgirl01.jpg" /></p>]]></content:encoded>
+</item>
+<item rdf:about="http://blog.westca.com/blog_ zhalimuto/p_full/50833.html">
+  <title>Portrait of a man</title>
+  <link>http://blog.westca.com/blog_ zhalimuto/p_full/50833.html</link>
+  <dc:date>2005-12-19T08:14:55Z</dc:date>
+  <dc:creator>胡不归</dc:creator>
+  <dc:subject>2d Digital painting</dc:subject>
+  <description>Another portrait for my coworker, referenced from Sargent's style.
+</description>
+  <content:encoded><![CDATA[<p>Another portrait for my coworker, referenced from Sargent's style.</p>
+<p><img src="http://www.bmzw.com/modules/coppermine/albums/userpics/11371/emman02.jpg" alt="" /></p>]]></content:encoded>
+</item>
+<item rdf:about="http://blog.westca.com/blog_ zhalimuto/p_full/50832.html">
+  <title>不归移民漫画系列：反抗无理</title>
+  <link>http://blog.westca.com/blog_ zhalimuto/p_full/50832.html</link>
+  <dc:date>2005-12-19T08:09:58Z</dc:date>
+  <dc:creator>胡不归</dc:creator>
+  <dc:subject>環球華報漫畫連載 Cartoon</dc:subject>
+  <description>
+
+
+&#160;
+</description>
+  <content:encoded><![CDATA[<p><img src="http://www.bmzw.com/modules/coppermine/albums/userpics/11371/x05_11-12_01_600.jpg" alt="" /></p>
+<p><img src="http://www.bmzw.com/modules/coppermine/albums/userpics/11371/x05_11-12_02_600.jpg" alt="" /></p>
+<p><img src="http://www.bmzw.com/modules/coppermine/albums/userpics/11371/x05_11-12_03_600.jpg" alt="" /></p>
+<p>&#160;</p>
+<p><img src="http://www.bmzw.com/modules/coppermine/albums/userpics/11371/x05_11-12_04_600.jpg" alt="" /></p>]]></content:encoded>
+</item>
+</rdf:RDF>

@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="Big5"?>
+<!--
+Source: http://tw.blog.xubg.com/wp-rss2.php
+Expect: Big5
+-->
+<!-- generator="wordpress/1.2.2" -->
+<rss version="2.0" 
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+>
+
+<channel>
+	<title>綿羊記事本</title>
+	<link>http://tw.blog.xubg.com</link>
+	<description>工作日誌</description>
+	<copyright>Copyright 2005</copyright>
+	<pubDate>Sun, 10 Jul 2005 12:58:57 +0000</pubDate>
+	<generator>http://wordpress.org/?v=1.2.2</generator>
+
+		<item>
+		<title>雙CPU伺服器，安裝RAID 5</title>
+		<link>http://tw.blog.xubg.com/index.php?p=63</link>
+		<comments>http://tw.blog.xubg.com/index.php?p=63#comments</comments>
+		<pubDate>Sat, 09 Jul 2005 03:50:04 +0000</pubDate>
+		
+	<category>系統管理文件</category>		<guid>http://tw.blog.xubg.com/index.php?p=63</guid>
+		<description>最近幫張書憲老師，整理行銷管理系的伺服器
+這台伺服器己經閒置很久了，聽老師說自從一年前Windows系統出問題就放在系辦不使用
+這一台電腦雖然己經三年的前的機器，是宏碁中階伺服器雙cpu的應該還不錯
+原本使用Windows 2000作業系統，那現在要改用Freebsd當作業系統
+先上宏碁的網站查看伺服器支援那些作業系統
+糟糕沒有支援Freebsd只有支援Red Hat linux而己，當然還有其他款的作業系統
+看來可能自己要花很多時間來測試，改用Freebsd絕對是一項大工程
+一拿到機器之後，竟然開不了機就停留在開機bios的畫面
+只得送回原廠檢修，檢修結果主機板與RAM都壞了
+都沒有動到什麼就花了六千元，還好主機版是三年保固，但RAM就過保固
+伺服器出問題修理起來實在不便宜
+終於可以開工囉!!!
+麻煩來了，伺服器使用AIC 7899的RAID Card可支援熱插拔
+這一款的RAID Card很奇怪，明明就一張卡怎麼會有A，B兩個介面
+問一下原廠工程師說這張卡就是這樣，SCSI硬碟要照順序不能跳著插
+而且要進去SCSI卡BIOS內去設定，都設定好才能用
+還好新版的FreeBSD-5.4內建有它的驅動程式，不然就昏倒囉
+伺服器最好都是跑RAID不管是硬體支援或是由軟體模擬都好
+而使用硬體支援的RAID是首選
+RAID設定有RAID0、RAID1、RAID5以及RAID10
+而這個伺服器有4顆36g的SCSI硬碟，使用RAID5最少需要3顆以上的硬碟，以5顆最合適  </description>
+		<wfw:commentRSS>http://tw.blog.xubg.com/wp-commentsrss2.php?p=63</wfw:commentRSS>
+	</item>
+		<item>
+		<title>豆腐&#33050;抽筋</title>
+		<link>http://tw.blog.xubg.com/index.php?p=62</link>
+		<comments>http://tw.blog.xubg.com/index.php?p=62#comments</comments>
+		<pubDate>Sun, 26 Jun 2005 09:24:44 +0000</pubDate>
+		
+	<category>心情隨手記</category>		<guid>http://tw.blog.xubg.com/index.php?p=62</guid>
+		<description>這幾天的天氣變化很大
+而且雨下不停，很多地方都淹水
+雨一直下心裡也覺得煩，非常不方便只能待在家裡
+所以都沒帶我家豆腐跑步，相信他也會覺得煩
+剛好晚上雨有稍稍停歇，趁著這個機會就帶他去跑步
+一出門豆腐好高興我都快拉不住了，變成他拉著我跑
+平常跑一下就開始東聞聞西看看的順便留下氣味
+今天反常就一直跑一直跑，還是固定一樣的行程
+到媽祖廟拜拜之後折返回來
+在跑步時，他都會固定尿尿留下味道
+平時他尿尿都不會抬&amp;#33050;\，最近他學到壞習慣了
+我妺說我家豆腐是貴族狗，不能像野狗一樣跟著抬&amp;#33050;\尿尿
+只要抬&amp;#33050;\尿尿就要糾正它，要跟它說不行
+豆腐怕被打所以幾次之後就不太敢，但它尿尿有時候都會偷偷抬&amp;#33050;\
+所以一看到它抬那一隻&amp;#33050;\就打那一隻，讓它不要學壞
+所以它尿尿都會注意看著我怕我打他
+有時候會偷偷的跟我唱反調，故意趁著我不注意時還是會偷偷的做
+不時偷瞄我注意我有沒有在看它，沒有就很迅速抬一下
+今天不曉得是不是太久沒有跑步還是太緊張
+豆腐一樣偷偷抬起來尿尿，卻&amp;#33050;\抽筋
+後&amp;#33050;\抖著抖著，邊抖邊跳
+一直用眼睛餘光瞄著我，怕我發現又打他
+當時真是太好笑，就這樣一路上抖著抖著抖回家
+拉不拉多真的很會搞笑可能太聰明了吧~~我想
+爆笑的豆腐  </description>
+		<wfw:commentRSS>http://tw.blog.xubg.com/wp-commentsrss2.php?p=62</wfw:commentRSS>
+	</item>
+		<item>
+		<title>小護士懷孕了</title>
+		<link>http://tw.blog.xubg.com/index.php?p=61</link>
+		<comments>http://tw.blog.xubg.com/index.php?p=61#comments</comments>
+		<pubDate>Wed, 22 Jun 2005 08:56:45 +0000</pubDate>
+		
+	<category>雜記</category>		<guid>http://tw.blog.xubg.com/index.php?p=61</guid>
+		<description>今天陪阿嬤是橋頭診所看醫生
+最近天氣變化真大，好多人去看病
+剛好小護士今天有值班，看見她穿著孕婦服在忙
+我想應該懷孕了，肚子都大的看的出來
+趁著她工作空檔時去跟她聊聊天順便恭喜她
+才知道己經六個月囉
+她還問我會不會變的很胖或很腫
+要當媽媽的人還是很在意身材
+只要是女生大概都會很在意吧，愛美的媽媽
+現在看到她懷孕了，覺得很替她高興
+之前心酸酸的感覺一點都不存在
+反而現在覺得更應該恭喜祝福她，看她這樣心理也會跟著高興
+希望我的朋友都能過的快快樂樂的  </description>
+		<wfw:commentRSS>http://tw.blog.xubg.com/wp-commentsrss2.php?p=61</wfw:commentRSS>
+	</item>
+		<item>
+		<title>口試通過</title>
+		<link>http://tw.blog.xubg.com/index.php?p=60</link>
+		<comments>http://tw.blog.xubg.com/index.php?p=60#comments</comments>
+		<pubDate>Sun, 19 Jun 2005 04:32:59 +0000</pubDate>
+		
+	<category>心情隨手記</category>		<guid>http://tw.blog.xubg.com/index.php?p=60</guid>
+		<description>口試時間安排在6月17日
+請來在學界有名氣的大牌老師擔任口試委員
+包含本身的指導教授，這三個老師都是計中主任
+成大賴溪松老師、高師大楊中皇老師還有指導我的鄭進興老師
+從去年12月底時老師就告誡我，要好好的準備
+可是我實在太混了，直到口試前二天才將論文的初稿寫好
+親自送給口試老師，向口試老師去致歉
+並且前一天晚上才向老師先預演口試報告內容
+一切過程都很驚險的才完成整個論文口試報告
+當天口試結束老師發脾氣，大大的念了我一頓
+雖然口氣還是很平緩，但我知道老師真的很生氣
+口試能過關真的是老師護航，感謝老師教導
+我會好好檢討修正自己的錯誤，改進缺點  </description>
+		<wfw:commentRSS>http://tw.blog.xubg.com/wp-commentsrss2.php?p=60</wfw:commentRSS>
+	</item>
+		<item>
+		<title>產生LDAP的Log檔</title>
+		<link>http://tw.blog.xubg.com/index.php?p=59</link>
+		<comments>http://tw.blog.xubg.com/index.php?p=59#comments</comments>
+		<pubDate>Sat, 21 May 2005 07:51:43 +0000</pubDate>
+		
+	<category>系統管理文件</category>		<guid>http://tw.blog.xubg.com/index.php?p=59</guid>
+		<description>LDAP是個目錄服務，全名是LDAP(Lightweight Directory Access Protocol)輕量級目錄存取協定
+這是個強大的帳號整合機制，非常好用
+但不太好搞定，最好是看書來學習
+設定的結果不管如何，一定系統要產生log檔
+不然出現錯誤，也不知道錯在那裡，連要改就不知從何下手
+設定log檔方法有三個要注意：
+1、編輯/etc/syslog.conf，加入一行local4.* /var/log/slapd.log
+2、再建立slapd.log檔，指令'touch /var/log/slapd.log'
+3、編輯/etc/newsyslog.conf，加入一行 '/var/log/slapd.log 640 7 * @T00 J' ，讓它能每天產生log檔  </description>
+		<wfw:commentRSS>http://tw.blog.xubg.com/wp-commentsrss2.php?p=59</wfw:commentRSS>
+	</item>
+		<item>
+		<title>尋找指令-find</title>
+		<link>http://tw.blog.xubg.com/index.php?p=58</link>
+		<comments>http://tw.blog.xubg.com/index.php?p=58#comments</comments>
+		<pubDate>Sun, 15 May 2005 19:53:52 +0000</pubDate>
+		
+	<category>系統管理文件</category>		<guid>http://tw.blog.xubg.com/index.php?p=58</guid>
+		<description>這是非常好用的一個指令，可以尋找檔案或目錄都可以
+平時使用時常搭配(＊)萬用字
+Linux：
+find / -name auth*
+FreeBSD：
+find / -name auth\\*
+兩個參數稍微不同  </description>
+		<wfw:commentRSS>http://tw.blog.xubg.com/wp-commentsrss2.php?p=58</wfw:commentRSS>
+	</item>
+		<item>
+		<title>第二階段審查沒通過，落選了</title>
+		<link>http://tw.blog.xubg.com/index.php?p=57</link>
+		<comments>http://tw.blog.xubg.com/index.php?p=57#comments</comments>
+		<pubDate>Wed, 11 May 2005 07:15:47 +0000</pubDate>
+		
+	<category>心情隨手記</category>
+	<category>財務記事本</category>		<guid>http://tw.blog.xubg.com/index.php?p=57</guid>
+		<description>這次參加學校的百萬築夢計畫，沒有通過落選了
+歸納原因有兩大類：
+第一個自己準備不夠，在過程中沒有好好的清楚交待說明整個的目的及執行方法。
+第二個態度太輕忽，以為自己目標是公益不是為個人，就以為評審會給好的評價。
+沒想到這本來就是以個人為主的築夢計畫沒有所謂的為公益就較吃香。所以在審查上並不會另眼相看，這實在是自己輕忽的地方。
+需要再檢討失敗原因，自己還要思考如何改進
+失敗對我個人來說沒有什麼關係，只是辜負了別人對我的期望
+還有失去了讓這個公益計畫，對外曝光的絕佳的好機會
+自己真的是要好好檢討再檢討。
+事實上要完成這個計畫，本來就是一件很困難的事，別人質詢你的能力懷疑你的動機都是可能的
+要如何來說服別人來相信你的做這件事真的是為公益，也能確實完成？
+在這件事上我真的失敗了，我天真的以為是公益計畫，評審也會認同才是
+事實上高知識份子的他們是很難想像到，這是必要必須的
+因為他們可能一輩子都沒有缺過錢，完全體會不到。
+也沒見過真實的可憐的例子，很難叫他們相信在這社會上確實有這種需要幫助的人，而這樣的人還不少
+我所做的計畫它確實是能幫一些升斗小民渡過難關的
+我還沒上台報告之前，都在考慮是不是要走悲情風格來突顯特色
+而最後放棄用這種悲情式，覺得應該是以專業證明我們的team的能力
+以為如果有仔細看提供的書面資料就知道team的努力及作法，是可行的，而針對未來的不確定因素不敢說是己有完整的配套措施，因為金融產品變化太大。但我們是個team會一起來想辦法解決，絕對可以避免因一個人的因素走入死胡同而不自覺。
+但事實上我錯了，評審還是會吃這一套。
+哭就對了，不管怎樣至少會加分證明自己的堅持
+對不起大家，對不起team成員對我的期望
+因為我輕忽，讓公益計畫失去了一個絕佳可以增加知名度的機會
+對不起今天特別鬱悶，平時也常為了project也碰不少釘子
+都能以平常心看到待它，很奇怪今天特別煩心，應該是我對它有所期望吧  </description>
+		<wfw:commentRSS>http://tw.blog.xubg.com/wp-commentsrss2.php?p=57</wfw:commentRSS>
+	</item>
+		<item>
+		<title>project己通過第一階段審查</title>
+		<link>http://tw.blog.xubg.com/index.php?p=56</link>
+		<comments>http://tw.blog.xubg.com/index.php?p=56#comments</comments>
+		<pubDate>Wed, 04 May 2005 10:40:09 +0000</pubDate>
+		
+	<category>財務記事本</category>		<guid>http://tw.blog.xubg.com/index.php?p=56</guid>
+		<description>公益計畫，通過初選了
+心中真的很高興，只要給我報告的機會
+相信我就會得到支援，因為計畫是為了公益、為了大眾，不是為了我自己
+當然我還要自己先預演如何報告，要先演練過
+不要到時候面對審查委員，手忙腳亂就不好了
+平時找資源協助，就常常碰釘子
+好不容易有這個機會，當然要好好爭取
+主要如果成功\會有二十萬的經費可以使用，這筆錢雖然不多但不無小補
+還有一個更重要的，就是可以透過學校召開的記者會來增加公益網站的知名度能夠幫更多的有需要的人  </description>
+		<wfw:commentRSS>http://tw.blog.xubg.com/wp-commentsrss2.php?p=56</wfw:commentRSS>
+	</item>
+		<item>
+		<title>重新載入DNS</title>
+		<link>http://tw.blog.xubg.com/index.php?p=55</link>
+		<comments>http://tw.blog.xubg.com/index.php?p=55#comments</comments>
+		<pubDate>Wed, 04 May 2005 09:05:15 +0000</pubDate>
+		
+	<category>系統管理文件</category>		<guid>http://tw.blog.xubg.com/index.php?p=55</guid>
+		<description>原本架構是單一主機來管理Domain
+現在多了一台主機來share，也減少原本主機負擔
+把FreeBSD的主機加入來，原來的主機多加了張網路卡
+變成二個網域做區隔，一個對外一個對內
+管理起來也比較簡單，重新再設定DNS
+將Domain指向FreeBSD  </description>
+		<wfw:commentRSS>http://tw.blog.xubg.com/wp-commentsrss2.php?p=55</wfw:commentRSS>
+	</item>
+		<item>
+		<title>朋友的關懷</title>
+		<link>http://tw.blog.xubg.com/index.php?p=54</link>
+		<comments>http://tw.blog.xubg.com/index.php?p=54#comments</comments>
+		<pubDate>Wed, 04 May 2005 05:39:59 +0000</pubDate>
+		
+	<category>心情隨手記</category>		<guid>http://tw.blog.xubg.com/index.php?p=54</guid>
+		<description>好久不見的朋友最近剛好回高雄
+趁這個機會他約了我們幾個朋友去吃蝦子
+感覺真的不錯，好久沒有出去跟朋友聊天聚會
+星期五晚上十點多，四個人一起去吃吃喝喝
+談到個自的發展都不錯，只有我還沒什麼成就
+朋友們也會幫我想想辦法，看能不能幫的上我什麼忙，真的很感謝
+這些朋友是在我退伍後，去樹德上資料庫設計班所認識的，是同一組的組員
+他們現在發展都很棒，我現在還要再努力趕快將論文寫好以及計畫順利推動
+順利畢業其他的再說，以研究所畢業為先  </description>
+		<wfw:commentRSS>http://tw.blog.xubg.com/wp-commentsrss2.php?p=54</wfw:commentRSS>
+	</item>
+	</channel>
+</rss>
