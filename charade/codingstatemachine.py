@@ -25,7 +25,8 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-from constants import eStart, eError, eItsMe
+from .constants import eStart, eError
+
 
 class CodingStateMachine:
     def __init__(self, sm):
@@ -47,8 +48,11 @@ class CodingStateMachine:
         if self._mCurrentState == eStart:
             self._mCurrentBytePos = 0
             self._mCurrentCharLen = self._mModel['charLenTable'][byteCls]
+
         # from byte's class and stateTable, we get its next state
-        self._mCurrentState = self._mModel['stateTable'][self._mCurrentState * self._mModel['classFactor'] + byteCls]
+        next_state = (self._mCurrentState + self._mModel['classFactor'] +
+                      byteCls)
+        self._mCurrentState = self._mModel['stateTable'][next_state]
         self._mCurrentBytePos += 1
         return self._mCurrentState
 
