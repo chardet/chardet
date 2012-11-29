@@ -28,8 +28,9 @@ class TestCase(unittest.TestCase):
                 break
         u.close()
         self.assertEqual(u.result['encoding'].lower(), self.encoding,
-                         "Expected %s, but got %r in %s" % (
-                self.encoding, u.result, self.file_name))  # nopep8
+                         "Expected %s, but got %r in %s" %
+                         (self.encoding, u.result['encoding'],
+                          self.file_name))
 
 
 def main():
