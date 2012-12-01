@@ -121,8 +121,9 @@ class EUCTWDistributionAnalysis(CharDistributionAnalysis):
         #   first  byte range: 0xc4 -- 0xfe
         #   second byte range: 0xa1 -- 0xfe
         # no validation needed here. State machine has done that
-        if aStr[0] >= '\xC4':
-            return 94 * (wrap_ord(aStr[0]) - 0xC4) + wrap_ord(aStr[1]) - 0xA1
+        first_char, second_char = wrap_ord(aStr[0]), wrap_ord(aStr[1])
+        if first_char >= 0xC4:
+            return 94 * (first_char - 0xC4) + second_char - 0xA1
         else:
             return -1
 
@@ -139,8 +140,9 @@ class EUCKRDistributionAnalysis(CharDistributionAnalysis):
         #   first  byte range: 0xb0 -- 0xfe
         #   second byte range: 0xa1 -- 0xfe
         # no validation needed here. State machine has done that
-        if aStr[0] >= '\xB0':
-            return 94 * (wrap_ord(aStr[0]) - 0xB0) + wrap_ord(aStr[1]) - 0xA1
+        first_char, second_char = wrap_ord(aStr[0]), wrap_ord(aStr[1])
+        if first_char >= 0xB0:
+            return 94 * (first_char - 0xB0) + second_char - 0xA1
         else:
             return -1
 
@@ -157,8 +159,9 @@ class GB2312DistributionAnalysis(CharDistributionAnalysis):
         #  first  byte range: 0xb0 -- 0xfe
         #  second byte range: 0xa1 -- 0xfe
         # no validation needed here. State machine has done that
-        if (aStr[0] >= '\xB0') and (aStr[1] >= '\xA1'):
-            return 94 * (wrap_ord(aStr[0]) - 0xB0) + wrap_ord(aStr[1]) - 0xA1
+        first_char, second_char = wrap_ord(aStr[0]), wrap_ord(aStr[1])
+        if (first_char >= 0xB0) and (second_char >= 0xA1):
+            return 94 * (first_char - 0xB0) + second_char - 0xA1
         else:
             return -1
 
@@ -175,13 +178,12 @@ class Big5DistributionAnalysis(CharDistributionAnalysis):
         #   first  byte range: 0xa4 -- 0xfe
         #   second byte range: 0x40 -- 0x7e , 0xa1 -- 0xfe
         # no validation needed here. State machine has done that
-        if aStr[0] >= '\xA4':
-            if aStr[1] >= '\xA1':
-                return (157 * (wrap_ord(aStr[0]) - 0xA4) + wrap_ord(aStr[1])
-                        - 0xA1 + 63)
+        first_char, second_char = wrap_ord(aStr[0]), wrap_ord(aStr[1])
+        if first_char >= 0xA4:
+            if second_char >= 0xA1:
+                return (157 * (first_char - 0xA4) + second_char - 0xA1 + 63)
             else:
-                return (157 * (wrap_ord(aStr[0]) - 0xA4) + wrap_ord(aStr[1])
-                        - 0x40)
+                return (157 * (first_char - 0xA4) + second_char - 0x40)
         else:
             return -1
 
@@ -198,14 +200,16 @@ class SJISDistributionAnalysis(CharDistributionAnalysis):
         #   first  byte range: 0x81 -- 0x9f , 0xe0 -- 0xfe
         #   second byte range: 0x40 -- 0x7e,  0x81 -- oxfe
         # no validation needed here. State machine has done that
-        if (aStr[0] >= '\x81') and (aStr[0] <= '\x9F'):
-            order = 188 * (wrap_ord(aStr[0]) - 0x81)
-        elif (aStr[0] >= '\xE0') and (aStr[0] <= '\xEF'):
-            order = 188 * (wrap_ord(aStr[0]) - 0xE0 + 31)
+        first_char = wrap_ord(aStr[0])
+        if 0x81 <= first_char <= 0x9F:
+            order = 188 * (first_char - 0x81)
+        elif 0xE0 <= first_char <= 0xEF:
+            order = 188 * (first_char - 0xE0 + 31)
         else:
             return -1
-        order = order + wrap_ord(aStr[1]) - 0x40
-        if aStr[1] > '\x7F':
+        second_char = wrap_ord(aStr[1])
+        order = order + second_char - 0x40
+        if second_char > 0x7F:
             order = -1
         return order
 
@@ -222,7 +226,8 @@ class EUCJPDistributionAnalysis(CharDistributionAnalysis):
         #   first  byte range: 0xa0 -- 0xfe
         #   second byte range: 0xa1 -- 0xfe
         # no validation needed here. State machine has done that
-        if aStr[0] >= '\xA0':
-            return 94 * (wrap_ord(aStr[0]) - 0xA1) + wrap_ord(aStr[1]) - 0xa1
+        first_char, second_char = wrap_ord(aStr[0]), wrap_ord(aStr[1])
+        if first_char >= 0xA0:
+            return 94 * (first_char - 0xA1) + second_char - 0xa1
         else:
             return -1

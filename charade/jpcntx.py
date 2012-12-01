@@ -521,8 +521,7 @@ class SJISContextAnalysis(JapaneseContextAnalysis):
         # find out current char's byte length
         char = wrap_ord(aStr[0])
         try:
-            if (((char >= 0x81) and (char <= 0x9F)) or
-               ((char >= 0xE0) and (char <= 0xFC))):
+            if ((0x81 <= char <= 0x9F) or (0xE0 <= char <= 0xFC)):
                 charLen = 2
             else:
                 charLen = 1
