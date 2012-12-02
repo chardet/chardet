@@ -182,29 +182,6 @@ class SJISDistributionAnalysis(CharDistributionAnalysis):
             order =- 1
         return order
 
-class CP932DistributionAnalysis(CharDistributionAnalysis):
-    def __init__(self):
-        CharDistributionAnalysis.__init__(self)
-        self._mCharToFreqOrder = JISCharToFreqOrder
-        self._mTableSize = JIS_TABLE_SIZE
-        self._mTypicalDistributionRatio = JIS_TYPICAL_DISTRIBUTION_RATIO
-
-    def get_order(self, aStr):
-        # for sjis encoding, we are interested 
-        #   first  byte range: 0x81 -- 0x9f , 0xe0 -- 0xfe
-        #   second byte range: 0x40 -- 0x7e,  0x81 -- oxfe
-        # no validation needed here. State machine has done that
-        if (aStr[0] >= '\x81') and (aStr[0] <= '\x9F'):
-            order = 188 * (ord(aStr[0]) - 0x81)
-        elif (aStr[0] >= '\xE0') and (aStr[0] <= '\xEF'):
-            order = 188 * (ord(aStr[0]) - 0xE0 + 31)
-        else:
-            return -1;
-        order = order + ord(aStr[1]) - 0x40
-        if aStr[1] > '\x7F':
-            order =- 1
-        return order
-
 class EUCJPDistributionAnalysis(CharDistributionAnalysis):
     def __init__(self):
         CharDistributionAnalysis.__init__(self)
