@@ -170,6 +170,12 @@ class JapaneseContextAnalysis:
         return -1, 1
 
 class SJISContextAnalysis(JapaneseContextAnalysis):
+    def __init__(self):
+        self.charset_name = "SHIFT_JIS"
+
+    def get_charset_name(self):
+        return self.charset_name
+
     def get_order(self, aStr):
         if not aStr: return -1, 1
         # find out current char's byte length
@@ -177,6 +183,9 @@ class SJISContextAnalysis(JapaneseContextAnalysis):
             if ((aStr[0] >= '\x81') and (aStr[0] <= '\x9F')) or \
                ((aStr[0] >= '\xE0') and (aStr[0] <= '\xFC')):
                 charLen = 2
+                if (aStr[0] == '\x87') or \
+                   ((aStr[0] >= '\xFA') and (aStr[0] <= '\xFC')):
+                   self.charset_name = "CP932"
             else:
                 charLen = 1
         except UnicodeDecodeError:
