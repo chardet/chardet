@@ -57,10 +57,9 @@ class CharSetGroupProber(CharSetProber):
 
     def feed(self, aBuf):
         for prober in self._mProbers:
-            if not prober:
+            if not prober or not prober.active:
                 continue
-            if not prober.active:
-                continue
+
             st = prober.feed(aBuf)
             if not st:
                 continue
@@ -88,8 +87,8 @@ class CharSetGroupProber(CharSetProber):
                 continue
             if not prober.active:
                 if constants._debug:
-                    sys.stderr.write(prober.get_charset_name() + ' not '
-                                     'active\n')
+                    sys.stderr.write(prober.get_charset_name() +
+                                     ' not active\n')
                 continue
             cf = prober.get_confidence()
             if constants._debug:

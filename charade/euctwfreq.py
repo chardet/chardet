@@ -13,12 +13,12 @@
 # modify it under the terms of the GNU Lesser General Public
 # License as published by the Free Software Foundation; either
 # version 2.1 of the License, or (at your option) any later version.
-# 
+#
 # This library is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
@@ -43,7 +43,7 @@
 
 EUCTW_TYPICAL_DISTRIBUTION_RATIO = 0.75
 
-# Char to FreqOrder table , 
+# Char to FreqOrder table ,
 EUCTW_TABLE_SIZE = 8102
 
 EUCTWCharToFreqOrder = ( \
@@ -424,3 +424,5 @@ EUCTWCharToFreqOrder = ( \
 8694,8695,8696,8697,8698,8699,8700,8701,8702,8703,8704,8705,8706,8707,8708,8709, # 8710
 8710,8711,8712,8713,8714,8715,8716,8717,8718,8719,8720,8721,8722,8723,8724,8725, # 8726
 8726,8727,8728,8729,8730,8731,8732,8733,8734,8735,8736,8737,8738,8739,8740,8741) # 8742
+
+# flake8: noqa

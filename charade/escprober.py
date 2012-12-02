@@ -30,6 +30,7 @@ from .escsm import (HZSMModel, ISO2022CNSMModel, ISO2022JPSMModel,
                     ISO2022KRSMModel)
 from .charsetprober import CharSetProber
 from .codingstatemachine import CodingStateMachine
+from .compat import wrap_ord
 
 
 class EscCharSetProber(CharSetProber):
@@ -69,7 +70,7 @@ class EscCharSetProber(CharSetProber):
                     continue
                 if not codingSM.active:
                     continue
-                codingState = codingSM.next_state(c)
+                codingState = codingSM.next_state(wrap_ord(c))
                 if codingState == constants.eError:
                     codingSM.active = False
                     self._mActiveSM -= 1

@@ -35,14 +35,14 @@
 #
 # Idea Distribution Ratio = 0.98653 / (1-0.98653) = 73.24
 # Random Distribution Ration = 512 / (2350-512) = 0.279.
-# 
-# Typical Distribution Ratio  
+#
+# Typical Distribution Ratio
 
 EUCKR_TYPICAL_DISTRIBUTION_RATIO = 6.0
 
 EUCKR_TABLE_SIZE = 2352
 
-# Char to FreqOrder table , 
+# Char to FreqOrder table ,
 EUCKRCharToFreqOrder = ( \
   13, 130, 120,1396, 481,1719,1720, 328, 609, 212,1721, 707, 400, 299,1722,  87,
 1397,1723, 104, 536,1117,1203,1724,1267, 685,1268, 508,1725,1726,1727,1728,1398,
@@ -592,3 +592,5 @@ EUCKRCharToFreqOrder = ( \
 8704,8705,8706,8707,8708,8709,8710,8711,8712,8713,8714,8715,8716,8717,8718,8719,
 8720,8721,8722,8723,8724,8725,8726,8727,8728,8729,8730,8731,8732,8733,8734,8735,
 8736,8737,8738,8739,8740,8741)
+
+# flake8: noqa

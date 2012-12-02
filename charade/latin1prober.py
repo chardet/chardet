@@ -82,7 +82,7 @@ Latin1_CharToClass = (
 # 2 : normal
 # 3 : very likely
 Latin1ClassModel = (
-  # UDF OTH ASC ASS ACV ACO ASV ASO
+    # UDF OTH ASC ASS ACV ACO ASV ASO
     0,  0,  0,  0,  0,  0,  0,  0,  # UDF
     0,  3,  3,  3,  3,  3,  3,  3,  # OTH
     0,  3,  3,  3,  3,  3,  3,  3,  # ASC

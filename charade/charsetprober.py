@@ -26,7 +26,7 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-from . import constants
+from .constants import eDetecting
 import re
 
 
@@ -35,7 +35,7 @@ class CharSetProber:
         pass
 
     def reset(self):
-        self._mState = constants.eDetecting
+        self._mState = eDetecting
 
     def get_charset_name(self):
         return None
