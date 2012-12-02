@@ -26,16 +26,13 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-import sys
 from . import constants
+import sys
 from .latin1prober import Latin1Prober  # windows-1252
 from .mbcsgroupprober import MBCSGroupProber  # multi-byte character sets
 from .sbcsgroupprober import SBCSGroupProber  # single-byte character sets
 from .escprober import EscCharSetProber  # ISO-2122, etc.
 import re
-import logging
-
-logger = logging.getLogger(__name__)
 
 MINIMUM_THRESHOLD = 0.20
 ePureAscii = 0
@@ -65,6 +62,10 @@ class UniversalDetector:
 
     def feed(self, aBuf):
         if self.done:
+            return
+
+        aLen = len(aBuf)
+        if not aLen:
             return
 
         if not self._mGotData:
@@ -117,7 +118,7 @@ class UniversalDetector:
             if self._mEscCharSetProber.feed(aBuf) == constants.eFoundIt:
                 self.result = {
                     'encoding': self._mEscCharSetProber.get_charset_name(),
-                    'confidence': self._mEscCharSetProber.get_confidence(),
+                    'confidence': self._mEscCharSetProber.get_confidence()
                 }
                 self.done = True
         elif self._mInputState == eHighbyte:
@@ -125,14 +126,11 @@ class UniversalDetector:
                 self._mCharSetProbers = [MBCSGroupProber(), SBCSGroupProber(),
                                          Latin1Prober()]
             for prober in self._mCharSetProbers:
-                try:
-                    if prober.feed(aBuf) == constants.eFoundIt:
-                        self.result = {'encoding': prober.get_charset_name(),
-                                       'confidence': prober.get_confidence()}
-                        self.done = True
-                        break
-                except (UnicodeDecodeError, UnicodeEncodeError) as e:
-                    logger.exception(e)
+                if prober.feed(aBuf) == constants.eFoundIt:
+                    self.result = {'encoding': prober.get_charset_name(),
+                                   'confidence': prober.get_confidence()}
+                    self.done = True
+                    break
 
     def close(self):
         if self.done:

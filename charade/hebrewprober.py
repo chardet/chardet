@@ -163,8 +163,8 @@ class HebrewProber(CharSetProber):
         self._mFinalCharLogicalScore = 0
         self._mFinalCharVisualScore = 0
         # The two last characters seen in the previous buffer,
-        # mPrev and mBeforePrev are initialized to space in order to simulate a
-        # word delimiter at the beginning of the data
+        # mPrev and mBeforePrev are initialized to space in order to simulate
+        # a word delimiter at the beginning of the data
         self._mPrev = ' '
         self._mBeforePrev = ' '
         # These probers are owned by the group prober.
@@ -196,8 +196,8 @@ class HebrewProber(CharSetProber):
         # or visual Hebrew.
         # The following cases are checked:
         # 1) A word longer than 1 letter, ending with a final letter. This is
-        # an indication that the text is laid out "naturally" since the final
-        # letter really appears at the end. +1 for logical score.
+        #    an indication that the text is laid out "naturally" since the
+        #    final letter really appears at the end. +1 for logical score.
         # 2) A word longer than 1 letter, ending with a Non-Final letter. In
         #    normal Hebrew, words ending with Kaf, Mem, Nun, Pe or Tsadi,
         #    should not end with the Non-Final form of that letter. Exceptions
@@ -233,8 +233,8 @@ class HebrewProber(CharSetProber):
                         # case (1) [-2:not space][-1:final letter][cur:space]
                         self._mFinalCharLogicalScore += 1
                     elif self.is_non_final(self._mPrev):
-                        # case (2) [-2:not space]
-                        #     [-1:Non-Final letter][cur:space]
+                        # case (2) [-2:not space][-1:Non-Final letter][
+                        #  cur:space]
                         self._mFinalCharVisualScore += 1
             else:
                 # Not standing on a space
@@ -266,8 +266,8 @@ class HebrewProber(CharSetProber):
         if modelsub < -MIN_MODEL_DISTANCE:
             return VISUAL_HEBREW_NAME
 
-        # Still no good, back to final letter distance, maybe it'll save
-        # the day.
+        # Still no good, back to final letter distance, maybe it'll save the
+        # day.
         if finalsub < 0.0:
             return VISUAL_HEBREW_NAME
 

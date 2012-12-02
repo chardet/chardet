@@ -26,8 +26,8 @@
 ######################### END LICENSE BLOCK #########################
 
 # EUCTW frequency table
-# Converted from big5 work 
-# by Taiwan's Mandarin Promotion Council 
+# Converted from big5 work
+# by Taiwan's Mandarin Promotion Council
 # <http:#www.edu.tw:81/mandr/>
 
 # 128  --> 0.42261
@@ -38,7 +38,7 @@
 #
 # Idea Distribution Ratio = 0.74851/(1-0.74851) =2.98
 # Random Distribution Ration = 512/(5401-512)=0.105
-# 
+#
 # Typical Distribution Ratio about 25% of Ideal one, still much higher than RDR
 
 EUCTW_TYPICAL_DISTRIBUTION_RATIO = 0.75
@@ -46,7 +46,7 @@ EUCTW_TYPICAL_DISTRIBUTION_RATIO = 0.75
 # Char to FreqOrder table ,
 EUCTW_TABLE_SIZE = 8102
 
-EUCTWCharToFreqOrder = ( \
+EUCTWCharToFreqOrder = (
    1,1800,1506, 255,1431, 198,   9,  82,   6,7310, 177, 202,3615,1256,2808, 110, # 2742
 3735,  33,3241, 261,  76,  44,2113,  16,2931,2184,1176, 659,3868,  26,3404,2643, # 2758
 1198,3869,3313,4060, 410,2211, 302, 590, 361,1963,   8, 204,  58,4296,7311,1931, # 2774

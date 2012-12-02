@@ -30,7 +30,7 @@
 # 253: symbol (punctuation) that does not belong to word
 # 252: 0 - 9
 
-# The following result for thai was collected from a limited sample (1M). 
+# The following result for thai was collected from a limited sample (1M).
 
 # Character Mapping Table:
 TIS620CharToOrderMap = (

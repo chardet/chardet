@@ -28,7 +28,7 @@
 # Sampling from about 20M text materials include literature and computer technology
 #
 # Japanese frequency table, applied to both S-JIS and EUC-JP
-# They are sorted in order. 
+# They are sorted in order.
 
 # 128  --> 0.77094
 # 256  --> 0.85710

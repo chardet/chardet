@@ -65,6 +65,7 @@ class EscCharSetProber(CharSetProber):
 
     def feed(self, aBuf):
         for c in aBuf:
+            # PY3K: aBuf is a byte array, so c is an int, not a byte
             for codingSM in self._mCodingSM:
                 if not codingSM:
                     continue
@@ -79,7 +80,7 @@ class EscCharSetProber(CharSetProber):
                         return self.get_state()
                 elif codingState == constants.eItsMe:
                     self._mState = constants.eFoundIt
-                    self._mDetectedCharset = codingSM.get_coding_state_machine()
+                    self._mDetectedCharset = codingSM.get_coding_state_machine()  # nopep8
                     return self.get_state()
 
         return self.get_state()

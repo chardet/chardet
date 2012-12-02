@@ -1,5 +1,5 @@
-Universal character encoding detector
--------------------------------------
+Charade: The Universal character encoding detector
+--------------------------------------------------
 
 Detects
  - ASCII, UTF-8, UTF-16 (2 variants), UTF-32 (4 variants)
@@ -26,3 +26,31 @@ or more files::
     somefile: windows-1252 with confidence 0.5
     someotherfile: ascii with confidence 1.0
 
+About
+-----
+
+This is a port of Mark Pilgrim's excellent chardet. Previous two versions 
+needed to be maintained: one that supported python 2.x and one that supported 
+python 3.x. With the minor amount of work placed into this port, charade now 
+supports both in one codebase.
+
+The base for the work was Mark's last available copy of the chardet source for 
+python 3000.
+
+The Reason
+~~~~~~~~~~
+
+Does everything have to have a reason? No, but in this case the reason was to 
+help out `requests <http://python-requests.org>`_ and anyone else who sorely 
+needed this.
+
+What about x, y, or z?
+~~~~~~~~~~~~~~~~~~~~~~
+
+If x, y, or z (a colloquialism for other projects that may do the same thing) 
+do exist and indeed existed before charade, then I'm disappointed that they 
+didn't make themselves better known. It would have saved me quite a few hours.
+
+
+:maintainer: Ian Cordasco
+:maintainer's email: graffatcolmingov [at] gmail [d-o-t] com
