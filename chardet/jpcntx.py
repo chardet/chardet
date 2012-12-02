@@ -200,6 +200,28 @@ class SJISContextAnalysis(JapaneseContextAnalysis):
 
         return -1, charLen
 
+class CP932ContextAnalysis(JapaneseContextAnalysis):
+    def get_order(self, aStr):
+        if not aStr: return -1, 1
+        # find out current char's byte length
+        try:
+            if ((aStr[0] >= '\x81') and (aStr[0] <= '\x9F')) or \
+               ((aStr[0] >= '\xE0') and (aStr[0] <= '\xFC')):
+                charLen = 2
+            else:
+                charLen = 1
+        except UnicodeDecodeError:
+            return -1, 1
+
+        # return its order if it is hiragana
+        if len(aStr) > 1:
+            if (aStr[0] == '\202') and \
+               (aStr[1] >= '\x9F') and \
+               (aStr[1] <= '\xF1'):
+                return ord(aStr[1]) - 0x9F, charLen
+
+        return -1, charLen
+
 class EUCJPContextAnalysis(JapaneseContextAnalysis):
     def get_order(self, aStr):
         if not aStr: return -1, 1

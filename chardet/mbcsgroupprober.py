@@ -30,6 +30,7 @@
 from charsetgroupprober import CharSetGroupProber
 from utf8prober import UTF8Prober
 from sjisprober import SJISProber
+from cp932prober import CP932Prober
 from eucjpprober import EUCJPProber
 from gb2312prober import GB2312Prober
 from euckrprober import EUCKRProber
@@ -42,6 +43,7 @@ class MBCSGroupProber(CharSetGroupProber):
         self._mProbers = [ \
             UTF8Prober(),
             SJISProber(),
+            CP932Prober(),
             EUCJPProber(),
             GB2312Prober(),
             EUCKRProber(),
