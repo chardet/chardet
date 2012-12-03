@@ -32,7 +32,7 @@ def description_of(path):
 
 def main():
     for path in argv[1:]:
-        print description_of(path)
+        print(description_of(path))
 
 
 if __name__ == '__main__':
