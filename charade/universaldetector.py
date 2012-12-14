@@ -28,6 +28,7 @@
 
 from . import constants
 import sys
+import codecs
 from .latin1prober import Latin1Prober  # windows-1252
 from .mbcsgroupprober import MBCSGroupProber  # multi-byte character sets
 from .sbcsgroupprober import SBCSGroupProber  # single-byte character sets
@@ -70,13 +71,13 @@ class UniversalDetector:
 
         if not self._mGotData:
             # If the data starts with BOM, we know it is UTF
-            if aBuf[:3] == b'\xEF\xBB\xBF':
+            if aBuf[:3] == codecs.BOM:
                 # EF BB BF  UTF-8 with BOM
                 self.result = {'encoding': "UTF-8", 'confidence': 1.0}
-            elif aBuf[:4] == b'\xFF\xFE\x00\x00':
+            elif aBuf[:4] == codecs.BOM_UTF32_LE:
                 # FF FE 00 00  UTF-32, little-endian BOM
                 self.result = {'encoding': "UTF-32LE", 'confidence': 1.0}
-            elif aBuf[:4] == b'\x00\x00\xFE\xFF':
+            elif aBuf[:4] == codecs.BOM_UTF32_BE:
                 # 00 00 FE FF  UTF-32, big-endian BOM
                 self.result = {'encoding': "UTF-32BE", 'confidence': 1.0}
             elif aBuf[:4] == b'\xFE\xFF\x00\x00':
@@ -91,10 +92,10 @@ class UniversalDetector:
                     'encoding': "X-ISO-10646-UCS-4-2143",
                     'confidence': 1.0
                 }
-            elif aBuf[:2] == b'\xFF\xFE':
+            elif aBuf[:2] == codecs.BOM_LE:
                 # FF FE  UTF-16, little endian BOM
                 self.result = {'encoding': "UTF-16LE", 'confidence': 1.0}
-            elif aBuf[:2] == b'\xFE\xFF':
+            elif aBuf[:2] == codecs.BOM_BE:
                 # FE FF  UTF-16, big endian BOM
                 self.result = {'encoding': "UTF-16BE", 'confidence': 1.0}
 

@@ -53,4 +53,3 @@ didn't make themselves better known. It would have saved me quite a few hours.
 
 
 :maintainer: Ian Cordasco
-:maintainer's email: graffatcolmingov [at] gmail [d-o-t] com
