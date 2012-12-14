@@ -49,7 +49,7 @@ def main():
             continue
         for file_name in os.listdir(path):
             _, ext = os.path.splitext(file_name)
-            if ext not in ['.html', '.txt', '.xml']:
+            if ext not in ['.html', '.txt', '.xml', '.srt']:
                 continue
             suite.addTest(TestCase(os.path.join(path, file_name), encoding))
     unittest.TextTestRunner().run(suite)
