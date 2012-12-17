@@ -33,10 +33,10 @@ def description_of(file, name='stdin'):
 
 def main():
     if len(argv) <= 1:
-        print description_of(stdin)
+        print(description_of(stdin))
     else:
         for path in argv[1:]:
-            print description_of(open(path, 'rb'), path)
+            print(description_of(open(path, 'rb'), path))
 
 
 if __name__ == '__main__':
