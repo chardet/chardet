@@ -1,5 +1,7 @@
 *.pyc
-*.egg-info
-PKG-INFO
-/dist
+/*.egg-info
+
 /build
+/dist
+/examples
+/PKG-INFO
