@@ -12,7 +12,7 @@ if not hasattr(DistributionMetadata, 'download_url'):
     DistributionMetadata.download_url = None
 
 package = ['charade']
-script = ['bin/chardetect.py']
+script = ['bin/charade']
 
 from charade import __version__
 
@@ -20,7 +20,8 @@ setup(
     name='charade',
     version=__version__,
     description='Universal encoding detector for python 2 and 3',
-    long_description=open('README.rst').read(),
+    long_description='\n\n'.join([open('README.rst').read(),
+                                  open('HISTORY.rst').read()]),
     author='Mark Pilgrim',
     author_email='mark@diveintomark.org',
     maintainer='Ian Cordasco',
