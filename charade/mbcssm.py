@@ -13,12 +13,12 @@
 # modify it under the terms of the GNU Lesser General Public
 # License as published by the Free Software Foundation; either
 # version 2.1 of the License, or (at your option) any later version.
-#
+# 
 # This library is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
-#
+# 
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
@@ -27,7 +27,7 @@
 
 from .constants import eStart, eError, eItsMe
 
-# BIG5
+# BIG5 
 
 BIG5_cls = (
     1,1,1,1,1,1,1,1,  # 00 - 07    #allow 0x00 as legal value
@@ -77,6 +77,46 @@ Big5SMModel = {'classTable': BIG5_cls,
                'stateTable': BIG5_st,
                'charLenTable': Big5CharLenTable,
                'name': 'Big5'}
+
+# CP949
+
+CP949_cls  = (
+    1,1,1,1,1,1,1,1, 1,1,1,1,1,1,0,0,  # 00 - 0f
+    1,1,1,1,1,1,1,1, 1,1,1,0,1,1,1,1,  # 10 - 1f
+    1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,  # 20 - 2f
+    1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,  # 30 - 3f
+    1,4,4,4,4,4,4,4, 4,4,4,4,4,4,4,4,  # 40 - 4f
+    4,4,5,5,5,5,5,5, 5,5,5,1,1,1,1,1,  # 50 - 5f
+    1,5,5,5,5,5,5,5, 5,5,5,5,5,5,5,5,  # 60 - 6f
+    5,5,5,5,5,5,5,5, 5,5,5,1,1,1,1,1,  # 70 - 7f
+    0,6,6,6,6,6,6,6, 6,6,6,6,6,6,6,6,  # 80 - 8f
+    6,6,6,6,6,6,6,6, 6,6,6,6,6,6,6,6,  # 90 - 9f
+    6,7,7,7,7,7,7,7, 7,7,7,7,7,8,8,8,  # a0 - af
+    7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7,  # b0 - bf
+    7,7,7,7,7,7,9,2, 2,3,2,2,2,2,2,2,  # c0 - cf
+    2,2,2,2,2,2,2,2, 2,2,2,2,2,2,2,2,  # d0 - df
+    2,2,2,2,2,2,2,2, 2,2,2,2,2,2,2,2,  # e0 - ef
+    2,2,2,2,2,2,2,2, 2,2,2,2,2,2,2,0,  # f0 - ff
+)
+
+CP949_st = (
+#cls=    0      1      2      3      4      5      6      7      8      9  # previous state =
+    eError,eStart,     3,eError,eStart,eStart,     4,     5,eError,     6, # eStart
+    eError,eError,eError,eError,eError,eError,eError,eError,eError,eError, # eError
+    eItsMe,eItsMe,eItsMe,eItsMe,eItsMe,eItsMe,eItsMe,eItsMe,eItsMe,eItsMe, # eItsMe
+    eError,eError,eStart,eStart,eError,eError,eError,eStart,eStart,eStart, # 3
+    eError,eError,eStart,eStart,eStart,eStart,eStart,eStart,eStart,eStart, # 4
+    eError,eStart,eStart,eStart,eStart,eStart,eStart,eStart,eStart,eStart, # 5
+    eError,eStart,eStart,eStart,eStart,eError,eError,eStart,eStart,eStart, # 6
+)
+
+CP949CharLenTable = (0, 1, 2, 0, 1, 1, 2, 2, 0, 2)
+
+CP949SMModel = {'classTable': CP949_cls,
+                'classFactor': 10,
+                'stateTable': CP949_st,
+                'charLenTable': CP949CharLenTable,
+                'name': 'CP949'}
 
 # EUC-JP
 
@@ -130,56 +170,6 @@ EUCJPSMModel = {'classTable': EUCJP_cls,
                 'stateTable': EUCJP_st,
                 'charLenTable': EUCJPCharLenTable,
                 'name': 'EUC-JP'}
-
-# EUC-KR
-
-EUCKR_cls  = (
-    1,1,1,1,1,1,1,1,  # 00 - 07
-    1,1,1,1,1,1,0,0,  # 08 - 0f
-    1,1,1,1,1,1,1,1,  # 10 - 17
-    1,1,1,0,1,1,1,1,  # 18 - 1f
-    1,1,1,1,1,1,1,1,  # 20 - 27
-    1,1,1,1,1,1,1,1,  # 28 - 2f
-    1,1,1,1,1,1,1,1,  # 30 - 37
-    1,1,1,1,1,1,1,1,  # 38 - 3f
-    1,1,1,1,1,1,1,1,  # 40 - 47
-    1,1,1,1,1,1,1,1,  # 48 - 4f
-    1,1,1,1,1,1,1,1,  # 50 - 57
-    1,1,1,1,1,1,1,1,  # 58 - 5f
-    1,1,1,1,1,1,1,1,  # 60 - 67
-    1,1,1,1,1,1,1,1,  # 68 - 6f
-    1,1,1,1,1,1,1,1,  # 70 - 77
-    1,1,1,1,1,1,1,1,  # 78 - 7f
-    0,0,0,0,0,0,0,0,  # 80 - 87
-    0,0,0,0,0,0,0,0,  # 88 - 8f
-    0,0,0,0,0,0,0,0,  # 90 - 97
-    0,0,0,0,0,0,0,0,  # 98 - 9f
-    0,2,2,2,2,2,2,2,  # a0 - a7
-    2,2,2,2,2,3,3,3,  # a8 - af
-    2,2,2,2,2,2,2,2,  # b0 - b7
-    2,2,2,2,2,2,2,2,  # b8 - bf
-    2,2,2,2,2,2,2,2,  # c0 - c7
-    2,3,2,2,2,2,2,2,  # c8 - cf
-    2,2,2,2,2,2,2,2,  # d0 - d7
-    2,2,2,2,2,2,2,2,  # d8 - df
-    2,2,2,2,2,2,2,2,  # e0 - e7
-    2,2,2,2,2,2,2,2,  # e8 - ef
-    2,2,2,2,2,2,2,2,  # f0 - f7
-    2,2,2,2,2,2,2,0   # f8 - ff
-)
-
-EUCKR_st = (
-    eError,eStart,     3,eError,eError,eError,eError,eError,#00-07
-    eItsMe,eItsMe,eItsMe,eItsMe,eError,eError,eStart,eStart #08-0f
-)
-
-EUCKRCharLenTable = (0, 1, 2, 0)
-
-EUCKRSMModel = {'classTable': EUCKR_cls,
-                'classFactor': 4,
-                'stateTable': EUCKR_st,
-                'charLenTable': EUCKRCharLenTable,
-                'name': 'EUC-KR'}
 
 # EUC-TW
 

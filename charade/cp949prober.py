@@ -27,16 +27,16 @@
 
 from .mbcharsetprober import MultiByteCharSetProber
 from .codingstatemachine import CodingStateMachine
-from .chardistribution import EUCKRDistributionAnalysis
-from .mbcssm import EUCKRSMModel
+from .chardistribution import CP949DistributionAnalysis
+from .mbcssm import CP949SMModel
 
 
-class EUCKRProber(MultiByteCharSetProber):
+class CP949Prober(MultiByteCharSetProber):
     def __init__(self):
         MultiByteCharSetProber.__init__(self)
-        self._mCodingSM = CodingStateMachine(EUCKRSMModel)
-        self._mDistributionAnalyzer = EUCKRDistributionAnalysis()
+        self._mCodingSM = CodingStateMachine(CP949SMModel)
+        self._mDistributionAnalyzer = CP949DistributionAnalysis()
         self.reset()
 
     def get_charset_name(self):
-        return "EUC-KR"
+        return "CP949"

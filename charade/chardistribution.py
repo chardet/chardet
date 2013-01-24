@@ -27,8 +27,8 @@
 
 from .euctwfreq import (EUCTWCharToFreqOrder, EUCTW_TABLE_SIZE,
                         EUCTW_TYPICAL_DISTRIBUTION_RATIO)
-from .euckrfreq import (EUCKRCharToFreqOrder, EUCKR_TABLE_SIZE,
-                        EUCKR_TYPICAL_DISTRIBUTION_RATIO)
+from .cp949freq import (CP949CharToFreqOrder, CP949_TABLE_SIZE,
+                        CP949_TYPICAL_DISTRIBUTION_RATIO)
 from .gb2312freq import (GB2312CharToFreqOrder, GB2312_TABLE_SIZE,
                          GB2312_TYPICAL_DISTRIBUTION_RATIO)
 from .big5freq import (Big5CharToFreqOrder, BIG5_TABLE_SIZE,
@@ -127,15 +127,15 @@ class EUCTWDistributionAnalysis(CharDistributionAnalysis):
             return -1
 
 
-class EUCKRDistributionAnalysis(CharDistributionAnalysis):
+class CP949DistributionAnalysis(CharDistributionAnalysis):
     def __init__(self):
         CharDistributionAnalysis.__init__(self)
-        self._mCharToFreqOrder = EUCKRCharToFreqOrder
-        self._mTableSize = EUCKR_TABLE_SIZE
-        self._mTypicalDistributionRatio = EUCKR_TYPICAL_DISTRIBUTION_RATIO
+        self._mCharToFreqOrder = CP949CharToFreqOrder
+        self._mTableSize = CP949_TABLE_SIZE
+        self._mTypicalDistributionRatio = CP949_TYPICAL_DISTRIBUTION_RATIO
 
     def get_order(self, aBuf):
-        # for euc-KR encoding, we are interested
+        # for euc-KR/CP949 encoding, we are interested
         #   first  byte range: 0xb0 -- 0xfe
         #   second byte range: 0xa1 -- 0xfe
         # no validation needed here. State machine has done that
