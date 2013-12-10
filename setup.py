@@ -6,11 +6,15 @@ from distutils.dist import DistributionMetadata
 if not hasattr(DistributionMetadata, 'classifiers'):
     DistributionMetadata.classifiers = None
 
+def readme():
+    with open('README.rst') as f:
+        return f.read()
+
 setup(
     name='chardet',
     version='2.1.1',
     description='Universal encoding detector',
-    long_description=open('README.rst').read(),
+    long_description=readme(),
     author='Mark Pilgrim',
     author_email='mark@diveintomark.org',
     url='https://github.com/bsidhom/python-chardet',
