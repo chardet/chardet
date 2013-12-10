@@ -25,6 +25,8 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
+from __future__ import absolute_import, print_function, unicode_literals
+
 # GB2312 most frequently used character table
 #
 # Char to FreqOrder table , from hz6763

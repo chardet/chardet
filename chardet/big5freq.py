@@ -25,6 +25,8 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
+from __future__ import absolute_import, print_function, unicode_literals
+
 # Big5 frequency table
 # by Taiwan's Mandarin Promotion Council 
 # <http://www.edu.tw:81/mandr/>

@@ -26,9 +26,13 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 import sys
+
 from . import constants
 from .charsetprober import CharSetProber
+
 
 SAMPLE_SIZE = 64
 SB_ENOUGH_REL_THRESHOLD = 1024
@@ -38,6 +42,7 @@ SYMBOL_CAT_ORDER = 250
 NUMBER_OF_SEQ_CAT = 4
 POSITIVE_CAT = NUMBER_OF_SEQ_CAT - 1
 #NEGATIVE_CAT = 0
+
 
 class SingleByteCharSetProber(CharSetProber):
     def __init__(self, model, reversed=False, nameProber=None):
@@ -101,9 +106,9 @@ class SingleByteCharSetProber(CharSetProber):
     def get_confidence(self):
         r = 0.01
         if self._mTotalSeqs > 0:
-#            print self._mSeqCounters[POSITIVE_CAT], self._mTotalSeqs, self._mModel['mTypicalPositiveRatio']
+            # print(self._mSeqCounters[POSITIVE_CAT], self._mTotalSeqs, self._mModel['mTypicalPositiveRatio'])
             r = (1.0 * self._mSeqCounters[POSITIVE_CAT]) / self._mTotalSeqs / self._mModel['mTypicalPositiveRatio']
-#            print r, self._mFreqChar, self._mTotalChar
+            # print(r, self._mFreqChar, self._mTotalChar)
             r = r * self._mFreqChar / self._mTotalChar
             if r >= 1.0:
                 r = 0.99

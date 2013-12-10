@@ -25,6 +25,8 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
+from __future__ import absolute_import, print_function, unicode_literals
+
 # Sampling from about 20M text materials include literature and computer technology
 #
 # Japanese frequency table, applied to both S-JIS and EUC-JP

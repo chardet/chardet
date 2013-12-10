@@ -26,14 +26,18 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-from . import constants
+from __future__ import absolute_import, division, print_function, unicode_literals
+
+import logging
+import re
 import sys
+
+from . import constants
+from .escprober import EscCharSetProber # ISO-2122, etc.
 from .latin1prober import Latin1Prober # windows-1252
 from .mbcsgroupprober import MBCSGroupProber # multi-byte character sets
 from .sbcsgroupprober import SBCSGroupProber # single-byte character sets
-from .escprober import EscCharSetProber # ISO-2122, etc.
-import re
-import logging
+
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +45,7 @@ MINIMUM_THRESHOLD = 0.20
 ePureAscii = 0
 eEscAscii = 1
 eHighbyte = 2
+
 
 class UniversalDetector:
     def __init__(self):
