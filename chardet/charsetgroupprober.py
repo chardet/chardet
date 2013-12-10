@@ -28,7 +28,6 @@
 from __future__ import absolute_import, print_function, unicode_literals
 
 import sys
-from io import open
 
 from . import constants
 from .charsetprober import CharSetProber
