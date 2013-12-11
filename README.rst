@@ -2,6 +2,8 @@
 chardet
 =======
 
+Python 2/3 compatible version of chardet.
+
 chardet guesses the encoding of text files.
 
 Detects...
@@ -18,7 +20,7 @@ Detects...
 - ISO-8859-8, windows-1255 (Visual and Logical Hebrew)
 - TIS-620 (Thai)
 
-Requires Python 2.1 or later.
+Requires Python 2.6 or later.
 
 Command-line Tool
 =================

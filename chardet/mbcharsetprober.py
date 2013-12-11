@@ -27,16 +27,21 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-import constants, sys
-from constants import eStart, eError, eItsMe
-from charsetprober import CharSetProber
+from __future__ import absolute_import, print_function, unicode_literals
+
+import sys
+
+from . import constants
+from .charsetprober import CharSetProber
+from .constants import eStart, eError, eItsMe
+
 
 class MultiByteCharSetProber(CharSetProber):
     def __init__(self):
         CharSetProber.__init__(self)
         self._mDistributionAnalyzer = None
         self._mCodingSM = None
-        self._mLastChar = ['\x00', '\x00']
+        self._mLastChar = [0, 0]
 
     def reset(self):
         CharSetProber.reset(self)
@@ -44,7 +49,7 @@ class MultiByteCharSetProber(CharSetProber):
             self._mCodingSM.reset()
         if self._mDistributionAnalyzer:
             self._mDistributionAnalyzer.reset()
-        self._mLastChar = ['\x00', '\x00']
+        self._mLastChar = [0, 0]
 
     def get_charset_name(self):
         pass
@@ -55,7 +60,8 @@ class MultiByteCharSetProber(CharSetProber):
             codingState = self._mCodingSM.next_state(aBuf[i])
             if codingState == eError:
                 if constants._debug:
-                    sys.stderr.write(self.get_charset_name() + ' prober hit error at byte ' + str(i) + '\n')
+                    print('{0} prober hit error at byte {1}'.format(self.get_charset_name, i), 
+                          file=sys.stderr)
                 self._mState = constants.eNotMe
                 break
             elif codingState == eItsMe:

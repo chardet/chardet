@@ -15,10 +15,12 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
+from __future__ import absolute_import, print_function, unicode_literals
+
 __version__ = "2.1.1"
 
 def detect(aBuf):
-    import universaldetector
+    from . import universaldetector
     u = universaldetector.UniversalDetector()
     u.reset()
     u.feed(aBuf)

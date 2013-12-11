@@ -25,8 +25,10 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-from charsetprober import CharSetProber
-import constants
+from __future__ import absolute_import, print_function, unicode_literals
+
+from . import constants
+from .charsetprober import CharSetProber
 
 # This prober doesn't actually recognize a language or a charset.
 # It is a helper prober for the use of the Hebrew model probers

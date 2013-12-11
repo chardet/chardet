@@ -27,7 +27,9 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-import constants
+from __future__ import absolute_import, print_function, unicode_literals
+
+from . import constants
 
 # 255: Control characters that usually does not exist in any text
 # 254: Carriage/Return
@@ -196,6 +198,6 @@ Win1255HebrewModel = { \
   'charToOrderMap': win1255_CharToOrderMap,
   'precedenceMatrix': HebrewLangModel,
   'mTypicalPositiveRatio': 0.984004,
-  'keepEnglishLetter': constants.False,
+  'keepEnglishLetter': False,
   'charsetName': "windows-1255"
 }

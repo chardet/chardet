@@ -25,8 +25,13 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-import constants, sys
-from charsetprober import CharSetProber
+from __future__ import absolute_import, print_function, unicode_literals
+
+import sys
+
+from . import constants
+from .charsetprober import CharSetProber
+
 
 class CharSetGroupProber(CharSetProber):
     def __init__(self):
@@ -41,28 +46,32 @@ class CharSetGroupProber(CharSetProber):
         for prober in self._mProbers:
             if prober:
                 prober.reset()
-                prober.active = constants.True
+                prober.active = True
                 self._mActiveNum += 1
         self._mBestGuessProber = None
 
     def get_charset_name(self):
         if not self._mBestGuessProber:
             self.get_confidence()
-            if not self._mBestGuessProber: return None
-#                self._mBestGuessProber = self._mProbers[0]
+            if not self._mBestGuessProber: 
+                # self._mBestGuessProber = self._mProbers[0]
+                return None
         return self._mBestGuessProber.get_charset_name()
 
     def feed(self, aBuf):
         for prober in self._mProbers:
-            if not prober: continue
-            if not prober.active: continue
+            if not prober: 
+                continue
+            if not prober.active: 
+                continue
             st = prober.feed(aBuf)
-            if not st: continue
+            if not st:
+                continue
             if st == constants.eFoundIt:
                 self._mBestGuessProber = prober
                 return self.get_state()
             elif st == constants.eNotMe:
-                prober.active = constants.False
+                prober.active = False
                 self._mActiveNum -= 1
                 if self._mActiveNum <= 0:
                     self._mState = constants.eNotMe
@@ -89,8 +98,9 @@ class CharSetGroupProber(CharSetProber):
             if bestConf < cf:
                 bestConf = cf
                 self._mBestGuessProber = prober
-        if not self._mBestGuessProber: return 0.0
+        if not self._mBestGuessProber: 
+            return 0.0
+        # else:
+        #     self._mBestGuessProber = self._mProbers[0]
+        #     return self._mBestGuessProber.get_confidence()
         return bestConf
-#        else:
-#            self._mBestGuessProber = self._mProbers[0]
-#            return self._mBestGuessProber.get_confidence()

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-"""Script which takes one or more file paths and reports on their detected
+"""
+Script which takes one or more file paths and reports on their detected
 encodings
 
 Example::
@@ -11,6 +12,9 @@ Example::
 If no paths are provided, it takes its input from stdin.
 
 """
+from __future__ import absolute_import, print_function, unicode_literals
+
+from io import open
 from sys import argv, stdin
 
 from chardet.universaldetector import UniversalDetector
@@ -33,10 +37,10 @@ def description_of(file, name='stdin'):
 
 def main():
     if len(argv) <= 1:
-        print description_of(stdin)
+        print(description_of(stdin))
     else:
         for path in argv[1:]:
-            print description_of(open(path, 'rb'), path)
+            print(description_of(open(path, 'rb'), path))
 
 
 if __name__ == '__main__':

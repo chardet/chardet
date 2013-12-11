@@ -25,7 +25,9 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-from constants import eStart, eError, eItsMe
+from __future__ import absolute_import, print_function, unicode_literals
+
+from .constants import eStart, eError, eItsMe
 
 class CodingStateMachine:
     def __init__(self, sm):
@@ -41,7 +43,7 @@ class CodingStateMachine:
         # for each byte we get its class
         # if it is first byte, we also get byte length
         try:
-            byteCls = self._mModel['classTable'][ord(c)]
+            byteCls = self._mModel['classTable'][c]
         except IndexError:
             return eError
         if self._mCurrentState == eStart:

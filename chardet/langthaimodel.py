@@ -25,7 +25,9 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-import constants
+from __future__ import absolute_import, print_function, unicode_literals
+
+from . import constants
 
 # 255: Control characters that usually does not exist in any text
 # 254: Carriage/Return
@@ -195,6 +197,6 @@ TIS620ThaiModel = { \
   'charToOrderMap': TIS620CharToOrderMap,
   'precedenceMatrix': ThaiLangModel,
   'mTypicalPositiveRatio': 0.926386,
-  'keepEnglishLetter': constants.False,
+  'keepEnglishLetter': False,
   'charsetName': "TIS-620"
 }

@@ -25,6 +25,8 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
+from __future__ import absolute_import, print_function, unicode_literals
+
 # EUCTW frequency table
 # Converted from big5 work 
 # by Taiwan's Mandarin Promotion Council 

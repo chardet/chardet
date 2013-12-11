@@ -25,10 +25,12 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-from mbcharsetprober import MultiByteCharSetProber
-from codingstatemachine import CodingStateMachine
-from chardistribution import Big5DistributionAnalysis
-from mbcssm import Big5SMModel
+from __future__ import absolute_import, print_function, unicode_literals
+
+from .chardistribution import Big5DistributionAnalysis
+from .codingstatemachine import CodingStateMachine
+from .mbcharsetprober import MultiByteCharSetProber
+from .mbcssm import Big5SMModel
 
 class Big5Prober(MultiByteCharSetProber):
     def __init__(self):

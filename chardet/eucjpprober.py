@@ -25,13 +25,18 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-import constants, sys
-from constants import eStart, eError, eItsMe
-from mbcharsetprober import MultiByteCharSetProber
-from codingstatemachine import CodingStateMachine
-from chardistribution import EUCJPDistributionAnalysis
-from jpcntx import EUCJPContextAnalysis
-from mbcssm import EUCJPSMModel
+from __future__ import absolute_import, print_function, unicode_literals
+
+import sys
+
+from . import constants
+from .chardistribution import EUCJPDistributionAnalysis
+from .codingstatemachine import CodingStateMachine
+from .constants import eStart, eError, eItsMe
+from .jpcntx import EUCJPContextAnalysis
+from .mbcharsetprober import MultiByteCharSetProber
+from .mbcssm import EUCJPSMModel
+
 
 class EUCJPProber(MultiByteCharSetProber):
     def __init__(self):
@@ -54,7 +59,8 @@ class EUCJPProber(MultiByteCharSetProber):
             codingState = self._mCodingSM.next_state(aBuf[i])
             if codingState == eError:
                 if constants._debug:
-                    sys.stderr.write(self.get_charset_name() + ' prober hit error at byte ' + str(i) + '\n')
+                    print('{0} prober hit error at byte {1}'.format(self.get_charset_name, i), 
+                          file=sys.stderr)
                 self._mState = constants.eNotMe
                 break
             elif codingState == eItsMe:
