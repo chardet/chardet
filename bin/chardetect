@@ -5,14 +5,14 @@ encodings
 
 Example::
 
-    % chardetect.py somefile someotherfile
+    % chardetect somefile someotherfile
     somefile: windows-1252 with confidence 0.5
     someotherfile: ascii with confidence 1.0
 
 """
 from sys import argv
 
-from charade.universaldetector import UniversalDetector
+from chardet.universaldetector import UniversalDetector
 
 
 def description_of(path):

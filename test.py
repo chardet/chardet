@@ -2,7 +2,7 @@ import os
 import sys
 import unittest
 
-from charade.universaldetector import UniversalDetector
+from chardet.universaldetector import UniversalDetector
 
 
 class TestCase(unittest.TestCase):
