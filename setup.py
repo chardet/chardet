@@ -11,13 +11,13 @@ if not hasattr(DistributionMetadata, 'classifiers'):
 if not hasattr(DistributionMetadata, 'download_url'):
     DistributionMetadata.download_url = None
 
-package = ['charade']
-script = ['bin/charade']
+package = ['chardet']
+script = ['bin/chardetect']
 
-from charade import __version__
+from chardet import __version__
 
 setup(
-    name='charade',
+    name='chardet',
     version=__version__,
     description='Universal encoding detector for python 2 and 3',
     long_description='\n\n'.join([open('README.rst').read(),
@@ -26,7 +26,7 @@ setup(
     author_email='mark@diveintomark.org',
     maintainer='Ian Cordasco',
     maintainer_email='graffatcolmingov@gmail.com',
-    url='https://github.com/sigmavirus24/charade',
+    url='https://github.com/erikrose/chardet',
     license="LGPL",
     keywords=['encoding', 'i18n', 'xml'],
     classifiers=[
