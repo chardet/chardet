@@ -1,32 +1,45 @@
-from setuptools import setup
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup  # NOQA
 
-# Patch distutils if it can't cope with the "classifiers"
-# keyword (prior to python 2.3.0):
+# patch distutils if it can't cope with the "classifiers" or "download_url"
+# keywords (prior to python 2.3.0).
 from distutils.dist import DistributionMetadata
 if not hasattr(DistributionMetadata, 'classifiers'):
     DistributionMetadata.classifiers = None
+if not hasattr(DistributionMetadata, 'download_url'):
+    DistributionMetadata.download_url = None
+
+package = ['chardet']
+script = ['bin/chardetect']
+
+from chardet import __version__
 
 setup(
     name='chardet',
-    version='2.1.1',
-    description='Universal encoding detector',
-    long_description=open('README.rst').read(),
+    version=__version__,
+    description='Universal encoding detector for python 2 and 3',
+    long_description='\n\n'.join([open('README.rst').read(),
+                                  open('HISTORY.rst').read()]),
     author='Mark Pilgrim',
     author_email='mark@diveintomark.org',
+    maintainer='Ian Cordasco',
+    maintainer_email='graffatcolmingov@gmail.com',
     url='https://github.com/erikrose/chardet',
     license="LGPL",
-    platforms=['POSIX', 'Windows'],
     keywords=['encoding', 'i18n', 'xml'],
     classifiers=[
         "Development Status :: 4 - Beta",
         "Environment :: Other Environment",
         "Intended Audience :: Developers",
-        "License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)",
+        "License :: OSI Approved :: GNU Library or Lesser General Public"
+        " License (LGPL)",
         "Operating System :: OS Independent",
         "Programming Language :: Python",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: Text Processing :: Linguistic",
-        ],
-    scripts=['bin/chardetect.py'],
-    packages=['chardet']
-    )
+    ],
+    scripts=script,
+    packages=package,
+)

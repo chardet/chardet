@@ -1,4 +1,7 @@
 ######################## BEGIN LICENSE BLOCK ########################
+# Contributor(s):
+#   Ian Cordasco - port to Python
+#
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
 # License as published by the Free Software Foundation; either
@@ -15,18 +18,17 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-__version__ = "2.2.0"
-from sys import version_info
+import sys
 
 
-def detect(aBuf):
-    if ((version_info < (3, 0) and isinstance(aBuf, unicode)) or
-            (version_info >= (3, 0) and not isinstance(aBuf, bytes))):
-        raise ValueError('Expected a bytes object, not a unicode object')
+if sys.version_info < (3, 0):
+    base_str = (str, unicode)
+else:
+    base_str = (bytes, str)
 
-    from . import universaldetector
-    u = universaldetector.UniversalDetector()
-    u.reset()
-    u.feed(aBuf)
-    u.close()
-    return u.result
+
+def wrap_ord(a):
+    if sys.version_info < (3, 0) and isinstance(a, base_str):
+        return ord(a)
+    else:
+        return a

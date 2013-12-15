@@ -1,3 +1,5 @@
 include README.rst
 include COPYING
+include LICENSE
+include HISTORY.rst
 recursive-include docs *.html *.css *.png *.gif

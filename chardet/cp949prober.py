@@ -25,37 +25,20 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-from .constants import eStart
-from .compat import wrap_ord
+from .mbcharsetprober import MultiByteCharSetProber
+from .codingstatemachine import CodingStateMachine
+from .chardistribution import EUCKRDistributionAnalysis
+from .mbcssm import CP949SMModel
 
 
-class CodingStateMachine:
-    def __init__(self, sm):
-        self._mModel = sm
-        self._mCurrentBytePos = 0
-        self._mCurrentCharLen = 0
+class CP949Prober(MultiByteCharSetProber):
+    def __init__(self):
+        MultiByteCharSetProber.__init__(self)
+        self._mCodingSM = CodingStateMachine(CP949SMModel)
+        # NOTE: CP949 is a superset of EUC-KR, so the distribution should be
+        #       not different.
+        self._mDistributionAnalyzer = EUCKRDistributionAnalysis()
         self.reset()
 
-    def reset(self):
-        self._mCurrentState = eStart
-
-    def next_state(self, c):
-        # for each byte we get its class
-        # if it is first byte, we also get byte length
-        # PY3K: aBuf is a byte stream, so c is an int, not a byte
-        byteCls = self._mModel['classTable'][wrap_ord(c)]
-        if self._mCurrentState == eStart:
-            self._mCurrentBytePos = 0
-            self._mCurrentCharLen = self._mModel['charLenTable'][byteCls]
-        # from byte's class and stateTable, we get its next state
-        curr_state = (self._mCurrentState * self._mModel['classFactor']
-                      + byteCls)
-        self._mCurrentState = self._mModel['stateTable'][curr_state]
-        self._mCurrentBytePos += 1
-        return self._mCurrentState
-
-    def get_current_charlen(self):
-        return self._mCurrentCharLen
-
-    def get_coding_state_machine(self):
-        return self._mModel['name']
+    def get_charset_name(self):
+        return "CP949"
