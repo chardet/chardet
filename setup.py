@@ -1,16 +1,5 @@
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup  # NOQA
-
-# patch distutils if it can't cope with the "classifiers" or "download_url"
-# keywords (prior to python 2.3.0).
-from distutils.dist import DistributionMetadata
-if not hasattr(DistributionMetadata, 'classifiers'):
-    DistributionMetadata.classifiers = None
-if not hasattr(DistributionMetadata, 'download_url'):
-    DistributionMetadata.download_url = None
-
+#!/usr/bin/env python
+from setuptools import setup
 
 from chardet import __version__
 
@@ -42,4 +31,5 @@ setup(name='chardet',
                     "Modules"),
                    "Topic :: Text Processing :: Linguistic"],
       scripts=['bin/chardetect'],
-      packages=['chardet'])
+      packages=['chardet'],
+      entry_points={'console_scripts': ['chardetect = chardet.chardetect:main']})
