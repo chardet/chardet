@@ -10,15 +10,13 @@ class TestCase(unittest.TestCase):
         unittest.TestCase.__init__(self)
         self.file_name = file_name
         encoding = encoding.lower()
-        for postfix in [
-                '-arabic',
-                '-bulgarian',
-                '-cyrillic',
-                '-greek',
-                '-hebrew',
-                '-hungarian',
-                '-turkish',
-            ]:
+        for postfix in ['-arabic',
+                        '-bulgarian',
+                        '-cyrillic',
+                        '-greek',
+                        '-hebrew',
+                        '-hungarian',
+                        '-turkish']:
             if encoding.endswith(postfix):
                 encoding, _, _ = encoding.rpartition(postfix)
         self.encoding = encoding
@@ -31,8 +29,9 @@ class TestCase(unittest.TestCase):
                 break
         u.close()
         self.assertEqual(u.result['encoding'].lower(), self.encoding,
-            "Expected %s, but got %r in %s" % (
-                self.encoding, u.result, self.file_name))
+                         "Expected %s, but got %r in %s" %
+                         (self.encoding, u.result['encoding'],
+                          self.file_name))
 
 
 def main():
@@ -48,7 +47,7 @@ def main():
             continue
         for file_name in os.listdir(path):
             _, ext = os.path.splitext(file_name)
-            if ext not in ['.html', '.txt', '.xml']:
+            if ext not in ['.html', '.txt', '.xml', '.srt']:
                 continue
             suite.addTest(TestCase(os.path.join(path, file_name), encoding))
     unittest.TextTestRunner().run(suite)
