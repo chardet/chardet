@@ -66,7 +66,7 @@ class UniversalDetector:
 
         charmap = (
             # EF BB BF  UTF-8 with BOM
-            ('\xEF\xBB\xBF', {'encoding': "UTF-8", 'confidence': 1.0}),
+            ('\xEF\xBB\xBF', {'encoding': "UTF-8-SIG", 'confidence': 1.0}),
             # FF FE 00 00  UTF-32, little-endian BOM
             ('\xFF\xFE\x00\x00', {'encoding': "UTF-32LE", 'confidence': 1.0}),
             # 00 00 FE FF  UTF-32, big-endian BOM
