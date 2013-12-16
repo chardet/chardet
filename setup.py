@@ -15,7 +15,7 @@ if not hasattr(DistributionMetadata, 'download_url'):
 from chardet import __version__
 
 
-def README():
+def readme():
     with open('README.rst') as f:
         return f.read()
 
@@ -23,7 +23,7 @@ def README():
 setup(name='chardet',
       version=__version__,
       description='Universal encoding detector for Python 2 and 3',
-      long_description=README(),
+      long_description=readme(),
       author='Mark Pilgrim',
       author_email='mark@diveintomark.org',
       maintainer='Ian Cordasco',
