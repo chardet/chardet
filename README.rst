@@ -1,4 +1,4 @@
-Chardet: The Universal character encoding detector
+Chardet: The Universal Character Encoding Detector
 --------------------------------------------------
 
 Detects
@@ -29,27 +29,10 @@ or more files::
 About
 -----
 
-This is a port of Mark Pilgrim's excellent chardet. Previous two versions 
-needed to be maintained: one that supported python 2.x and one that supported 
-python 3.x. With the minor amount of work placed into this port, charade now 
-supports both in one codebase.
+This is a continuation of Mark Pilgrim's excellent chardet. Previously, two
+versions needed to be maintained: one that supported python 2.x and one that
+supported python 3.x.  We've recently merged with [Ian Corduscano](https://github.com/sigmavirus24)'s
+[charade](https://github.com/sigmavirus24/charade) fork, so now we have one
+coherent version that works for Python 2.6+.
 
-The base for the work was Mark's last available copy of the chardet source for 
-python 3000.
-
-The Reason
-~~~~~~~~~~
-
-Does everything have to have a reason? No, but in this case the reason was to 
-help out `requests <http://python-requests.org>`_ and anyone else who sorely 
-needed this.
-
-What about x, y, or z?
-~~~~~~~~~~~~~~~~~~~~~~
-
-If x, y, or z (a colloquialism for other projects that may do the same thing) 
-do exist and indeed existed before charade, then I'm disappointed that they 
-didn't make themselves better known. It would have saved me quite a few hours.
-
-
-:maintainer: Ian Cordasco
+:maintainer: Dan Blanchard
