@@ -190,7 +190,7 @@ class SJISContextAnalysis(JapaneseContextAnalysis):
         first_char = wrap_ord(aBuf[0])
         if ((0x81 <= first_char <= 0x9F) or (0xE0 <= first_char <= 0xFC)):
             charLen = 2
-            if (aBuf[0] == 0x87) or ((aBuf[0] >= 0xFA) and (aBuf[0] <= 0xFC)):
+            if (first_char == 0x87) or (0xFA <= first_char <= 0xFC):
                 self.charset_name = "CP932"
         else:
             charLen = 1
