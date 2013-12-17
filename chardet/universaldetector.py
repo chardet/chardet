@@ -73,7 +73,7 @@ class UniversalDetector:
             # If the data starts with BOM, we know it is UTF
             if aBuf[:3] == codecs.BOM:
                 # EF BB BF  UTF-8 with BOM
-                self.result = {'encoding': "UTF-8", 'confidence': 1.0}
+                self.result = {'encoding': "UTF-8-SIG", 'confidence': 1.0}
             elif aBuf[:4] == codecs.BOM_UTF32_LE:
                 # FF FE 00 00  UTF-32, little-endian BOM
                 self.result = {'encoding': "UTF-32LE", 'confidence': 1.0}
