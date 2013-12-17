@@ -12,9 +12,9 @@ Expect: EUC-JP
   xmlns="http://purl.org/rss/1.0/">
 
 <channel rdf:about="http://azito.under.jp/blog/azito/">
-<title>AZITO[´ðÃÏ]</title>
+<title>AZITO[����]</title>
 <link>http://azito.under.jp/blog/azito/</link>
-<description>¡Á¡¡¥¢¥¸¥È¡¡¡Á¡¡</description>
+<description>���������ȡ�����</description>
 <dc:language>ja</dc:language>
 <dc:creator></dc:creator>
 <dc:date>2006-01-02T01:47:44+09:00</dc:date>
@@ -43,106 +43,106 @@ Expect: EUC-JP
 </channel>
 
 <item rdf:about="http://azito.under.jp/cgi/mt/archives/azito/000855.html">
-<title>¤´Íè¸÷¤òÇÒ¤ß¤Ë</title>
+<title>��������Ҥߤ�</title>
 <link>http://azito.under.jp/cgi/mt/archives/azito/000855.html</link>
-<description> º£Ç¯¤ÎÇ¯±Û¤·¤Ï¤´Íè¸÷¤òÇÒ¤ß¤ËÉÙ»Î¤òÌÜ»Ø¤·¤¿¡£ ·è¤·¤ÆÆü¤Î½ÐË½Áö¤Ç¤Ï¤Ê¤¤¡ª¡ª ¤´...</description>
-<dc:subject>08_Æü¾ï¥Í¥¿</dc:subject>
+<description> ��ǯ��ǯ�ۤ��Ϥ�������Ҥߤ��ٻΤ��ܻؤ����� �褷�����ν�˽���ǤϤʤ����� ��...</description>
+<dc:subject>08_����ͥ�</dc:subject>
 <dc:creator>azito</dc:creator>
 <dc:date>2006-01-02T01:47:44+09:00</dc:date>
 </item>
 <item rdf:about="http://azito.under.jp/cgi/mt/archives/azito/000853.html">
-<title>¤¢¤±¤Þ¤·¤Æ¤ª¤á¤Ç¤È¤¦</title>
+<title>�����ޤ��Ƥ���ǤȤ�</title>
 <link>http://azito.under.jp/cgi/mt/archives/azito/000853.html</link>
-<description> º£Ç¯¤â¤è¤í¤·¤¯¢ö ...</description>
-<dc:subject>08_Æü¾ï¥Í¥¿</dc:subject>
+<description> ��ǯ���������� ...</description>
+<dc:subject>08_����ͥ�</dc:subject>
 <dc:creator>azito</dc:creator>
 <dc:date>2006-01-01T00:00:59+09:00</dc:date>
 </item>
 <item rdf:about="http://azito.under.jp/cgi/mt/archives/azito/000854.html">
-<title>AZITOÅª2005Ç¯Áí³ç</title>
+<title>AZITOŪ2005ǯ����</title>
 <link>http://azito.under.jp/cgi/mt/archives/azito/000854.html</link>
-<description>2005Ç¯¤âÁá¤¤¤â¤Î¤Çº£Æü¤ÇºÇ¸å¡£ °ìÇ¯¤òÄù¤á¤¯¤¯¤ë¾å¤Ç¡¢ ¡ÖÃËº×¡×¤ò¸«¤Ê¤¬¤é¤Î...</description>
-<dc:subject>00_¤ª´ê¤¤¡¦¤ªÃÎ¤é¤»</dc:subject>
+<description>2005ǯ���ᤤ��ΤǺ����ǺǸ塣 ��ǯ�����᤯�����ǡ� ���˺ספ򸫤ʤ����...</description>
+<dc:subject>00_���ꤤ�����Τ餻</dc:subject>
 <dc:creator>azito</dc:creator>
 <dc:date>2005-12-31T20:44:21+09:00</dc:date>
 </item>
 <item rdf:about="http://azito.under.jp/cgi/mt/archives/azito/000852.html">
-<title>¥â¥Á¥â¥Á¤Ú¤Ã¤¿¤ó</title>
+<title>�������ڤä���</title>
 <link>http://azito.under.jp/cgi/mt/archives/azito/000852.html</link>
-<description>¤¦¤Á¤ÎÃÏÊý¤Ç¤Ï12·î29Æü¤Ë¤ÏÌß¤ò¤Ä¤«¤Ê¤¤¤é¤·¤¤¡£ ¤Ê¤¼¤«¤È¤¤¤¦¤È¡Ö¶ì¡Ê9¡ËÌß¡×...</description>
-<dc:subject>08_Æü¾ï¥Í¥¿</dc:subject>
+<description>�����������Ǥ�12��29���ˤ��ߤ�Ĥ��ʤ��餷���� �ʤ����Ȥ����ȡֶ��9���ߡ�...</description>
+<dc:subject>08_����ͥ�</dc:subject>
 <dc:creator>azito</dc:creator>
 <dc:date>2005-12-30T22:56:48+09:00</dc:date>
 </item>
 <item rdf:about="http://azito.under.jp/cgi/mt/archives/azito/000851.html">
-<title>½é¤á¤Æ¤Î»¶Êâ</title>
+<title>���Ƥλ���</title>
 <link>http://azito.under.jp/cgi/mt/archives/azito/000851.html</link>
-<description>11·î¤Ë²æ¤¬²È¤Ë¤ä¤Ã¤Æ¤­¤¿¥Ñ¥°¡£ 2005/11/08¡¡¡Ö¿·¤·¤¤²ÈÂ²¡× ¡Ö¤ª¤È¤á...</description>
-<dc:subject>07_¥¢¥Ë¥Þ¥ë</dc:subject>
+<description>11��˲椬�Ȥˤ�äƤ����ѥ��� 2005/11/08���ֿ�������²�� �֤��Ȥ�...</description>
+<dc:subject>07_���˥ޥ�</dc:subject>
 <dc:creator>azito</dc:creator>
 <dc:date>2005-12-28T23:59:59+09:00</dc:date>
 </item>
 <item rdf:about="http://azito.under.jp/cgi/mt/archives/azito/000850.html">
-<title>¡Ú»ô¤¤¼ç¡ÛÌÂ¤¤¸¤¡ÚÌµ»öÈ¯¸«¡Û</title>
+<title>�ڻ�������¤�����̵��ȯ����</title>
 <link>http://azito.under.jp/cgi/mt/archives/azito/000850.html</link>
-<description>ºòÆü½ñ¤­¤Þ¤·¤¿µ­»ö¤Î¥Ñ¥°¡£ »ô¤¤¼ç¤ÎÊý¤¬Ìµ»ö¤Ë¸«¤Ä¤«¤ê¤Þ¤·¤¿¤Î¤Ç¤´Êó¹ð¤µ¤»¤ÆÄº¤­...</description>
-<dc:subject>07_¥¢¥Ë¥Þ¥ë</dc:subject>
+<description>�����񤭤ޤ��������Υѥ��� �����������̵���˸��Ĥ���ޤ����ΤǤ���𤵤���ĺ��...</description>
+<dc:subject>07_���˥ޥ�</dc:subject>
 <dc:creator>azito</dc:creator>
 <dc:date>2005-12-21T23:48:05+09:00</dc:date>
 </item>
 <item rdf:about="http://azito.under.jp/cgi/mt/archives/azito/000849.html">
-<title>¡Ú¿¿²¬¡ÛÌÂ¤¤¸¤¡Ú¥Ñ¥°¡Û</title>
+<title>�ڿ������¤����ڥѥ���</title>
 <link>http://azito.under.jp/cgi/mt/archives/azito/000849.html</link>
-<description>Í§¿Í¤«¤éÌÂ¤¤¸¤¤òÊÝ¸î¤·¤¿¤È¤ÎÏ¢Íí¤¬Æþ¤ê¤Þ¤·¤¿¡£ ¿´Åö¤¿¤ê¤ÎÊý¤¬¤¤¤Þ¤·¤¿¤é¤´°ìÊó²¼...</description>
-<dc:subject>07_¥¢¥Ë¥Þ¥ë</dc:subject>
+<description>ͧ�ͤ����¤������ݸ���Ȥ�Ϣ��������ޤ����� ����������������ޤ����餴����...</description>
+<dc:subject>07_���˥ޥ�</dc:subject>
 <dc:creator>azito</dc:creator>
 <dc:date>2005-12-20T23:58:33+09:00</dc:date>
 </item>
 <item rdf:about="http://azito.under.jp/cgi/mt/archives/azito/000848.html">
-<title>Åß¤È¤«¤½¤¦¤¤¤¦¤Î´Ø·¸¤Ê¤¤</title>
+<title>�ߤȤ����������δط��ʤ�</title>
 <link>http://azito.under.jp/cgi/mt/archives/azito/000848.html</link>
-<description>´ë²è¤¬·è¤Þ¤Ã¤¿¤Î¤Ï£±£±·î¡£ ÌµËÅ¤Ë¤â¡Ö£±£²·î¤Ë¤·¤è¤¦¤¼¡×¤È¤¤¤¦ÏÃ¡£ ¤­¤Á¤ó¤È¼Â¹Ô...</description>
-<dc:subject>16_¥­¥ã¥ó¥×</dc:subject>
+<description>��褬��ޤä��Τϣ���� ̵�Ťˤ�֣�����ˤ��褦���פȤ����á� ������ȼ¹�...</description>
+<dc:subject>16_������</dc:subject>
 <dc:creator>azito</dc:creator>
 <dc:date>2005-12-19T21:37:47+09:00</dc:date>
 </item>
 <item rdf:about="http://azito.under.jp/cgi/mt/archives/azito/000847.html">
-<title>M-1GP2005·è¾¡¿Ê½Ð¼Ô½ÐÂ·¤¦</title>
+<title>M-1GP2005�辡�ʽмԽ�·��</title>
 <link>http://azito.under.jp/cgi/mt/archives/azito/000847.html</link>
-<description>³Ú¤·¤ß¤Ë¤·¤Æ¤¤¤¿M-1¤Î·è¾¡¿Ê½Ð¥³¥ó¥Ó8ÁÈ¤¬½ÐÂ·¤Ã¤¿¤è¤¦¤À¡£ ¡ú¡¡¾Ð¤¤ÈÓ¡¡¡ÊµÈËÜ...</description>
-<dc:subject>06_¥Æ¥ì¥Ó¤Ã»Ò</dc:subject>
+<description>�ڤ��ߤˤ��Ƥ���M-1�η辡�ʽХ����8�Ȥ���·�ä��褦���� �����Ф��ӡ��ʵ���...</description>
+<dc:subject>06_�ƥ�Ӥû�</dc:subject>
 <dc:creator>azito</dc:creator>
 <dc:date>2005-12-16T00:25:22+09:00</dc:date>
 </item>
 <item rdf:about="http://azito.under.jp/cgi/mt/archives/azito/000846.html">
-<title>Âç¾æÉ×¡£DTI</title>
+<title>����ס�DTI</title>
 <link>http://azito.under.jp/cgi/mt/archives/azito/000846.html</link>
-<description>¤Í¤§¡Á¤ß¤ó¤Ê¤Ï¡Ö¤³¤Ë¤¿¤ó¡Ê¾®À¾¿¿ÆàÈþ¡Ë¡×¹¥¤­¡© ¥ª¥ì¹¥¤­¡Á¡¥¡¥¡¥(¡­§©¡®)Áª¯...</description>
-<dc:subject>04_µ¤¤Ë¤Ê¤ë¥µ¥¤¥È¾Ò²ð</dc:subject>
+<description>�ͤ����ߤ�ʤϡ֤��ˤ���ʾ����������ˡ׹����� ���칥����������(������)������...</description>
+<dc:subject>04_���ˤʤ륵���ȾҲ�</dc:subject>
 <dc:creator>azito</dc:creator>
 <dc:date>2005-12-15T02:33:20+09:00</dc:date>
 </item>
 <item rdf:about="http://azito.under.jp/cgi/mt/archives/azito/000845.html">
-<title>¥Ö¥í¥°ÉáµÚ°Ñ°÷²ñ¤Ë»²²Ã</title>
+<title>�֥�����ڰѰ���˻���</title>
 <link>http://azito.under.jp/cgi/mt/archives/azito/000845.html</link>
-<description>½÷²¦¡ÖâÃÆé¤«¤ª¤ê¡×¤µ¤ó¤¬°Ñ°÷Ä¹¤òÌ³¤á¤ë¥Ö¥í¥°ÉáµÚ°Ñ°÷²ñ¡£ ÀµÄ¾¡¢NIFTY¤Ã¤Æ²ñ...</description>
-<dc:subject>04_µ¤¤Ë¤Ê¤ë¥µ¥¤¥È¾Ò²ð</dc:subject>
+<description>���������餫����פ��󤬰Ѱ�Ĺ��̳���֥�����ڰѰ��� ��ľ��NIFTY�äƲ�...</description>
+<dc:subject>04_���ˤʤ륵���ȾҲ�</dc:subject>
 <dc:creator>azito</dc:creator>
 <dc:date>2005-12-15T02:08:47+09:00</dc:date>
 </item>
 <item rdf:about="http://azito.under.jp/cgi/mt/archives/azito/000844.html">
-<title>¥×¥Á¡¦¥ê¥Ë¥å¡¼¥¢¥ë¡Ê£±£¸¡Ë</title>
+<title>�ץ�����˥塼����ʣ�����</title>
 <link>http://azito.under.jp/cgi/mt/archives/azito/000844.html</link>
-<description>¥Ð¡¼¥¸¥ç¥ó¥¢¥Ã¥×¤òµ¡¤Ë¡¢¤¤¤í¤¤¤íÏ®¤Ã¤Æ¤ß¤Þ¤·¤¿¡£ ÊÑ¹¹ÅÀ¤Ï°Ê²¼¡£ ¢£¡Öinfo¥Ú...</description>
-<dc:subject>00_¤ª´ê¤¤¡¦¤ªÃÎ¤é¤»</dc:subject>
+<description>�С�����󥢥åפ򵡤ˡ���������Ϯ�äƤߤޤ����� �ѹ����ϰʲ��� ����info��...</description>
+<dc:subject>00_���ꤤ�����Τ餻</dc:subject>
 <dc:creator>azito</dc:creator>
 <dc:date>2005-12-14T23:59:59+09:00</dc:date>
 </item>
 <item rdf:about="http://azito.under.jp/cgi/mt/archives/azito/000843.html">
-<title>MT3.2-ja-2¤Ë¥Ð¡¼¥¸¥ç¥ó¥¢¥Ã¥×</title>
+<title>MT3.2-ja-2�˥С�����󥢥å�</title>
 <link>http://azito.under.jp/cgi/mt/archives/azito/000843.html</link>
-<description>2Ç¯Á°¤«¤é»ÈÍÑ¤·¤Æ¤¤¤ëMovableType¤ò¥Ð¡¼¥¸¥ç¥ó¥¢¥Ã¥×¤·¤Þ¤·¤¿¡£ Mov...</description>
-<dc:subject>00_¤ª´ê¤¤¡¦¤ªÃÎ¤é¤»</dc:subject>
+<description>2ǯ��������Ѥ��Ƥ���MovableType��С�����󥢥åפ��ޤ����� Mov...</description>
+<dc:subject>00_���ꤤ�����Τ餻</dc:subject>
 <dc:creator>azito</dc:creator>
 <dc:date>2005-12-13T18:22:39+09:00</dc:date>
 </item>
@@ -150,15 +150,15 @@ Expect: EUC-JP
 <title>TEST</title>
 <link>http://azito.under.jp/cgi/mt/archives/azito/000842.html</link>
 <description>TEST...</description>
-<dc:subject>00_¤ª´ê¤¤¡¦¤ªÃÎ¤é¤»</dc:subject>
+<dc:subject>00_���ꤤ�����Τ餻</dc:subject>
 <dc:creator>azito</dc:creator>
 <dc:date>2005-12-12T23:31:05+09:00</dc:date>
 </item>
 <item rdf:about="http://azito.under.jp/cgi/mt/archives/azito/000841.html">
-<title>MT¥Ð¡¼¥¸¥ç¥ó¥¢¥Ã¥×</title>
+<title>MT�С�����󥢥å�</title>
 <link>http://azito.under.jp/cgi/mt/archives/azito/000841.html</link>
-<description>ÀèÄø¡¢¥Ð¡¼¥¸¥ç¥ó¥¢¥Ã¥×¼ºÇÔ¤Îµ­»ö¤ò½ñ¤­¤Þ¤·¤¿¤¬¡¢ ¤ä¤Ï¤ê¡¢¥¹¥Ñ¥àÂÐºö¤Ë¤Ï¥Ð¡¼¥¸¥ç...</description>
-<dc:subject>00_¤ª´ê¤¤¡¦¤ªÃÎ¤é¤»</dc:subject>
+<description>�������С�����󥢥å׼��Ԥε�����񤭤ޤ������� ��Ϥꡢ���ѥ��к��ˤϥС�����...</description>
+<dc:subject>00_���ꤤ�����Τ餻</dc:subject>
 <dc:creator>azito</dc:creator>
 <dc:date>2005-12-12T18:19:15+09:00</dc:date>
 </item>

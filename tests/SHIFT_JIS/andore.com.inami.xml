@@ -12,7 +12,7 @@ Expect: SHIFT_JIS
   xmlns="http://purl.org/rss/1.0/">
 
 <channel rdf:about="http://andore.com/inami/">
-<title>AJÅªñÎèÜµå¤</title>
+<title>�A�����J�ł���΂�܂��傤</title>
 <link>http://andore.com/inami/</link>
 <description></description>
 <dc:language>ja</dc:language>
@@ -43,136 +43,136 @@ Expect: SHIFT_JIS
 </channel>
 
 <item rdf:about="http://andore.com/inami/mtarchives/003416.html">
-<title>Google PC ª­³êé?</title>
+<title>Google PC �����������?</title>
 <link>http://andore.com/inami/mtarchives/003416.html</link>
-<description>digg.com oRB
-IàC}C`M¶çêÈ¢ªAGoogle ªßúÉ 200-300h(22000~ - 35000~)öxÌ PC ð­·éÌÅÍÈ¢©Æ¢¤\ª¬ê½B </description>
-<dc:subject>03 Rs[^</dc:subject>
+<description>digg.com �o�R�B
+�I�����C�}�C�`�M�����Ȃ����AGoogle ���ߓ����� 200-300�h��(2��2000�~ - 3��5000�~)���x�� PC �𔭔�����̂ł͂Ȃ����Ƃ����\�����ꂽ�B </description>
+<dc:subject>03 �R���s���[�^</dc:subject>
 <dc:creator>Hiro</dc:creator>
 <dc:date>2006-01-02T19:30:00-08:00</dc:date>
 </item>
 <item rdf:about="http://andore.com/inami/mtarchives/003415.html">
-<title>2006NàªñÎèÜµå¤</title>
+<title>2006�N������΂�܂��傤</title>
 <link>http://andore.com/inami/mtarchives/003415.html</link>
-<description> [Aà¤¡Nà Æ­µB
-Æ¢¤ÌÉATtVXR xCGA(kJtHjA)ÍÉ©íêÄ·²¢±ÆÉB CÅL¼È Napa ÅÍåJÅ^ª­¶µAE`ÌZñÅ¢éÆ±ëÅÍ¨²ë©ç³Á«ÜÅP[uerÌCÉáQª­¶µAeràC^[lbgàsÊÉB ÔÅßðÁ½Æ«Éx@ª¹Hª½µÄAÈÉ©ìÆðµÄ¢½Ìªí©Á½ÌÅ­ÅØÅà|ê½æ¤Èæ¤¾B </description>
-<dc:subject>01 ©ÈÐîETCgÐî</dc:subject>
+<description>���[�A�������N�����Ə����B
+�Ƃ����̂ɁA�T���t�����V�X�R �x�C�G���A(�k�J���t�H���j�A)�͗��Ɍ������Ă��������ƂɁB ���C���ŗL���� Napa �ł͑�J�ō^�����������A�E�`�̏Z��ł���Ƃ���ł͂������납�炳�����܂ŃP�[�u���e���r�̃��C���ɏ�Q���������A�e���r���C���^�[�l�b�g���s�ʂɁB �Ԃŋߏ��𑖂����Ƃ��Ɍx�@�����H���������āA�Ȃɂ���Ƃ����Ă����̂��킩�����̂ŋ����Ŗ؂ł��|�ꂽ�悤�Ȃ悤���B </description>
+<dc:subject>01 ���ȏЉ�E�T�C�g�Љ�</dc:subject>
 <dc:creator>Hiro</dc:creator>
 <dc:date>2005-12-31T23:55:00-08:00</dc:date>
 </item>
 <item rdf:about="http://andore.com/inami/mtarchives/003411.html">
-<title>¢¢ DVD+-R fBAÍÇê?</title>
+<title>���� DVD+-R ���f�B�A�͂ǂ�?</title>
 <link>http://andore.com/inami/mtarchives/003411.html</link>
-<description>DVDR[_[ðgÁÄÝéÆCt­ÌªAg¤fBAÉæéÄ¯ïB L¼uhÌfBAÍâèÈ­Ä¯éªA¢íäém[uhÆ¾íêéfBA¾Æ¸s·é±Æà½¢B CD-R ÌÆ«à¯¶æ¤È±Æª¾íê½ªADVD-RÌêÍ»êÈãÉAuhÉæé·ªµ¢æ¤ÈCª·éB ¯ÇAÅ«é¾¯À­µ½¢Æ¢¤C¿à Á½èµÄYÜµ¢Æ±ë¾B </description>
-<dc:subject>03 Rs[^</dc:subject>
+<description>DVD���R�[�_�[���g���Ă݂�ƋC�t���̂��A�g�����f�B�A�ɂ��Ă���B �L���u�����h�̃��f�B�A�͖��Ȃ��Ă��邪�A������m�[�u�����h�ƌ����郁�f�B�A���Ǝ��s���邱�Ƃ������B CD-R �̂Ƃ��������悤�Ȃ��Ƃ�����ꂽ���ADVD-R�̏ꍇ�͂���ȏ�ɁA�u�����h�ɂ�鍷���������悤�ȋC������B ���ǁA�ł��邾�������������Ƃ����C�������������肵�ĔY�܂����Ƃ��낾�B </description>
+<dc:subject>03 �R���s���[�^</dc:subject>
 <dc:creator>Hiro</dc:creator>
 <dc:date>2005-12-27T08:00:00-08:00</dc:date>
 </item>
 <item rdf:about="http://andore.com/inami/mtarchives/003407.html">
-<title>Lightning Pool (r[hQ[) Én}é</title>
+<title>Lightning Pool (�r�����[�h�Q�[��) �Ƀn�}��</title>
 <link>http://andore.com/inami/mtarchives/003407.html</link>
-<description>úOÉAãÌGgð Digg Å­©B
-Pool Game Æ¢¤ÌÍr[hÌ±ÆB (Pool Bar Ì Pool)B ÅµÉâÁÄÝ½çAn}én}éB</description>
-<dc:subject>02 AJ¶</dc:subject>
+<description>�����O�ɁA��̃G���g���� Digg �Ŕ����B
+Pool Game �Ƃ����̂̓r�����[�h�̂��ƁB (Pool Bar �� Pool)�B �Ŏ����ɂ���Ă݂���A�n�}��n�}��B</description>
+<dc:subject>02 �A�����J����</dc:subject>
 <dc:creator>Hiro</dc:creator>
 <dc:date>2005-12-23T08:00:00-08:00</dc:date>
 </item>
 <item rdf:about="http://andore.com/inami/mtarchives/003405.html">
-<title>VistaXP ªöJ~É</title>
+<title>VistaXP �����J���~��</title>
 <link>http://andore.com/inami/mtarchives/003405.html</link>
-<description>5ÙÇOÉöJµÄA±ÌTCgÅàÐîµ½ VistaXP Æ¢¤e[}t@CB  }CN\tgÌúOS Å é Windows Vista Æ½æ¤È©½Úð XP ÅàÄ»·éÆ¢¤±Ìe[}t@C¾Á½Ì¾ªAMicrosoft ©çív¿ª Á½½ßAöJEzz~ÆÈÁÄµÜÁ½B</description>
-<dc:subject>03 Rs[^</dc:subject>
+<description>5�����قǑO�Ɍ��J���āA���̃T�C�g�ł��Љ�� VistaXP �Ƃ����e�[�}�t�@�C���B  �}�C�N���\�t�g�̎���OS �ł��� Windows Vista �Ǝ����悤�Ȍ����ڂ� XP �ł��Č�����Ƃ������̃e�[�}�t�@�C���������̂����AMicrosoft ����폜�v�������������߁A���J�E�z�z���~�ƂȂ��Ă��܂����B</description>
+<dc:subject>03 �R���s���[�^</dc:subject>
 <dc:creator>Hiro</dc:creator>
 <dc:date>2005-12-22T08:00:00-08:00</dc:date>
 </item>
 <item rdf:about="http://andore.com/inami/mtarchives/003401.html">
-<title>TbJ[ú{ã\íÌ`PbgÍ20ú(Î)­</title>
+<title>�T�b�J�[���{��\��̃`�P�b�g��20��(��)����</title>
 <link>http://andore.com/inami/mtarchives/003401.html</link>
-<description>NÌ210úATtVXRÅTbJ[ú{ã\ªAJã\Æð·éÆ¢¤¿µ¢CxgªsíêéB »Ì`PbgÌÌªTtVXRÌÔÑ (PST) Å 12/20(Î) 10:00am ÉJn³êéB</description>
-<dc:subject>02 AJ¶</dc:subject>
+<description>���N��2��10���A�T���t�����V�X�R�ŃT�b�J�[���{��\���A�����J��\�Ǝ���������Ƃ����������C�x���g���s����B ���̃`�P�b�g�̔̔����T���t�����V�X�R�̎��ԑ� (PST) �� 12/20(��) 10:00am �ɊJ�n�����B</description>
+<dc:subject>02 �A�����J����</dc:subject>
 <dc:creator>Hiro</dc:creator>
 <dc:date>2005-12-18T13:00:00-08:00</dc:date>
 </item>
 <item rdf:about="http://andore.com/inami/mtarchives/003392.html">
-<title>AJÅ VICS?</title>
+<title>�A�����J�� VICS?</title>
 <link>http://andore.com/inami/mtarchives/003392.html</link>
-<description>ú{ÅÍJ[irÌ@\ÆµÄêÊIÉÈÁ½VICS (¹HðÊîñVXeA¢íäéaØîñ)B
-AJÅÍÜ¾J[irª­µÃÂyµÄ«Ä¢éæ¤ÈóÔÈÌÅAÜ¾»¤¢Á½VXeÍÈ¢B ãíèÉAêp[ÉaØîñðzM·é±ñÈT[rXªXâVAgÅWJ³êÄ¢ÄAÅßTtVXRGAÅànÜÁ½B</description>
+<description>���{�ł̓J�[�i�r�̋@�\�Ƃ��Ĉ�ʓI�ɂȂ���VICS (���H��ʏ��V�X�e���A������a�؏��)�B
+�A�����J�ł͂܂��J�[�i�r�������Â��y���Ă��Ă���悤�ȏ�ԂȂ̂ŁA�܂������������V�X�e���͂Ȃ��B ����ɁA��p�[���ɏa�؏���z�M���邱��ȃT�[�r�X�����X��V�A�g���œW�J����Ă��āA�ŋ߃T���t�����V�X�R�G���A�ł��n�܂����B</description>
 <dc:subject></dc:subject>
 <dc:creator>Hiro</dc:creator>
 <dc:date>2005-12-13T09:10:00-08:00</dc:date>
 </item>
 <item rdf:about="http://andore.com/inami/mtarchives/003389.html">
-<title>AJlÆõi</title>
+<title>�A�����J�l�Ǝ��i</title>
 <link>http://andore.com/inami/mtarchives/003389.html</link>
-<description><![CDATA[<p>ÅßAIÌñèÅ¬sÁÄé±ÌrfIB Ü¾©ÄÈ¢lÍÜ¸©Ä©ç±«ðÇñÅ~µ¢B</p>
+<description><![CDATA[<p>�ŋ߁A�I���̉��ŗ��s���Ă邱�̃r�f�I�B �܂����ĂȂ��l�͂܂����Ă��瑱����ǂ�ŗ~�����B</p>
 
 <p>
 <a target="_blank" href="http://video.google.com/videoplay?docid=6905089586228877019&q=sushi">Documentary On Japanese Sushi - Google Video</a><br/>
-(v FlashANðNbN·éÆ·®¹t«ÅÄ¶³êéÌÅÓ)
+(�v Flash�A�����N���N���b�N����Ƃ������t���ōĐ������̂Œ���)
 </p>
 
-<p>õiªAJÉüÁÄ«Äª½¿AÁÉAWAlà½¢TtVXRüÓÅÍõiÍ\êÊIÅAXÌæµíéµÍÊÉµÄ_E^EÉÍ1Â®ç¢õiXgª éÙÇZ§µÄ«½B ÅàAõiÌ±Æðæ­í©ÁÄé©Æ¾¤ÆÜ¾Ü¾u???v©àµêÈ¢B</p>]]></description>
-<dc:subject>02 AJ¶</dc:subject>
+<p>���i���A�����J�ɓ����Ă��Đ��������A���ɃA�W�A�l�������T���t�����V�X�R���ӂł͎��i�͌��\��ʓI�ŁA�X�̂悵��邵�͕ʂɂ��ă_�E���^�E���ɂ�1���炢���i���X�g����������قǐZ�����Ă����B �ł��A���i�̂��Ƃ��悭�킩���Ă邩�ƌ����Ƃ܂��܂��u???�v��������Ȃ��B</p>]]></description>
+<dc:subject>02 �A�����J����</dc:subject>
 <dc:creator>Hiro</dc:creator>
 <dc:date>2005-12-11T11:00:00-08:00</dc:date>
 </item>
 <item rdf:about="http://andore.com/inami/mtarchives/003388.html">
 <title>Warriors vs Detroit Pistons</title>
 <link>http://andore.com/inami/mtarchives/003388.html</link>
-<description>OñvV[Y}b`ðÏÉsÁÄC}C`¾Á½±Æà èA¯¶o[ÅV[YÌðÏÉs­±ÆÉB ÎíèÍæûÌNGXgà ÁÄ Detroit PistonsB Pistons ÍêðNÌ NBA `sIAðNà NBA t@CiÅ San Antonio Spurs É¯½ÌÅ ÃNBA `sIÆ¢¤­`[B ¡V[Yà±ÌÌOÜÅÅ 13 2s Æ¢¤àÌ·²¢`[B</description>
+<description>�O��v���V�[�Y���}�b�`���ςɍs���ăC�}�C�`���������Ƃ�����A���������o�[�ŃV�[�Y�����̎������ςɍs�����ƂɁB �ΐ푊��͐���̃��N�G�X�g�������� Detroit Pistons�B Pistons �͈��N�� NBA �`�����s�I���A��N�� NBA �t�@�C�i���� San Antonio Spurs �ɕ������̂� ��NBA �`�����s�I���Ƃ��������`�[���B ���V�[�Y�������̎����̑O�܂ł� 13�� 2�s �Ƃ������̂������`�[���B</description>
 <dc:subject>04 NBA Basketball</dc:subject>
 <dc:creator>Hiro</dc:creator>
 <dc:date>2005-12-10T14:30:00-08:00</dc:date>
 </item>
 <item rdf:about="http://andore.com/inami/mtarchives/003384.html">
-<title>èpµÈ¢Å!</title>
+<title>��p���Ȃ���!</title>
 <link>http://andore.com/inami/mtarchives/003384.html</link>
-<description>[§tWÉÊ¢»¡[¢LªB
-}«(¢íäéÓ°)Ìèpð·é½ßÉ©©é¨àðess²ÆÉärµÄAú{Ì}«Ìèpü@ïªÆÄàá­ãÒà×©çÈ¢©çâè½ªçÈ¢Æ¢¤bÈÌ¾ªAú{Ìèpü@ï 38~ÈãÉAJÌèpü@ïªÙí¾B</description>
-<dc:subject>02 AJ¶</dc:subject>
+<description>�[���t�W�ɖʔ��������[���L�����B
+�}��������(������Ӓ�)�̎�p�����邽�߂ɂ����邨�����e�s�s���Ƃɔ�r���āA���{�̋}���������̎�p���@��ƂĂ��Ⴍ��҂��ׂ���Ȃ������肽����Ȃ��Ƃ����b�Ȃ̂����A���{�̎�p���@�� 38���~�ȏ�ɃA�����J�̎�p���@��ُ킾�B</description>
+<dc:subject>02 �A�����J����</dc:subject>
 <dc:creator>Hiro</dc:creator>
 <dc:date>2005-12-06T09:00:00-08:00</dc:date>
 </item>
 <item rdf:about="http://andore.com/inami/mtarchives/003381.html">
-<title>NX}Xv[gÉA[P[hQ[Í¢©ª?</title>
+<title>�N���X�}�X�v���[���g�ɃA�[�P�[�h�Q�[���͂�����?</title>
 <link>http://andore.com/inami/mtarchives/003381.html</link>
-<description>¡úÌV·LÅ©Â¯½Ê¢mB Target Æ¢¤ú{Å¾¤z[Z^[Ìæ¤È¨XÌLÈñ¾¯ÇANX}XúÀèÅA[P[hQ[ÌâÌðÁÄ¢éB ±ÌâÌÅ¢­Â©ÌQ[ªV×éÌ¾ªAQ[ÌCibvÍA uJoustA Defender I and IIA RobotronA Rampage ÈÇv... Æ éæ¤ÉSRéõÝÌÈ¢àÌÎ©è...B Gð©Äàt@~RöxÌàÌÈÌÅ\Ã¢Q[ÌÅÆ¢¤´¶¾B</description>
-<dc:subject>02 AJ¶</dc:subject>
+<description>�����̐V���L���Ō������ʔ������m�B Target �Ƃ������{�Ō����z�[���Z���^�[�̂悤�Ȃ��X�̍L���Ȃ񂾂��ǁA�N���X�}�X��������ŃA�[�P�[�h�Q�[����➑̂𔄂��Ă���B ����➑̂ł������̃Q�[�����V�ׂ�̂����A�Q�[���̃��C���i�b�v�́A �uJoust�A Defender I and II�A Robotron�A Rampage �Ȃǁv... �Ƃ���悤�ɑS�R����݂̂Ȃ����̂΂���...�B �G�����Ă��t�@�~�R�����x�̂��̂Ȃ̂Ō��\�Â��Q�[���̕����łƂ����������B</description>
+<dc:subject>02 �A�����J����</dc:subject>
 <dc:creator>Hiro</dc:creator>
 <dc:date>2005-12-04T12:00:00-08:00</dc:date>
 </item>
 <item rdf:about="http://andore.com/inami/mtarchives/003379.html">
-<title>TbJ[ú{ã\ªTtVXRÅ</title>
+<title>�T�b�J�[���{��\���T���t�����V�X�R�Ŏ���</title>
 <link>http://andore.com/inami/mtarchives/003379.html</link>
-<description><![CDATA[ú{ã\<s>L^[</s>N[B
-2NÙÇOÉàAePÆ¢¤±ÆÅAJã\ÆTz[Å·éÆ¢¤Ìª Á½ªAubVªCNÆíðnß½½ßAú{ã\ªAJÉéÌð<a href="http://www.jfa.or.jp/CGI/top/top.cgi?key=backup&0=1560&1=back200303&backyear=2003&lf=&yymm=">~µ½</a>Æ¢¤oÜª Á½B µ©µA¡xÍ«ÁÆåäv¾ë¤BâÎs­¼[B]]></description>
-<dc:subject>02 AJ¶</dc:subject>
+<description><![CDATA[���{��\<s>�L�^�[</s>�N���[�B
+2�N�قǑO�ɂ��A�e�P�����Ƃ������ƂŃA�����J��\�ƃT���z�[�Ŏ�������Ƃ����̂����������A�u�b�V�����C���N�Ɛ푈���n�߂����߁A���{��\���A�����J�ɗ���̂�<a href="http://www.jfa.or.jp/CGI/top/top.cgi?key=backup&0=1560&1=back200303&backyear=2003&lf=&yymm=">���~����</a>�Ƃ����o�܂��������B �������A���x�͂����Ƒ��v���낤�B��΍s�����[�B]]></description>
+<dc:subject>02 �A�����J����</dc:subject>
 <dc:creator>Hiro</dc:creator>
 <dc:date>2005-12-02T08:45:00-08:00</dc:date>
 </item>
 <item rdf:about="http://andore.com/inami/mtarchives/003376.html">
-<title>Warriors, 11Í`[L^^CÌ11!</title>
+<title>Warriors, 11���̓`�[���L�^�^�C��11��!</title>
 <link>http://andore.com/inami/mtarchives/003376.html</link>
-<description>11ÌnßÉX^[gµ½NBAAÅÌªIíÁÄUèÔÁÄÝéÆ Warriors Í½Æ 116sÆå«­¿zµB Pacific Division ÌÊà 2Ê (µ©àA1ÊÌ Clippers Í 105s ÅQ[·Í 0) Æ¢¤D¬ÑÆÈÁ½B úöÌÖWÅ¡V[YÍª½©Á½Æ¢¤Ìà éªA11É11µ½ÌÍÀÉ31NÔè¾»¤¾B </description>
+<description>11���̎n�߂ɃX�^�[�g����NBA�A�ŏ��̌����I����ĐU��Ԃ��Ă݂�� Warriors �͉��� 11��6�s�Ƒ傫�������z���B Pacific Division �̏��ʂ� 2�� (�������A1�ʂ� Clippers �� 10��5�s �ŃQ�[������ 0) �Ƃ����D���тƂȂ����B ���������̊֌W�ō��V�[�Y���͎����������������Ƃ����̂����邪�A11����11�������͎̂���31�N�Ԃ肾�������B </description>
 <dc:subject>04 NBA Basketball</dc:subject>
 <dc:creator>Hiro</dc:creator>
 <dc:date>2005-12-01T13:00:00-08:00</dc:date>
 </item>
 <item rdf:about="http://andore.com/inami/mtarchives/003369.html">
-<title>At^[TNXMrOZ[Ìl¬ÝÉÁ­</title>
+<title>�A�t�^�[�T���N�X�M�r���O�Z�[���̐l���݂ɋ���</title>
 <link>http://andore.com/inami/mtarchives/003369.html</link>
-<description>ÀñÅÝ½B
-Æ¢ÁÄà©5I[vÌ Best Buy Æ¢¤ÆdÊÌXÉ 450ª²ëÉ¯Î¢¢©ÈÆ¢¤¨CyÈm¾Á½ñ¾¯ÇA©ªÌÃ³ðF¯B ½ÜÉJà~é«VóÌAI[vOÉÍ·ÅÉ1000l®ç¢¢éñ¶áÈ¢©Æ¢¤®ç¢lªWÜÁÄ¢½B</description>
-<dc:subject>02 AJ¶</dc:subject>
+<description>����ł݂��B
+�Ƃ����Ă���5���I�[�v���� Best Buy �Ƃ����Ɠd�ʔ̓X�� 4��50������ɒ����΂������ȂƂ������C�y�ȃ��m�������񂾂��ǁA�����̊Â���F���B ���܂ɉJ���~�鈫�V��̒��A�I�[�v���O�ɂ͂��ł�1000�l���炢����񂶂�Ȃ����Ƃ������炢�l���W�܂��Ă����B</description>
+<dc:subject>02 �A�����J����</dc:subject>
 <dc:creator>Hiro</dc:creator>
 <dc:date>2005-11-25T08:00:00-08:00</dc:date>
 </item>
 <item rdf:about="http://andore.com/inami/mtarchives/003367.html">
-<title>At^[TNXMrOZ[ÅPCÌliª³çÉº</title>
+<title>�A�t�^�[�T���N�X�M�r���O�Z�[����PC�̒l�i������ɉ���</title>
 <link>http://andore.com/inami/mtarchives/003367.html</link>
-<description><![CDATA[µÎç­OÉA<a href="http://japan.cnet.com/news/ent/story/0,2000047623,20090009,00.htm">CNet ÌL</a>Å Walmart (EH}[g) ª $398 Èm[gâfXNgbvPCð­©? Æ¢¤Ìª Á½ªAÀÛÍàÁÆ·²©Á½B]]></description>
-<dc:subject>02 AJ¶</dc:subject>
+<description><![CDATA[���΂炭�O�ɁA<a href="http://japan.cnet.com/news/ent/story/0,2000047623,20090009,00.htm">CNet �̋L��</a>�� Walmart (�E�H���}�[�g) �� $398 �ȃm�[�g��f�X�N�g�b�vPC�𔭔���? �Ƃ����̂����������A���ۂ͂����Ƃ����������B]]></description>
+<dc:subject>02 �A�����J����</dc:subject>
 <dc:creator>Hiro</dc:creator>
 <dc:date>2005-11-24T11:00:00-08:00</dc:date>
 </item>

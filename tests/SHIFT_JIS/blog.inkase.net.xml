@@ -4,596 +4,596 @@ Source: http://blog.inkase.net/atom.xml
 Expect: SHIFT_JIS
 -->
 <feed xmlns="http://www.w3.org/2005/Atom">
-    <title>CÒIBLOG</title>
+    <title>�C���ҁIBLOG</title>
     <link rel="alternate" type="text/html" href="http://blog.inkase.net/" />
     <link rel="self" type="application/atom+xml" href="http://blog.inkase.net/atom.xml" />
    <id>tag:blog.inkase.net,2006://1</id>
-    <link rel="service.post" type="application/atom+xml" href="http://inkase.net/cgi-bin/blog/mt-atom.cgi/weblog/blog_id=1" title="CÒIBLOG" />
+    <link rel="service.post" type="application/atom+xml" href="http://inkase.net/cgi-bin/blog/mt-atom.cgi/weblog/blog_id=1" title="�C���ҁIBLOG" />
     <updated>2006-01-03T08:11:55Z</updated>
-    <subtitle>uC^[lbgÅ¬­¢Ò¬IvÇlÌAÆè¾BLOGB
-IXXTCgâßµñàACÜÜsèúÉXVµÜ·B</subtitle>
+    <subtitle>�u�C���^�[�l�b�g�ŏ������҂��I�v�Ǘ��l�́A�Ƃ茾BLOG�B
+�I�X�X���T�C�g��ߋ��񍐂��A�C�܂܁��s����ɍX�V���܂��B</subtitle>
     <generator uri="http://www.sixapart.com/movabletype/">Movable Type  3.2-ja-2</generator>
  
 <entry>
-    <title>BLOGªcII</title>
+    <title>BLOG���c�I�I</title>
     <link rel="alternate" type="text/html" href="http://blog.inkase.net/2010/01/blog.html" />
-    <link rel="service.edit" type="application/atom+xml" href="http://inkase.net/cgi-bin/blog/mt-atom.cgi/weblog/blog_id=1/entry_id=23" title="BLOGªcII" />
+    <link rel="service.edit" type="application/atom+xml" href="http://inkase.net/cgi-bin/blog/mt-atom.cgi/weblog/blog_id=1/entry_id=23" title="BLOG���c�I�I" />
     <id>tag:blog.inkase.net,2006://1.23</id>
     
     <published>2009-12-31T15:00:00Z</published>
     <updated>2006-01-03T08:11:55Z</updated>
     
-    <summary>¿åÁÆftHÉßèÜµ½BB MovableTypeðMySQL©çSQLit...</summary>
+    <summary>������ƃf�t�H�ɖ߂�܂����B�B MovableType��MySQL����SQLit...</summary>
     <author>
         <name>Gen</name>
         <uri>http://blog.inkase.net/</uri>
     </author>
-            <category term="GkEúL" />
+            <category term="�G�k�E���L" />
     
     <content type="html" xml:lang="ja" xml:base="http://blog.inkase.net/">
-        <![CDATA[¿åÁÆftHÉßèÜµ½BB
-MovableTypeðMySQL©çSQLiteÉÏX·éÛÉ¨©µ­ÈÁÄµÜÁ½æ¤Å·BB
+        <![CDATA[������ƃf�t�H�ɖ߂�܂����B�B
+MovableType��MySQL����SQLite�ɕύX����ۂɂ��������Ȃ��Ă��܂����悤�ł��B�B
 
-Lðß·±ÆÍÅ«Ü·ªARgâgbNobNªÁ¦ÄµÜ¤ÌÅ
-µÎç­±ÌÜÜÅ®©µÜ·B
-\µó²´¢Ü¹ñ(*- -)(*_ _)yR
+�L����߂����Ƃ͂ł��܂����A�R�����g��g���b�N�o�b�N�������Ă��܂��̂�
+���΂炭���̂܂܂œ������܂��B
+�\���󂲂����܂���(*- -)(*_ _)�y�R��
 
-<FONT COLOR="red">SS[ÖAÅÄ¸¢½ûÍA
-@<A HREF="http://blog.inkase.net/2006/01/sakura_mail.html" TARGET="_blank">SS[(VESAKURA Mail)ÜÆßL</A>ð²­¾³¢B</FONT>
+��<FONT COLOR="red">�S���S�����[���֘A�ŗ��Ē��������́A
+�@<A HREF="http://blog.inkase.net/2006/01/sakura_mail.html" TARGET="_blank">�S���S�����[��(�V�ESAKURA Mail)�܂ƂߋL��</A>���������������B</FONT>
 
-05NÌL
-<A HREF="http://blog.inkase.net/2005/12/" TARGET="_blank">12A[JCu</A>^<A HREF="http://blog.inkase.net/2005/11/" TARGET="_blank">11A[JCu</A>^<A HREF="http://blog.inkase.net/2005/10/" TARGET="_blank">10A[JCu</A>^<A HREF="http://blog.inkase.net/2005/09/" TARGET="_blank">09A[JCu</A>^
-<A HREF="http://blog.inkase.net/2005/08/" TARGET="_blank">08A[JCu</A>^<A HREF="http://blog.inkase.net/2005/07/" TARGET="_blank">07A[JCu</A>^<A HREF="http://blog.inkase.net/2005/06/" TARGET="_blank">06A[JCu</A>^<A HREF="http://blog.inkase.net/2005/05/" TARGET="_blank">05A[JCu</A>^
-<A HREF="http://blog.inkase.net/2005/04/" TARGET="_blank">04A[JCu</A>^<A HREF="http://blog.inkase.net/2005/03/" TARGET="_blank">03A[JCu</A>^<A HREF="http://blog.inkase.net/2005/02/" TARGET="_blank">02A[JCu</A>^<A HREF="http://blog.inkase.net/2005/01/" TARGET="_blank">01A[JCu</A>]]>
+05�N�̋L��
+<A HREF="http://blog.inkase.net/2005/12/" TARGET="_blank">12���A�[�J�C�u</A>�^<A HREF="http://blog.inkase.net/2005/11/" TARGET="_blank">11���A�[�J�C�u</A>�^<A HREF="http://blog.inkase.net/2005/10/" TARGET="_blank">10���A�[�J�C�u</A>�^<A HREF="http://blog.inkase.net/2005/09/" TARGET="_blank">09���A�[�J�C�u</A>�^
+<A HREF="http://blog.inkase.net/2005/08/" TARGET="_blank">08���A�[�J�C�u</A>�^<A HREF="http://blog.inkase.net/2005/07/" TARGET="_blank">07���A�[�J�C�u</A>�^<A HREF="http://blog.inkase.net/2005/06/" TARGET="_blank">06���A�[�J�C�u</A>�^<A HREF="http://blog.inkase.net/2005/05/" TARGET="_blank">05���A�[�J�C�u</A>�^
+<A HREF="http://blog.inkase.net/2005/04/" TARGET="_blank">04���A�[�J�C�u</A>�^<A HREF="http://blog.inkase.net/2005/03/" TARGET="_blank">03���A�[�J�C�u</A>�^<A HREF="http://blog.inkase.net/2005/02/" TARGET="_blank">02���A�[�J�C�u</A>�^<A HREF="http://blog.inkase.net/2005/01/" TARGET="_blank">01���A�[�J�C�u</A>]]>
         
     </content>
 </entry>
 <entry>
-    <title>SS[(VESAKURA Mail)ÜÆßL</title>
+    <title>�S���S�����[��(�V�ESAKURA Mail)�܂ƂߋL��</title>
     <link rel="alternate" type="text/html" href="http://blog.inkase.net/2006/01/sakura_mail.html" />
-    <link rel="service.edit" type="application/atom+xml" href="http://inkase.net/cgi-bin/blog/mt-atom.cgi/weblog/blog_id=1/entry_id=31" title="SS[(VESAKURA Mail)ÜÆßL" />
+    <link rel="service.edit" type="application/atom+xml" href="http://inkase.net/cgi-bin/blog/mt-atom.cgi/weblog/blog_id=1/entry_id=31" title="�S���S�����[��(�V�ESAKURA Mail)�܂ƂߋL��" />
     <id>tag:blog.inkase.net,2006://1.31</id>
     
     <published>2006-01-03T07:45:06Z</published>
     <updated>2006-01-03T08:22:27Z</updated>
     
-    <summary>BLOGªÏÉÈÁ½ÌÅæè}¬«Üµ½U(PÞP;)CC SS[...</summary>
+    <summary>BLOG���ςɂȂ����̂Ŏ��}�������܂����U(�P�ށP;)���C���C �S���S�����[��...</summary>
     <author>
         <name>Gen</name>
         <uri>http://blog.inkase.net/</uri>
     </author>
-            <category term="[h[" />
+            <category term="���[�h���[��" />
     
     <content type="html" xml:lang="ja" xml:base="http://blog.inkase.net/">
-        <![CDATA[BLOGªÏÉÈÁ½ÌÅæè}¬«Üµ½U(PÞP;)CC
-SS[ÖAÌLÍ±¿ç©çNµÄ¢Ü·B
+        <![CDATA[BLOG���ςɂȂ����̂Ŏ��}�������܂����U(�P�ށP;)���C���C
+�S���S�����[���֘A�̋L���͂����炩�烊���N���Ă��܂��B
 
-«¡ÜÅÌÖAL«
-@05/08/23@<A HREF="http://blog.inkase.net/2005/08/good_friend_mail.html" TARGET="_blank">Good Friend MailÂ½I</A>
-@05/12/11@<A HREF="http://blog.inkase.net/2005/12/asinsave_money.html" TARGET="_blank">asinnuSAVE MONEYvÌ³ÌÍcHI</A>
-@05/12/17@<A HREF="http://blog.inkase.net/2005/12/save_money.html" TARGET="_blank">SAVE MONEY¨Ao^[æ{Ü¨Ü½Â½HI</A>
-@05/12/24@<A HREF="http://blog.inkase.net/2005/12/post_44.html" TARGET="_blank">VuSS[vààµ©µÄc</A>
-@05/12/26@<A HREF="http://blog.inkase.net/2005/12/html_404.html" TARGET="_blank">SS[uHTML 404¢ov</A>
-@05/12/28@<A HREF="http://blog.inkase.net/2005/12/paidmaillife.html" TARGET="_blank">SS[Ípaidmail-lifenñHH</A>
-@05/12/30@<A HREF="http://blog.inkase.net/2005/12/paidmaillife_1.html" TARGET="_blank">paidmail-lifeÇl³ñÆbµÜµ½B</A>
+�����܂ł̊֘A�L����
+�@05/08/23�@<A HREF="http://blog.inkase.net/2005/08/good_friend_mail.html" TARGET="_blank">Good Friend Mail���I</A>
+�@05/12/11�@<A HREF="http://blog.inkase.net/2005/12/asinsave_money.html" TARGET="_blank">asin�n�uSAVE MONEY�v�̐��̂́c�H�I</A>
+�@05/12/17�@<A HREF="http://blog.inkase.net/2005/12/save_money.html" TARGET="_blank">SAVE MONEY���A�o�^�[����{�܁��܂����H�I</A>
+�@05/12/24�@<A HREF="http://blog.inkase.net/2005/12/post_44.html" TARGET="_blank">�V���u�S���S�����[���v�����������āc</A>
+�@05/12/26�@<A HREF="http://blog.inkase.net/2005/12/html_404.html" TARGET="_blank">�S���S�����[���uHTML 404�����o�v</A>
+�@05/12/28�@<A HREF="http://blog.inkase.net/2005/12/paidmaillife.html" TARGET="_blank">�S���S�����[����paidmail-life�n��H�H</A>
+�@05/12/30�@<A HREF="http://blog.inkase.net/2005/12/paidmaillife_1.html" TARGET="_blank">paidmail-life�Ǘ��l����Ƙb���܂����B</A>
 
-<FONT COLOR="red">uOìÆÌãâÇÅAÂXÌLÖÌRgâgbNobNÍoÜ¹ñB
-@SS[ÖAÌRg¥gbNobNÍSÄ±ÌLÖ¨è¢¢½µÜ·B
-@¨èð¨©¯µÜ·ªAæëµ­¨è¢¢½µÜ·B</FONT>
+��<FONT COLOR="red">�u���O������Ƃ̌��ǂŁA�X�̋L���ւ̃R�����g��g���b�N�o�b�N�͏o���܂���B
+�@�S���S�����[���֘A�̃R�����g��g���b�N�o�b�N�͑S�Ă��̋L���ւ��肢�������܂��B
+�@���萔�����������܂����A��낵�����肢�������܂��B</FONT>
 
-<A HREF="http://gorogoro-mail.net/pages/index.php?refid=gen" TARGET="_blank">SS[Õn</A>ÅÍA<A HREF="http://www.paidmail-life.net/pages/index.php?refid=gen" TARGET="_blank">**PAIDMAIL LIFE**</A>Çl³ñÌèÉæÁÄ
-VTCguSAKURA MailvI[vÉü¯ÄõªißçêÄ¢Ü·B]]>
-        <![CDATA[æú[Åbµ½Æ«ÉAÍVTCgÖÌv]ÆµÄÇlc³ñÉ
-u100~·àEÐî§x4iKÈãvÆ¢¤v]ðµÄ¢Üµ½B
+<A HREF="http://gorogoro-mail.net/pages/index.php?refid=gen" TARGET="_blank">�S���S�����[���Ւn</A>�ł́A<A HREF="http://www.paidmail-life.net/pages/index.php?refid=gen" TARGET="_blank">**PAIDMAIL LIFE**</A>�Ǘ��l����̎�ɂ����
+�V�T�C�g�uSAKURA Mail�v�I�[�v���Ɍ����ď������i�߂��Ă��܂��B]]>
+        <![CDATA[������[���Řb�����Ƃ��ɁA���͐V�T�C�g�ւ̗v�]�Ƃ��ĊǗ��l���c�������
+�u100�~�����E�Љ�x4�i�K�ȏ�v�Ƃ����v�]�����Ă��܂����B
 
-<fieldset><legend>ªÇl³ñÉÁ½[@²</legend>
-ÌVTCgÖÌó]ðbµÜ·B<BR>
-VTCgÍ100~·àÅ4iKÈãÌÐîñVª¢¢©Æv¢Ü·B<BR>
-¡ñÌSSàu100~·àvÆ¢¤¾tÅ\o^Òª¦½Æv¢Ü·B<BR>
-hCÍgorogoro-mail.comðgÁÄà[U[ªñèt­©í©èÜ¹ñÌÅA<BR>
-{ÍÏ¦½Ù¤ª¢¢Æv¢Ü·ªAà­Ê©ç©éÆ»ÌÜÜÉÈéÌÅµå¤©B<BR>
-<A HREF="http://sasuga.biz/pages/index.php?refid=gen" TARGET="_blank">¬Îß[é</A>³ñª100~E3iKÅ·ÌÅA»êÈãÅÈ¢ÆÈ©È©µµ¢ÆvíêÜ·B<BR>
-QlÜÅÉcB
+<fieldset><legend>�����Ǘ��l����ɑ��������[���@����</legend>
+���̐V�T�C�g�ւ̊�]��b���܂��B<BR>
+�V�T�C�g��100�~������4�i�K�ȏ�̏Љ��V���������Ǝv���܂��B<BR>
+����̃S���S�����u100�~�����v�Ƃ������t�Ō��\�o�^�҂��������Ǝv���܂��B<BR>
+�h���C����gorogoro-mail.com���g���Ă����[�U�[�����t�����킩��܂���̂ŁA<BR>
+�{���͕ς����ق��������Ǝv���܂����A�����ʂ��猩��Ƃ��̂܂܂ɂȂ�̂ł��傤���B<BR>
+<A HREF="http://sasuga.biz/pages/index.php?refid=gen" TARGET="_blank">���΂߁[��</A>����100�~�E3�i�K�ł��̂ŁA����ȏ�łȂ��ƂȂ��Ȃ��������Ǝv���܂��B<BR>
+�Q�l�܂łɁc�B
 </fieldset>
 
-»êÉÎµÄc
+����ɑ΂��āc
 
-<fieldset><legend>Çl³ñÌÔM@²</legend>
-±ÌTCgðÌèÅ^c·éÉ½ÁÄÍA<BR>
-FlÌ²Ó©à¿ëñGen³ÜÌ²Ó©àQlÉ³¹Ä¢½¾«AÝèð<BR>
-³¹Ä¢½¾­ÂàèÅ¢Ü·B
+<fieldset><legend>�Ǘ��l����̕ԐM�@����</legend>
+���̃T�C�g�����̎�ŉ^�c����ɓ������ẮA<BR>
+�F�l�̂��ӌ��������Gen���܂̂��ӌ����Q�l�ɂ����Ă��������A�ݒ��<BR>
+�����Ă�����������ł��܂��B
 </fieldset>
 
-SAKURA MailÌ¡_Åí©ÁÄ¢éXybNÍ
-<FONT COLOR="blue"> Åá¥¢oµzÍy100~z©ç!! 
- y500~zæ£ÁÄßéÆA¥¢oµ{[iXÁZ!! 
- Êí[/osbNbNP¿Íy0.25~z©ç!! 
- _EñV¦Íy---zÌSiK!! </FONT>
+SAKURA Mail�̍����_�ł킩���Ă���X�y�b�N��
+<FONT COLOR="blue">�� �Œᕥ���o���z�́y100�~�z����!! 
+�� �y500�~�z�撣���Ē��߂�ƁA�����o�����{�[�i�X���Z!! 
+�� �ʏ탁�[��/�o�s�b�N���b�N�P���́y0.25�~�z����!! 
+�� �_�E����V���́y---���z�̂S�i�K!! </FONT>
 
-_EñV¦±»í©çÈ¢àÌÌA100~·àE4iKÉÈÁÄ¢Üµ½B
-Ìv]ÍA¨»ç­¼ÌÝÈ³ñà¯¶æ¤Él¦çêÄ¢é¾ë¤Æv¢
-Á½àÌ¾Á½ÌÅAâÍè»¤¢¤Ó©ª½¢ñ¾ÈÆÂ­Ã­v¢Üµ½B
+�_�E����V�������킩��Ȃ����̂́A100�~�����E4�i�K�ɂȂ��Ă��܂����B
+���̗v�]�́A�����炭���݂̂Ȃ���������悤�ɍl�����Ă��邾�낤�Ǝv��
+���������̂������̂ŁA��͂肻�������ӌ��������񂾂ȂƂ��Â��v���܂����B
 
-Æ±ëÅc
-Í<A HREF="http://blog.inkase.net/2005/12/paidmaillife.html" TARGET="_blank">æú</A>u<FONT COLOR="red">VTCgÉÍo^µÈ¢</FONT>vÆ¾ÁÄ¢Üµ½ªA
-o^µ½­ÈéXybNÉÈè»¤ÈÌÅAo^µ¿á¤©àÅ·cU(PÞP;)CC]]>
+�Ƃ���Łc
+����<A HREF="http://blog.inkase.net/2005/12/paidmaillife.html" TARGET="_blank">���</A>�u<FONT COLOR="red">�V�T�C�g�ɂ͓o�^���Ȃ�</FONT>�v�ƌ����Ă��܂������A
+�o�^�������Ȃ�X�y�b�N�ɂȂ肻���Ȃ̂ŁA�o�^�����Ⴄ�����ł��c�U(�P�ށP;)���C���C]]>
     </content>
 </entry>
 <entry>
-    <title>Cycle-SurfÌXXB</title>
+    <title>Cycle-Surf�̃X�X���B</title>
     <link rel="alternate" type="text/html" href="http://blog.inkase.net/2006/01/cyclesurf.html" />
-    <link rel="service.edit" type="application/atom+xml" href="http://inkase.net/cgi-bin/blog/mt-atom.cgi/weblog/blog_id=1/entry_id=30" title="Cycle-SurfÌXXB" />
+    <link rel="service.edit" type="application/atom+xml" href="http://inkase.net/cgi-bin/blog/mt-atom.cgi/weblog/blog_id=1/entry_id=30" title="Cycle-Surf�̃X�X���B" />
     <id>tag:blog.inkase.net,2006://1.30</id>
     
     <published>2006-01-03T07:08:16Z</published>
     <updated>2006-01-03T07:26:28Z</updated>
     
-    <summary>ANZXAbvµÈªç¨ààÒ°éyChT[tTCgÌCycle-SurfB æ...</summary>
+    <summary>�A�N�Z�X�A�b�v���Ȃ��炨�����҂���y�C�h�T�[�t�T�C�g��Cycle-Surf�B ��...</summary>
     <author>
         <name>Gen</name>
         <uri>http://blog.inkase.net/</uri>
     </author>
-            <category term="yChT[t" />
+            <category term="�y�C�h�T�[�t" />
     
     <content type="html" xml:lang="ja" xml:base="http://blog.inkase.net/">
-        <![CDATA[ANZXAbvµÈªç¨ààÒ°é<A HREF="http://inkase.net/kasegu/ps.html" TARGET="_blank">yChT[tTCg</A>Ì<a href="http://www.cycle-surf.com/?ref=11">Cycle-Surf</A>B
-æÉMYAJEgÉ<FONT COLOR="red" SIZE="+1">$50</FONT>ÙÇÜÁÄ¢½ÌÅA·à·é©Ç¤©YÝÜµ½ª
-Ç»ÌÜÜAbvO[h(RpEh)µ¿á¢Üµ½B
+        <![CDATA[�A�N�Z�X�A�b�v���Ȃ��炨�����҂���<A HREF="http://inkase.net/kasegu/ps.html" TARGET="_blank">�y�C�h�T�[�t�T�C�g</A>��<a href="http://www.cycle-surf.com/?ref=11">Cycle-Surf</A>�B
+�挎����MY�A�J�E���g��<FONT COLOR="red" SIZE="+1">$50</FONT>�قǒ��܂��Ă����̂ŁA�������邩�ǂ����Y�݂܂�����
+���ǂ��̂܂܃A�b�v�O���[�h(�R���p�E���h)�����Ⴂ�܂����B
 
-«¡Í±ñÈ´¶B«
-<IMG SRC="http://inkase.net/images/blog/cycle.bmp" ALT="$140UGo[Å·ô">
+�����͂���Ȋ����B��
+<IMG SRC="http://inkase.net/images/blog/cycle.bmp" ALT="$140UG�����o�[�ł���">
 
-ªÌá¾ÆAú100TCgT[t·é¾¯Å<FONT COLOR="red">$1.4</FONT>àÜèÜ·B(Cycle-SurfÌê)
-à¤ùÉ$10ÜÁÄ¢éÌª¨ª©è©ÆcB
-ÁÄ±ÆÅAÝÈ³ñàyChT[tðnßéÈç
-´eØÈÇliú{ljª^c·é<a href="http://www.cycle-surf.com/?ref=11">Cycle-Surf</A>©çªIXXÅ·ô
+���̗Ⴞ�ƁA����100�T�C�g�T�[�t���邾����<FONT COLOR="red">$1.4</FONT>�����܂�܂��B(Cycle-Surf�̏ꍇ)
+��������$10���܂��Ă���̂��������肩�Ɓc�B
+���Ă��ƂŁA�݂Ȃ�����y�C�h�T�[�t���n�߂�Ȃ�
+���e�؂ȊǗ��l�i���{�l�j���^�c����<a href="http://www.cycle-surf.com/?ref=11">Cycle-Surf</A>���炪�I�X�X���ł���
 
-«±¿ç©çÇ¤¼ô«
+�������炩��ǂ�����
 <a href="http://www.cycle-surf.com/?ref=11"><IMG SRC="http://inkase.net/images/traffic/cycle.gif" ALT="Cycle-Surf"></a>
 
-<FONT COLOR="blue">s¾È_ª Á½çARgâ[ÅÇñÇñ·¢Ä­¾³¢ËB</FONT>
-[¨ <IMG SRC="http://inkase.net/images/gmail.png" ALT="Gmail">]]>
+<FONT COLOR="blue">�s���ȓ_����������A�R�����g�⃁�[���łǂ�ǂ񕷂��Ă��������ˁB</FONT>
+���[���� <IMG SRC="http://inkase.net/images/gmail.png" ALT="Gmail">]]>
         
     </content>
 </entry>
 <entry>
-    <title>DrecomRSSÉLeª½f³êÈ¢c</title>
+    <title>DrecomRSS�ɋL�����e�����f����Ȃ��c</title>
     <link rel="alternate" type="text/html" href="http://blog.inkase.net/2006/01/drecomrss.html" />
-    <link rel="service.edit" type="application/atom+xml" href="http://inkase.net/cgi-bin/blog/mt-atom.cgi/weblog/blog_id=1/entry_id=24" title="DrecomRSSÉLeª½f³êÈ¢c" />
+    <link rel="service.edit" type="application/atom+xml" href="http://inkase.net/cgi-bin/blog/mt-atom.cgi/weblog/blog_id=1/entry_id=24" title="DrecomRSS�ɋL�����e�����f����Ȃ��c" />
     <id>tag:blog.inkase.net,2006://1.24</id>
     
     <published>2006-01-02T12:01:00Z</published>
     <updated>2006-01-02T16:32:23Z</updated>
     
-    <summary>FX²×Ä½çAMT3.2ªRSS1.0ðT|[gµÄ¢È¢±Æª»¾B àÆà...</summary>
+    <summary>�F�X���ׂĂ���AMT3.2��RSS1.0���T�|�[�g���Ă��Ȃ����Ƃ������B ���Ƃ�...</summary>
     <author>
         <name>Gen</name>
         <uri>http://blog.inkase.net/</uri>
     </author>
-            <category term="uO¥MTÖA" />
+            <category term="�u���O�MT�֘A" />
     
     <content type="html" xml:lang="ja" xml:base="http://blog.inkase.net/">
-        FX²×Ä½çAMT3.2ªRSS1.0ðT|[gµÄ¢È¢±Æª»¾B
-àÆàÆindex.rdfðf«o³È¢±Æªí©èÜµ½B
-»êÅDrecomRSSÉv½f³êÈ©Á½ÌËcBB
+        �F�X���ׂĂ���AMT3.2��RSS1.0���T�|�[�g���Ă��Ȃ����Ƃ������B
+���Ƃ���index.rdf��f���o���Ȃ����Ƃ��킩��܂����B
+�����DrecomRSS�Ɂv���f����Ȃ������̂ˁc�B�B
 
-±êÅåäv©B
+����ő��v���B
         
     </content>
 </entry>
 <entry>
-    <title>yz¶[ÌøB</title>
+    <title>�y���������z���[�̕����B</title>
     <link rel="alternate" type="text/html" href="http://blog.inkase.net/2006/01/post_49.html" />
-    <link rel="service.edit" type="application/atom+xml" href="http://inkase.net/cgi-bin/blog/mt-atom.cgi/weblog/blog_id=1/entry_id=29" title="yz¶[ÌøB" />
+    <link rel="service.edit" type="application/atom+xml" href="http://inkase.net/cgi-bin/blog/mt-atom.cgi/weblog/blog_id=1/entry_id=29" title="�y���������z���[�̕����B" />
     <id>tag:blog.inkase.net,2006://1.29</id>
     
     <published>2006-01-02T04:57:00Z</published>
     <updated>2006-01-03T02:00:08Z</updated>
     
-    <summary>BLOGÌAChAu¶[vªÝÈ³ñÉ¡NÌøð\µã°Ü·B ÅÍAÇ¤...</summary>
+    <summary>��BLOG�̃A�C�h���A�u���[�v���݂Ȃ���ɍ��N�̕�����\���グ�܂��B �ł́A�ǂ�...</summary>
     <author>
         <name>Gen</name>
         <uri>http://blog.inkase.net/</uri>
     </author>
-            <category term="p[N" />
+            <category term="���������p�[�N" />
     
     <content type="html" xml:lang="ja" xml:base="http://blog.inkase.net/">
-        BLOGÌAChAu¶[vªÝÈ³ñÉ¡NÌøð\µã°Ü·B
+        ��BLOG�̃A�C�h���A�u���[�v���݂Ȃ���ɍ��N�̕�����\���グ�܂��B
 
-ÅÍAÇ¤¼cII
-        <![CDATA[<IMG SRC="http://inkase.net/images/blog/mero/060102_01.bmp" ALT="Å¨HI">
-iF¶[@¢eFGenj
-
-
-
-<FONT COLOR="red" SIZE="+2">¿åA¿åA¿åÁÆÜÁÄII</FONT>
+�ł́A�ǂ����c�I�I
+        <![CDATA[<IMG SRC="http://inkase.net/images/blog/mero/060102_01.bmp" ALT="�Ō����H�I">
+�i�����F���[�@���e�FGen�j
 
 
-c
-c
-c
-Cðæè¼µÄà¤êxBB
 
-<IMG SRC="http://inkase.net/images/blog/mero/060102_02.bmp" ALT="Q³B">
-cËµå¤ªÂII
-¡NÌøÍuQ³v¾»¤Å·B
+<FONT COLOR="red" SIZE="+2">����A����A������Ƃ܂��āI�I</FONT>
 
-``ô
+
+�c
+�c
+�c
+�C����蒼���Ă�����x�B�B
+
+<IMG SRC="http://inkase.net/images/blog/mero/060102_02.bmp" ALT="�Q�����B">
+�c�˂��傤���I�I
+���N�̕����́u�Q�����v�������ł��B
+
+�`�����`������
 
 ---------
 
-<FONT COLOR="blue">p[NÌìÒAVX³ñÌBLOGu<A HREF="http://ameblo.jp/yoshiyasu-chan/" TARGET="_blank">VXÌÊM</A>vÅ
-yÌEPRgååWIzÆ¢¤ÌðâÁÄ¢Ü·B
-ðçÄÄ¢éûÍ`¢ÄÝÄÍ¢©ªH</FONT>]]>
+<FONT COLOR="blue">���������p�[�N�̍�ҁA���V���X�����BLOG�u<A HREF="http://ameblo.jp/yoshiyasu-chan/" TARGET="_blank">���V���X�̃��������ʐM</A>�v��
+�y�����̔��E�P�R�����g���W�I�z�Ƃ����̂�����Ă��܂��B
+��������ĂĂ�����͔`���Ă݂Ă͂������H</FONT>]]>
     </content>
 </entry>
 <entry>
-    <title>uCÒ vöJµÜµ½B</title>
+    <title>�u�C���Ғ��v���J���܂����B</title>
     <link rel="alternate" type="text/html" href="http://blog.inkase.net/2006/01/post_48.html" />
-    <link rel="service.edit" type="application/atom+xml" href="http://inkase.net/cgi-bin/blog/mt-atom.cgi/weblog/blog_id=1/entry_id=25" title="uCÒ vöJµÜµ½B" />
+    <link rel="service.edit" type="application/atom+xml" href="http://inkase.net/cgi-bin/blog/mt-atom.cgi/weblog/blog_id=1/entry_id=25" title="�u�C���Ғ��v���J���܂����B" />
     <id>tag:blog.inkase.net,2006://1.25</id>
     
     <published>2006-01-02T04:19:46Z</published>
     <updated>2006-01-02T16:31:22Z</updated>
     
-    <summary>¡N©çAûüÀÑðöJ·é±ÆÉµÜµ½B »êÉ½ÁÄA{ÙÉAûüÀÑL...</summary>
+    <summary>���N����A�������т����J���邱�Ƃɂ��܂����B ����ɓ������āA�{�قɁA�������ыL...</summary>
     <author>
         <name>Gen</name>
         <uri>http://blog.inkase.net/</uri>
     </author>
-            <category term="GkEúL" />
+            <category term="�G�k�E���L" />
     
     <content type="html" xml:lang="ja" xml:base="http://blog.inkase.net/">
-        <![CDATA[¡N©çAûüÀÑðöJ·é±ÆÉµÜµ½B
-»êÉ½ÁÄA<A HREF="http://inkase.net/" TARGET="_blank" TITLE="C^[lbgÅ¬­¢Ò¬I">{Ù</A>ÉAûüÀÑL^ AÊÌu<A HREF="http://inkase.net/oko.html" TARGET="_blank" TITLE="CÒ ">CÒ </A>vðöJµÜµ½B
+        <![CDATA[���N����A�������т����J���邱�Ƃɂ��܂����B
+����ɓ������āA<A HREF="http://inkase.net/" TARGET="_blank" TITLE="�C���^�[�l�b�g�ŏ������҂��I">�{��</A>�ɁA�������ыL�^���A�ʏ́u<A HREF="http://inkase.net/oko.html" TARGET="_blank" TITLE="�C���Ғ�">�C���Ғ�</A>�v�����J���܂����B
 
-©Ä¢½¾¯éÆí©é©àµêÜ¹ñªA±êàX^CV[gÅ·iÎj
-TABLEÅìêÎßÁ¿á­Å«½ñÅ·ªAÃè«ÈàÌÅBB
+���Ă���������Ƃ킩�邩������܂��񂪁A������X�^�C���V�[�g�ł��i�΁j
+TABLE�ō��΂߂����ᑁ���ł�����ł����A�Â萫�Ȃ��̂ŁB�B
 
-<A HREF="http://inkase.net/kasegu/rm100.html" TARGET="_blank">100~·àÌ[h[TCg</A>©ç­àüàª ÁÄ¢Ü·ÌÅ
-·ÅÉXVðµÄ¨èÜ·B
-QlÉ³êÄ­¾³¢B]]>
+<A HREF="http://inkase.net/kasegu/rm100.html" TARGET="_blank">100�~�����̃��[�h���[���T�C�g</A>���瑁���������������Ă��܂��̂�
+���łɍX�V�����Ă���܂��B
+�Q�l�ɂ���Ă��������B]]>
         
     </content>
 </entry>
 <entry>
-    <title>ÄéÈ`cBBB</title>
+    <title>���Ă�Ȃ��`�c�B�B�B</title>
     <link rel="alternate" type="text/html" href="http://blog.inkase.net/2006/01/post_47.html" />
-    <link rel="service.edit" type="application/atom+xml" href="http://inkase.net/cgi-bin/blog/mt-atom.cgi/weblog/blog_id=1/entry_id=26" title="ÄéÈ`cBBB" />
+    <link rel="service.edit" type="application/atom+xml" href="http://inkase.net/cgi-bin/blog/mt-atom.cgi/weblog/blog_id=1/entry_id=26" title="���Ă�Ȃ��`�c�B�B�B" />
     <id>tag:blog.inkase.net,2005://1.26</id>
     
     <published>2006-01-01T05:52:13Z</published>
     <updated>2006-01-03T02:00:39Z</updated>
     
-    <summary>{ÙÌTCgÐîÌy[WÆÆÄàÄ¢éTCgð­©µÜµ½B «±¿çª»ÌT...</summary>
+    <summary>�{�ق̃T�C�g�Љ�̃y�[�W�ƂƂĂ����Ă���T�C�g�𔭌����܂����B �������炪���̃T...</summary>
     <author>
         <name>Gen</name>
         <uri>http://blog.inkase.net/</uri>
     </author>
-            <category term="GkEúL" />
+            <category term="�G�k�E���L" />
     
     <content type="html" xml:lang="ja" xml:base="http://blog.inkase.net/">
-        <![CDATA[<A HREF="http://inkase.net/" TARGET="_blank" TITLE="C^[lbgÅ¬­¢Ò¬I">{Ù</A>ÌTCgÐîÌy[WÆÆÄàÄ¢éTCgð­©µÜµ½B
+        <![CDATA[<A HREF="http://inkase.net/" TARGET="_blank" TITLE="�C���^�[�l�b�g�ŏ������҂��I">�{��</A>�̃T�C�g�Љ�̃y�[�W�ƂƂĂ����Ă���T�C�g�𔭌����܂����B
 
-«±¿çª»ÌTCg«
+�������炪���̃T�C�g��
 <A HREF="http://gpzf2r11.fc2web.com/" TARGET="_blank">http://gpzf2r11.fc2web.com/</A>
 
-«{ÙÌTCgÐîy[W«
-<A HREF="http://inkase.net/kasegu/aff.html" TARGET="_blank">AtBGCgÅ¨¬­¢</A>
+���{�ق̃T�C�g�Љ�y�[�W��
+<A HREF="http://inkase.net/kasegu/aff.html" TARGET="_blank">�A�t�B���G�C�g�ł�������</A>
 
-<A HREF="http://inkase.net/" TARGET="_blank" TITLE="C^[lbgÅ¬­¢Ò¬I">{Ù</A>ÍÙÆñÇªX^CV[gÅ\¬³êÄ¢Ü·ªA
-±¿çÌTCgÍTABLEÅìÁÄ¢Ü·ÌÅRs[TCgÅÍ èÜ¹ñB
-Å·ªAÐî¶ÈÇÍ¯¶ªà Á½èÆ÷­È´¶Å·B
+<A HREF="http://inkase.net/" TARGET="_blank" TITLE="�C���^�[�l�b�g�ŏ������҂��I">�{��</A>�͂قƂ�ǂ��X�^�C���V�[�g�ō\������Ă��܂����A
+������̃T�C�g��TABLE�ō���Ă��܂��̂ŃR�s�[�T�C�g�ł͂���܂���B
+�ł����A�Љ�Ȃǂ͓�����������������Ɣ����Ȋ����ł��B
 
-QlÉµÄ¢½¾¢Äé±Æ©ÌÍ\ðµ©Á½èµÜ·ª
-¿åÁÆ¡GÈS«Å·cBB]]>
+�Q�l�ɂ��Ă��������Ă邱�Ǝ��̂͌��\�����������肵�܂���
+������ƕ��G�ȐS���ł��c�B�B]]>
         
     </content>
 </entry>
 <entry>
-    <title>MotionLinkLy[II</title>
+    <title>MotionLink�L�����y�[���I�I</title>
     <link rel="alternate" type="text/html" href="http://blog.inkase.net/2006/01/motionlink_2.html" />
-    <link rel="service.edit" type="application/atom+xml" href="http://inkase.net/cgi-bin/blog/mt-atom.cgi/weblog/blog_id=1/entry_id=27" title="MotionLinkLy[II" />
+    <link rel="service.edit" type="application/atom+xml" href="http://inkase.net/cgi-bin/blog/mt-atom.cgi/weblog/blog_id=1/entry_id=27" title="MotionLink�L�����y�[���I�I" />
     <id>tag:blog.inkase.net,2006://1.27</id>
     
     <published>2006-01-01T04:59:13Z</published>
     <updated>2006-01-02T16:56:17Z</updated>
     
-    <summary>AtBGCgÌuMotion LinkvªLy[ðnßÜµ½B 1.At...</summary>
+    <summary>�A�t�B���G�C�g�́uMotion Link�v���L�����y�[�����n�߂܂����B 1.�A�t...</summary>
     <author>
         <name>Gen</name>
         <uri>http://blog.inkase.net/</uri>
     </author>
-            <category term="¨¬­¢" />
+            <category term="��������" />
     
     <content type="html" xml:lang="ja" xml:base="http://blog.inkase.net/">
-        <![CDATA[AtBGCgÌu<a href="http://www.motionlink.jp/clk.php?cl=C1111118-0001&pt=P0000320-0002&uid=" target="_blank">Motion Link</a>vªLy[ðnßÜµ½B
+        <![CDATA[�A�t�B���G�C�g�́u<a href="http://www.motionlink.jp/clk.php?cl=C1111118-0001&pt=P0000320-0002&uid=" target="_blank">Motion Link</a>�v���L�����y�[�����n�߂܂����B
 
-<FONT SIZE="+2" COLOR="blue">1.AtBGCgWbN|bgLy[II</FONT>
+<FONT SIZE="+2" COLOR="blue">1.�A�t�B���G�C�g�W���b�N�|�b�g�L�����y�[���I�I</FONT>
 
-@<a href="http://www.motionlink.jp/clk.php?cl=C1111118-0001&pt=P0000320-0002&uid=" target="_blank">Motion Link</a>ÌTOPy[WÌ\¦ñÉ¶ÄÜàªèB
-@AtBGC^[ª\ÁÄ¢éoi[ÌNbNªLÔÆÈèAIÒªèµÜ·B
+�@<a href="http://www.motionlink.jp/clk.php?cl=C1111118-0001&pt=P0000320-0002&uid=" target="_blank">Motion Link</a>��TOP�y�[�W�̕\���񐔂ɉ����ď܋�������B
+�@�A�t�B���G�C�^�[���\���Ă���o�i�[�̃N���b�N�����L���ԂƂȂ�A���I�҂����肵�܂��B
 
-¿ÈÝÉc
-01/01 13:55»ÝÌWbN|bgàzÍ<FONT SIZE="+1" COLOR="red">9356~</FONT>I
+���Ȃ݂Ɂc
+01/01 13:55���݂̃W���b�N�|�b�g���z��<FONT SIZE="+1" COLOR="red">9356�~</FONT>�I
 
 
-<FONT SIZE="+2" COLOR="blue">2.ÐîñVåAbvILy[II</FONT>
+<FONT SIZE="+2" COLOR="blue">2.�Љ��V�啝�A�b�v�I�L�����y�[���I�I</FONT>
 
-@Êí500~ÌÐîñVª<FONT SIZE="+1" COLOR="red">2000~</FONT>ÉAbvµÜ·I
-@@iÐîµ½lª500~ÈãÌ¬Êðã°½êBj
+�@�ʏ�500�~�̏Љ��V��<FONT SIZE="+1" COLOR="red">2000�~</FONT>�ɃA�b�v���܂��I
+�@�@�i���Љ���l��500�~�ȏ�̐��ʂ��グ���ꍇ�B�j
 
-úÔÍ1/1`1/31ÈÌÅA¡únÜÁ½Î©èÅ·B
-o^µÄ¢È¢ûÍA±Ì@ïÉ¢µÄÝÄÍ¢©ªÅ·©H
+���Ԃ�1/1�`1/31�Ȃ̂ŁA�����n�܂����΂���ł��B
+�o�^���Ă��Ȃ����́A���̋@��Ɍ������Ă݂Ă͂������ł����H
 
-o^Í«Ìoi[©çÇ¤¼ô
+�o�^�́��̃o�i�[����ǂ�����
 <a href="http://www.motionlink.jp/clk.php?pt=P0000320-0002&cl=C1111118-0001&uid=" target="_blank"><img src="http://www.motionlink.jp/bnr.php?pt=P0000320-0002&cl=C1111118-0001&bc=s1" border="0"></a>]]>
         
     </content>
 </entry>
 <entry>
-    <title>VN¾¯ÜµÄ¨ßÅÆ¤²´¢Ü·II</title>
+    <title>�V�N�����܂��Ă��߂łƂ��������܂��I�I</title>
     <link rel="alternate" type="text/html" href="http://blog.inkase.net/2006/01/post_46.html" />
-    <link rel="service.edit" type="application/atom+xml" href="http://inkase.net/cgi-bin/blog/mt-atom.cgi/weblog/blog_id=1/entry_id=28" title="VN¾¯ÜµÄ¨ßÅÆ¤²´¢Ü·II" />
+    <link rel="service.edit" type="application/atom+xml" href="http://inkase.net/cgi-bin/blog/mt-atom.cgi/weblog/blog_id=1/entry_id=28" title="�V�N�����܂��Ă��߂łƂ��������܂��I�I" />
     <id>tag:blog.inkase.net,2006://1.28</id>
     
     <published>2005-12-31T15:00:00Z</published>
     <updated>2006-01-03T02:01:08Z</updated>
     
-    <summary>{ú1/1ÅuCÒIBLOGvJÝ1üNÉÈèÜµ½II ¡NàuCÒIBL...</summary>
+    <summary>�{��1/1�Łu�C���ҁIBLOG�v�J��1���N�ɂȂ�܂����I�I ���N���u�C���ҁIBL...</summary>
     <author>
         <name>Gen</name>
         <uri>http://blog.inkase.net/</uri>
     </author>
-            <category term="GkEúL" />
+            <category term="�G�k�E���L" />
     
     <content type="html" xml:lang="ja" xml:base="http://blog.inkase.net/">
-        <![CDATA[{ú1/1ÅuCÒIBLOGv<FONT COLOR="red">JÝ1üN</FONT>ÉÈèÜµ½II
-¡NàuCÒIBLOGvðæëµ­¨è¢µÜ·(*- -)(*_ _)
+        <![CDATA[�{��1/1�Łu�C���ҁIBLOG�v<FONT COLOR="red">�J��1���N</FONT>�ɂȂ�܂����I�I
+���N���u�C���ҁIBLOG�v����낵�����肢���܂�(*- -)(*_ _)
 
-CÒIBLOG
-Çl@Gen]]>
+�C���ҁIBLOG
+�Ǘ��l�@Gen]]>
         
     </content>
 </entry>
 <entry>
-    <title>¬Î|CgÉIµÜµ½I</title>
+    <title>���΃|�C���g�ɓ��I���܂����I</title>
     <link rel="alternate" type="text/html" href="http://blog.inkase.net/2005/09/post_11.html" />
-    <link rel="service.edit" type="application/atom+xml" href="http://inkase.net/cgi-bin/blog/mt-atom.cgi/weblog/blog_id=1/entry_id=22" title="¬Î|CgÉIµÜµ½I" />
+    <link rel="service.edit" type="application/atom+xml" href="http://inkase.net/cgi-bin/blog/mt-atom.cgi/weblog/blog_id=1/entry_id=22" title="���΃|�C���g�ɓ��I���܂����I" />
     <id>tag:blog.inkase.net,2005://1.22</id>
     
     <published>2005-09-16T14:35:15Z</published>
     <updated>2006-01-02T14:06:22Z</updated>
     
-    <summary>¬Îß[éªAT[o[_EÌ¨lÑÅu¬Î|Cgv5Pð100lÉv[g...</summary>
+    <summary>���΂߁[�邪�A�T�[�o�[�_�E���̂��l�тŁu���΃|�C���g�v5P��100�l�Ƀv���[���g...</summary>
     <author>
         <name>Gen</name>
         <uri>http://blog.inkase.net/</uri>
     </author>
-            <category term="[h[" />
+            <category term="���[�h���[��" />
     
     <content type="html" xml:lang="ja" xml:base="http://blog.inkase.net/">
-        <![CDATA[<A HREF="http://sasuga.biz/pages/index.php?refid=gen" TARGET="_blank">¬Îß[é</A>ªAT[o[_EÌ¨lÑÅu¬Î|Cgv5Pð100lÉv[gµ½Æ<A HREF="http://anija.blog5.fc2.com/" TARGET="_blank">uO</A>Å­\µÜµ½ªA
+        <![CDATA[<A HREF="http://sasuga.biz/pages/index.php?refid=gen" TARGET="_blank">���΂߁[��</A>���A�T�[�o�[�_�E���̂��l�тŁu���΃|�C���g�v5P��100�l�Ƀv���[���g������<A HREF="http://anija.blog5.fc2.com/" TARGET="_blank">�u���O</A>�Ŕ��\���܂������A
 
-<FONT SIZE="+1" COLOR="blue">ÈñÆAIµÄ¢Üµ½II</FONT>
+<FONT SIZE="+1" COLOR="blue">�Ȃ�ƁA���I���Ă��܂����I�I</FONT>
 
-<IMG SRC="http://inkase.net/images/blog/sasuga.bmp" ALT="¬Îß[é">
+<IMG SRC="http://inkase.net/images/blog/sasuga.bmp" ALT="���΂߁[��">
 
 
-à¤·®<FONT COLOR="red">7000l</FONT>InCy[XÅo^Òª¦Ä¢Ü·I
-Ü¾o^µÄ¢È¢ûÍ±¿ç©çÇ¤¼I
-<A HREF="http://sasuga.biz/pages/index.php?refid=gen" TARGET="_blank"><IMG SRC="http://inkase.net/images/readmail/sasuga.gif" ALT="¬Îß[é"></A>]]>
+��������<FONT COLOR="red">7000�l</FONT>�I�n�C�y�[�X�œo�^�҂������Ă��܂��I
+�܂��o�^���Ă��Ȃ����͂����炩��ǂ����I
+<A HREF="http://sasuga.biz/pages/index.php?refid=gen" TARGET="_blank"><IMG SRC="http://inkase.net/images/readmail/sasuga.gif" ALT="���΂߁[��"></A>]]>
         
     </content>
 </entry>
 <entry>
-    <title>DoCoMoJ[hAÁÄÜ·©H</title>
+    <title>DoCoMo�J�[�h�A�����Ă܂����H</title>
     <link rel="alternate" type="text/html" href="http://blog.inkase.net/2005/09/docomo_1.html" />
-    <link rel="service.edit" type="application/atom+xml" href="http://inkase.net/cgi-bin/blog/mt-atom.cgi/weblog/blog_id=1/entry_id=21" title="DoCoMoJ[hAÁÄÜ·©H" />
+    <link rel="service.edit" type="application/atom+xml" href="http://inkase.net/cgi-bin/blog/mt-atom.cgi/weblog/blog_id=1/entry_id=21" title="DoCoMo�J�[�h�A�����Ă܂����H" />
     <id>tag:blog.inkase.net,2005://1.21</id>
     
     <published>2005-09-15T22:00:13Z</published>
     <updated>2006-01-02T14:06:21Z</updated>
     
-    <summary>¡úÍgÑÖAÌbðêÂB æúAÇ­³¹ÄàçÁÄ¢éDoCoMoêåÌgÑ...</summary>
+    <summary>�����͌g�ъ֘A�̘b����B ����A���ǂ������Ă�����Ă���DoCoMo���̌g��...</summary>
     <author>
         <name>Gen</name>
         <uri>http://blog.inkase.net/</uri>
     </author>
-            <category term="GkEúL" />
+            <category term="�G�k�E���L" />
     
     <content type="html" xml:lang="ja" xml:base="http://blog.inkase.net/">
-        <![CDATA[¡úÍgÑÖAÌbðêÂB
+        <![CDATA[�����͌g�ъ֘A�̘b����B
 
-æúAÇ­³¹ÄàçÁÄ¢éDoCoMoêåÌgÑ®³ñÉdÅsÁ½ÌÅ·ªA
-Xõ³ñ©çwDoCoMoJ[hxÈéàÌð©ßçêÜµ½B
-bð·¢ÄÝéÆADoCoMoÌgÑdbðgÁÄ¢élÈç
-©Èè¨¾ÉÈéJ[h¾Á½ÌÅ\µÝµÄÝÜµ½B
+����A���ǂ������Ă�����Ă���DoCoMo���̌g�щ�����Ɏd���ōs�����̂ł����A
+�X�����񂩂�wDoCoMo�J�[�h�x�Ȃ���̂����߂��܂����B
+�b�𕷂��Ă݂�ƁADoCoMo�̌g�ѓd�b���g���Ă���l�Ȃ�
+���Ȃ肨���ɂȂ�J�[�h�������̂Ő\�����݂��Ă݂܂����B
 
-yDoCoMoJ[hÚ×z
-@E<FONT COLOR="blue">DoCoMoJ[hðÂ¾¯ÅAhRv~ANuÌXe[Wª1ÂNAbvI</FONT>
-@EJ[hðg¤½ÑÉA<FONT COLOR="blue">hR|Cgª½Üé</FONT>I
-@@igÑdb¿àx¥F100~=3`5P@VbsOF100~=1Pj
-@EgÑdbÌ´¸âGêÈÇÌÉA<FONT COLOR="blue">Å10000~ÜÅâ</FONT>I 
-@EhRÌgÑdb¿àðDoCoMoJ[hÅx¥¦ÎA<FONT COLOR="blue">NxÈ~àNïï³¿</FONT>I 
-@@i<U><FONT COLOR="red">ÊíÍNxÌÝ³¿ANxæè1050~^N</FONT></U>j
+�yDoCoMo�J�[�h�ڍׁz
+�@�E<FONT COLOR="blue">DoCoMo�J�[�h���������ŁA�h�R���v���~�A�N���u�̃X�e�[�W��1�����N�A�b�v�I</FONT>
+�@�E�J�[�h���g�����тɁA<FONT COLOR="blue">�h�R���|�C���g�����܂�</FONT>�I
+�@�@�i�g�ѓd�b�����x���F100�~=3�`5P�@�V���b�s���O�F100�~=1P�j
+�@�E�g�ѓd�b�̕����␅�G��Ȃǂ̎��ɁA<FONT COLOR="blue">�ō�10000�~�܂ŕ⏞</FONT>�I 
+�@�E�h�R���̌g�ѓd�b������DoCoMo�J�[�h�Ŏx�����΁A<FONT COLOR="blue">���N�x�ȍ~���N����</FONT>�I 
+�@�@�i<U><FONT COLOR="red">�ʏ�͏��N�x�̂ݖ����A���N�x���1050�~�^�N</FONT></U>�j
 
-Æ¢¤±ÆÍc
+�Ƃ������Ƃ́c
 
-<U><FONT SIZE="+1">DoCoMoÌgÑdbð·ÁÆgÁÄ¢êÎ</FONT></U>
+<U><FONT SIZE="+1">DoCoMo�̌g�ѓd�b�������Ǝg���Ă����</FONT></U>
 
-<U><FONT SIZE="+1">NïïÍ¸ÁÆ³¿ÁÄ±ÆÅ·æË`I</FONT></U>
+<U><FONT SIZE="+1">�N���͂����Ɩ������Ă��Ƃł���ˁ`�I</FONT></U>
 
-Æ¢¤±ÆÅADoCoMo[U[ÌF³ñI
-¢µÄÝÄÍ¢©ªÅµå¤©HH
+�Ƃ������ƂŁADoCoMo���[�U�[�̊F����I
+�������Ă݂Ă͂������ł��傤���H�H
 
-<CENTER>«±¿ç©çÇ¤¼«</CENTER>
-<IFRAME SRC="http://inkase.net/if/docomo.html" FRAMEBORDER="0" WIDTH="470" HEIGHT="62" TITLE="" marginheight="0" marginwidth="0" SCROLLING="NO">DoCoMoJ[h</IFRAME>]]>
+<CENTER>�������炩��ǂ�����</CENTER>
+<IFRAME SRC="http://inkase.net/if/docomo.html" FRAMEBORDER="0" WIDTH="470" HEIGHT="62" TITLE="" marginheight="0" marginwidth="0" SCROLLING="NO">DoCoMo�J�[�h</IFRAME>]]>
         
     </content>
 </entry>
 <entry>
-    <title>Sleipnir Ver.2.00 beta5[X</title>
+    <title>Sleipnir Ver.2.00 beta5�����[�X</title>
     <link rel="alternate" type="text/html" href="http://blog.inkase.net/2005/09/sleipnir_ver200_beta5_1.html" />
-    <link rel="service.edit" type="application/atom+xml" href="http://inkase.net/cgi-bin/blog/mt-atom.cgi/weblog/blog_id=1/entry_id=20" title="Sleipnir Ver.2.00 beta5[X" />
+    <link rel="service.edit" type="application/atom+xml" href="http://inkase.net/cgi-bin/blog/mt-atom.cgi/weblog/blog_id=1/entry_id=20" title="Sleipnir Ver.2.00 beta5�����[�X" />
     <id>tag:blog.inkase.net,2005://1.20</id>
     
     <published>2005-09-14T13:05:20Z</published>
     <updated>2006-01-02T14:06:20Z</updated>
     
-    <summary>æúbeta4[XÌLð«Üµ½ªA­àbeta5ªöJ³êÜµ½B ...</summary>
+    <summary>���beta4�����[�X�̋L���������܂������A������beta5�����J����܂����B ...</summary>
     <author>
         <name>Gen</name>
         <uri>http://blog.inkase.net/</uri>
     </author>
-            <category term="GkEúL" />
+            <category term="�G�k�E���L" />
     
     <content type="html" xml:lang="ja" xml:base="http://blog.inkase.net/">
-        <![CDATA[æúbeta4[XÌLð«Üµ½ªA­àbeta5ªöJ³êÜµ½B
+        <![CDATA[���beta4�����[�X�̋L���������܂������A������beta5�����J����܂����B
 
-<fieldset><legend>åÈV@\</legend>
-@ESleipnir Speed Launcher ðì¬µ½B <BR>
-@EJX^}CYÂ\Èc[o[Ì{^ð 1.66 ÜÅâµ½B<BR> 
-@Eõo[ÌõGWj[ðÒWÂ\Éµ½B <BR>
-@ERSS o[ðùÇÇÌÅ«é 1.22 ÉAbvf[gµ½B <BR>
-@EÅßÂ¶½y[WðÀµ½B <BR>
-@E|bvAbvubNðÀµ½B <BR>
-@Ey[WubNiSleipnir 1.66 ÌÖ~^Cg/Ö~URLjðÀµ½B <BR>
-@ENbv{[h@\ðÀµ½B <BR>
-@Eabout:home Åz[y[WðJ­æ¤Éµ½B <BR>
-@EBookmarklet ÉÎµ½B <BR>
-@E_CAO}§ðÀµ½B <BR>
+<fieldset><legend>��ȐV�@�\</legend>
+�@�ESleipnir Speed Launcher ���쐬�����B <BR>
+�@�E�J�X�^�}�C�Y�\�ȃc�[���o�[�̃{�^���� 1.66 �����܂ő��₵���B<BR> 
+�@�E�����o�[�̌����G���W�����j���[��ҏW�\�ɂ����B <BR>
+�@�ERSS �o�[�����ǊǗ��̂ł��� 1.22 �ɃA�b�v�f�[�g�����B <BR>
+�@�E�ŋߕ����y�[�W�����������B <BR>
+�@�E�|�b�v�A�b�v�u���b�N�����������B <BR>
+�@�E�y�[�W�u���b�N�iSleipnir 1.66 �̋֎~�^�C�g��/�֎~URL�j�����������B <BR>
+�@�E�N���b�v�{�[�h�@�\�����������B <BR>
+�@�Eabout:home �Ńz�[���y�[�W���J���悤�ɂ����B <BR>
+�@�EBookmarklet �ɑΉ������B <BR>
+�@�E�_�C�A���O�}�������������B <BR>
 </fieldset>
-ª1.66ÅÇ­gÁÄ¢½[<FONT COLOR="blue">ÅßÂ¶½y[W</FONT>]ªÀ³ê½ÌÅ<BR>
-ÂlIÉÍ³çÉg¢â·­ÈÁ½Æv¢Ü·B
+����1.66�ŗǂ��g���Ă���[<FONT COLOR="blue">�ŋߕ����y�[�W</FONT>]���������ꂽ�̂�<BR>
+�l�I�ɂ͂���Ɏg���₷���Ȃ����Ǝv���܂��B
 
 
-ö®y[W
+�����y�[�W
 <a href="http://www.fenrir.co.jp/sleipnir2/" target="_blank">
-<img src="http://www.fenrir.co.jp/getsleipnir/get-browser-no1.gif" alt="^uuEU Sleipnir ö®y[W(ãÒü¯)" border=0>
+<img src="http://www.fenrir.co.jp/getsleipnir/get-browser-no1.gif" alt="�^�u�u���E�U Sleipnir �����y�[�W(�㋉�Ҍ���)" border=0>
 </a> 
-<FONT COLOR="red">»ÝAANZXß½ÅñíÉd­ÈÁÄ¢Ü·B</FONT>]]>
+��<FONT COLOR="red">���݁A�A�N�Z�X�ߑ��Ŕ��ɏd���Ȃ��Ă��܂��B</FONT>]]>
         
     </content>
 </entry>
 <entry>
-    <title>l vs ã_</title>
+    <title>���l vs ��_</title>
     <link rel="alternate" type="text/html" href="http://blog.inkase.net/2005/09/_vs_1.html" />
-    <link rel="service.edit" type="application/atom+xml" href="http://inkase.net/cgi-bin/blog/mt-atom.cgi/weblog/blog_id=1/entry_id=19" title="l vs ã_" />
+    <link rel="service.edit" type="application/atom+xml" href="http://inkase.net/cgi-bin/blog/mt-atom.cgi/weblog/blog_id=1/entry_id=19" title="���l vs ��_" />
     <id>tag:blog.inkase.net,2005://1.19</id>
     
     <published>2005-09-13T13:32:45Z</published>
     <updated>2006-01-02T14:06:19Z</updated>
     
-    <summary>¡úÍ·è§cìêiÊÌFrbONX^WAjÅAl vs ã_ªsíêÜµ...</summary>
+    <summary>�����͒��茧�c�싅��i�ʏ́F�r�b�ON�X�^�W�A���j�ŁA���l vs ��_���s���܂�...</summary>
     <author>
         <name>Gen</name>
         <uri>http://blog.inkase.net/</uri>
     </author>
-            <category term="§¯l^" />
+            <category term="�����l�^" />
     
     <content type="html" xml:lang="ja" xml:base="http://blog.inkase.net/">
-        <![CDATA[¡úÍ<A HREF="http://www.pref.nagasaki.jp/nsfinder/yakyu/ya_main.html" TARGET="_blank">·è§cìê</A>iÊÌF<FONT COLOR="blue">rbONX^WA</FONT>jÅAl vs ã_ªsíêÜµ½B
-·èÅvìÌö®íªsíêéÌÍ1NÉ1ñ©2ñÅ·ÌÅAt@ÉÆÁÄÍåCxgÅ·B
-ÀÛA¤¿ÌïÐÌêÌlÍA¿åÁÆ­Øèã°Ä©És«Üµ½µiÎj
-ÊÍA16-1Åã_ª¿Üµ½B
+        <![CDATA[������<A HREF="http://www.pref.nagasaki.jp/nsfinder/yakyu/ya_main.html" TARGET="_blank">���茧�c�싅��</A>�i�ʏ́F<FONT COLOR="blue">�r�b�ON�X�^�W�A��</FONT>�j�ŁA���l vs ��_���s���܂����B
+����Ńv���싅�̌����킪�s����̂�1�N��1��2��ł��̂ŁA�t�@���ɂƂ��Ă͑�C�x���g�ł��B
+���ہA�����̉�Ђ̈ꕔ�̐l�́A������Ƒ����؂�グ�Č��ɍs���܂������i�΁j
+�������ʂ́A16-1�ō�_�������܂����B
 
-[ûAOñè©çïÐÖAérÍå¬GÅµ½B
-ß­Ì¹HÍA1ÂÌð·_Éx¯ª5l­ç¢¢½èBB
-Ä©A}CJ[ÅsÁ½ç¬G·éÁÄí©ÁÄéÌÉÈ`BB
+�[���A�O��肩���Ђ֋A��r���͑卬�G�ł����B
+�߂��̓��H�́A1�̌����_���Ɍx����5�l���炢������B�B
+�Ă��A�}�C�J�[�ōs�����獬�G������Ă킩���Ă�̂ɂȁ`�B�B
 
-·èÅÍA<A HREF="http://www1.city.nagasaki.nagasaki.jp/kanko/ropeway/html/inasa.html" TARGET="_blank">î²R</A>Æ¢¤Æ±ëÅNÄxÝÉ
-u<A HREF="http://www.skyj.jp/" TARGET="_blank">Sky JamboreeiXJCW{[j</A>vÆ¢¤ìObNCxgªsíêÄ¢Ü·ª
-»ÌÆ«àNÌæ¤Éå¬GµÜ·B
+����ł́A<A HREF="http://www1.city.nagasaki.nagasaki.jp/kanko/ropeway/html/inasa.html" TARGET="_blank">��R</A>�Ƃ����Ƃ���Ŗ��N�ċx�݂�
+�u<A HREF="http://www.skyj.jp/" TARGET="_blank">Sky Jamboree�i�X�J�C�W�����{���[�j</A>�v�Ƃ�����O���b�N�C�x���g���s���Ă��܂���
+���̂Ƃ������N�̂悤�ɑ卬�G���܂��B
 
-ñVgoXªoÄé©ç»êÅs¯Î¢¢ÌÉBB
+����V���g���o�X���o�Ă邩�炻��ōs���΂����̂ɁB�B
 
-c
-Æn³Z¯ÍvÁÄ¢éÍ¸Å·]]>
+�c
+�ƒn���Z���͎v���Ă���͂��ł�����]]>
         
     </content>
 </entry>
 <entry>
-    <title>·²¢¼IIP[^CRCII</title>
+    <title>���������I�I�P�[�^�C�R�C���I�I</title>
     <link rel="alternate" type="text/html" href="http://blog.inkase.net/2005/09/post_10.html" />
-    <link rel="service.edit" type="application/atom+xml" href="http://inkase.net/cgi-bin/blog/mt-atom.cgi/weblog/blog_id=1/entry_id=18" title="·²¢¼IIP[^CRCII" />
+    <link rel="service.edit" type="application/atom+xml" href="http://inkase.net/cgi-bin/blog/mt-atom.cgi/weblog/blog_id=1/entry_id=18" title="���������I�I�P�[�^�C�R�C���I�I" />
     <id>tag:blog.inkase.net,2005://1.18</id>
     
     <published>2005-09-11T14:21:41Z</published>
     <updated>2006-01-02T14:06:19Z</updated>
     
-    <summary>gÑ[h[uP[^CRCvÌñVzªA1150~ÉÈÁ½ÌÅ·à\¿ðµ...</summary>
+    <summary>�g�у��[�h���[���u�P�[�^�C�R�C���v�̕�V�z���A1150�~�ɂȂ����̂Ŋ����\������...</summary>
     <author>
         <name>Gen</name>
         <uri>http://blog.inkase.net/</uri>
     </author>
-            <category term="[h[" />
+            <category term="���[�h���[��" />
     
     <content type="html" xml:lang="ja" xml:base="http://blog.inkase.net/">
-        <![CDATA[gÑ[h[u<a href="mailto:xxx@xxx.ne.jp?subject=kcoin&amp;body=http://kcoin.jp/in/64cd39e9a487be12a84121720d03fd04/">P[^CRC</A>vÌñVzªA1150~ÉÈÁ½ÌÅ·à\¿ðµÄÝÜµ½B
-i·àz1000~{è¿150~j
+        <![CDATA[�g�у��[�h���[���u<a href="mailto:xxx@xxx.ne.jp?subject=kcoin&amp;body=http://kcoin.jp/in/64cd39e9a487be12a84121720d03fd04/">�P�[�^�C�R�C��</A>�v�̕�V�z���A1150�~�ɂȂ����̂Ŋ����\�������Ă݂܂����B
+�i�����z1000�~�{�萔��150�~�j
 
-<a Href="http://ck.jp.ap.valuecommerce.com/servlet/referral?sid=2232024&pid=873459897" target="_blank" ><img Src="http://ad.jp.ap.valuecommerce.com/servlet/gifbanner?sid=2232024&pid=873459897" height="1" width="1" Border="0">eBANK</a>ÌûÀîñðüÍµÄAMÁÆB
-ÉoÄ«½æÊð©ÄÑÁ­èII
+<a Href="http://ck.jp.ap.valuecommerce.com/servlet/referral?sid=2232024&pid=873459897" target="_blank" ><img Src="http://ad.jp.ap.valuecommerce.com/servlet/gifbanner?sid=2232024&pid=873459897" height="1" width="1" Border="0">eBANK</a>�̌�����񓙂���͂��āA���M���ƁB
+���ɏo�Ă�����ʂ����Ăт�����I�I
 
-<CENTER><FONT SIZE="+1" COLOR="blue">eBANKÖoà®¹</FONT></CENTER>
+<CENTER><FONT SIZE="+1" COLOR="blue">eBANK�֏o������</FONT></CENTER>
 
-¦H¡Mµ½ÎÁ©è¾¯Çc
+���H�����M�����΂����肾���ǁc
 
-½ßµÉ[`FbNðµÄÝéÆAuC[oNâs©çÌ¨mç¹[üàª èÜµ½]vÌ[ªII
-<STRONG>±ê¼A^C·àI´®µ½I</STRONG>
+���߂��Ƀ��[���`�F�b�N�����Ă݂�ƁA�u�C�[�o���N��s����̂��m�点[����������܂���]�v�̃��[�����I�I
+<STRONG>���ꂼ���A���^�C�������I���������I</STRONG>
 
-«A^C·àð¡íÁÄÝ½¢ûÍ¡·®o^«
-<a href="mailto:xxx@xxx.ne.jp?subject=kcoin&amp;body=http://kcoin.jp/in/64cd39e9a487be12a84121720d03fd04/"><IMG SRC="http://inkase.net/images/readmail/kcoin.jpg" ALT="P[^CRC"></A>
-i<FONT COLOR="red">dvFgÑÖMµÄ©ço^µÄ­¾³¢B</FONT>j]]>
+�����A���^�C�������𖡂���Ă݂������͍������o�^��
+<a href="mailto:xxx@xxx.ne.jp?subject=kcoin&amp;body=http://kcoin.jp/in/64cd39e9a487be12a84121720d03fd04/"><IMG SRC="http://inkase.net/images/readmail/kcoin.jpg" ALT="�P�[�^�C�R�C��"></A>
+�i<FONT COLOR="red">�d�v�F�g�т֑��M���Ă���o�^���Ă��������B</FONT>�j]]>
         
     </content>
 </entry>
 <entry>
-    <title>Sleipnir[XCvj] Ver.2.00 beta4ðgÁÄÝÜµ½</title>
+    <title>Sleipnir[�X���C�v�j��] Ver.2.00 beta4���g���Ă݂܂���</title>
     <link rel="alternate" type="text/html" href="http://blog.inkase.net/2005/09/sleipnir_ver200_beta4_1.html" />
-    <link rel="service.edit" type="application/atom+xml" href="http://inkase.net/cgi-bin/blog/mt-atom.cgi/weblog/blog_id=1/entry_id=17" title="Sleipnir[XCvj] Ver.2.00 beta4ðgÁÄÝÜµ½" />
+    <link rel="service.edit" type="application/atom+xml" href="http://inkase.net/cgi-bin/blog/mt-atom.cgi/weblog/blog_id=1/entry_id=17" title="Sleipnir[�X���C�v�j��] Ver.2.00 beta4���g���Ă݂܂���" />
     <id>tag:blog.inkase.net,2005://1.17</id>
     
     <published>2005-09-09T13:43:07Z</published>
     <updated>2006-01-02T14:06:13Z</updated>
     
-    <summary>´«\Èªçt[\tgB _îÈJX^}CY«B ¡ÅÍAuú{ÅàÁÆàL...</summary>
+    <summary>�������\�Ȃ���t���[�\�t�g�B �_��ȃJ�X�^�}�C�Y���B ���ł́A�u���{�ł����Ƃ��L...</summary>
     <author>
         <name>Gen</name>
         <uri>http://blog.inkase.net/</uri>
     </author>
-            <category term="GkEúL" />
+            <category term="�G�k�E���L" />
     
     <content type="html" xml:lang="ja" xml:base="http://blog.inkase.net/">
-        <![CDATA[<strong><FONT SIZE="+1" COLOR="blue"><I>´«\Èªçt[\tgB</I></FONT></strong>
+        <![CDATA[<strong><FONT SIZE="+1" COLOR="blue"><I>�������\�Ȃ���t���[�\�t�g�B</I></FONT></strong>
 
-<strong><FONT SIZE="+1" COLOR="blue"><I>_îÈJX^}CY«B</I></FONT></strong>
+<strong><FONT SIZE="+1" COLOR="blue"><I>�_��ȃJ�X�^�}�C�Y���B</I></FONT></strong>
 
-¡ÅÍAuú{ÅàÁÆàL¼È^uuEUvÆ¢ÁÄàß¾ÅÍÈ¢Åµå¤B
-»ñÈSleipnirÌúo[WuVer.2.00vÌìo[Wybeta4zªöJ³êÄ¢Ü·B
-J­³F<A HREF="http://www.fenrir.co.jp/sleipnir2/" TARGET="_blank">Fenrir & Co.</A>
+���ł́A�u���{�ł����Ƃ��L���ȃ^�u�u���E�U�v�Ƃ����Ă��ߌ��ł͂Ȃ��ł��傤�B
+�����Sleipnir�̎����o�[�W�����uVer.2.00�v�̎���o�[�W�����ybeta4�z�����J����Ă��܂��B
+�J�����F<A HREF="http://www.fenrir.co.jp/sleipnir2/" TARGET="_blank">Fenrir & Co.</A>
 
-¬AgÁÄÝÜµ½B
-ÈO©çSleipnirðgÁÄ¢½ÉÆÁÄA
-OÌybeta3zÜÅÍA<FONT COLOR="red">ÍÁ«è¾ÁÄg¢¨ÉÈèÜ¹ñÅµ½B</FONT>
-»êªybeta4zÅÍ éöx`ÉÈÁÄ¢ÄAÀpxß­ÜÅÄ¢Ü·B
+�����A�g���Ă݂܂����B
+�ȑO����Sleipnir���g���Ă������ɂƂ��āA
+�O�́ybeta3�z�܂ł́A<FONT COLOR="red">�͂����茾���Ďg�����ɂȂ�܂���ł����B</FONT>
+���ꂪ�ybeta4�z�ł͂�����x�`�ɂȂ��Ă��āA���p���x���߂��܂ŗ��Ă��܂��B
 
-á¦ÎAA
-ÍAC^[lbgÌ¢ë¢ëÈIDâpX[hðL¯µÄÇ·é
-<a href="http://www.amazon.co.jp/exec/obidos/redirect?link_code=ur2&amp;camp=247&amp;tag=inkasesblog-22&amp;creative=1211&amp;path=external-search%3Fsearch-type=ss%26keyword=Norton%2520Password%26index=software-jp">Norton Password Manager</a><img src="http://www.assoc-amazon.jp/e/ir?t=inkasesblog-22&amp;l=ur2&amp;o=9" width="1" height="1" border="0" alt="" style="border:none !important; margin:0px !important;" />Æ¢¤\tgðgÁÄ¢Ü·B
+�Ⴆ�΁A�A
+���́A�C���^�[�l�b�g�̂��낢���ID��p�X���[�h���L�����ĊǗ�����
+<a href="http://www.amazon.co.jp/exec/obidos/redirect?link_code=ur2&amp;camp=247&amp;tag=inkasesblog-22&amp;creative=1211&amp;path=external-search%3Fsearch-type=ss%26keyword=Norton%2520Password%26index=software-jp">Norton Password Manager</a><img src="http://www.assoc-amazon.jp/e/ir?t=inkasesblog-22&amp;l=ur2&amp;o=9" width="1" height="1" border="0" alt="" style="border:none !important; margin:0px !important;" />�Ƃ����\�t�g���g���Ă��܂��B
 
-¡ÜÅÍSleipnirÅüÍ·épX[hÉÍ½µÄ­ê¸AdûÈ­InternetExplorerÌÝÅÇµÄ¢Üµ½ªA
-ybeta4zÌSleipnirÅÍ½µÄ­êéæ¤ÉÈèÜµ½I
+���܂ł�Sleipnir�œ��͂���p�X���[�h�ɂ͔������Ă��ꂸ�A�d���Ȃ�InternetExplorer�݂̂ŊǗ����Ă��܂������A
+�ybeta4�z��Sleipnir�ł͔������Ă����悤�ɂȂ�܂����I
 
-±êÍASleipnirªæèIEÉßÃ¢½Æ¢¤±Æð t¯Ä¢Ü·æËB
-³®Åª­\³êéÌªÒ¿µ¢Å·B
+����́ASleipnir�����IE�ɋ߂Â����Ƃ������Ƃ𗠕t���Ă��܂���ˁB
+�����ł����\�����̂��҂��������ł��B
 <BR><BR><BR>
-¡<a href="http://www.amazon.co.jp/exec/obidos/redirect?link_code=ur2&amp;camp=247&amp;tag=inkasesblog-22&amp;creative=1211&amp;path=external-search%3Fsearch-type=ss%26keyword=Norton%2520Password%26index=software-jp">Norton Password Manager</a><img src="http://www.assoc-amazon.jp/e/ir?t=inkasesblog-22&amp;l=ur2&amp;o=9" width="1" height="1" border="0" alt="" style="border:none !important; margin:0px !important;" />
-cWebTCgÌtH[ÉüÍµ½pX[hðL¯µÄAANZX·éÆ«ÉÍÄÑoµÄ­êÜ·B
-@pX[hðüÍ·éèÔªÈ¯ÄÆÄàÖII
-@à¿ëñ[U[ÇàoÜ·ÌÅAZLeBIÉàâèÈµI
-@<FONT COLOR="blue">êñgÁÄµÜ¤ÆAà¤èú¹È­ÈèÜ·I´IXXÅ·æ`</FONT>
+��<a href="http://www.amazon.co.jp/exec/obidos/redirect?link_code=ur2&amp;camp=247&amp;tag=inkasesblog-22&amp;creative=1211&amp;path=external-search%3Fsearch-type=ss%26keyword=Norton%2520Password%26index=software-jp">Norton Password Manager</a><img src="http://www.assoc-amazon.jp/e/ir?t=inkasesblog-22&amp;l=ur2&amp;o=9" width="1" height="1" border="0" alt="" style="border:none !important; margin:0px !important;" />
+�cWeb�T�C�g�̃t�H�[���ɓ��͂����p�X���[�h�����L�����āA���A�N�Z�X����Ƃ��ɂ͌Ăяo���Ă���܂��B
+�@�p�X���[�h����͂����Ԃ��Ȃ��ĂƂĂ��֗��I�I
+�@������񃆁[�U�[�Ǘ����o���܂��̂ŁA�Z�L�����e�B�I�ɂ����Ȃ��I
+�@<FONT COLOR="blue">���g���Ă��܂��ƁA����������Ȃ��Ȃ�܂��I���I�X�X���ł���`</FONT>
 <iframe src="http://rcm-jp.amazon.co.jp/e/cm?t=inkasesblog-22&o=9&p=8&l=as1&asins=B000127YJC&fc1=000000&=1&lc1=0000ff&bc1=000000&&#108;&#116;1=_blank&IS2=1&bg1=ffffff&f=ifr" style="width:120px;height:240px;" scrolling="no" marginwidth="0" marginheight="0" frameborder="0"></iframe>]]>
         
     </content>

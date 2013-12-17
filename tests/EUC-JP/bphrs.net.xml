@@ -14,10 +14,10 @@ Expect: EUC-JP
   xmlns="http://purl.org/rss/1.0/">
 
 <channel rdf:about="http://www.bphrs.net/mesi/">
-<title>¤á¤·¡÷¤í¤°</title>
+<title>�ᤷ������</title>
 
 <link>http://www.bphrs.net/mesi/</link>
-<description><![CDATA[¤¢¤ë²ÈÄí¤Î¿©Âî»ö¾ð<BR>
+<description><![CDATA[��������ο������<BR>
 since 2004.10]]></description>
 <dc:language>ja</dc:language>
 <dc:creator></dc:creator>
@@ -65,195 +65,195 @@ since 2004.10]]></description>
 
 <item rdf:about="http://www.bphrs.net/mesi/archives/2005/12/post_123.html">
 
-<title>¥¹¥Ú¥·¥ã¥ë</title>
+<title>���ڥ����</title>
 <link>http://www.bphrs.net/mesi/archives/2005/12/post_123.html</link>
-<description> ¤¢¤ó¤«¤±¥Ñ¥¹¥¿ÀìÌçÅ¹ SAKURA ...</description>
+<description> ���󤫤��ѥ�������Ź SAKURA ...</description>
 
 <content:encoded>
 </content:encoded>
-<dc:subject>³°¤á¤·</dc:subject>
+<dc:subject>���ᤷ</dc:subject>
 <dc:creator>bphrs</dc:creator>
 
 <dc:date>2005-12-26T19:45:28+09:00</dc:date>
 </item>
 <item rdf:about="http://www.bphrs.net/mesi/archives/2005/11/post_122.html">
 
-<title>¥é¡¼¥á¥óÂçÀ¹</title>
+<title>�顼�������</title>
 <link>http://www.bphrs.net/mesi/archives/2005/11/post_122.html</link>
-<description> ²£¹Ë ...</description>
+<description> ���� ...</description>
 
 <content:encoded>
 </content:encoded>
-<dc:subject>³°¤á¤·</dc:subject>
+<dc:subject>���ᤷ</dc:subject>
 <dc:creator>bphrs</dc:creator>
 
 <dc:date>2005-11-30T15:36:25+09:00</dc:date>
 </item>
 <item rdf:about="http://www.bphrs.net/mesi/archives/2005/11/post_121.html">
 
-<title>¤·¤å¤¦¤æ¤é¡¼¤á¤ó</title>
+<title>���夦��顼���</title>
 <link>http://www.bphrs.net/mesi/archives/2005/11/post_121.html</link>
-<description> ·§¸ÞÏº TWIN21 ...</description>
+<description> ����Ϻ TWIN21 ...</description>
 
 <content:encoded>
 </content:encoded>
-<dc:subject>³°¤á¤·</dc:subject>
+<dc:subject>���ᤷ</dc:subject>
 <dc:creator>bphrs</dc:creator>
 
 <dc:date>2005-11-08T16:19:40+09:00</dc:date>
 </item>
 <item rdf:about="http://www.bphrs.net/mesi/archives/2005/08/post_120.html">
 
-<title>¥Ä¥Ê¥µ¥é¥À¤¦¤É¤ó</title>
+<title>�ĥʥ�������ɤ�</title>
 <link>http://www.bphrs.net/mesi/archives/2005/08/post_120.html</link>
-<description> ¤µ¤¬¤ß ...</description>
+<description> ������ ...</description>
 
 <content:encoded>
 </content:encoded>
-<dc:subject>³°¤á¤·</dc:subject>
+<dc:subject>���ᤷ</dc:subject>
 <dc:creator>bphrs</dc:creator>
 
 <dc:date>2005-08-15T20:04:49+09:00</dc:date>
 </item>
 <item rdf:about="http://www.bphrs.net/mesi/archives/2005/08/post_119.html">
 
-<title>¾ÆÆù</title>
+<title>����</title>
 <link>http://www.bphrs.net/mesi/archives/2005/08/post_119.html</link>
-<description> ¥È¥ß¥¹¥ß¡¼¥È ...</description>
+<description> �ȥߥ��ߡ��� ...</description>
 
 <content:encoded>
 </content:encoded>
-<dc:subject>³°¤á¤·</dc:subject>
+<dc:subject>���ᤷ</dc:subject>
 <dc:creator>bphrs</dc:creator>
 
 <dc:date>2005-08-15T03:26:14+09:00</dc:date>
 </item>
 <item rdf:about="http://www.bphrs.net/mesi/archives/2005/08/post_118.html">
 
-<title>¥Ñ¥¯¿¹¥«¥ì¡¼</title>
+<title>�ѥ������졼</title>
 <link>http://www.bphrs.net/mesi/archives/2005/08/post_118.html</link>
-<description> ¥Ñ¥¯¿¹ ...</description>
+<description> �ѥ��� ...</description>
 
 <content:encoded>
 </content:encoded>
-<dc:subject>³°¤á¤·</dc:subject>
+<dc:subject>���ᤷ</dc:subject>
 <dc:creator>bphrs</dc:creator>
 
 <dc:date>2005-08-03T12:44:40+09:00</dc:date>
 </item>
 <item rdf:about="http://www.bphrs.net/mesi/archives/2005/08/post_117.html">
 
-<title>¾®¥é¡¼¥á¥ó</title>
+<title>���顼���</title>
 <link>http://www.bphrs.net/mesi/archives/2005/08/post_117.html</link>
-<description> ¥é¡¼¥á¥óÆóÏº ...</description>
+<description> �顼�����Ϻ ...</description>
 
 <content:encoded>
 </content:encoded>
-<dc:subject>³°¤á¤·</dc:subject>
+<dc:subject>���ᤷ</dc:subject>
 <dc:creator>bphrs</dc:creator>
 
 <dc:date>2005-08-02T23:07:14+09:00</dc:date>
 </item>
 <item rdf:about="http://www.bphrs.net/mesi/archives/2005/07/post_116.html">
 
-<title>¥¢¥¸¤Î³«¤­Äê¿©</title>
+<title>�����γ����꿩</title>
 <link>http://www.bphrs.net/mesi/archives/2005/07/post_116.html</link>
-<description> Ç¼Æ¦¤Î¤» ...</description>
+<description> ǼƦ�Τ� ...</description>
 
 <content:encoded>
 </content:encoded>
-<dc:subject>³°¤á¤·</dc:subject>
+<dc:subject>���ᤷ</dc:subject>
 <dc:creator>bphrs</dc:creator>
 
 <dc:date>2005-07-29T12:16:40+09:00</dc:date>
 </item>
 <item rdf:about="http://www.bphrs.net/mesi/archives/2005/07/post_115.html">
 
-<title>¥Ê¥¹¥ß¡¼¥È¥¹¥Ñ¥²¥Ã¥Æ¥£¡¼</title>
+<title>�ʥ��ߡ��ȥ��ѥ��åƥ���</title>
 <link>http://www.bphrs.net/mesi/archives/2005/07/post_115.html</link>
-<description> µ×¤·¤Ö¤ê ...</description>
+<description> �פ��֤� ...</description>
 
 <content:encoded>
 </content:encoded>
-<dc:subject>³°¤á¤·</dc:subject>
+<dc:subject>���ᤷ</dc:subject>
 <dc:creator>bphrs</dc:creator>
 
 <dc:date>2005-07-15T21:00:36+09:00</dc:date>
 </item>
 <item rdf:about="http://www.bphrs.net/mesi/archives/2005/05/post_114.html">
 
-<title>ÆùÆþ¤ê¥é¡¼¥á¥ó</title>
+<title>������顼���</title>
 <link>http://www.bphrs.net/mesi/archives/2005/05/post_114.html</link>
-<description> ¥¹¥¬¥­¥ä ...</description>
+<description> �������� ...</description>
 
 <content:encoded>
 </content:encoded>
-<dc:subject>³°¤á¤·</dc:subject>
+<dc:subject>���ᤷ</dc:subject>
 <dc:creator>bphrs</dc:creator>
 
 <dc:date>2005-05-06T17:56:06+09:00</dc:date>
 </item>
 <item rdf:about="http://www.bphrs.net/mesi/archives/2005/04/post_113.html">
 
-<title>¥é¡¼¥á¥óÂçÀ¹¡Ü²¹Àô¤¿¤Þ¤´</title>
+<title>�顼��������ܲ������ޤ�</title>
 <link>http://www.bphrs.net/mesi/archives/2005/04/post_113.html</link>
-<description> ¤Ê¤ó¤Ä¤ÃÄâ ...</description>
+<description> �ʤ�Ĥ��� ...</description>
 
 <content:encoded>
 </content:encoded>
-<dc:subject>³°¤á¤·</dc:subject>
+<dc:subject>���ᤷ</dc:subject>
 <dc:creator>bphrs</dc:creator>
 
 <dc:date>2005-04-23T18:48:13+09:00</dc:date>
 </item>
 <item rdf:about="http://www.bphrs.net/mesi/archives/2005/04/post_112.html">
 
-<title>ÂçÀ¹¥é¡¼¥á¥ó</title>
+<title>�����顼���</title>
 <link>http://www.bphrs.net/mesi/archives/2005/04/post_112.html</link>
-<description> Åìµþ¥é¡¼¥á¥ó ÆÖ¤Á¤ó ...</description>
+<description> ����顼��� �֤��� ...</description>
 
 <content:encoded>
 </content:encoded>
-<dc:subject>³°¤á¤·</dc:subject>
+<dc:subject>���ᤷ</dc:subject>
 <dc:creator>bphrs</dc:creator>
 
 <dc:date>2005-04-22T23:02:51+09:00</dc:date>
 </item>
 <item rdf:about="http://www.bphrs.net/mesi/archives/2005/04/post_111.html">
 
-<title>¥é¡¼¥á¥ó¤È¤´ÈÓ</title>
+<title>�顼���Ȥ���</title>
 <link>http://www.bphrs.net/mesi/archives/2005/04/post_111.html</link>
-<description> °ìÈÖ¡Ê¤Ó¤Ã¤¯¤ê¥é¡¼¥á¥ó¡Ë ...</description>
+<description> ���֡ʤӤä���顼���� ...</description>
 
 <content:encoded>
 </content:encoded>
-<dc:subject>³°¤á¤·</dc:subject>
+<dc:subject>���ᤷ</dc:subject>
 <dc:creator>bphrs</dc:creator>
 
 <dc:date>2005-04-19T21:07:15+09:00</dc:date>
 </item>
 <item rdf:about="http://www.bphrs.net/mesi/archives/2005/04/post_110.html">
 
-<title>»ª¤Î±ö¾Æ¤­Äê¿©</title>
+<title>���α��Ƥ��꿩</title>
 <link>http://www.bphrs.net/mesi/archives/2005/04/post_110.html</link>
-<description> ¤ß¤Î¤êÄâ ...</description>
+<description> �ߤΤ��� ...</description>
 
 <content:encoded>
 </content:encoded>
-<dc:subject>³°¤á¤·</dc:subject>
+<dc:subject>���ᤷ</dc:subject>
 <dc:creator>bphrs</dc:creator>
 
 <dc:date>2005-04-19T08:30:28+09:00</dc:date>
 </item>
 <item rdf:about="http://www.bphrs.net/mesi/archives/2005/04/post_109.html">
 
-<title>º²¤Î¥é¡¼¥á¥ó</title>
+<title>���Υ顼���</title>
 <link>http://www.bphrs.net/mesi/archives/2005/04/post_109.html</link>
-<description> ÈøÆ»¥é¡¼¥á¥óÌÍ°ì¶Ú...</description>
+<description> ��ƻ�顼����Ͱ��...</description>
 
 <content:encoded>
 </content:encoded>
-<dc:subject>³°¤á¤·</dc:subject>
+<dc:subject>���ᤷ</dc:subject>
 <dc:creator>bphrs</dc:creator>
 
 <dc:date>2005-04-02T18:49:14+09:00</dc:date>

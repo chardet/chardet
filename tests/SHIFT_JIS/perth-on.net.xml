@@ -4,21 +4,21 @@ Source: http://www.perth-on.net/main/atom.xml
 Expect: SHIFT_JIS
 -->
 <feed version="0.3" xmlns="http://purl.org/atom/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xml:lang="ja">
-<title>p[XIlbg</title>
+<title>�p�[�X�I���l�b�g</title>
 <link rel="alternate" type="text/html" href="http://www.perth-on.net/main/" />
 <modified>2005-12-27T09:23:56Z</modified>
-<tagline>p[XÌ¯w©ç¶îñÜÅCO¶ðT|[gµÜ·I</tagline>
+<tagline>�p�[�X�̗��w���琶�����܂ŊC�O�������T�|�[�g���܂��I</tagline>
 <id>tag:www.perth-on.net,2005:/main//1</id>
 <generator url="http://www.movabletype.org/" version="3.151-ja">Movable Type</generator>
 <copyright>Copyright (c) 2005, ambits</copyright>
 <entry>
-<title>ØoèÌ±</title>
+<title>�ؓo��̌�</title>
 <link rel="alternate" type="text/html" href="http://www.perth-on.net/main/archives/column/20051227.html" />
 <modified>2005-12-27T09:23:56Z</modified>
 <issued>2005-12-27T09:21:02Z</issued>
 <id>tag:www.perth-on.net,2005:/main//1.174</id>
 <created>2005-12-27T09:21:02Z</created>
-<summary type="text/plain">uØoèÌ±v p[XÉ¯wµ½lÈçÎAêxÍoÁ½±Æª éÌÅÍÈ¢Åµå...</summary>
+<summary type="text/plain">�u�ؓo��̌��v �p�[�X�ɗ��w�����l�Ȃ�΁A��x�͓o�������Ƃ�����̂ł͂Ȃ��ł���...</summary>
 <author>
 <name>ambits</name>
 
@@ -26,21 +26,21 @@ Expect: SHIFT_JIS
 </author>
 <dc:subject>column</dc:subject>
 <content type="text/html" mode="escaped" xml:lang="ja" xml:base="http://www.perth-on.net/main/">
-<![CDATA[<b>uØoèÌ±v</b><br />
-p[XÉ¯wµ½lÈçÎAêxÍoÁ½±Æª éÌÅÍÈ¢Åµå¤©Hp[X©çìÉÔÅñ4ÔÌêÉ éyo[g(Pemberton)ÉA»ÌØÍ èÜ·Boé±ÆªÅ«éØÍ3{ èA±êçÌÅàÁÉL¼ÈÌªAyo[gÌS©çà¢Äàs¯é³61[gÌO[ZX^[c[(Glocester Tree)Å·B¼ÌØÍ¿åÁÆ¬©ç£êÄ¢éÌÅÔªÈ¢Æs¯È¢Æ±ëÉ èÜ·B<br />
-±êçÌØÍAàÆàÆRÎÄpÌØÅµ½BØÉÍSÌYª é¾¯ÅÀSpÌlbgÈÇÍÈ­AãèºèÅð·µA¿åÁÆë¯Å·B¨»ç­°|ÇÌlÍoéÌÍ³Åµå¤B<br />
-yo[gÍ¼ÉàúÔÀèÌöC@ÖÔâCàÂ­ÁÄ¢Ü·B¬ÍñíÉ¬³­AØoèªCÉÈèÜ·Bá¦Î}[Kbgo[©çAoj[És­rÉ¿åÁÆ§¿ñéöxÅ\ªÅÍÈ¢Åµå¤©HØoèÍ©Èè¨àµë¢ÌÅAºÐÌ±µÄÝÄ­¾³¢ËB]]>
+<![CDATA[<b>�u�ؓo��̌��v</b><br />
+�p�[�X�ɗ��w�����l�Ȃ�΁A��x�͓o�������Ƃ�����̂ł͂Ȃ��ł��傤���H�p�[�X�����ɎԂŖ�4���Ԃ̏ꏊ�ɂ���y���o�[�g��(Pemberton)�ɁA���̖؂͂���܂��B�o�邱�Ƃ��ł���؂�3�{����A�����̒��ł����ɗL���Ȃ̂��A�y���o�[�g���̒��S����������Ă��s���鍂��61���[�g���̃O���[�Z�X�^�[�c���[(Glocester Tree)�ł��B���̖؂͂�����ƒ����痣��Ă���̂ŎԂ��Ȃ��ƍs���Ȃ��Ƃ���ɂ���܂��B<br />
+�����̖؂́A���Ƃ��ƎR�Ύ��Ď��p�̖؂ł����B�؂ɂ͓S�̍Y�����邾���ň��S�p�̃l�b�g�Ȃǂ͂Ȃ��A��艺��Ō������A������Ɗ댯�ł��B�����炭�������|�ǂ̐l�͓o��͖̂����ł��傤�B<br />
+�y���o�[�g���͑��ɂ����Ԍ���̏��C�@�֎Ԃ⃏�C���������Ă��܂��B���͔��ɏ������A�ؓo�肪���C���ɂȂ�܂��B�Ⴆ�΃}�[�K���b�g���o�[����A���o�j�[�ɍs���r���ɂ�����Ɨ��������x�ŏ\���ł͂Ȃ��ł��傤���H�ؓo��͂��Ȃ肨�����낢�̂ŁA���Б̌����Ă݂Ă��������ˁB]]>
 
 </content>
 </entry>
 <entry>
-<title>nbgo[¤</title>
+<title>�n�b�g���o�[����</title>
 <link rel="alternate" type="text/html" href="http://www.perth-on.net/main/archives/column/20051219.html" />
 <modified>2005-12-19T03:29:36Z</modified>
 <issued>2005-12-19T03:25:20Z</issued>
 <id>tag:www.perth-on.net,2005:/main//1.173</id>
 <created>2005-12-19T03:25:20Z</created>
-<summary type="text/plain">unbgo[¤v p[X©çkÖñ500LÌêÉAmél¼ménbgo...</summary>
+<summary type="text/plain">�u�n�b�g���o�[�����v �p�[�X����k�֖�500�L���̏ꏊ�ɁA�m��l���m��n�b�g���o...</summary>
 <author>
 <name>ambits</name>
 
@@ -48,11 +48,11 @@ Expect: SHIFT_JIS
 </author>
 <dc:subject>column</dc:subject>
 <content type="text/html" mode="escaped" xml:lang="ja" xml:base="http://www.perth-on.net/main/">
-<![CDATA[<b>unbgo[¤v</b><br />
-p[X©çkÖñ500LÌêÉAmél¼ménbgo[¤ª èÜ·Bnbgo[¤ÍA1970NÉ»¤ÌIi[hEPCX[(Leonard Casley)ªI[XgAÌ_Æ­ôÉ½ÎA»µÄI[XgA­{ÉÆ§ðé¾µA©gÌL·éynðnbgo[¤ÆµÜµ½B¯ÍÆ°Æ]ÆõÌñ20`30¼öx¾»¤Å·B
-ÀÛâèÆµÄÍAI[XgA­{ÍÆ§ðFßÄ¢È¢ÌÅ·ªAÅàÈÇà[ßÄ¢È¢ÌÅ­{ÍÙFµÄ¢éÌÅµå¤©B<br />
-¤ÌÉÍA¤Ìå«ÈçÌºªÚ§¿A»µÄÌà¹ÉÈÁÄ¢é¤ObYÈÇªÁÄ¢éXA»µÄÆ©ÌØèâ¼ÜÅÁÄ¢Ä¤±ÆàÅ«Ü·BÜ½|Xgà è¤ÌX^vðµÄàç¦½èApX|[gðÁÄ¢­ÆüX^vàµÄàç¦½èàµÜ·B<br />
-±ñÈÂ«IÈÍ¢EðTµÄà­È¢ÌÅA­µ¢Å·ª§¿ñéÌà¨àµë¢Æv¢Ü·B¿ÈÝÉp[X©çL[}CAÈÇÉÔÅs­@ïª êÎArÅñé±ÆàÂ\Å·ÌÅAvÉgÝüêÄÝÄÍ¢©ªÅ·©B]]>
+<![CDATA[<b>�u�n�b�g���o�[�����v</b><br />
+�p�[�X����k�֖�500�L���̏ꏊ�ɁA�m��l���m��n�b�g���o�[����������܂��B�n�b�g���o�[�����́A1970�N�Ɍ������̃��I�i�[�h�E�P�C�X���[(Leonard Casley)���I�[�X�g�����A�̔_�Ɛ���ɔ��΁A�����ăI�[�X�g�����A���{�ɓƗ���錾���A���g�̏��L����y�n���n�b�g���o�[�����Ƃ��܂����B�����͉Ƒ��Ə]�ƈ��̖�20�`30�����x�������ł��B
+���ۖ��Ƃ��ẮA�I�[�X�g�����A���{�͓Ɨ���F�߂Ă��Ȃ��̂ł����A�ŋ��Ȃǂ��[�߂Ă��Ȃ��̂Ő��{�͖ٔF���Ă���̂ł��傤���B<br />
+�����̒��ɂ́A�����̑傫�Ȋ�̓������ڗ����A�����č��̍����ɂȂ��Ă��鉤���O�b�Y�Ȃǂ������Ă��锄�X�A�����ēƎ��̐؎�⎆���܂Ŏ����Ă��Ĕ������Ƃ��ł��܂��B�܂��|�X�g�����艤���̃X�^���v�������Ă��炦����A�p�X�|�[�g�������Ă����Ɠ����X�^���v�������Ă��炦��������܂��B<br />
+����Ȍ��I�ȍ��͐��E��T���Ă����Ȃ��̂ŁA���������ł����������̂��������낢�Ǝv���܂��B���Ȃ݂Ƀp�[�X���烂���L�[�}�C�A�ȂǂɎԂōs���@�����΁A�r���Ŋ�邱�Ƃ��\�ł��̂ŁA�v�����ɑg�ݓ���Ă݂Ă͂������ł����B]]>
 
 </content>
 </entry>
