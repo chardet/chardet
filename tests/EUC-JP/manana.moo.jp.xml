@@ -12,7 +12,7 @@ Expect: EUC-JP
   xmlns="http://purl.org/rss/1.0/">
 
 <channel rdf:about="http://nanana.moo.jp/">
-<title>�餰�ʤʤ�</title>
+<title>¤é¤°¤Ê¤Ê¤Ê</title>
 <link>http://nanana.moo.jp/</link>
 <description></description>
 <dc:language>ja</dc:language>
@@ -43,89 +43,89 @@ Expect: EUC-JP
 </channel>
 
 <item rdf:about="http://nanana.moo.jp/archives/000928.html">
-<title>�Хȥ�BAR��α����</title>
+<title>¥Ð¥È¥ó¡¢BAR»ÄÎ±·èÄê</title>
 <link>http://nanana.moo.jp/archives/000928.html</link>
-<description>�Хȥ�BAR�˻�α���뤳�Ȥ����ꤷ�ޤ���������ˤ�äƺ�ƣ�������ǯ�Υ����Ȥ��Ӽ��Ȥ������Ȥˡ��ɤ���̤�Ĥ������ʤ��ä������ˡ����Ҥ��񤷤����Ǥ��͡�</description>
+<description>¥Ð¥È¥ó¤¬BAR¤Ë»ÄÎ±¤¹¤ë¤³¤È¤¬·èÄê¤·¤Þ¤·¤¿¡£¤³¤ì¤Ë¤è¤Ã¤Æº´Æ£ÂöËá¤ÏÍèÇ¯¤Î¥·¡¼¥È¤òÁÓ¼º¤È¤¤¤¦¤³¤È¤Ë¡£ÎÉ¤¤·ë²Ì¤ò»Ä¤·¤ÆÍè¤ì¤Ê¤«¤Ã¤¿¤À¤±¤Ë¡¢°ÜÀÒ¤âÆñ¤·¤½¤¦¤Ç¤¹¤Í¡£</description>
 <dc:subject>F1</dc:subject>
 <dc:creator>nanana</dc:creator>
 <dc:date>2005-09-21T21:38:56+09:00</dc:date>
 </item>
 <item rdf:about="http://nanana.moo.jp/archives/000927.html">
-<title>L887�㤤�ޤ���</title>
+<title>L887Çã¤¤¤Þ¤·¤¿</title>
 <link>http://nanana.moo.jp/archives/000927.html</link>
-<description>�ʥʥ���FlexScan L887�������CRT���վ����㤤����������ſ���˴ؤ��뻨����</description>
+<description>¥Ê¥Ê¥ª¤ÎFlexScan L887¤ò¹ØÆþ¡£CRT¢ª±Õ¾½¤ÎÇã¤¤´¹¤¨¡£¤½¤ÎÅ¿Ëö¤Ë´Ø¤¹¤ë»¨µ­¡£</description>
 <dc:subject></dc:subject>
 <dc:creator>nanana</dc:creator>
 <dc:date>2005-08-21T19:11:20+09:00</dc:date>
 </item>
 <item rdf:about="http://nanana.moo.jp/archives/000925.html">
-<title>Ļ�ʹ֥���ƥ��ȴ��ﵭ</title>
+<title>Ä»¿Í´Ö¥³¥ó¥Æ¥¹¥È´ÑÀïµ­</title>
 <link>http://nanana.moo.jp/archives/000925.html</link>
-<description>Ļ�ʹ֥���ƥ��Ȥ򸫤˹ԤäƤ��ޤ�����</description>
+<description>Ä»¿Í´Ö¥³¥ó¥Æ¥¹¥È¤ò¸«¤Ë¹Ô¤Ã¤Æ¤­¤Þ¤·¤¿¡£</description>
 <dc:subject>Misc</dc:subject>
 <dc:creator>nanana</dc:creator>
 <dc:date>2005-07-18T22:39:17+09:00</dc:date>
 </item>
 <item rdf:about="http://nanana.moo.jp/archives/000924.html">
-<title>W31T�㤤�ޤ���</title>
+<title>W31TÇã¤¤¤Þ¤·¤¿</title>
 <link>http://nanana.moo.jp/archives/000924.html</link>
-<description>W31T����������Τǥ���ץ졣</description>
+<description>W31T¤ò¹ØÆþ¤·¤¿¤Î¤Ç¥¤¥ó¥×¥ì¡£</description>
 <dc:subject>Mobile</dc:subject>
 <dc:creator>nanana</dc:creator>
 <dc:date>2005-07-01T21:29:05+09:00</dc:date>
 </item>
 <item rdf:about="http://nanana.moo.jp/archives/000923.html">
-<title>��9�� ����ꥫGP</title>
+<title>Âè9Àï ¥¢¥á¥ê¥«GP</title>
 <link>http://nanana.moo.jp/archives/000923.html</link>
-<description>F1��9�異��ꥫGP���ߥ������������꥿����������夬��˷礱����ǤΥߥϥ���ͥ�����ե��顼��1-2��������򴹶ػߥ롼��Ϥ�äѤ꼺�ԤǤ��͡���ͥ����ѥ�ե����ȤΥ��ƥ������ᤷ���ġ�</description>
+<description>F1Âè9Àï¥¢¥á¥ê¥«GP¡£¥ß¥·¥å¥é¥óÀªÁ´°÷¥ê¥¿¥¤¥¢¡£À¹¤ê¾å¤¬¤ê¤Ë·ç¤±¤ëÃæ¤Ç¤Î¥ß¥Ï¥¨¥ëÍ¥¾¡¡¢¥Õ¥§¥é¡¼¥ê1-2¡£¥¿¥¤¥ä¸ò´¹¶Ø»ß¥ë¡¼¥ë¤Ï¤ä¤Ã¤Ñ¤ê¼ºÇÔ¤Ç¤¹¤Í¡£°ì¿Í¥·¥ã¥ó¥Ñ¥ó¥Õ¥¡¥¤¥È¤Î¥â¥ó¥Æ¥¤¥í¤¬Èá¤·¤¤¡Ä¡£</description>
 <dc:subject>F1</dc:subject>
 <dc:creator>nanana</dc:creator>
 <dc:date>2005-06-20T22:30:58+09:00</dc:date>
 </item>
 <item rdf:about="http://nanana.moo.jp/archives/000922.html">
-<title>���ܥޥ��ɥʥ�ɼ�Ĺ����̾��</title>
+<title>ÆüËÜ¥Þ¥¯¥É¥Ê¥ë¥É¼ÒÄ¹¡¢²þÌ¾¡©</title>
 <link>http://nanana.moo.jp/archives/000922.html</link>
-<description>�ޥ��ɥʥ�ɸ��פε�������Ĺ��̾�����Ѥ�ä���</description>
+<description>¥Þ¥¯¥É¥Ê¥ë¥É¸º±×¤Îµ­»ö¡£¼ÒÄ¹¤ÎÌ¾Á°¤¬ÊÑ¤ï¤Ã¤¿¡©</description>
 <dc:subject>Misc</dc:subject>
 <dc:creator>nanana</dc:creator>
 <dc:date>2005-06-18T01:14:44+09:00</dc:date>
 </item>
 <item rdf:about="http://nanana.moo.jp/archives/000920.html">
-<title>��ž���㤤�ޤ���</title>
+<title>¼«Å¾¼ÖÇã¤¤¤Þ¤·¤¿</title>
 <link>http://nanana.moo.jp/archives/000920.html</link>
-<description> LOUIS GARNEAU LGS-TR5(PLATINUM)�������...</description>
+<description> LOUIS GARNEAU LGS-TR5(PLATINUM)¤ò¹ØÆþ¡£...</description>
 <dc:subject>Misc</dc:subject>
 <dc:creator>nanana</dc:creator>
 <dc:date>2005-04-29T13:36:14+09:00</dc:date>
 </item>
 <item rdf:about="http://nanana.moo.jp/archives/000918.html">
-<title>�磻�ץ����� �ԥ奢 ( PSP )</title>
+<title>¥ï¥¤¥×¥¢¥¦¥È ¥Ô¥å¥¢ ( PSP )</title>
 <link>http://nanana.moo.jp/archives/000918.html</link>
-<description>�磻�ץ����� �ԥ奢��������֥饦����ư��ϳ�ǧ������äȻȤ��ˤ����Ǥ��͡�</description>
+<description>¥ï¥¤¥×¥¢¥¦¥È ¥Ô¥å¥¢¤ò¹ØÆþ¡£¥Ö¥é¥¦¥¶¤ÎÆ°ºî¤Ï³ÎÇ§¡£¤Á¤ç¤Ã¤È»È¤¤¤Ë¤¯¤¤¤Ç¤¹¤Í¡£</description>
 <dc:subject>Game</dc:subject>
 <dc:creator>nanana</dc:creator>
 <dc:date>2005-04-09T22:02:33+09:00</dc:date>
 </item>
 <item rdf:about="http://nanana.moo.jp/archives/000916.html">
-<title>�����������ư��ñۤ�</title>
+<title>½¢¿¦¡¢¤½¤·¤Æ°ú¤Ã±Û¤·</title>
 <link>http://nanana.moo.jp/archives/000916.html</link>
-<description>��ؤ�´�Ȥ��ơ���äȤ��������ޤ����������˻��ˤ���;���ޤ��ä���Ǥ����ɡ� ...</description>
+<description>Âç³Ø¤òÂ´¶È¤·¤Æ¡¢¤ä¤Ã¤È¤³½¢¿¦¤·¤Þ¤·¤¿¡£¤³¤³¤Ë»ê¤ë¤Ë¤ÏäþÍ¾¶ÊÀÞ¤¢¤Ã¤¿¤ó¤Ç¤¹¤±¤É¡£ ...</description>
 <dc:subject>Diary</dc:subject>
 <dc:creator>nanana</dc:creator>
 <dc:date>2005-04-08T21:53:08+09:00</dc:date>
 </item>
 <item rdf:about="http://nanana.moo.jp/archives/000915.html">
-<title>PSP�����ƥॽ�եȥ�����1.50 ��꡼��</title>
+<title>PSP¥·¥¹¥Æ¥à¥½¥Õ¥È¥¦¥§¥¢1.50 ¥ê¥ê¡¼¥¹</title>
 <link>http://nanana.moo.jp/archives/000915.html</link>
-<description>PSP�Υ����ƥॽ�եȥ������ο��С������1.50����꡼������ޤ����� PSP...</description>
+<description>PSP¤Î¥·¥¹¥Æ¥à¥½¥Õ¥È¥¦¥§¥¢¤Î¿·¥Ð¡¼¥¸¥ç¥ó1.50¤¬¥ê¥ê¡¼¥¹¤µ¤ì¤Þ¤·¤¿¡£ PSP...</description>
 <dc:subject>Game</dc:subject>
 <dc:creator>nanana</dc:creator>
 <dc:date>2005-03-25T02:51:33+09:00</dc:date>
 </item>
 <item rdf:about="http://nanana.moo.jp/archives/000913.html">
-<title>��2�� �ޥ졼����GP</title>
+<title>Âè2Àï ¥Þ¥ì¡¼¥·¥¢GP</title>
 <link>http://nanana.moo.jp/archives/000913.html</link>
-<description>F1��2��ޥ졼����GP����ƨ���ޤ����ġ�������κ����Ф������Ǥ��礦����</description>
+<description>F1Âè2Àï¡¢¥Þ¥ì¡¼¥·¥¢GP¡£¸«Æ¨¤·¤Þ¤·¤¿¡Ä¡£¥¿¥¤¥ä¤Îº¹¤¬½Ð¤¿´¶¤¸¤Ç¤·¤ç¤¦¤«¡£</description>
 <dc:subject>F1</dc:subject>
 <dc:creator>nanana</dc:creator>
 <dc:date>2005-03-22T07:16:47+09:00</dc:date>
@@ -133,31 +133,31 @@ Expect: EUC-JP
 <item rdf:about="http://nanana.moo.jp/archives/000912.html">
 <title>HDD Health</title>
 <link>http://nanana.moo.jp/archives/000912.html</link>
-<description>HDD Health��Precision��90%��ۤ����ΤǤ����ᤷ�Ƥߤ��ꡣ</description>
+<description>HDD Health¤ÎPrecision¤¬90%¤ò±Û¤¨¤¿¤Î¤Ç¤ª´«¤á¤·¤Æ¤ß¤¿¤ê¡£</description>
 <dc:subject>Software</dc:subject>
 <dc:creator>nanana</dc:creator>
 <dc:date>2005-03-18T08:32:37+09:00</dc:date>
 </item>
 <item rdf:about="http://nanana.moo.jp/archives/000911.html">
-<title>NANACA��CRASH!!�ΤϤʤ�</title>
+<title>NANACA¢÷CRASH!!¤Î¤Ï¤Ê¤·</title>
 <link>http://nanana.moo.jp/archives/000911.html</link>
-<description>NANACA��CRASH!! ����������Ū�ʡ� CROSS��CHANNEL�����...</description>
+<description>NANACA¢÷CRASH!! º£º¢¤«¤¤¡ÄÅª¤Ê¡£ CROSS¢÷CHANNEL¤òÂêºà...</description>
 <dc:subject>Misc</dc:subject>
 <dc:creator>nanana</dc:creator>
 <dc:date>2005-03-16T00:31:59+09:00</dc:date>
 </item>
 <item rdf:about="http://nanana.moo.jp/archives/000909.html">
-<title>��1�� �������ȥ�ꥢGP</title>
+<title>Âè1Àï ¥ª¡¼¥¹¥È¥é¥ê¥¢GP</title>
 <link>http://nanana.moo.jp/archives/000909.html</link>
-<description>2005ǯF1�����索�����ȥ�ꥢGP����Ρ��Υե������餬�����ʥݡ���ȥ�����������ޤ�������Ρ��ϥ����󥽤�3�̤�1-3�ե��˥å��塣��ǯ�٥ޥ���Ǥ���Ʈ�Ϥι⤵�򸫤����ե��顼�ꡣͽ�۳����Ϥ򸫤�����åɥ֥�Υ��륵���ɡ���ǯ�����򤯤ʤꤽ���Ǥ���</description>
+<description>2005Ç¯F1³«ËëÀï¥ª¡¼¥¹¥È¥é¥ê¥¢GP¡£¥ë¥Î¡¼¤Î¥Õ¥£¥¸¥±¥é¤¬¸«»ö¤Ê¥Ý¡¼¥ë¥È¥¥¥¦¥£¥ó¤ò¾þ¤ê¤Þ¤·¤¿¡£¥ë¥Î¡¼¤Ï¥¢¥í¥ó¥½¤¬3°Ì¤Ç1-3¥Õ¥£¥Ë¥Ã¥·¥å¡£ºòÇ¯ÅÙ¥Þ¥·¥ó¤Ç¤âÀïÆ®ÎÏ¤Î¹â¤µ¤ò¸«¤»¤¿¥Õ¥§¥é¡¼¥ê¡£Í½ÁÛ³°¤ÎÎÏ¤ò¸«¤»¤¿¥ì¥Ã¥É¥Ö¥ë¤Î¥¯¥ë¥µ¡¼¥É¡£º£Ç¯¤ÏÌÌÇò¤¯¤Ê¤ê¤½¤¦¤Ç¤¹¡£</description>
 <dc:subject>F1</dc:subject>
 <dc:creator>nanana</dc:creator>
 <dc:date>2005-03-06T16:11:47+09:00</dc:date>
 </item>
 <item rdf:about="http://nanana.moo.jp/archives/000908.html">
-<title>F1����</title>
+<title>F1³«Ëë</title>
 <link>http://nanana.moo.jp/archives/000908.html</link>
-<description>2005ǯ��F1�����롣��ǯ�Ϥɤ�ʴ����ˤʤ��Ǥ��礦����</description>
+<description>2005Ç¯¤ÎF1¤¬³«Ëë¡£º£Ç¯¤Ï¤É¤ó¤Ê´¶¤¸¤Ë¤Ê¤ë¤ó¤Ç¤·¤ç¤¦¤«¡£</description>
 <dc:subject>F1</dc:subject>
 <dc:creator>nanana</dc:creator>
 <dc:date>2005-03-06T11:43:59+09:00</dc:date>

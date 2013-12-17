@@ -571,5 +571,3 @@ UTF8SMModel = {'classTable': UTF8_cls,
                'stateTable': UTF8_st,
                'charLenTable': UTF8CharLenTable,
                'name': 'UTF-8'}
-
-# flake8: noqa

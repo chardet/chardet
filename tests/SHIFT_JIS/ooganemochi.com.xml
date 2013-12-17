@@ -4,7 +4,7 @@ Source: http://www.ooganemochi.com/atom.xml
 Expect: SHIFT_JIS
 -->
 <feed version="0.3" xmlns="http://purl.org/atom/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xml:lang="ja">
-<title>�u���O�ő������</title>
+<title>uOÅåà¿</title>
 <link rel="alternate" type="text/html" href="http://www.ooganemochi.com/" />
 <modified>2005-10-03T05:32:05Z</modified>
 <tagline></tagline>
@@ -12,22 +12,22 @@ Expect: SHIFT_JIS
 <generator url="http://www.movabletype.org/" version="3.171-ja">Movable Type</generator>
 <copyright>Copyright (c) 2005, seicha</copyright>
 <entry>
-<title>�T�[�o�[������т��`��</title>
+<title>T[o[ÁòÑ¡`Ì</title>
 <link rel="alternate" type="text/html" href="http://www.ooganemochi.com/archives/2005/10/post.html" />
 <modified>2005-10-03T05:32:05Z</modified>
 <issued>2005-10-03T05:12:31Z</issued>
 <id>tag:www.ooganemochi.com,2005://1.1</id>
 <created>2005-10-03T05:12:31Z</created>
-<summary type="text/plain">�I�}�K�b�I
+<summary type="text/plain">I}KbI
 
-�T�[�o�[�鐁����т₪�股�[�ʂ��I�I
-�T���o�g�H�����I�I
+T[o[éÁòÑâªè¡[ÊÁII
+TogHÁII
 
-�����[�A����Ă܂񂪂ȁA�ł񂪂ȁA���܂񂪂ȁA���܂���邳�񂺂�������̂ق��ł����ȁE�E�E�Q|�P|���Q|�P|���Q|�P|���Q|�P|���Q|�P|���Q|�P|���Q|�P|���Q|�P|��
+ [AâçêÄÜñªÈAÅñªÈA¨ÜñªÈA¨Üñçäé³ñº¢ÁµñÌÙ¤Å·ªÈEEEQ|P|Q|P|Q|P|Q|P|Q|P|Q|P|Q|P|Q|P|
 
-�܂��������H
-�܁A�܂����������[�I�H
-�܁A�܁A�܂������悧�`��J���T�n���j�_�B���ނ��n���ɂ��I</summary>
+Ü¶Á·©H
+ÜAÜ¶Á·©[IH
+ÜAÜAÜµÁ»æ§`ôJTnj_BÞ³nÉ¾I</summary>
 <author>
 <name>seicha</name>
 
@@ -35,36 +35,36 @@ Expect: SHIFT_JIS
 </author>
 
 <content type="text/html" mode="escaped" xml:lang="ja" xml:base="http://www.ooganemochi.com/">
-<![CDATA[<p>�I�}�K�b�I</p>
+<![CDATA[<p>I}KbI</p>
 
-<p>�T�[�o�[�鐁����т₪�股�[�ʂ��I�I<br />
-�T���o�g�H�����I�I</p>
+<p>T[o[éÁòÑâªè¡[ÊÁII<br />
+TogHÁII</p>
 
-<p>�����[�A����Ă܂񂪂ȁA�ł񂪂ȁA���܂񂪂ȁA���܂���邳�񂺂�������̂ق��ł����ȁE�E�E�Q|�P|���Q|�P|���Q|�P|���Q|�P|���Q|�P|���Q|�P|���Q|�P|���Q|�P|��</p>
+<p> [AâçêÄÜñªÈAÅñªÈA¨ÜñªÈA¨Üñçäé³ñº¢ÁµñÌÙ¤Å·ªÈEEEQ|P|Q|P|Q|P|Q|P|Q|P|Q|P|Q|P|Q|P|</p>
 
-<p>�܂��������H<br />
-�܁A�܂����������[�I�H<br />
-�܁A�܁A�܂������悧�`��J���T�n���j�_�B���ނ��n���ɂ��I</p>
+<p>Ü¶Á·©H<br />
+ÜAÜ¶Á·©[IH<br />
+ÜAÜAÜµÁ»æ§`ôJTnj_BÞ³nÉ¾I</p>
 
-<p>�o�b�N�A�b�v�������Ǝ��Ăւ񂩂�������A�S�L���p�[�₵���I<br />
-�₵�A�₵�A�₵�A�K�j���B���A�K�j���B�����A�K�j���B�₷���K�j���B</p>
+<p>obNAbvà¿áñÆæêÄÖñ©Á½©çASLp[âµÁI<br />
+âµAâµAâµAKj¡B¨AKj¡B¨§AKj¡Bâ·¡Kj¡B</p>
 
-<p>�������肱�̃T�C�g���킯�̂킩��񂱂Ƃ��̂��܂��A�X�g���X���U�̏�ɂȂ��Ă���܂����A��������ɂ͂�����̂ł��悧�I</p>
+<p>·Á©è±ÌTCgàí¯Ìí©çñ±ÆðÌ½Ü¤AXgX­UÌêÉÈÁÄ¨èÜ·ªA³­·óÉÍ¢©ñÌÅ·æ§I</p>
 
-<p>�h���C������Ă����ł��悧�[�I</p>
+<p>hCæÁÄ¨éñÅ·æ§[I</p>
 
-<p>���Ⴉ��A�܂����A���������A�撣���Ă��A�s�����Ƃ��A�v���Ă��A����܂����I</p>
+<p>¶á©çAÜ½A­µ¸Â£Aæ£ÁÄ¥As±¤Æ§AvÁÄ¥A¨èÜ·ÁI</p>
 
-<p>�����Ƃ����T�C�g�ɂ��悤���Ȃ��`�A�Ǝv�����Ƃ������₯�ǂ˂��B<br />
-����͑��̃T�C�g�ł���Ă܂����炟���������I�ɂ��˂�E�ف[�ӂ���E�ӂ���فB�ق股���ӂ��[����I</p>
+<p>¿áñÆµ½TCgÉµæ¤©È`AÆv¤±Æà éñâ¯ÇË¥B<br />
+»êÍ¼ÌTCgÅâÁÄÜ·©ç   ÁIÉáñËñEÙ[Ó¥ñEÓñÙBÙè¡ÁÓ¡[ñÁI</p>
 
-<p>���A�ʖڂ����A�؂�Ă��₪�������A�́A�����A�z�����Ȃ��ƁE�E�E�A�@����A�z�����Ȃ��Ƃ��E�E�E�B��ꂿ�܂��̂��������������I�������ӂ��[����B���A���A�����ӂ��[��B</p>
+<p>¾AÊÚ¾AØêÄ«âªÁ½AÍA­AzøµÈ¢ÆEEEA@©çAzøµÈ¢Æ§EEEBóê¿Ü¤Ìº¥¥¦¦¦ÁIº¥ÁÓ¡[ñÁBºAºAºÁÓ¥[ñB</p>
 
-<p>�@����A�\���t�B�[���������������E�E�E�E�A�܂܂���A�����B</p>
+<p>@©çA\tB[ð§§¨¨ÁEEEEAÜÜæÁA­ÁB</p>
 
-<p>����A���䂱�ƂŁ�</p>
+<p>¶áA»ä±ÆÅô</p>
 
-<p>�����A�������Ӗ����킩��񂩂������B</p>]]>
+<p> A¡úàÓ¡ªí©çñ©Á½B</p>]]>
 
 </content>
 </entry>

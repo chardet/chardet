@@ -4,7 +4,7 @@ Source: http://www.milliontimes.jp/column/atom.xml
 Expect: SHIFT_JIS
 -->
 <feed version="0.3" xmlns="http://purl.org/atom/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xml:lang="ja">
-<title>�R����</title>
+<title>R</title>
 <link rel="alternate" type="text/html" href="http://www.milliontimes.jp/column/" />
 <modified>2005-04-29T02:31:27Z</modified>
 <tagline></tagline>
@@ -12,13 +12,13 @@ Expect: SHIFT_JIS
 <generator url="http://www.movabletype.org/" version="3.151-ja">Movable Type</generator>
 <copyright>Copyright (c) 2005, takato</copyright>
 <entry>
-<title>�r���h�ƃX�e�A�̈Ⴂ</title>
+<title>rhÆXeAÌá¢</title>
 <link rel="alternate" type="text/html" href="http://www.milliontimes.jp/column/archives/000160.php" />
 <modified>2005-04-29T02:31:27Z</modified>
 <issued>2005-04-24T08:27:52Z</issued>
 <id>tag:www.milliontimes.jp,2005:/column//2.160</id>
 <created>2005-04-24T08:27:52Z</created>
-<summary type="text/plain">�@�ӊO�ȗ��Ƃ����B���̈Ⴂ�𖾊m�ɂ�����l���Ď��͏��Ȃ��̂ł͂Ȃ��ł��傤���B�����Ƃ��A�o�[�X�v�[���ŕX�����邮��񂷂��Ƃɂ͕ς��Ȃ��̂ł����A��ȖړI���Ⴂ�܂��B �X�e�A�E�E�E�X���g���Ă������₷�B��������������B �r���h�E�E�E������...</summary>
+<summary type="text/plain">@ÓOÈÆµB±Ìá¢ð¾mÉ¢¦élÁÄÀÍ­È¢ÌÅÍÈ¢Åµå¤©B¼ûÆàAo[Xv[ÅXð®é®éñ·±ÆÉÍÏíèÈ¢ÌÅ·ªAåÈÚIªá¢Ü·B XeAEEEXðgÁÄ¨ððââ·B¨ð©«¬ºéB rhEEE¨ðð...</summary>
 <author>
 <name>takato</name>
 <url>http://www.milliontimes.jp/</url>
@@ -26,28 +26,28 @@ Expect: SHIFT_JIS
 </author>
 <dc:subject>220make</dc:subject>
 <content type="text/html" mode="escaped" xml:lang="ja" xml:base="http://www.milliontimes.jp/column/">
-<![CDATA[<p>�@�ӊO�ȗ��Ƃ����B���̈Ⴂ�𖾊m�ɂ�����l���Ď��͏��Ȃ��̂ł͂Ȃ��ł��傤���B�����Ƃ��A�o�[�X�v�[���ŕX�����邮��񂷂��Ƃɂ͕ς��Ȃ��̂ł����A��ȖړI���Ⴂ�܂��B<br />
-<div class="kome">�X�e�A�E�E�E�X���g���Ă������₷�B��������������B<br />
-�r���h�E�E�E����������������B</div><br />
-�@�����Ȃ�ł��B�X�e�A�ɂ͂������₷�Ƃ����傫�ȖړI������܂��B�ǂ��炩�Ƃ����ƃV�F�C�N�ɋ߂��Z�@�Ȃ�ł��ˁB�����āA���̂��߂Ƀ~�L�V���O�O���X�Ƃ����e����g���܂��B�����āA�V���[�g�O���X�ň��ރJ�N�e���̂��Ƃ������ł��B�}�e�B�[�j�͕��ʂ��̍����ō��܂��B</p>
+<![CDATA[<p>@ÓOÈÆµB±Ìá¢ð¾mÉ¢¦élÁÄÀÍ­È¢ÌÅÍÈ¢Åµå¤©B¼ûÆàAo[Xv[ÅXð®é®éñ·±ÆÉÍÏíèÈ¢ÌÅ·ªAåÈÚIªá¢Ü·B<br />
+<div class="kome">XeAEEEXðgÁÄ¨ððââ·B¨ð©«¬ºéB<br />
+rhEEE¨ðð©«¬ºéB</div><br />
+@»¤ÈñÅ·BXeAÉÍ¨ððââ·Æ¢¤å«ÈÚIª èÜ·BÇ¿ç©Æ¢¤ÆVFCNÉß¢Z@ÈñÅ·ËB»µÄA»Ì½ßÉ~LVOOXÆ¢¤eíðg¢Ü·B»µÄAV[gOXÅùÞJNeÌ±Æª½¢Å·B}eB[jÍÊ±ÌìèûÅìèÜ·B</p>
 
-<p>�@�t�Ƀr���h�͈��ރO���X�̒��ɍޗ��ƕX�����A���̒��ł������������킹�܂��B�W���g�j�b�N�A���X�R�~���[���ȂǑ����̃J�N�e�������̍����ł��B</p>
+<p>@tÉrhÍùÞOXÌÉÞ¿ÆXðüêA»ÌÅ¨ðð¬ºí¹Ü·BWgjbNAXR~[ÈÇ½­ÌJNeª±ÌìèûÅ·B</p>
 
-<p>�@�J�N�e���̍����ɂ́A���̃r���h�A�X�e�A�̑��ɃV�F�C�N�A�u�����h�i�u�����_�[���g���č�����j�̂S������܂��B�ꕔ���C����V�����p�����g�������́A�������J�N�e���Ȃǂ͕X����ꂸ�Ƀr���h���܂��B</p>
+<p>@JNeÌìèûÉÍA±ÌrhAXeAÌ¼ÉVFCNAuhiu_[ðgÁÄ¬ºéjÌSÂª èÜ·BêCâVpðgÁ½àÌA·©¢JNeÈÇÍXðüê¸ÉrhµÜ·B</p>
 
-<p>�y�֘A�z<br />
-<a href="./000008.php">�V�F�C�J�[��U�闝�R</a></p>]]>
+<p>yÖAz<br />
+<a href="./000008.php">VFCJ[ðUéR</a></p>]]>
 
 </content>
 </entry>
 <entry>
-<title>��R�̃r�[��</title>
+<title>æRÌr[</title>
 <link rel="alternate" type="text/html" href="http://www.milliontimes.jp/column/archives/000058.php" />
 <modified>2005-04-30T10:12:59Z</modified>
 <issued>2005-04-06T03:19:19Z</issued>
 <id>tag:www.milliontimes.jp,2005:/column//2.58</id>
 <created>2005-04-06T03:19:19Z</created>
-<summary type="text/plain">�@�ȑO�A�r�[���Ɣ��A���ɂ��Ăɂ��Ă͐G��܂������A�ŋߑ�R�̃r�[���ƌ������t���悭�����悤�ɂȂ�܂�������̂ǂ�Ȃ��̂Ȃ�ł��傤�B �@�ʖ��́u�r�[�����A���R�[�������v�ƌĂ΂�r�[���̖��͂��Ă��邯��ǂ��A�������r�[���┭�A���ƈႤ�r�[...</summary>
+<summary type="text/plain">@ÈOAr[Æ­AðÉÂ¢ÄÉÂ¢ÄÍGêÜµ½ªAÅßæRÌr[Æ¾¤¾tðæ­·­æ¤ÉÈèÜµ½ªêÌÇñÈàÌÈñÅµå¤B @Ê¼Íur[AR[ù¿vÆÄÎêr[Ì¡ÍµÄ¢é¯êÇàA´¿ªr[â­AðÆá¤r[...</summary>
 <author>
 <name>takato</name>
 <url>http://www.milliontimes.jp/</url>
@@ -55,27 +55,27 @@ Expect: SHIFT_JIS
 </author>
 <dc:subject>060beer</dc:subject>
 <content type="text/html" mode="escaped" xml:lang="ja" xml:base="http://www.milliontimes.jp/column/">
-<![CDATA[<p>�@�ȑO�A<a href="./000029.php">�r�[���Ɣ��A��</a>�ɂ��Ăɂ��Ă͐G��܂������A�ŋ�<strong>��R�̃r�[��</strong>�ƌ������t���悭�����悤�ɂȂ�܂�������̂ǂ�Ȃ��̂Ȃ�ł��傤�B</p>
+<![CDATA[<p>@ÈOA<a href="./000029.php">r[Æ­Að</a>ÉÂ¢ÄÉÂ¢ÄÍGêÜµ½ªAÅß<strong>æRÌr[</strong>Æ¾¤¾tðæ­·­æ¤ÉÈèÜµ½ªêÌÇñÈàÌÈñÅµå¤B</p>
 
-<p>�@�ʖ��́u�r�[�����A���R�[�������v�ƌĂ΂�r�[���̖��͂��Ă��邯��ǂ��A�������r�[���┭�A���ƈႤ�r�[���݂����Ȉ��ݕ��Ƃ������Ƃł��B�����͓����܂��B��͐ŋ��������Ƃ������ƁB�r�[���̖�1�^3�A���A���̖�1�^2�ł��B350ml�ʂŖ�25�~�ł��B�����ЂƂ́A�r�[���ƈႢ�F�X�Ȗ�������Ƃ������Ƃł��B�r�[���̏ꍇ�A�����͈���Ă������悤�Ȗ��ɂȂ肪���ł����A��R�̃r�[���͌����␻�@�̈Ⴂ��Z�p�v�V�ɂ���āA�������Ⴄ�Ɩ��̈Ⴂ���傫���Ȃ�܂��B��ʓI�ɂ͋ꖡ��}�����������薡�̏��i�������ł��B</p>
+<p>@Ê¼Íur[AR[ù¿vÆÄÎêr[Ì¡ÍµÄ¢é¯êÇàA´¿ªr[â­AðÆá¤r[Ý½¢ÈùÝ¨Æ¢¤±ÆÅ·BÁ¥ÍñÂ èÜ·BêÂÍÅàªÀ¢Æ¢¤±ÆBr[Ìñ1^3A­AðÌñ1^2Å·B350mlÊÅñ25~Å·Bà¤ÐÆÂÍAr[Æá¢FXÈ¡ª éÆ¢¤±ÆÅ·Br[ÌêAÁ¿ÍáÁÄà½æ¤È¡ÉÈèª¿Å·ªAæRÌr[Í´¿â»@Ìá¢âZpvVÉæÁÄAÁ¿ªá¤Æ¡Ìá¢àå«­ÈèÜ·BêÊIÉÍê¡ð}¦½·Á«è¡Ì¤iª½¢Å·B</p>
 
-<p>�@���N�̉Ă͂��낢��Ȏ�ނ́u��R�̃r�[���v���o��݂����ł�����A�����ɂ��������̂�T���Ă݂Ă͂������ł��傤���B</p>
+<p>@¡NÌÄÍ¢ë¢ëÈíÞÌuæRÌr[vªoéÝ½¢Å·©çA©ªÉ Á½àÌðTµÄÝÄÍ¢©ªÅµå¤©B</p>
 
-<p>�����Ȃ݂Ƀr�[�����������i���m���A���R�[���r�[���j�Ƃ͈Ⴂ�܂��B���ԈႢ�Ȃ��悤�B</p>
+<p>¦¿ÈÝÉr[¡ù¿imAR[r[jÆÍá¢Ü·B¨Ôá¢È«æ¤B</p>
 
-<p>�Ō�ɁA���ꂼ��̕��ނ��i2005.4.6�����V���������j<table class="hyou"><tr class="hyou"><td class="hyou cen">�r�[��</td><td class="hyou lef">�@�����̂�������䗦�����ޗ���67���ȏ�B350ml�ʂ̐Ŋz�́A77.70�~�B�u�X�[�p�[�h���C�v�i�A�T�q�j���s��̔���������߂�B</td></tr><tr><td class="hyou cen">���A��</td><td class="hyou lef">�@��胁�[�J�[���������Ă�����̂͐�����������䗦��25%�����B350ml�ʂ̐Ŋz�͖�47�~�B��Ȗ����́u�[��v�i�L�����j�ȂǁB</td></tr><tr class="hyou"><td class="hyou cen">��R�̃r�[��</td><td class="hyou lef">�@����̑���ɑ哤�Ȃǂ��g���w�̂ǂ���(��)�x(�L����)�A�w�V���x�i�A�T�q�j�A�w�h���t�g�����x�i�T�b�|���j�́u���̑��G���v�Ƃ��ĕ��ނ���A���\���ɏ������o�t���������w�X�[�p�[�u���[�x�i�T���g���[�j�́u���L���[���ށv�ɕ��ނ����B���̂Ƃ��āu��R�̃r�[���v�ƌĂ΂��B350ml�ʂ̐Ŋz��25�~���x�B</td></tr></table><br />
-<table><tr><td><img name ="kirin" src="./images/nodogoshinama.jpg" alt="�̂ǂ����i���j"  vspace="5" hspace="5" /></td><td><strong>�̂ǂ����i���j</strong>�i<a href="http://www.kirin.co.jp/" target="_blank">�L�����r�[��</a>�j</td></tr><tr><td><img name ="asahi" src="./images/shinnama.jpg" alt="�V��"  vspace="5" hspace="5" /></td><td><strong>�V��</strong>�i<a href="http://www.asahibeer.co.jp/" target="_blank">�A�T�q�r�[��</a>�j</td></tr><tr><td><img name ="sapporo" src="./images/draftone.jpg" alt="�h���t�g����"  vspace="5" hspace="5" /></td><td><strong>�h���t�g����</strong>�i<a href="http://www.sapporobeer.jp/" target="_blank">�T�b�|���r�[��</a>�j</td></tr><tr><td><img name ="suntory" src="./images/superblue.jpg" alt="�X�[�p�[�u���["  vspace="5" hspace="5" /></td><td><strong>�X�[�p�[�u���[</strong>�i<a href="http://www.suntory.co.jp/" target="_blank">�T���g���[</a>�j</td></tr></table></p>]]>
+<p>ÅãÉA»ê¼êÌªÞði2005.4.6©úV·©§æèj<table class="hyou"><tr class="hyou"><td class="hyou cen">r[</td><td class="hyou lef">@ðÌ¼­èä¦ª´Þ¿Ì67ÈãB350mlÊÌÅzÍA77.70~BuX[p[hCviATqjªsêÌ¼ªãðµßéB</td></tr><tr><td class="hyou cen">­Að</td><td class="hyou lef">@åè[J[ª­µÄ¢éàÌÍð­èä¦ª25%¢B350mlÊÌÅzÍñ47~BåÈÁ¿Íu[íviLjÈÇB</td></tr><tr class="hyou"><td class="hyou cen">æRÌr[</td><td class="hyou lef">@èÌãíèÉå¤ÈÇðg¤wÌÇ²µ(¶)x(L)AwV¶xiATqjAwhtgxiTb|jÍu»Ì¼GðvÆµÄªÞ³êA­\ðÉ¬otð¬º½wX[p[u[xiTg[jÍuL[ÞvÉªÞ³êéBÌÆµÄuæRÌr[vÆÄÎêéB350mlÊÌÅzÍ25~öxB</td></tr></table><br />
+<table><tr><td><img name ="kirin" src="./images/nodogoshinama.jpg" alt="ÌÇ²µi¶j"  vspace="5" hspace="5" /></td><td><strong>ÌÇ²µi¶j</strong>i<a href="http://www.kirin.co.jp/" target="_blank">Lr[</a>j</td></tr><tr><td><img name ="asahi" src="./images/shinnama.jpg" alt="V¶"  vspace="5" hspace="5" /></td><td><strong>V¶</strong>i<a href="http://www.asahibeer.co.jp/" target="_blank">ATqr[</a>j</td></tr><tr><td><img name ="sapporo" src="./images/draftone.jpg" alt="htg"  vspace="5" hspace="5" /></td><td><strong>htg</strong>i<a href="http://www.sapporobeer.jp/" target="_blank">Tb|r[</a>j</td></tr><tr><td><img name ="suntory" src="./images/superblue.jpg" alt="X[p[u["  vspace="5" hspace="5" /></td><td><strong>X[p[u[</strong>i<a href="http://www.suntory.co.jp/" target="_blank">Tg[</a>j</td></tr></table></p>]]>
 
 </content>
 </entry>
 <entry>
-<title>�f��cocktail�̃J�N�e���i�ԊO�ҁj</title>
+<title>fæcocktailÌJNeiÔOÒj</title>
 <link rel="alternate" type="text/html" href="http://www.milliontimes.jp/column/archives/000057.php" />
 <modified>2005-04-17T20:48:47Z</modified>
 <issued>2005-03-28T12:41:26Z</issued>
 <id>tag:www.milliontimes.jp,2005:/column//2.57</id>
 <created>2005-03-28T12:41:26Z</created>
-<summary type="text/plain">�g���N���[�Y�剉�́u�J�N�e���v�ɏo�Ă���J�N�e�����V��ɕ����Ă��Љ�܂��B�́A�uA PEACEFUL BAR�v�Ƃ����T�C�g�ɏ���Ă��܂������A���݃T�C�g�͕�����Ă���悤�ł��B�l�^�΂�܂݂܂��̂ł����ӂ��������B �@ �ԊO�҂ł́A�R�O��...</summary>
+<summary type="text/plain">gN[YåÌuJNevÉoÄ­éJNeðVñÉª¯Ä²ÐîµÜ·BÌAuA PEACEFUL BARvÆ¢¤TCgÉæÁÄ¢Üµ½ªA»ÝTCgÍÂ½³êÄ¢éæ¤Å·Bl^ÎêÜÝÜ·ÌÅ²Ó­¾³¢B @ ÔOÒÅÍARO...</summary>
 <author>
 <name>takato</name>
 <url>http://www.milliontimes.jp/</url>
@@ -83,40 +83,40 @@ Expect: SHIFT_JIS
 </author>
 <dc:subject>510moviecocktail</dc:subject>
 <content type="text/html" mode="escaped" xml:lang="ja" xml:base="http://www.milliontimes.jp/column/">
-<![CDATA[<p>�g���N���[�Y�剉�́u�J�N�e���v�ɏo�Ă���J�N�e�����V��ɕ����Ă��Љ�܂��B�́A�uA PEACEFUL BAR�v�Ƃ����T�C�g�ɏ���Ă��܂������A���݃T�C�g�͕�����Ă���悤�ł��B�l�^�΂�܂݂܂��̂ł����ӂ��������B<br />
-�@<br />
-�ԊO�҂ł́A<storong>�R�O�����̖@��</storong>���Љ�܂��B</p>
+<![CDATA[<p>gN[YåÌuJNevÉoÄ­éJNeðVñÉª¯Ä²ÐîµÜ·BÌAuA PEACEFUL BARvÆ¢¤TCgÉæÁÄ¢Üµ½ªA»ÝTCgÍÂ½³êÄ¢éæ¤Å·Bl^ÎêÜÝÜ·ÌÅ²Ó­¾³¢B<br />
+@<br />
+ÔOÒÅÍA<storong>ROÌ@¥</storong>ðÐîµÜ·B</p>
 
-<p><storong>�R�O�����̖@��-Coughlin's Law</storong></p>
+<p><storong>ROÌ@¥-Coughlin's Law</storong></p>
 
-<p>�d����T���Ă���t���i�K���ɑ΂���(9'25)<br />
-�u�d���͒���Ȃ�v<br />
+<p>dðTµÄ¢étiKÉÎµÄ(9'25)<br />
+udÍ§íÈèv<br />
 Anything else is always something better</p>
 
-<p>��l�̎q�ɂ�������ɂȂ肻���ɂȂ��Ă���t���i�K���ɑ΂���(37'46)<br />
-�u�����������ɂ����Ӂv<br />
+<p>êlÌqÉ¼Á±ñÉÈè»¤ÉÈÁÄ¢étiKÉÎµÄ(37'46)<br />
+u¨¢µ¢É²Óv<br />
 Never tell tales about a waoman.She'll hear you no matter how far away she is</p>
 
-<p>�t���i�K�����ĉ���R�O�����ɑ΂���(43'15)<br />
-�u���Ƃ������Ă��N�[���Ɂv<br />
+<p>tiKªÄïµ½ROÉÎµÄ(43'15)<br />
+u½Æ¦Á¢ÄàN[Év<br />
 Never show surprise.Never lose your cool.</p>
 
-<p>�R�O�����̃t���i�K���ɑ΂���⏑��(1:33'05)<br />
-�u���l�͂ɂ����O�ɖ��߂�v<br />
+<p>ROÌtiKÉÎ·éâÅ(1:33'05)<br />
+ulÍÉ¨¤OÉßëv<br />
 Bury the dead. They stink up the joint.</p>
 
-<p>���S�Ė��DVD�̂��̂��Q�l�ɂ��܂����B</p>]]>
+<p>¦SÄóÍDVDÌàÌðQlÉµÜµ½B</p>]]>
 <![CDATA[<p><?php require ("./moviecocktail.php"); ?></p>]]>
 </content>
 </entry>
 <entry>
-<title>�f��cocktail�̃J�N�e���i�V�j</title>
+<title>fæcocktailÌJNeiVj</title>
 <link rel="alternate" type="text/html" href="http://www.milliontimes.jp/column/archives/000056.php" />
 <modified>2005-04-17T20:48:29Z</modified>
 <issued>2005-03-28T12:25:12Z</issued>
 <id>tag:www.milliontimes.jp,2005:/column//2.56</id>
 <created>2005-03-28T12:25:12Z</created>
-<summary type="text/plain">�g���N���[�Y�剉�̉f��u�J�N�e���v�ɂłĂ���J�N�e�����Љ�B�W���E�_���[����</summary>
+<summary type="text/plain">gN[YåÌfæuJNevÉÅÄ­éJNeðÐîBWE_[Ò</summary>
 <author>
 <name>takato</name>
 <url>http://www.milliontimes.jp/</url>
@@ -124,30 +124,30 @@ Bury the dead. They stink up the joint.</p>
 </author>
 <dc:subject>510moviecocktail</dc:subject>
 <content type="text/html" mode="escaped" xml:lang="ja" xml:base="http://www.milliontimes.jp/column/">
-<![CDATA[<p>�g���N���[�Y�剉�́u�J�N�e���v�ɏo�Ă���J�N�e�����V��ɕ����Ă��Љ�܂��B�́A�uA PEACEFUL BAR�v�Ƃ����T�C�g�ɏ���Ă��܂������A���݃T�C�g�͕�����Ă���悤�ł��B�l�^�΂�܂݂܂��̂ł����ӂ��������B<br />
-�y37'09����z<br />
+<![CDATA[<p>gN[YåÌuJNevÉoÄ­éJNeðVñÉª¯Ä²ÐîµÜ·BÌAuA PEACEFUL BARvÆ¢¤TCgÉæÁÄ¢Üµ½ªA»ÝTCgÍÂ½³êÄ¢éæ¤Å·Bl^ÎêÜÝÜ·ÌÅ²Ó­¾³¢B<br />
+y37'09²ëz<br />
 <img src="./images/cocktail8.jpg"><br />
-�R�O�����Ƃ̓q���Ńt���i�K���͂��������̏������������ɂ�����܂��B<br />
-�u���C����������E�I�b�J�����b�N�Œ��Ձv<br />
-�u�����͓�̓��ł���B�W���E�_���[�����̂�ł݂Ă�v<br />
-�u���H�v<br />
-�u�W���E�_���[���ł��B���̏`�Ƃ����Ӗ��̃J�N�e���ł��B�������Ẳʕ��W���[�X���g����ł��B�̂�ł݂āA�����������Ƃ͕ۏႷ��v<br />
-�u���߂�Ȃ����A���̊�ɐQ�����Ə����Ă���H�v<br />
-�u�R���^�N�g���ĂȂ���ŉ��ɂ������܂���B�v<br />
-�u���M�ƂȂ̂ˁv</p>
+ROÆÌq¯ÅtiKÍ¨à¿Ì«ðûà«É©©èÜ·B<br />
+uCðïÁ½EIbJðbNÅ¸Õv<br />
+u±±ÍìÌÅ·æBWE_[ðÌñÅÝÄæv<br />
+u¦Hv<br />
+uWE_[Å·B¤Ì`Æ¢¤Ó¡ÌJNeÅ·Bà¬½ÄÌÊ¨W[Xðg¤ñÅ·BÌñÅÝÄAü¡µ¢±ÆÍÛá·év<br />
+u²ßñÈ³¢AÌçÉQ½¢Æ¢Ä éHv<br />
+uR^NgµÄÈ¢ñÅ½Éà©¦Ü¹ñBv<br />
+u©MÆÈÌËv</p>
 
-<hr /><strong>�W���E�_���[��</strong><br />�s��<br />�f�����猩�����A�����̃p�C���W���[�X����Ƀ`�F���[�u�����f�[�𐂂炷��ł��傤���B�B]]>
+<hr /><strong>WE_[</strong><br />s¾<br />f©ç©éÀèAÌpCW[XèÉ`F[uf[ðç·ñÅµå¤©BB]]>
 <![CDATA[<p><?php require ("./moviecocktail.php"); ?></p>]]>
 </content>
 </entry>
 <entry>
-<title>�f��cocktail�̃J�N�e���i�U�j</title>
+<title>fæcocktailÌJNeiUj</title>
 <link rel="alternate" type="text/html" href="http://www.milliontimes.jp/column/archives/000055.php" />
 <modified>2005-04-17T20:48:11Z</modified>
 <issued>2005-03-28T12:05:54Z</issued>
 <id>tag:www.milliontimes.jp,2005:/column//2.55</id>
 <created>2005-03-28T12:05:54Z</created>
-<summary type="text/plain">�g���N���[�Y�剉�̉f��u�J�N�e���v�ɂłĂ���J�N�e�����Љ�B�_�C�L����</summary>
+<summary type="text/plain">gN[YåÌfæuJNevÉÅÄ­éJNeðÐîB_CLÒ</summary>
 <author>
 <name>takato</name>
 <url>http://www.milliontimes.jp/</url>
@@ -155,24 +155,24 @@ Bury the dead. They stink up the joint.</p>
 </author>
 <dc:subject>510moviecocktail</dc:subject>
 <content type="text/html" mode="escaped" xml:lang="ja" xml:base="http://www.milliontimes.jp/column/">
-<![CDATA[<p>�g���N���[�Y�剉�́u�J�N�e���v�ɏo�Ă���J�N�e�����V��ɕ����Ă��Љ�܂��B�́A�uA PEACEFUL BAR�v�Ƃ����T�C�g�ɏ���Ă��܂������A���݃T�C�g�͕�����Ă���悤�ł��B�l�^�΂�܂݂܂��̂ł����ӂ��������B<br />
-�y43'43����z<br />
+<![CDATA[<p>gN[YåÌuJNevÉoÄ­éJNeðVñÉª¯Ä²ÐîµÜ·BÌAuA PEACEFUL BARvÆ¢¤TCgÉæÁÄ¢Üµ½ªA»ÝTCgÍÂ½³êÄ¢éæ¤Å·Bl^ÎêÜÝÜ·ÌÅ²Ó­¾³¢B<br />
+y43'43²ëz<br />
 <img src="./images/cocktail7.jpg"><br />
-�t���i�K���ƍĉ���R�O�����́u�o�[�e�����񃌃b�h�A�C������Ă���Ȃ����ȁv�Ɛ��������܂��B�ŏI�I�ɂ̓t���[�Y���_�C�L�������݂܂��B�W���}�C�J�Ń_�C�L���Ƃ����ƕ��ʂɃt���[�Y���_�C�L�����o�Ă���̂ł��傤���B�B�B<hr /><strong>�_�C�L��</strong><br />
-�����@3�^4<br />
-���C�� �W���[�X�@1�^4<br />
-�����@1tsp</p>]]>
+tiKÆÄïµ½ROÍuo[e³ñbhACðìÁÄ­êÈ¢©ÈvÆºð©¯Ü·BÅIIÉÍt[Y_CLðùÝÜ·BW}CJÅ_CLÆ¢¤ÆÊÉt[Y_CLªoÄ­éÌÅµå¤©BBB<hr /><strong>_CL</strong><br />
+@3^4<br />
+C W[X@1^4<br />
+»@1tsp</p>]]>
 <![CDATA[<p><?php require ("./moviecocktail.php"); ?></p>]]>
 </content>
 </entry>
 <entry>
-<title>�f��cocktail�̃J�N�e���i�T�j</title>
+<title>fæcocktailÌJNeiTj</title>
 <link rel="alternate" type="text/html" href="http://www.milliontimes.jp/column/archives/000054.php" />
 <modified>2005-04-17T20:47:58Z</modified>
 <issued>2005-03-28T12:03:49Z</issued>
 <id>tag:www.milliontimes.jp,2005:/column//2.54</id>
 <created>2005-03-28T12:03:49Z</created>
-<summary type="text/plain">�g���N���[�Y�剉�̉f��u�J�N�e���v�ɂłĂ���J�N�e�����Љ�B�X�N�����[�h���C�o�[��</summary>
+<summary type="text/plain">gN[YåÌfæuJNevÉÅÄ­éJNeðÐîBXN[hCo[Ò</summary>
 <author>
 <name>takato</name>
 <url>http://www.milliontimes.jp/</url>
@@ -180,23 +180,23 @@ Bury the dead. They stink up the joint.</p>
 </author>
 <dc:subject>510moviecocktail</dc:subject>
 <content type="text/html" mode="escaped" xml:lang="ja" xml:base="http://www.milliontimes.jp/column/">
-<![CDATA[<p>�g���N���[�Y�剉�́u�J�N�e���v�ɏo�Ă���J�N�e�����V��ɕ����Ă��Љ�܂��B�́A�uA PEACEFUL BAR�v�Ƃ����T�C�g�ɏ���Ă��܂������A���݃T�C�g�͕�����Ă���悤�ł��B�l�^�΂�܂݂܂��̂ł����ӂ��������B<br />
-�y37'09����z<br />
+<![CDATA[<p>gN[YåÌuJNevÉoÄ­éJNeðVñÉª¯Ä²ÐîµÜ·BÌAuA PEACEFUL BARvÆ¢¤TCgÉæÁÄ¢Üµ½ªA»ÝTCgÍÂ½³êÄ¢éæ¤Å·Bl^ÎêÜÝÜ·ÌÅ²Ó­¾³¢B<br />
+y37'09²ëz<br />
 <img src="./images/cocktail6.jpg"><br />
-�t���i�K���̓R�O�����ƃL�X�����Ă���̂����āA�s�����ɂȂ�܂��B����Ȓ��A�q����X�N�����[�h���C�o�[�𒍕�����s�@���ɕ����Ԃ��܂��B<hr /><strong>�X�N�����[�h���C�o�[</strong><br />
-�E�I�b�J�@30ml<br />
-�I�����W�W���[�X�@�K��</p>]]>
+tiKÍROÆLXðµÄ¢éÌð©ÄAsùõÉÈèÜ·B»ñÈAq©çXN[hCo[ð¶³ês@É·«ÔµÜ·B<hr /><strong>XN[hCo[</strong><br />
+EIbJ@30ml<br />
+IWW[X@KÊ</p>]]>
 <![CDATA[<p><?php require ("./moviecocktail.php"); ?></p>]]>
 </content>
 </entry>
 <entry>
-<title>�f��cocktail�̃J�N�e���i�S�j</title>
+<title>fæcocktailÌJNeiSj</title>
 <link rel="alternate" type="text/html" href="http://www.milliontimes.jp/column/archives/000053.php" />
 <modified>2005-04-17T20:47:44Z</modified>
 <issued>2005-03-28T11:53:19Z</issued>
 <id>tag:www.milliontimes.jp,2005:/column//2.53</id>
 <created>2005-03-28T11:53:19Z</created>
-<summary type="text/plain">�g���N���[�Y�剉�̉f��u�J�N�e���v�ɂłĂ���J�N�e�����Љ�B�Z�b�N�X�E�I���E�U�E�r�[�`�^�x���x�b�g�E�n���}�[�^�A���o�}�E�X�����}�[�^�s���N��X�N�������^�X���[�g�E�h�E�X���[�^�A�C�X�e�B�[(ice-T)�^�J�~�J�[�^�I�[�K�Y���^�f�X�E�X�p�Y���i�����z���m�������n�j�^�V���K�|�[���E�X�����O�^�f�B���K������</summary>
+<summary type="text/plain">gN[YåÌfæuJNevÉÅÄ­éJNeðÐîBZbNXEIEUEr[`^xxbgEn}[^Ao}EX}[^sN¥XN^X[gEhEX[^ACXeB[(ice-T)^J~J[^I[KY^fXEXpYiÌáz¹m¯¢êñnj^VK|[EXO^fBKÒ</summary>
 <author>
 <name>takato</name>
 <url>http://www.milliontimes.jp/</url>
@@ -204,37 +204,37 @@ Bury the dead. They stink up the joint.</p>
 </author>
 <dc:subject>510moviecocktail</dc:subject>
 <content type="text/html" mode="escaped" xml:lang="ja" xml:base="http://www.milliontimes.jp/column/">
-<![CDATA[<p>�g���N���[�Y�剉�́u�J�N�e���v�ɏo�Ă���J�N�e�����V��ɕ����Ă��Љ�܂��B�́A�uA PEACEFUL BAR�v�Ƃ����T�C�g�ɏ���Ă��܂������A���݃T�C�g�͕�����Ă���悤�ł��B�l�^�΂�܂݂܂��̂ł����ӂ��������B<br />
-�y28'50����z<br />
+<![CDATA[<p>gN[YåÌuJNevÉoÄ­éJNeðVñÉª¯Ä²ÐîµÜ·BÌAuA PEACEFUL BARvÆ¢¤TCgÉæÁÄ¢Üµ½ªA»ÝTCgÍÂ½³êÄ¢éæ¤Å·Bl^ÎêÜÝÜ·ÌÅ²Ó­¾³¢B<br />
+y28'50²ëz<br />
 <img src="./images/cocktail5.jpg"><br />
-�|�G�����r�񂾃t���i�K�����݂Ĉ�l�̏����q���I�[�K�Y��������ł݂����Ƃ����܂����A�t���i�K���̓^�[�R�C�Y�E�u���[�����߂܂��B<br />
-�u�����I�[�K�Y���������Ă݂�����v<br />
-�u�ǂꂾ���~�����񂾂��H�v<br />
-�u���A�����B��������v<br />
-�u�܂��́A�^�[�R�C�Y�E�u���[�ɂ��Ă݂Ȃ�B�v<hr /><strong>�I�[�K�Y��</strong><br />
-�N���[�� ���L���[���@20ml<br />
-�R�[�q�[ ���L���[���@20ml<br />
-�A�}���b�g 15ml<br />
-���N���[���@15ml<br />
-�����@15ml</p>
+|Gðrñ¾tiKðÝÄêlÌ«qªI[KYðùñÅÝ½¢Æ¢¢Ü·ªAtiKÍ^[RCYEu[ð©ßÜ·B<br />
+uàI[KYðµÄÝ½¢ív<br />
+uÇê¾¯~µ¢ñ¾¢Hv<br />
+u¦A¦¥B½­³ñv<br />
+uÜ¸ÍA^[RCYEu[ÉµÄÝÈæBv<hr /><strong>I[KY</strong><br />
+N[ L[@20ml<br />
+R[q[ L[@20ml<br />
+A}bg 15ml<br />
+¶N[@15ml<br />
+û@15ml</p>
 
-<p><strong>�^�[�R�C�Y�E�u���[</strong><br />
-�����@30ml<br />
-�z���C�g �L�����\�[�@15ml<br />
-�u���[ �L�����\�[�@15ml<br />
-������ �W���[�X�@1tsp<br />
-�p�C�i�b�v�� �W���[�X	�K��</p>]]>
+<p><strong>^[RCYEu[</strong><br />
+@30ml<br />
+zCg L\[@15ml<br />
+u[ L\[@15ml<br />
+ W[X@1tsp<br />
+pCibv W[X	KÊ</p>]]>
 <![CDATA[<p><?php require ("./moviecocktail.php"); ?></p>]]>
 </content>
 </entry>
 <entry>
-<title>�f��cocktail�̃J�N�e���i�R�j</title>
+<title>fæcocktailÌJNeiRj</title>
 <link rel="alternate" type="text/html" href="http://www.milliontimes.jp/column/archives/000052.php" />
 <modified>2005-04-17T20:47:08Z</modified>
 <issued>2005-03-28T10:53:51Z</issued>
 <id>tag:www.milliontimes.jp,2005:/column//2.52</id>
 <created>2005-03-28T10:53:51Z</created>
-<summary type="text/plain">�g���N���[�Y�剉�̉f��u�J�N�e���v�ɂłĂ���J�N�e�����Љ�B�I�[�K�Y���^�^�[�R�C�Y�E�u���[��</summary>
+<summary type="text/plain">gN[YåÌfæuJNevÉÅÄ­éJNeðÐîBI[KY^^[RCYEu[Ò</summary>
 <author>
 <name>takato</name>
 <url>http://www.milliontimes.jp/</url>
@@ -242,10 +242,10 @@ Bury the dead. They stink up the joint.</p>
 </author>
 <dc:subject>510moviecocktail</dc:subject>
 <content type="text/html" mode="escaped" xml:lang="ja" xml:base="http://www.milliontimes.jp/column/">
-<![CDATA[<p>�g���N���[�Y�剉�́u�J�N�e���v�ɏo�Ă���J�N�e�����V��ɕ����Ă��Љ�܂��B�́A�uA PEACEFUL BAR�v�Ƃ����T�C�g�ɏ���Ă��܂������A���݃T�C�g�͕�����Ă���悤�ł��B�l�^�΂�܂݂܂��̂ł����ӂ��������B<br />
-�y28'50����z<br />
+<![CDATA[<p>gN[YåÌuJNevÉoÄ­éJNeðVñÉª¯Ä²ÐîµÜ·BÌAuA PEACEFUL BARvÆ¢¤TCgÉæÁÄ¢Üµ½ªA»ÝTCgÍÂ½³êÄ¢éæ¤Å·Bl^ÎêÜÝÜ·ÌÅ²Ó­¾³¢B<br />
+y28'50²ëz<br />
 <img src="./images/cocktail3.jpg"><br />
-�@CELL BLOC�Ƃ����o�[�ɃX�J�E�g���ꂽ�t���i�K���ƃR�O�����B�����Ńt���i�K�������q���狁�߂��ă|�G�����r�݂܂��B</p>
+@CELL BLOCÆ¢¤o[ÉXJEg³ê½tiKÆROB»±ÅtiKª¨q©çßçêÄ|GðrÝÜ·B</p>
 
 <p>I see America drinking... the fabulous cocktails I make.<br />
 America's getting stinking on something I stir or shake<br />
@@ -256,75 +256,75 @@ The Orgasm.<br />
 The Death Spasm.<br />
 The Singapore Sling, the Ding-a-ling.<br />
 America, you're just devoted... to every flavor I've got.<br />
-But if you want to get loaded... why don't you just order a shot?<hr /><strong>�Z�b�N�X�E�I���E�U�E�r�[�`</strong><br />
-������ ���L���[���@20ml<br />
-�E�H�b�J�@15ml<br />
-�N���[�� �h �t�����{���[�Y�@10ml<br />
-�p�C�i�b�v�� �W���[�X�@80ml<br />
-�ӊO�ɂ��������ł��B</p>
+But if you want to get loaded... why don't you just order a shot?<hr /><strong>ZbNXEIEUEr[`</strong><br />
+ L[@20ml<br />
+EHbJ@15ml<br />
+N[ h t{[Y@10ml<br />
+pCibv W[X@80ml<br />
+ÓOÉ¨¢µ¢Å·B</p>
 
-<p><strong>�x���x�b�g�E�n���}�[</strong><br />
-�z���C�g �L�����\�[�@1/3<br />
-�R�[�q�[ ���L���[���@1/3<br />
-���N���[���@1/3</p>
+<p><strong>xxbgEn}[</strong><br />
+zCg L\[@1/3<br />
+R[q[ L[@1/3<br />
+¶N[@1/3</p>
 
-<p><strong>�A���o�}�E�X�����}�[</strong><br />
-�A�}���b�g�@2�^5<br />
-�T�U�� �J���t�H�[�g�@2�^5<br />
-�X���[ �W��	�@1�^5<br />
-������ �W���[�X�@1tsp<br />
-���󂷂�Ɓh�A���o�}�̃i���p�t�h</p>
+<p><strong>Ao}EX}[</strong><br />
+A}bg@2^5<br />
+TU JtH[g@2^5<br />
+X[ W	@1^5<br />
+ W[X@1tsp<br />
+¼ó·éÆhAo}Ìipth</p>
 
-<p><strong>�s���N��X�N������</strong><br />
-�N���[�� �h �m�����[�@2/4<br />
-�z���C�g �N���[�� �h �J�J�I�@1/4<br />
-���N���[���@1/4</p>
+<p><strong>sN¥XN</strong><br />
+N[ h m[@2/4<br />
+zCg N[ h JJI@1/4<br />
+¶N[@1/4</p>
 
-<p><strong>�X���[�g�E�h�E�X���[</strong><br />
-�s��</p>
+<p><strong>X[gEhEX[</strong><br />
+s¾</p>
 
-<p><strong>�A�C�X�e�B�[(ice-T)</strong><br />
-�s�[�`���L���[���@15ml<br />
-�����@30ml<br />
-�V�t�o�@�P�^�Q<br />
-�N�����x���[�W���[�X�@�K��</p>
+<p><strong>ACXeB[(ice-T)</strong><br />
+s[`L[@15ml<br />
+@30ml<br />
+Vto@P^Q<br />
+Nx[W[X@KÊ</p>
 
-<p><strong>�J�~�J�[</strong><br />
-�E�H�b�J�@45ml <br />
-���C���W���[�X�@15ml <br />
-�z���C�g�E�L�����\�[�@1tsp.<br />
-���O����͈ӊO�B���{���͓����Ă��܂���B</p>
+<p><strong>J~J[</strong><br />
+EHbJ@45ml <br />
+CW[X@15ml <br />
+zCgEL\[@1tsp.<br />
+¼O©çÍÓOBú{ðÍüÁÄ¢Ü¹ñB</p>
 
-<p><strong>�I�[�K�Y��</strong><br />
-�N���[�� ���L���[���@20ml<br />
-�R�[�q�[ ���L���[���@20ml<br />
-�A�}���b�g 15ml<br />
-���N���[���@15ml<br />
-�����@15ml</p>
+<p><strong>I[KY</strong><br />
+N[ L[@20ml<br />
+R[q[ L[@20ml<br />
+A}bg 15ml<br />
+¶N[@15ml<br />
+û@15ml</p>
 
-<p><strong>�f�X�E�X�p�Y���i�����z���m�������n�j</strong><br />
-�s��</p>
+<p><strong>fXEXpYiÌáz¹m¯¢êñnj</strong><br />
+s¾</p>
 
-<p><strong>�V���K�|�[���E�X�����O</strong><br />
-�W���@45ml<br />
-�`�F���[ �u�����f�[�@20ml<br />
-������ �W���[�X�@20ml<br />
-�\�[�_�@�K��<br />
-�`�F���[�u�����f�[�̓t���[�Ƃ���</p>
+<p><strong>VK|[EXO</strong><br />
+W@45ml<br />
+`F[ uf[@20ml<br />
+ W[X@20ml<br />
+\[_@KÊ<br />
+`F[uf[Ít[Æ·é</p>
 
-<p><strong>�f�B���K����</strong><br />
-�s��</p>]]>
+<p><strong>fBK</strong><br />
+s¾</p>]]>
 <![CDATA[<p><?php require ("./moviecocktail.php"); ?></p>]]>
 </content>
 </entry>
 <entry>
-<title>�f��cocktail�̃J�N�e���i�Q�j</title>
+<title>fæcocktailÌJNeiQj</title>
 <link rel="alternate" type="text/html" href="http://www.milliontimes.jp/column/archives/000051.php" />
 <modified>2005-04-17T20:46:49Z</modified>
 <issued>2005-03-28T10:16:24Z</issued>
 <id>tag:www.milliontimes.jp,2005:/column//2.51</id>
 <created>2005-03-28T10:16:24Z</created>
-<summary type="text/plain">�g���N���[�Y�剉�̉f��u�J�N�e���v�ɂłĂ���J�N�e�����Љ�B�n�[�x�C�E�E�H���o���K�[�^�x���x�b�g�E�n���}�[�^�L���[�o���u���^�I�[�K�Y���^�u���b�f�B���A���[�^�s���N��X�N�������^�G���W�F���E�f�B�b�v�^�_�[�e�B�[�E�}�U�[�^�e�B���K�����^�}�e�B�[�j��</summary>
+<summary type="text/plain">gN[YåÌfæuJNevÉÅÄ­éJNeðÐîBn[xCEEHoK[^xxbgEn}[^L[ou^I[KY^ubfBA[^sN¥XN^GWFEfBbv^_[eB[E}U[^eBK^}eB[jÒ</summary>
 <author>
 <name>takato</name>
 <url>http://www.milliontimes.jp/</url>
@@ -332,76 +332,76 @@ But if you want to get loaded... why don't you just order a shot?<hr /><strong>�
 </author>
 <dc:subject>510moviecocktail</dc:subject>
 <content type="text/html" mode="escaped" xml:lang="ja" xml:base="http://www.milliontimes.jp/column/">
-<![CDATA[<p>�g���N���[�Y�剉�́u�J�N�e���v�ɏo�Ă���J�N�e�����V��ɕ����Ă��Љ�܂��B�́A�uA PEACEFUL BAR�v�Ƃ����T�C�g�ɏ���Ă��܂������A���݃T�C�g�͕�����Ă���悤�ł��B�l�^�΂�܂݂܂��̂ł����ӂ��������B<br />
-�y10'41����z<br />
+<![CDATA[<p>gN[YåÌuJNevÉoÄ­éJNeðVñÉª¯Ä²ÐîµÜ·BÌAuA PEACEFUL BARvÆ¢¤TCgÉæÁÄ¢Üµ½ªA»ÝTCgÍÂ½³êÄ¢éæ¤Å·Bl^ÎêÜÝÜ·ÌÅ²Ó­¾³¢B<br />
+y10'41²ëz<br />
 <img src="./images/cocktail2.jpg"><br />
-�@�R�O�����ƈꏏ�ɓ������ƂɂȂ����t���i�K���A���������V�s���m��Ȃ��܂܂ŃJ�E���^�[�ɓ���q���玟�X�ƒ������󂯂đ�ςȂ��ƂɂȂ�܂��B����ȊO�ɂ������C����W���E�r�[���A�����\���̒������B�B�B<hr /><br />
-<strong>�n�[�x�C�E�E�H���o���K�[</strong><br />
-�E�H�b�J�@30ml<br />
-�I�����W�W���[�X�@�K��<br />
-�K���A�[�m�𕂂��ׂ܂��B�v���T�[�t�@�[�̃n�[�x�C�������ƕǂ��������Ȃ���A��Ƃ��납�疼�O������ꂽ�����ł��B</p>
+@ROÆêÉ­­±ÆÉÈÁ½tiKAµ©µVsàmçÈ¢ÜÜÅJE^[Éüèq©çXÆ¶ðó¯ÄåÏÈ±ÆÉÈèÜ·B±êÈOÉàCâWEr[A\Ì¶àBBB<hr /><br />
+<strong>n[xCEEHoK[</strong><br />
+EHbJ@30ml<br />
+IWW[X@KÊ<br />
+KA[mð©×Ü·BvT[t@[Ìn[xCª¤ÆÇð½½«ÈªçAéÆ±ë©ç¼OðÂ¯çê½»¤Å·B</p>
 
-<p><strong>�x���x�b�g�E�n���}�[</strong><br />
-�z���C�g �L�����\�[�@1�^3<br />
-�R�[�q�[ ���L���[���@1�^3<br />
-���N���[���@1�^3<br />
-�V�F�C�N���܂��B</p>
+<p><strong>xxbgEn}[</strong><br />
+zCg L\[@1^3<br />
+R[q[ L[@1^3<br />
+¶N[@1^3<br />
+VFCNµÜ·B</p>
 
-<p><strong>�L���[�o���u��</strong><br />
-�����@30ml<br />
-�R�[���@�K��<br />
-�t���i�K�����E�G�C�^�[�Ƀ����E�R�[�N�̂��Ƃ���Ȃ����Ɠ{���Ă܂��B</p>
+<p><strong>L[ou</strong><br />
+@30ml<br />
+R[@KÊ<br />
+tiKªEGC^[ÉER[NÌ±Æ¶áÈ¢©Æ{ÁÄÜ·B</p>
 
-<p><strong>�I�[�K�Y��</strong><br />
-�N���[�� ���L���[���@20ml<br />
-�R�[�q�[ ���L���[���@20ml<br />
-�A�}���b�g	15ml<br />
-���N���[���@15ml<br />
-�����@15ml<br />
-����������ł����Ǘ��݂Â炢�B�B</p>
+<p><strong>I[KY</strong><br />
+N[ L[@20ml<br />
+R[q[ L[@20ml<br />
+A}bg	15ml<br />
+¶N[@15ml<br />
+û@15ml<br />
+¨¢µ¢ñÅ·¯ÇÝÃç¢BB</p>
 
-<p><strong>�u���b�f�B�E���A���[</strong><br />
-�E�H�b�J�@30ml<br />
-������ �W���[�X�@1tsp<br />
-�g�}�g �W���[�X�@�K��<br />
-�W���x�[�X���ƃu���b�f�B�E�T���ɂȂ�܂��B</p>
+<p><strong>ubfBEA[</strong><br />
+EHbJ@30ml<br />
+ W[X@1tsp<br />
+g}g W[X@KÊ<br />
+Wx[X¾ÆubfBETÉÈèÜ·B</p>
 
-<p><strong>�s���N��X�N������</strong><br />
-�N���[�� �h �m�����[�@2/4<br />
-�z���C�g �N���[�� �h �J�J�I�@1/4<br />
-���N���[���@1/4<br />
-�s���N�̓���Ƃ����Ӗ��ł��B</p>
+<p><strong>sN¥XN</strong><br />
+N[ h m[@2/4<br />
+zCg N[ h JJI@1/4<br />
+¶N[@1/4<br />
+sNÌûñÆ¢¤Ó¡Å·B</p>
 
-<p><strong>�G���W�F���E�f�B�b�v</strong><br />
-�N���[�� �h �J�J�I�@3/4<br />
-���N���[���@1/4<br />
-�}���X�L�[�m�`�F���[�@1��	<br />
-�V�F�C�N���܂��B</p>
+<p><strong>GWFEfBbv</strong><br />
+N[ h JJI@3/4<br />
+¶N[@1/4<br />
+}XL[m`F[@1Â	<br />
+VFCNµÜ·B</p>
 
-<p><strong>�_�[�e�B�[�E�}�U�[</strong><br />
-�u�����f�[�@40ml<br />
-�R�[�q�[ ���L���[���@20ml<br />
-�D���Ȑl�͍D���ł���ˁB</p>
+<p><strong>_[eB[E}U[</strong><br />
+uf[@40ml<br />
+R[q[ L[@20ml<br />
+D«ÈlÍD«Å·æËB</p>
 
-<p><strong>�e�B���K����</strong>�iDing-a-ling�j<br />
-�s���ł��B�m��܂���B</p>
+<p><strong>eBK</strong>iDing-a-lingj<br />
+s¾Å·BmèÜ¹ñB</p>
 
-<p><strong>�}�e�B�[�j</strong><br />
-�W���@3�^4<br />
-�h���C �x�����b�g�@1�^4<br />
-�I���[�u�@1��<br />
-�������s�[�����܂��B</p>]]>
+<p><strong>}eB[j</strong><br />
+W@3^4<br />
+hC xbg@1^4<br />
+I[u@1Â<br />
+s[µÜ·B</p>]]>
 <![CDATA[<p><?php require ("./moviecocktail.php"); ?></p>]]>
 </content>
 </entry>
 <entry>
-<title>�f��cocktail�̃J�N�e���i�P�j</title>
+<title>fæcocktailÌJNeiPj</title>
 <link rel="alternate" type="text/html" href="http://www.milliontimes.jp/column/archives/000050.php" />
 <modified>2005-04-17T20:46:29Z</modified>
 <issued>2005-03-28T09:00:22Z</issued>
 <id>tag:www.milliontimes.jp,2005:/column//2.50</id>
 <created>2005-03-28T09:00:22Z</created>
-<summary type="text/plain">�g���N���[�Y�剉�̉f��u�J�N�e���v�ɂłĂ���J�N�e�����Љ�B���b�h�A�C�^�}�e�B�[�j��</summary>
+<summary type="text/plain">gN[YåÌfæuJNevÉÅÄ­éJNeðÐîBbhAC^}eB[jÒ</summary>
 <author>
 <name>takato</name>
 <url>http://www.milliontimes.jp/</url>
@@ -409,33 +409,33 @@ But if you want to get loaded... why don't you just order a shot?<hr /><strong>�
 </author>
 <dc:subject>510moviecocktail</dc:subject>
 <content type="text/html" mode="escaped" xml:lang="ja" xml:base="http://www.milliontimes.jp/column/">
-<![CDATA[<p>�g���N���[�Y�剉�́u�J�N�e���v�ɏo�Ă���J�N�e�����V��ɕ����Ă��Љ�܂��B�́A�uA PEACEFUL BAR�v�Ƃ����T�C�g�ɏ���Ă��܂������A���݃T�C�g�͕�����Ă���悤�ł��B�l�^�΂�܂݂܂��̂ł����ӂ��������B<br />
-�y9'30����z<br />
+<![CDATA[<p>gN[YåÌuJNevÉoÄ­éJNeðVñÉª¯Ä²ÐîµÜ·BÌAuA PEACEFUL BARvÆ¢¤TCgÉæÁÄ¢Üµ½ªA»ÝTCgÍÂ½³êÄ¢éæ¤Å·Bl^ÎêÜÝÜ·ÌÅ²Ó­¾³¢B<br />
+y9'30²ëz<br />
 <img src="./images/cocktail1.jpg"><br />
-�@�u���C�A���E�t���i�K��(Tom Cruise)���m�x�ɏo�Ă��Ďd����T�����Ƃ��܂����A�Ȃ��Ȃ������炸���܂���Ă���ƁA����o�[�ŋ��l���B�����œ��������Ɛ\���o��ƁA�_�O���X�E�R�O����(Bryan Brown)����<br />
-You know how to make a "Red Eye"?�i<strong>���b�h�A�C</strong>�͂ǂ�����č�邩�m���Ă邩���H�j<br />
-What about a vodka martini with a Pernod float?�i�y���m���t���[�g������<strong>�E�I�b�J�}�e�B�[�j</strong>�́H�j<br />
-�ƕ�����܂��B<hr /><strong>���b�h�A�C</strong><br />
-�r�[���@1�^2<br />
-�g�}�g�W���[�X�@1�^2<br />
-��������Ɍ����ƌ����Ă�����ݕ��B�R�O�����̑�D���̂悤�ŕ��ꒆ�ǂ��o�Ă���B��������̖ڂ��疽������Ă���B���Ȃ݂ɁA�{�Ғ��ŃR�O���������������Ă��邪�A����́A�ނ̃I���W�i���ł��B���������Ȃ��ł����ǁB�B�B</p>
+@uCAEtiK(Tom Cruise)ªmxÉoÄ«ÄdðT»¤ÆµÜ·ªAÈ©È©©Â©ç¸³ÜæÁÄ¢éÆA éo[ÅlªB»±Å­«½¢Æ\µoéÆA_OXERO(Bryan Brown)©ç<br />
+You know how to make a "Red Eye"?i<strong>bhAC</strong>ÍÇ¤âÁÄìé©mÁÄé©¢Hj<br />
+What about a vodka martini with a Pernod float?iymðt[g³¹½<strong>EIbJ}eB[j</strong>ÍHj<br />
+Æ·©êÜ·B<hr /><strong>bhAC</strong><br />
+r[@1^2<br />
+g}gW[X@1^2<br />
+ñú¢Éø­Æ¾íêÄ¢éùÝ¨BROÌåD¨Ìæ¤Å¨êÇ­oÄ­éBñú¢ÌÚ©ç½¼³êÄ¢éB¿ÈÝÉA{ÒÅROª¶ðüêÄ¢éªA±êÍAÞÌIWiÅ·Bµ½­È¢Å·¯ÇBBB</p>
 
-<p><strong>�E�I�b�J�}�e�B�[�j</strong><br />
-�E�I�b�J�@3�^4<br />
-�h���C�x�����b�g�@1�^4<br />
-�I���[�u�@1��<br />
-�{�Ғ��ɏo�Ă���y���m����̂��̂͂ǂ�ȃ��V�s�Ȃ̂�������܂���B�����炭�A�x�����b�g�̑���Ƀy���m�����ăt���[�g������̂ł͂Ȃ����Ǝv���܂��B�E�H�b�J �A�C�X�o�[�O�̂悤�Ȃ��̂ł��傤���B�m���Ă���A�R�����g���Ă��������B���{�ł̓}�e�B�[�j�Ƃ����΃W���x�[�X�ł����A�A�����J�ł̓E�I�b�J�����������ł��B</p>]]>
+<p><strong>EIbJ}eB[j</strong><br />
+EIbJ@3^4<br />
+hCxbg@1^4<br />
+I[u@1Â<br />
+{ÒÉoÄ­éymüèÌàÌÍÇñÈVsÈÌ©ª©èÜ¹ñB¨»ç­AxbgÌãíèÉymðüêÄt[g³¹éÌÅÍÈ¢©Æv¢Ü·BEHbJ ACXo[OÌæ¤ÈàÌÅµå¤©BmÁÄéûARgµÄ­¾³¢Bú{ÅÍ}eB[jÆ¢¦ÎWx[XÅ·ªAAJÅÍEIbJª½¢»¤Å·B</p>]]>
 <![CDATA[<p><?php require ("./moviecocktail.php"); ?></p>]]>
 </content>
 </entry>
 <entry>
-<title>���������̐���������̎d��</title>
+<title>Á¥¢Ì³µ¢îøÌdû</title>
 <link rel="alternate" type="text/html" href="http://www.milliontimes.jp/column/archives/000049.php" />
 <modified>2005-04-17T20:44:22Z</modified>
 <issued>2005-03-17T02:25:11Z</issued>
 <id>tag:www.milliontimes.jp,2005:/column//2.49</id>
 <created>2005-03-17T02:25:11Z</created>
-<summary type="text/plain">�@���߂ɏ����Ă����܂��������[�������Ă��܂��O�Ɏ���̐l���~�߂Ă�����̂���{�ł��B�u�C�b�L�v�Ƃ��댯�ł��B�قǂقǂɁB���̏�ŁA����ς�ׂꂿ�Ⴄ�l���Ă��܂���ˁB���̎��̑Ώ��@�B �@�܂��A��{�I�ɏ����ő̓��i���t���j�ɓ����������͎��Ԃ�...</summary>
+<summary type="text/plain">@ßÉ¢Ä¨«Ü·ª·²[­ÁÄµÜ¤OÉüèÌlª~ßÄ °éÌªî{Å·BuCbLvÆ©ë¯Å·BÙÇÙÇÉB»ÌãÅAâÁÏè×ê¿á¤lÁÄ¢Ü·æËB»ÌÌÎ@B @Ü¸Aî{IÉ¬°ÅÌàitjÉüÁ½¨ðÍÔª...</summary>
 <author>
 <name>takato</name>
 <url>http://www.milliontimes.jp/</url>
@@ -443,32 +443,32 @@ What about a vodka martini with a Pernod float?�i�y���m���t���[�g������<strong>�
 </author>
 <dc:subject>240health</dc:subject>
 <content type="text/html" mode="escaped" xml:lang="ja" xml:base="http://www.milliontimes.jp/column/">
-<![CDATA[<p>�@���߂ɏ����Ă����܂��������[�������Ă��܂��O�Ɏ���̐l���~�߂Ă�����̂���{�ł��B�u�C�b�L�v�Ƃ��댯�ł��B�قǂقǂɁB���̏�ŁA����ς�ׂꂿ�Ⴄ�l���Ă��܂���ˁB���̎��̑Ώ��@�B</p>
+<![CDATA[<p>@ßÉ¢Ä¨«Ü·ª·²[­ÁÄµÜ¤OÉüèÌlª~ßÄ °éÌªî{Å·BuCbLvÆ©ë¯Å·BÙÇÙÇÉB»ÌãÅAâÁÏè×ê¿á¤lÁÄ¢Ü·æËB»ÌÌÎ@B</p>
 
-<p>�@�܂��A��{�I�ɏ����ő̓��i���t���j�ɓ����������͎��Ԃ��o���̂̒��ŕ��������܂ŏ����܂���B���̒��O�ɂ���i�݂ƐH���j�����͑S����菜���Ă����܂��傤�B����悤�ł���΁A��x�������܂��邱�Ƃœf���₷���Ȃ�܂��B��l�ɂ��܂����A����Œ��O�̂R�O�����炢�̃A���R�[�����̓��ɒǉ��ŋz������邱�Ƃ�h���܂��B</p>
+<p>@Ü¸Aî{IÉ¬°ÅÌàitjÉüÁ½¨ðÍÔªo¿ÌÌÅªð³êéÜÅÁ¦Ü¹ñB»Ì¼OÉ éiÝÆH¹j¨ðÍSæè¢Ä °Üµå¤Bïµ¢æ¤Å êÎAêxðùÜ¹é±ÆÅf«â·­ÈèÜ·BêlÉæèÜ·ªA±êÅ¼OÌROª®ç¢ÌAR[ªÌàÉÇÁÅzû³êé±Æðh¬Ü·B</p>
 
-<p>�@�����āA�A���R�[�����ʐێ悷��ƒE���Ǐ���������܂��̂ŁA�����⋋���s���܂��B�X�|�[�c�h�����N�������ł����A�Ȃ��Ȃ畁�ʂ̐��₨���ŏ\���ł��B</p>
+<p>@±¢ÄAAR[ðåÊÛæ·éÆEÇóð¨±µÜ·ÌÅAªâðs¢Ü·BX|[chNª¢¢Å·ªAÈ¢ÈçÊÌâ¨Å\ªÅ·B</p>
 
-<p>�@�����܂ŏ����Ďv���܂������A���R�A�@���Ă��Ăт����Ă������i�V�̏ꍇ�͋~�}�Ԃł���I�K���Ă�ł��������ˁB�����������ꍇ���{���͕a�@�s�����ق��������̂ł����A�Ȃ��Ȃ�����Ǝv���̂ł��̎��̑Ώ��@�ł��B</p>
+<p>@±±ÜÅ¢Äv¢Üµ½ªARA@¢ÄàÄÑ©¯Äà½iVÌêÍ~}ÔÅ·æIK¸ÄñÅ­¾³¢ËB½ª¢êà{Ía@sÁ½Ù¤ª¢¢ÌÅ·ªAÈ©È©ïµ¢Æv¤ÌÅ»ÌÌÎ@Å·B</p>
 
-<p>�E�f���Ē������Ȃ��悤�ɉ������ɐQ������y�d�v�z�K�v�Ȃ�A��̉��ɃS�~�܂ł��B�B<br />
-�E�x���g�͊ɂ߂�B�^�C�g�ȕ��Ȃ璅�ւ������Ă�����B<br />
-�E�ѕz�Ȃǂ������Ă�����B�i�~�̖�O�Ƃ����Ɗm���Ɏ��ɂ܂��j<br />
-�E�N�����������B</p>
+<p>Ef¢Ä§µÈ¢æ¤É¡ü«ÉQ©¹éydvzKvÈçAçÌºÉS~ÜÅàBB<br />
+ExgÍÉßéB^CgÈÈçÖ¦³¹Ä °éB<br />
+EÑzÈÇð©¯Ä °éBi~ÌìOÆ©¾ÆmÀÉÉÜ·j<br />
+EN©ªÂ«»¤B</p>
 
-<p>�ymemo�z<br />
-�E�ǂ����Ă��f���Ȃ��Ƃ��́A���Ȃ��i�����`�݁j���h������Ɨǂ��ł��B</p>]]>
+<p>ymemoz<br />
+EÇ¤µÄàf¯È¢Æ«ÍA¨È©i¬°`Ýjðh·éÆÇ¢Å·B</p>]]>
 
 </content>
 </entry>
 <entry>
-<title>�J�N�e�������i���W���[�J�b�v�j</title>
+<title>JNeðìéiW[Jbvj</title>
 <link rel="alternate" type="text/html" href="http://www.milliontimes.jp/column/archives/000048.php" />
 <modified>2005-04-17T20:44:08Z</modified>
 <issued>2004-11-20T09:08:20Z</issued>
 <id>tag:www.milliontimes.jp,2004:/column//2.48</id>
 <created>2004-11-20T09:08:20Z</created>
-<summary type="text/plain">�@�J�N�e�������Ƃ��ɒm��Ȃ��Ƃ����Ȃ��̂����V�s�B���̃��V�s�ʂ�̕��ʂɂ��邽�߂ɕK�v�Ȃ̂����W���[�J�b�v�ł��B���L���[����X�s���b�c�̕��ʂ�ʂ邽�߂̓���ł��B���̂��Ƃ����W���[��؂�Ƃ������肵�܂��B �@�Ⴆ�΁A�w�D�x�D�y�D����60m...</summary>
+<summary type="text/plain">@JNeðìéÆ«ÉmçÈ¢Æ¢¯È¢ÌªVsB»ÌVsÊèÌªÊÉ·é½ßÉKvÈÌªW[JbvÅ·BL[âXsbcÌªÊðÊé½ßÌ¹ïÅ·B±Ì±ÆðW[ðØéÆ¢Á½èµÜ·B @á¦ÎAwDxDyD¦ð60m...</summary>
 <author>
 <name>takato</name>
 <url>http://www.milliontimes.jp/</url>
@@ -476,34 +476,34 @@ What about a vodka martini with a Pernod float?�i�y���m���t���[�g������<strong>�
 </author>
 <dc:subject>220make</dc:subject>
 <content type="text/html" mode="escaped" xml:lang="ja" xml:base="http://www.milliontimes.jp/column/">
-<![CDATA[<p>�@�J�N�e�������Ƃ��ɒm��Ȃ��Ƃ����Ȃ��̂����V�s�B���̃��V�s�ʂ�̕��ʂɂ��邽�߂ɕK�v�Ȃ̂����W���[�J�b�v�ł��B���L���[����X�s���b�c�̕��ʂ�ʂ邽�߂̓���ł��B���̂��Ƃ����W���[��؂�Ƃ������肵�܂��B</p>
+<![CDATA[<p>@JNeðìéÆ«ÉmçÈ¢Æ¢¯È¢ÌªVsB»ÌVsÊèÌªÊÉ·é½ßÉKvÈÌªW[JbvÅ·BL[âXsbcÌªÊðÊé½ßÌ¹ïÅ·B±Ì±ÆðW[ðØéÆ¢Á½èµÜ·B</p>
 
-<p>�@�Ⴆ�΁A�w�D�x�D�y�D����60ml���Ƃ��ɂ́A30ml�̃��W���[�J�b�v���g���āA�܂����C�g������30ml�i���^���F�\�ʒ��͂Ő���オ��܂Łj�����A�V�F�C�J�[�Ɉڂ��܂��B���ɓ���30ml�̃J�b�v�����̃z���C�g�L�����\�[������V�F�C�J�[�Ɉڂ��܂��B�Ō�ɓ����悤�Ƀ������W���[�X15ml���v���āA�I���ƂȂ�܂��B15ml�ʂ�郁�W���[�J�b�v������܂����A�ʏ��1��ނ̃��W���[�J�b�v���g���܂��B���̂ق����A�������������悢����ł��B<br />
-<img src="./images/half.gif" align="left" alt="�V�F�C�J�["  />�@����Ȃ������́A30ml�̃��W���[�J�b�v��15ml��ʂ�͓̂����������܂��񂪁A���̐}�̂悤�ɑ��7���ڂ��炢�܂œ����ƁA���傤��15ml�ʂ�܂��B�{�i�I�ɂ������l��15ml��3��ʂ�A���ꂪ�{����45ml�ɂȂ��Ă��邩�̗��K������Ɨǂ��ł��傤�B����Ă���΁A10ml��20ml���ʂ��悤�ɂȂ�܂��B</p>
+<p>@á¦ÎAwDxDyD¦ð60mlìéÆ«ÉÍA30mlÌW[JbvðgÁÄAÜ¸Cgð30mli^F\Ê£ÍÅ·èãªéÜÅj¬AVFCJ[ÉÚµÜ·BÉ¯¶30mlÌJbv¼ªÌzCgL\[ð¢êVFCJ[ÉÚµÜ·BÅãÉ¯¶æ¤ÉW[X15mlðvÁÄAI¹ÆÈèÜ·B15mlÊêéW[Jbvà èÜ·ªAÊíÍ1íÞÌW[Jbvðg¢Ü·B»ÌÙ¤ªA¢µ©Á±æ¢©çÅ·B<br />
+<img src="./images/half.gif" align="left" alt="VFCJ["  />@µêÈ¢¤¿ÍA30mlÌW[JbvÅ15mlðÊéÌÍïµ¢©àµêÜ¹ñªA¶Ì}Ìæ¤ÉåÌ7ªÚ®ç¢ÜÅüêéÆA¿å¤Ç15mlÊêÜ·B{iIÉµ½¢lÍ15mlð3ñÊèA»êª{É45mlÉÈÁÄ¢é©ÌûKð·éÆÇ¢Åµå¤BµêÄ­êÎA10mlâ20mlàÊêéæ¤ÉÈèÜ·B</p>
 
-<p>�@�������Ȃ��炱�̂悤�ɂ�������Ɨʂ��ăV�F�C�N���Ă����ۂɂ͕X���n����70ml���炢�ɑ����Ă��܂��܂��B</p>
+<p>@µ©µÈªç±Ìæ¤É«Á¿èÆÊÁÄVFCNµÄàÀÛÉÍXªn¯Ä70ml®ç¢É¦ÄµÜ¢Ü·B</p>
 
-<p><br clear=all>���w�D�x�D�y�D�i�G�b�N�X�E���C�E�W�[�j�̃��V�s�̓��C�g����1/2�A�z���C�g�L�����\�[1/4�A�������W���[�X1/4�ł��B���̏ꍇ�͂��ꂼ��30ml�A15ml�A15ml�ƂȂ�</p>
+<p><br clear=all>¦wDxDyDiGbNXECEW[jÌVsÍCg1/2AzCgL\[1/4AW[X1/4Å·B±ÌêÍ»ê¼ê30mlA15mlA15mlÆÈé</p>
 
-<p>�@�g�����͊ȒP�ł��B�ł��A������Ɛ����ɂ��Ȃ��Ɛ��m�ɗʂ�܂���B<br />
-�E�g���w�͗����r�łȂ��e�w�Ə��w�����������R�{�ł��B<br />
-�E�l�����w�i��O�j�E���w�i���j�E��w�i��O�j�Ń��W���[�J�b�v�����т�̂Ƃ���ł͂��݂܂��B<br />
-�E�e�w�Ɛl�����w�ł������{�g���̃L���b�v�������Ƃ�����܂��B<br />
-�E�����r�Ń{�g�����烁�W���[�J�b�v�ɒ����A�V�F�C�J�[���ɓ����Ƃ��́A���Ɂi��̂Ђ����ɂ���悤�Ɂj���Ԃ��܂��B</p>]]>
-<![CDATA[<p><img border="0" src="http://sun.d-064.com/include/implession.php?pid=1724&hid=44916&flag1=product&afid=2901564&oid=9" alt="���W���[�J�b�v" width="73" height="100" align=left>�@���W���[�J�b�v�ɂ��R��ނ̑傫��������܂��B���ꂼ��ɂQ��ނ̗e�ʃJ�b�v�����Ă��܂��̂ŁA�p�r�ɂ���Ďg���������肵�Ă��܂��B<a href="http://www.store-mix.com/ko-bai/product.php?afid=2901562&pid=1723&hid=44916&oid=9" TARGET=_blank><br />
-��m50/30ml�n</a>�E<a href="http://www.store-mix.com/ko-bai/product.php?afid=2901564&pid=1724&hid=44916&oid=9" TARGET=_blank>���m45/30ml�n</a>�E<a href="http://www.store-mix.com/ko-bai/product.php?afid=2901561&pid=1725&hid=44916&oid=9" TARGET=_blank>���m30/15ml�n</a>�ŕ��ʂł���΁A���𔃂��Ă����Ζ��Ȃ��ł��傤�B</p>
+<p>@g¢ûÍÈPÅ·BÅàA«¿ñÆ½ÉµÈ¢Æ³mÉÊêÜ¹ñB<br />
+Eg¤wÍ«rÅÈ¢ewÆ¬wð¢½R{Å·B<br />
+El·µwièOjEwijEòwièOjÅW[Jbvð­ÑêÌÆ±ëÅÍ³ÝÜ·B<br />
+EewÆl·µwÅ ¯½{gÌLbvðÂ±Æà èÜ·B<br />
+E«rÅ{g©çW[JbvÉ¬AVFCJ[ÉüêéÆ«ÍAÉièÌÐçðãÉ·éæ¤ÉjèðÔµÜ·B</p>]]>
+<![CDATA[<p><img border="0" src="http://sun.d-064.com/include/implession.php?pid=1724&hid=44916&flag1=product&afid=2901564&oid=9" alt="W[Jbv" width="73" height="100" align=left>@W[JbvÉàRíÞÌå«³ª èÜ·B»ê¼êÉQíÞÌeÊJbvªÂ¢Ä¢Ü·ÌÅAprÉæÁÄg¢ª¯½èµÄ¢Ü·B<a href="http://www.store-mix.com/ko-bai/product.php?afid=2901562&pid=1723&hid=44916&oid=9" TARGET=_blank><br />
+åm50/30mln</a>E<a href="http://www.store-mix.com/ko-bai/product.php?afid=2901564&pid=1724&hid=44916&oid=9" TARGET=_blank>m45/30mln</a>E<a href="http://www.store-mix.com/ko-bai/product.php?afid=2901561&pid=1725&hid=44916&oid=9" TARGET=_blank>¬m30/15mln</a>ÅÊÅ êÎAðÁÄ¨¯ÎâèÈ¢Åµå¤B</p>
 
-<p><br clear=all>�@�����N�͂��ׂ�<a href="http://www.store-mix.com/ko-bai/p_list.php?oid=9&hid=44916" TARGET=_blank>�������L�b�`���@�v���̓������</a>�ɔ�т܂��B<a href="http://www.store-mix.com/ko-bai/product.php?afid=2902469&pid=20354&hid=44916&oid=9" TARGET=_blank>���S�җp�J�N�e���Z�b�g</a>��������܂��B�l�����������ōw�����Ă��܂��B�֗��ł���B</p>]]>
+<p><br clear=all>@NÍ·×Ä<a href="http://www.store-mix.com/ko-bai/p_list.php?oid=9&hid=44916" TARGET=_blank>±¾íèLb`@vÌ¹ï®³ñ</a>ÉòÑÜ·B<a href="http://www.store-mix.com/ko-bai/product.php?afid=2902469&pid=20354&hid=44916&oid=9" TARGET=_blank>SÒpJNeZbg</a>à èÜ·Blà¢Âà±±ÅwüµÄ¢Ü·BÖÅ·æB</p>]]>
 </content>
 </entry>
 <entry>
-<title>�J�N�e�������i�V�F�C�J�[�j</title>
+<title>JNeðìéiVFCJ[j</title>
 <link rel="alternate" type="text/html" href="http://www.milliontimes.jp/column/archives/000047.php" />
 <modified>2005-04-17T20:43:54Z</modified>
 <issued>2004-11-14T14:21:03Z</issued>
 <id>tag:www.milliontimes.jp,2004:/column//2.47</id>
 <created>2004-11-14T14:21:03Z</created>
-<summary type="text/plain">����ŃJ�N�e������낤�Ǝv�����Ƃ��A��ԂɎv�������Ԃ̂�����A�V�F�C�J�[�ł���ˁB��������shake�ɂ́h�U���h�Ƃ��h�U������h�Ƃ����Ӗ�������܂��B�V�F�C�J�[�̒��ł����𐔎�ލ������킹�邽�߂̓���ɂȂ�܂��B�ړI�͂R����܂��B �E��...</summary>
+<summary type="text/plain">©îÅJNeðìë¤ÆvÁ½Æ«AêÔÉv¢©ÔÌª±êAVFCJ[Å·æËB»à»àshakeÉÍhUêéhÆ©hU®·éhÆ¢¤Ó¡ª èÜ·BVFCJ[ÌÅ¨ððíÞ¬ºí¹é½ßÌ¹ïÉÈèÜ·BÚIÍRÂ èÜ·B E¨...</summary>
 <author>
 <name>takato</name>
 <url>http://www.milliontimes.jp/</url>
@@ -511,25 +511,25 @@ What about a vodka martini with a Pernod float?�i�y���m���t���[�g������<strong>�
 </author>
 <dc:subject>220make</dc:subject>
 <content type="text/html" mode="escaped" xml:lang="ja" xml:base="http://www.milliontimes.jp/column/">
-<![CDATA[<p>����ŃJ�N�e������낤�Ǝv�����Ƃ��A��ԂɎv�������Ԃ̂�����A<strong>�V�F�C�J�[</strong>�ł���ˁB��������shake�ɂ́h�U���h�Ƃ��h�U������h�Ƃ����Ӗ�������܂��B�V�F�C�J�[�̒��ł����𐔎�ލ������킹�邽�߂̓���ɂȂ�܂��B�ړI�͂R����܂��B<br />
-�E���𓯎m��������<br />
-�E�����̒��ɋ�C�����邱�Ƃł����̖����܂�₩�ɕς���<br />
-�E�X�𒆂ɓ���邱�ƂŁA�������}���ɗ�₷</p>
+<![CDATA[<p>©îÅJNeðìë¤ÆvÁ½Æ«AêÔÉv¢©ÔÌª±êA<strong>VFCJ[</strong>Å·æËB»à»àshakeÉÍhUêéhÆ©hU®·éhÆ¢¤Ó¡ª èÜ·BVFCJ[ÌÅ¨ððíÞ¬ºí¹é½ßÌ¹ïÉÈèÜ·BÚIÍRÂ èÜ·B<br />
+E¨ð¯mð¬ºé<br />
+E¨ðÌÉóCðüêé±ÆÅ¨ðÌ¡ðÜëâ©ÉÏ¦é<br />
+EXðÉüêé±ÆÅA¨ðð}Éââ·</p>
 
-<p>�V�F�C�J�[�͂R�ɕ�������܂����A������X��������ԑ傫�ȕ������h�{�f�B�h�A�������������Ƃ��ɕX���o�Ȃ��悤�ɏ����Ȍ��̂����Ă��钆�W���h�X�g���C�i�[�h�A�L���b�v���h�g�b�v�h�ƌĂт܂��B</p>]]>
-<![CDATA[<table><tr><td valign=top><img border="0" src="http://sun.d-064.com/include/implession.php?pid=1599&hid=44916&flag1=product&afid=2869333&oid=9" alt="�X�^���_�[�h�J�N�e���V�F�[�J�[" width="51" height="100"></a></td>
-<td>�V�F�C�J�[�̑I�ѕ��ł����A�X�^���_�[�h�̂��̂�<a href="http://www.store-mix.com/ko-bai/product.php?afid=2869572&pid=1599&oid=9&hid=44916" target=_blank>��(530cc)</a>�m�傫�ȃJ�N�e���O���X�i90�`120cc�j�Q�`�R�t���n�E<a href="http://www.store-mix.com/ko-bai/product.php?afid=2869573&pid=1600&oid=9&hid=44916 " target=_blank>��(350cc)</a>�m�傫�ȃJ�N�e���O���X�i90�`120cc�j�P�t���n�E<a href="http://www.store-mix.com/ko-bai/product.php?afid=2869574&pid=1601&oid=9&hid=44916 " target=_blank>��(250cc)</a>�m�����ȃJ�N�e���O���X(60cc)1�t���n������܂��B�܂��́A���T�C�Y���w�����Ă����Ζ��Ȃ��ł��傤�B�T�C�Y�����傤�ǎ�Ƀt�B�b�g���Ĉ�Ԏg���₷���Ǝv���܂��B1500�`2500�~���炢�ł��B<br />
-�����N�͂��ׂ�<a href="http://www.store-mix.com/ko-bai/p_list.php?oid=9&hid=44916" TARGET=_blank>�������L�b�`���@�v���̓������</a>�ɔ�т܂�<a href="http://www.store-mix.com/ko-bai/product.php?afid=2903287&pid=20358&hid=44916&oid=9" TARGET=_blank>���S�җp�J�N�e���Z�b�g</a>��������܂��B�l�����������ōw�����Ă��܂��B�֗��ł���B</td></tr></table>]]>
+<p>VFCJ[ÍRÂÉªð³êÜ·ªA¨ðâXð¢êéêÔå«Èªðh{fBhA¨ðð»»®Æ«ÉXªoÈ¢æ¤É¬³ÈÌ ¢Ä¢éWðhXgCi[hALbvðhgbvhÆÄÑÜ·B</p>]]>
+<![CDATA[<table><tr><td valign=top><img border="0" src="http://sun.d-064.com/include/implession.php?pid=1599&hid=44916&flag1=product&afid=2869333&oid=9" alt="X^_[hJNeVF[J[" width="51" height="100"></a></td>
+<td>VFCJ[ÌIÑûÅ·ªAX^_[hÌàÌÅ<a href="http://www.store-mix.com/ko-bai/product.php?afid=2869572&pid=1599&oid=9&hid=44916" target=_blank>å(530cc)</a>må«ÈJNeOXi90`120ccjQ`RtªnE<a href="http://www.store-mix.com/ko-bai/product.php?afid=2869573&pid=1600&oid=9&hid=44916 " target=_blank>(350cc)</a>må«ÈJNeOXi90`120ccjPtªnE<a href="http://www.store-mix.com/ko-bai/product.php?afid=2869574&pid=1601&oid=9&hid=44916 " target=_blank>¬(250cc)</a>m¬³ÈJNeOX(60cc)1tªnª èÜ·BÜ¸ÍATCYðwüµÄ¨¯ÎâèÈ¢Åµå¤BTCYà¿å¤ÇèÉtBbgµÄêÔg¢â·¢Æv¢Ü·B1500`2500~®ç¢Å·B<br />
+NÍ·×Ä<a href="http://www.store-mix.com/ko-bai/p_list.php?oid=9&hid=44916" TARGET=_blank>±¾íèLb`@vÌ¹ï®³ñ</a>ÉòÑÜ·<a href="http://www.store-mix.com/ko-bai/product.php?afid=2903287&pid=20358&hid=44916&oid=9" TARGET=_blank>SÒpJNeZbg</a>à èÜ·Blà¢Âà±±ÅwüµÄ¢Ü·BÖÅ·æB</td></tr></table>]]>
 </content>
 </entry>
 <entry>
-<title>�ڎU��A���R�[��</title>
+<title>ÚUéAR[</title>
 <link rel="alternate" type="text/html" href="http://www.milliontimes.jp/column/archives/000046.php" />
 <modified>2005-04-17T21:46:01Z</modified>
 <issued>2004-09-29T06:59:33Z</issued>
 <id>tag:www.milliontimes.jp,2004:/column//2.46</id>
 <created>2004-09-29T06:59:33Z</created>
-<summary type="text/plain">�@����͔ߎS�Șb�B�A���R�[�������|�̃R�����ł��Љ���悤�ɐl�Ԃ�����ł����v�Ȃ̂̓G�^�m�[���i�G�`���A���R�[���j�Ń��^�m�[�������ނƎ������Ă��܂��܂��B���Ԃ��Ȃ����{�⌻�݂ł����W�r�㍑�ł����Ƀ��`���A���R�[���������Ă����Ƃ���������...</summary>
+<summary type="text/plain">@¡ñÍßSÈbBAR[¨¨|ÌRÅàÐîµ½æ¤ÉlÔªùñÅàåävÈÌÍG^m[iG`AR[jÅ^m[ðùÞÆ¸¾µÄµÜ¢Ü·BíãÔàÈ¢ú{â»ÝÅà­WrãÅ¨ðÉ`AR[ªüÁÄ¢½Æ¢¤Í...</summary>
 <author>
 <name>takato</name>
 <url>http://www.milliontimes.jp/</url>
@@ -537,18 +537,18 @@ What about a vodka martini with a Pernod float?�i�y���m���t���[�g������<strong>�
 </author>
 <dc:subject>900other</dc:subject>
 <content type="text/html" mode="escaped" xml:lang="ja" xml:base="http://www.milliontimes.jp/column/">
-<![CDATA[<p>�@����͔ߎS�Șb�B<a href="./000026.php"><strong>�A���R�[�������|</strong></a>�̃R�����ł��Љ���悤�ɐl�Ԃ�����ł����v�Ȃ̂̓G�^�m�[���i�G�`���A���R�[���j�Ń��^�m�[�������ނƎ������Ă��܂��܂��B���Ԃ��Ȃ����{�⌻�݂ł����W�r�㍑�ł����Ƀ��`���A���R�[���������Ă����Ƃ��������͕����܂��B���ۂɈ��񂾂��Ƃ̂���l���畷�����b�ɂ��ƁA�����ʂł����`���A���R�[���̂ق�������ɐ�������邻���ł��B�F����A�^�����Ȃ��悤�ɁB���Ȃ݂ɁA���`���A���R�[�������ۉ��w�����@�̌Ăі��ŁA���^�m�[���͊��p���ł��B</p>]]>
+<![CDATA[<p>@¡ñÍßSÈbB<a href="./000026.php"><strong>AR[¨¨|</strong></a>ÌRÅàÐîµ½æ¤ÉlÔªùñÅàåävÈÌÍG^m[iG`AR[jÅ^m[ðùÞÆ¸¾µÄµÜ¢Ü·BíãÔàÈ¢ú{â»ÝÅà­WrãÅ¨ðÉ`AR[ªüÁÄ¢½Æ¢¤Í·«Ü·BÀÛÉùñ¾±ÆÌ él©ç·¢½bÉæéÆA¯¶ÊÅà`AR[ÌÙ¤ª­óÉ¢ªñé»¤Å·BF³ñA^µÈ¢æ¤ÉB¿ÈÝÉA`AR[ªÛ»w½¼@ÌÄÑ¼ÅA^m[Íµp¼Å·B</p>]]>
 
 </content>
 </entry>
 <entry>
-<title>�Ύ�</title>
+<title>Îð</title>
 <link rel="alternate" type="text/html" href="http://www.milliontimes.jp/column/archives/000045.php" />
 <modified>2005-04-17T20:42:46Z</modified>
 <issued>2004-09-29T06:59:30Z</issued>
 <id>tag:www.milliontimes.jp,2004:/column//2.45</id>
 <created>2004-09-29T06:59:30Z</created>
-<summary type="text/plain">�@�r�[���������ŏ����Ɣ����A���C���͂Ԃǂ����ŕ������B����ł́A�Ύ����Ă��������Ȃ�ł��傤�B���͂���u�����f�[�̂��ƂȂ�ł��B�x���������̂Ō��ɓ��ꂽ�Ƃ��̊��o���u�΁v�ƕ\��������ł����ˁH�Ȃ�Ƃ��A�J�N�e�����������⃉���������i�����̌�...</summary>
+<summary type="text/plain">@r[ð¿Å­ÆðACÍÔÇ¤ðÅ¸ðB»êÅÍAÎðÁÄ¢Á½¢ÈñÅµå¤BÀÍ±êuf[Ì±ÆÈñÅ·Bxª­¢ÌÅûÉüê½Æ«Ì´oðuÎvÆ\»µ½ñÅ·©ËHÈñÆ©AJNe¬ðâðiÌ´...</summary>
 <author>
 <name>takato</name>
 <url>http://www.milliontimes.jp/</url>
@@ -556,11 +556,11 @@ What about a vodka martini with a Pernod float?�i�y���m���t���[�g������<strong>�
 </author>
 <dc:subject>230name</dc:subject>
 <content type="text/html" mode="escaped" xml:lang="ja" xml:base="http://www.milliontimes.jp/column/">
-<![CDATA[<p>�@�r�[���������ŏ����Ɣ����A���C���͂Ԃǂ����ŕ������B����ł́A�Ύ����Ă��������Ȃ�ł��傤�B���͂���<strong>�u�����f�[</strong>�̂��ƂȂ�ł��B�x���������̂Ō��ɓ��ꂽ�Ƃ��̊��o���u�΁v�ƕ\��������ł����ˁH�Ȃ�Ƃ��A<strong>�J�N�e����������</strong>��<strong>����������</strong>�i�����̌����̓T�g�E�L�r�j������܂ł͂킩��Ƃ��Ă��A<strong>�O�ڎ����V�����p��</strong>�i�ǂݕ����炩�H�j�A<strong>�m�����W��</strong>�i�m���̓W�������ł͂Ȃ��񂾂��ǁE�E�j�A<strong>���������L���[��</strong>�i�H�H�j�܂ł���ƁA��������������悤�ȋC�����܂��B���ɂ����Ď��m���Ă���<a href ="http://www.milliontimes.jp/mail.php">���[��</A>�ŋ����Ă��������B</p>
+<![CDATA[<p>@r[ð¿Å­ÆðACÍÔÇ¤ðÅ¸ðB»êÅÍAÎðÁÄ¢Á½¢ÈñÅµå¤BÀÍ±ê<strong>uf[</strong>Ì±ÆÈñÅ·Bxª­¢ÌÅûÉüê½Æ«Ì´oðuÎvÆ\»µ½ñÅ·©ËHÈñÆ©A<strong>JNe¬ð</strong>â<strong>ð</strong>iÌ´¿ÍTgELrj ½èÜÅÍí©éÆµÄàA<strong>OÚðVp</strong>iÇÝû©ç©HjA<strong>mðW</strong>imðÍW¾¯ÅÍÈ¢ñ¾¯ÇEEjA<strong>¬ðL[</strong>iHHjÜÅ­éÆA½­³ª éæ¤ÈCªµÜ·B¼ÉàÄmÁÄ½ç<a href ="http://www.milliontimes.jp/mail.php">[</A>Å³¦Ä­¾³¢B</p>
 
-<p>�y�ǉ��z��̃R�����������Ă��Ďv���o���܂����B<strong>�𐸁��A���R�[��</strong>�ł��B<br /><br />
-�y�w�E�z<a href="http://homepage2.nifty.com/kuma-bar/" target="_blank">�J�N�e���~�J�N�e��</a>��KUMA����ɉΎ��́A�E�I�b�J���w���̂ł͂Ȃ����Ƃ������w�E������܂����̂ŁA���ݒ������ł��B���w�E���肪�Ƃ��B_(._.)_<br /> <br />
-�y���_�z�Ύ��ɂ��Ă͂��낢�뒲�ׂ����ʁA�h�������h�Ɠ��`�ł��邱�Ƃ��킩��܂����B��������������Ƃ��ɂ́A�K���΂����邱�Ƃ��炻�̖��O�������悤�ł��B</p>]]>
+<p>yÇÁzãÌRð¢Ä¢Äv¢oµÜµ½B<strong>ð¸AR[</strong>Å·B<br /><br />
+ywEz<a href="http://homepage2.nifty.com/kuma-bar/" target="_blank">JNe~JNe</a>ÌKUMA³ñÉÎðÍAEIbJðw·ÌÅÍÈ¢©Æ¢¤²wEª èÜµ½ÌÅA»Ý²¸Å·B²wE èªÆ¤B_(._.)_<br /> <br />
+y_zÎðÉÂ¢ÄÍ¢ë¢ë²×½ÊAhö¯ðhÆ¯`Å é±Æªí©èÜµ½B¨ððö¯·éÆ«ÉÍAK¸Îðüêé±Æ©ç»Ì¼OªÂ¢½æ¤Å·B</p>]]>
 
 </content>
 </entry>
