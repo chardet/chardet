@@ -39,7 +39,7 @@ def main():
     else:
         for path in argv[1:]:
             with open(path, 'rb') as f:
-                print(description_of(f, path)
+                print(description_of(f, path))
 
 
 if __name__ == '__main__':
