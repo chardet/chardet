@@ -29,6 +29,5 @@ setup(name='chardet',
                    ("Topic :: Software Development :: Libraries :: Python " +
                     "Modules"),
                    "Topic :: Text Processing :: Linguistic"],
-      scripts=['bin/chardetect'],
       packages=['chardet'],
       entry_points={'console_scripts': ['chardetect = chardet.chardetect:main']})
