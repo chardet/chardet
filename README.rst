@@ -16,6 +16,14 @@ Detects
 
 Requires Python 2.6 or later
 
+Installation
+------------
+
+Install from `PyPI <https://pypi.python.org/pypi/chardet>`_::
+
+    pip install chardet
+
+
 Command-line Tool
 -----------------
 
