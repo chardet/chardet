@@ -71,7 +71,7 @@ class UniversalDetector:
 
         if not self._mGotData:
             # If the data starts with BOM, we know it is UTF
-            if aBuf[:3] == codecs.BOM:
+            if aBuf[:3] == codecs.BOM_UTF8:
                 # EF BB BF  UTF-8 with BOM
                 self.result = {'encoding': "UTF-8-SIG", 'confidence': 1.0}
             elif aBuf[:4] == codecs.BOM_UTF32_LE:

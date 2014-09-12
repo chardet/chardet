@@ -16,6 +16,14 @@ Detects
 
 Requires Python 2.6 or later
 
+Installation
+------------
+
+Install from `PyPI <https://pypi.python.org/pypi/chardet>`_::
+
+    pip install chardet
+
+
 Command-line Tool
 -----------------
 
@@ -31,7 +39,7 @@ About
 
 This is a continuation of Mark Pilgrim's excellent chardet. Previously, two
 versions needed to be maintained: one that supported python 2.x and one that
-supported python 3.x.  We've recently merged with `Ian Corduscano <https://github.com/sigmavirus24>`_'s
+supported python 3.x.  We've recently merged with `Ian Cordasco <https://github.com/sigmavirus24>`_'s
 `charade <https://github.com/sigmavirus24/charade>`_ fork, so now we have one
 coherent version that works for Python 2.6+.
 
