@@ -1,8 +1,10 @@
+from __future__ import with_statement
+
 import os
 import sys
 import unittest
 
-from chardet.universaldetector import UniversalDetector
+import chardet
 
 
 class TestCase(unittest.TestCase):
@@ -22,15 +24,11 @@ class TestCase(unittest.TestCase):
         self.encoding = encoding
 
     def runTest(self):
-        u = UniversalDetector()
-        for line in open(self.file_name, 'rb'):
-            u.feed(line)
-            if u.done:
-                break
-        u.close()
-        self.assertEqual(u.result['encoding'].lower(), self.encoding,
-                         "Expected %s, but got %r in %s" %
-                         (self.encoding, u.result['encoding'],
+        with open(self.file_name, 'rb') as f:
+            result = chardet.detect(f.read())
+        self.assertEqual(result['encoding'].lower(), self.encoding,
+                         "Expected %s, but got %s in %s" %
+                         (self.encoding, result['encoding'],
                           self.file_name))
 
 

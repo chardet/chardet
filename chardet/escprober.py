@@ -34,14 +34,13 @@ from .compat import wrap_ord
 
 
 class EscCharSetProber(CharSetProber):
+
     def __init__(self):
         CharSetProber.__init__(self)
-        self._mCodingSM = [
-            CodingStateMachine(HZSMModel),
-            CodingStateMachine(ISO2022CNSMModel),
-            CodingStateMachine(ISO2022JPSMModel),
-            CodingStateMachine(ISO2022KRSMModel)
-        ]
+        self._mCodingSM = [CodingStateMachine(HZSMModel),
+                           CodingStateMachine(ISO2022CNSMModel),
+                           CodingStateMachine(ISO2022JPSMModel),
+                           CodingStateMachine(ISO2022KRSMModel)]
         self.reset()
 
     def reset(self):

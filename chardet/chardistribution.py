@@ -43,7 +43,10 @@ SURE_NO = 0.01
 MINIMUM_DATA_THRESHOLD = 3
 
 
-class CharDistributionAnalysis:
+class CharDistributionAnalysis(object):
+    '''
+    This class encapsulates
+    '''
     def __init__(self):
         # Mapping table to get frequency order from char order (get from
         # GetOrder())

@@ -26,14 +26,16 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-from . import constants
-import sys
 import codecs
+import re
+import sys
+
+from . import constants
 from .latin1prober import Latin1Prober  # windows-1252
 from .mbcsgroupprober import MBCSGroupProber  # multi-byte character sets
 from .sbcsgroupprober import SBCSGroupProber  # single-byte character sets
 from .escprober import EscCharSetProber  # ISO-2122, etc.
-import re
+
 
 MINIMUM_THRESHOLD = 0.20
 ePureAscii = 0
@@ -41,7 +43,7 @@ eEscAscii = 1
 eHighbyte = 2
 
 
-class UniversalDetector:
+class UniversalDetector(object):
     def __init__(self):
         self._highBitDetector = re.compile(b'[\x80-\xFF]')
         self._escDetector = re.compile(b'(\033|~{)')
@@ -65,8 +67,7 @@ class UniversalDetector:
         if self.done:
             return
 
-        aLen = len(aBuf)
-        if not aLen:
+        if not len(aBuf):
             return
 
         if not self._mGotData:
