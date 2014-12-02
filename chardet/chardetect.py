@@ -20,7 +20,10 @@ import sys
 from io import open
 
 from chardet import __version__
+from chardet.compat import PY2
 from chardet.universaldetector import UniversalDetector
+
+
 
 
 def description_of(lines, name='stdin'):
@@ -38,7 +41,7 @@ def description_of(lines, name='stdin'):
         u.feed(line)
     u.close()
     result = u.result
-    if sys.version_info < (3, 0):
+    if PY2:
         name = name.decode(sys.getfilesystemencoding(), 'ignore')
     if result['encoding']:
         return '{0}: {1} with confidence {2}'.format(name, result['encoding'],
@@ -58,13 +61,12 @@ def main(argv=None):
     # Get command line arguments
     parser = argparse.ArgumentParser(
         description="Takes one or more file paths and reports their detected \
-                     encodings",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        conflict_handler='resolve')
+                     encodings")
     parser.add_argument('input',
-                        help='File whose encoding we would like to determine.',
+                        help='File whose encoding we would like to determine. \
+                              (default: stdin)',
                         type=argparse.FileType('rb'), nargs='*',
-                        default=[open(sys.stdin.fileno(), 'rb')])
+                        default=[sys.stdin if PY2 else sys.stdin.buffer])
     parser.add_argument('--version', action='version',
                         version='%(prog)s {0}'.format(__version__))
     args = parser.parse_args(argv)
