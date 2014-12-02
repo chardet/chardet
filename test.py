@@ -21,6 +21,7 @@ class TestCase(unittest.TestCase):
                         '-turkish']:
             if encoding.endswith(postfix):
                 encoding, _, _ = encoding.rpartition(postfix)
+                break
         self.encoding = encoding
 
     def runTest(self):
@@ -51,4 +52,5 @@ def main():
     unittest.TextTestRunner().run(suite)
 
 
-main()
+if __name__ == '__main__':
+    main()
