@@ -38,6 +38,8 @@ def description_of(lines, name='stdin'):
         u.feed(line)
     u.close()
     result = u.result
+    if sys.version_info < (3, 0):
+        name = name.decode(sys.getfilesystemencoding(), 'ignore')
     if result['encoding']:
         return '{0}: {1} with confidence {2}'.format(name, result['encoding'],
                                                      result['confidence'])
