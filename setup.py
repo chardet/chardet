@@ -10,7 +10,7 @@ def readme():
 
 
 def requirements():
-    with open(req_path) as f:
+    with open('requirements.txt') as f:
         reqs = f.read().splitlines()
     return reqs
 
