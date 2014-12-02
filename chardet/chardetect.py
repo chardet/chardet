@@ -64,7 +64,7 @@ def main(argv=None):
     parser.add_argument('input',
                         help='File whose encoding we would like to determine.',
                         type=argparse.FileType('rb'), nargs='*',
-                        default=[sys.stdin])
+                        default=[open(sys.stdin.fileno(), 'rb')])
     parser.add_argument('--version', action='version',
                         version='%(prog)s {0}'.format(__version__))
     args = parser.parse_args(argv)
