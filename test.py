@@ -1,56 +1,47 @@
+"""
+Run chardet on a bunch of documents and see that we get the correct encodings.
+
+:author: Dan Blanchard
+:author: Ian Cordasco
+"""
+
 from __future__ import with_statement
 
-import os
 import sys
 import unittest
+from os import listdir
+from os.path import dirname, isdir, join, realpath, relpath, splitext
+
+from nose.tools import eq_
 
 import chardet
 
 
-class TestCase(unittest.TestCase):
-    def __init__(self, file_name, encoding):
-        unittest.TestCase.__init__(self)
-        self.file_name = file_name
-        encoding = encoding.lower()
-        for postfix in ['-arabic',
-                        '-bulgarian',
-                        '-cyrillic',
-                        '-greek',
-                        '-hebrew',
-                        '-hungarian',
-                        '-turkish']:
-            if encoding.endswith(postfix):
-                encoding, _, _ = encoding.rpartition(postfix)
-                break
-        self.encoding = encoding
+def check_file_encoding(file_name, encoding):
+    """ Ensure that we detect the encoding for file_name correctly. """
+    encoding = encoding.lower()
+    for postfix in ['-arabic', '-bulgarian', '-cyrillic', '-greek', '-hebrew',
+                    '-hungarian', '-turkish']:
+        if encoding.endswith(postfix):
+            encoding = encoding.rpartition(postfix)[0]
+            break
 
-    def runTest(self):
-        with open(self.file_name, 'rb') as f:
-            result = chardet.detect(f.read())
-        self.assertEqual(result['encoding'].lower(), self.encoding,
-                         "Expected %s, but got %s in %s" %
-                         (self.encoding, result['encoding'],
-                          self.file_name))
+    with open(file_name, 'rb') as f:
+        result = chardet.detect(f.read())
+    eq_(result['encoding'].lower(), encoding, ("Expected %s, but got %s for "
+                                               "%s" % (encoding,
+                                                       result['encoding'],
+                                                       file_name)))
 
 
-def main():
-    suite = unittest.TestSuite()
-    if len(sys.argv) > 1:
-        base_path = sys.argv[1]
-    else:
-        base_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), 'tests')
-    for encoding in os.listdir(base_path):
-        path = os.path.join(base_path, encoding)
-        if not os.path.isdir(path):
+def test_encoding_detection():
+    base_path = relpath(join(dirname(realpath(__file__)), 'tests'))
+    for encoding in listdir(base_path):
+        path = join(base_path, encoding)
+        if not isdir(path):
             continue
-        for file_name in os.listdir(path):
-            _, ext = os.path.splitext(file_name)
+        for file_name in listdir(path):
+            ext = splitext(file_name)[1].lower()
             if ext not in ['.html', '.txt', '.xml', '.srt']:
                 continue
-            suite.addTest(TestCase(os.path.join(path, file_name), encoding))
-    unittest.TextTestRunner().run(suite)
-
-
-if __name__ == '__main__':
-    main()
+            yield check_file_encoding, join(path, file_name), encoding

@@ -5,8 +5,34 @@ python:
   - 3.3
   - 3.4
 
-script: python test.py
+before_install:
+  - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
+  - chmod +x miniconda.sh
+  - ./miniconda.sh -b
+  - export PATH=/home/travis/miniconda/bin:$PATH
+  - conda config --add channels https://conda.binstar.org/dan_blanchard
+  - conda update --yes conda
+
+install:
+  # Setup desired Python in conda environments with python-coveralls
+  - conda install --yes pip python=$TRAVIS_PYTHON_VERSION python-coveralls
+  # Have to use pip for nose-cov because its entry points are not supported by conda yet
+  - pip install nose-cov
+  # Multiprocessing fix for Travis
+  - sudo rm -rf /dev/shm
+  - sudo ln -s /run/shm /dev/shm
+  # Actuall install chardet
+  - python setup.py install
+
+# Run test
+script:
+  - nosetests -v --with-cov --cov skll --cov-config .coveragerc --logging-level=DEBUG
+
+# Calculate coverage
+after_success:
+  - coveralls --config_file .coveragerc
 
 notifications:
-   on_success: change
-   on_failure: always
+  email:
+    on_success: change
+    on_failure: always

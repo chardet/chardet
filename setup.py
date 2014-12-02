@@ -9,20 +9,25 @@ def readme():
         return f.read()
 
 
+def requirements():
+    with open(req_path) as f:
+        reqs = f.read().splitlines()
+    return reqs
+
 setup(name='chardet',
       version=__version__,
       description='Universal encoding detector for Python 2 and 3',
       long_description=readme(),
       author='Mark Pilgrim',
       author_email='mark@diveintomark.org',
-      maintainer='Ian Cordasco',
-      maintainer_email='graffatcolmingov@gmail.com',
+      maintainer='Daniel Blanchard',
+      maintainer_email='dblanchard@ets.org',
       url='https://github.com/chardet/chardet',
       license="LGPL",
       keywords=['encoding', 'i18n', 'xml'],
       classifiers=["Development Status :: 4 - Beta",
                    "Intended Audience :: Developers",
-                   ("License :: OSI Approved :: GNU Library or Lesser General" +
+                   ("License :: OSI Approved :: GNU Library or Lesser General"
                     " Public License (LGPL)"),
                    "Operating System :: OS Independent",
                    "Programming Language :: Python",
@@ -32,8 +37,10 @@ setup(name='chardet',
                    'Programming Language :: Python :: 3',
                    'Programming Language :: Python :: 3.2',
                    'Programming Language :: Python :: 3.3',
-                   ("Topic :: Software Development :: Libraries :: Python " +
+                   ("Topic :: Software Development :: Libraries :: Python "
                     "Modules"),
                    "Topic :: Text Processing :: Linguistic"],
       packages=['chardet'],
-      entry_points={'console_scripts': ['chardetect = chardet.chardetect:main']})
+      install_requires=requirements(),
+      entry_points={'console_scripts':
+                    ['chardetect = chardet.chardetect:main']})
