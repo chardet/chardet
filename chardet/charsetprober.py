@@ -54,8 +54,32 @@ class CharSetProber:
         return aBuf
 
     def filter_without_english_letters(self, aBuf):
-        aBuf = re.sub(b'([A-Za-z])+', b' ', aBuf)
-        return aBuf
+        newStr = b""
+        prev = 0
+        curr = 0
+        meetMSB = False
+        for curr in range(0, len(aBuf)):
+            c = aBuf[curr]
+            if ord(c) & 0x80:
+                meetMSB = True
+            elif ord(c) < ord('A') or \
+                    (ord(c) > ord('Z') and ord(c) < ord('a')) \
+                    or ord(c) > ord('z'):
+                if meetMSB and curr > prev:
+                    while prev < curr:
+                        newStr += aBuf[prev]
+                        prev += 1
+                    prev += 1
+                    newStr += b' '
+                    meetMSB = False
+                else:
+                    prev = curr + 1
+        if meetMSB and curr > prev:
+            while prev < curr:
+                newStr += aBuf[prev]
+                prev += 1
+
+        return newStr
 
     def filter_with_english_letters(self, aBuf):
         # TODO
