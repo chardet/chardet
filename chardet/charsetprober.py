@@ -54,11 +54,6 @@ class CharSetProber:
         return aBuf
 
     def filter_without_english_letters(self, aBuf):
-        """
-            returns a byte string by saving only bytes that are inclusively
-            between a high ascii byte (> 127) and a low ascii byte that is not
-            an english alphabet.
-        """
         newStr = b""
         prev = 0
         curr = 0
@@ -73,8 +68,8 @@ class CharSetProber:
             ord_curr = ord(aBuf[curr])
             if ord_curr & 0x80:
                 meetMSB = True
-            elif not (ord_A < ord_curr < ord_Z or
-                      ord_a < ord_curr < ord_z):
+            elif not (ord_A <= ord_curr <= ord_Z or
+                      ord_a <= ord_curr <= ord_z):
                 if meetMSB and curr > prev:
                     while prev < curr:
                         newStr += aBuf[prev]
@@ -84,8 +79,9 @@ class CharSetProber:
                     meetMSB = False
                 else:
                     prev = curr + 1
-        if meetMSB and curr > prev:
-            while prev < curr:
+
+        if meetMSB and curr >= prev:
+            while prev <= curr:
                 newStr += aBuf[prev]
                 prev += 1
 
