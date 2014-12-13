@@ -28,6 +28,7 @@
 
 from . import constants
 import re
+from io import BytesIO
 
 
 class CharSetProber:
@@ -53,39 +54,40 @@ class CharSetProber:
         aBuf = re.sub(b'([\x00-\x7F])+', b' ', aBuf)
         return aBuf
 
-    def filter_without_english_letters(self, aBuf):
-        newStr = b""
-        prev = 0
-        curr = 0
-        meetMSB = False
+    def filter_international_words(self, buf):
+        """
+            we define three types of bytes:
+            alphabet: english alphabets [a-zA-Z]
+            international: international characters bytes (>= 0x80)
+            marker: everything else [^a-zA-Z] && < 0x80
 
-        ord_a = ord('a')
-        ord_z = ord('z')
-        ord_A = ord('A')
-        ord_Z = ord('Z')
+            let us assume that the input aBuf contains a series of words delimited
+            by contiguous sequences of markers.
+            this function works to filter all words that contain at-least one
+            international character. all contiguous sequences of markers are
+            also replaced by a single space ascii character.
+        """
+        filtered = BytesIO()
 
-        for curr in range(0, len(aBuf)):
-            ord_curr = ord(aBuf[curr])
-            if ord_curr & 0x80:
-                meetMSB = True
-            elif not (ord_A <= ord_curr <= ord_Z or
-                      ord_a <= ord_curr <= ord_z):
-                if meetMSB and curr > prev:
-                    while prev < curr:
-                        newStr += aBuf[prev]
-                        prev += 1
-                    prev += 1
-                    newStr += b' '
-                    meetMSB = False
-                else:
-                    prev = curr + 1
+        # this regex expression filters out only words that have at-least
+        # one international character. it may include one marker character at the
+        # end
+        words = \
+            re.findall("[a-zA-Z]*[\x80-\xFF]+[a-zA-Z]*[^a-zA-Z\x80-\xFF]?", buf)
 
-        if meetMSB and curr >= prev:
-            while prev <= curr:
-                newStr += aBuf[prev]
-                prev += 1
+        for word in words:
+            filtered.write(word[:-1])
 
-        return newStr
+            # if the last character in the word is a marker, replace it with a
+            # space as markers shouldn't affect our analysis (they are used
+            # similarly across all languages and may thus have similar
+            # frequencies)
+            last_char = word[-1]
+            last_char = last_char if last_char.isalpha() or last_char >= b'\x80' \
+                else b' '
+            filtered.write(last_char)
+
+        return filtered.getvalue()
 
     def filter_with_english_letters(self, aBuf):
         # TODO
