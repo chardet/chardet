@@ -56,24 +56,25 @@ class CharSetProber:
 
     def filter_international_words(self, buf):
         """
-            we define three types of bytes:
+            let there be types of bytes:
             alphabet: english alphabets [a-zA-Z]
             international: international characters bytes (>= 0x80)
             marker: everything else [^a-zA-Z] && < 0x80
 
-            let us assume that the input aBuf contains a series of words delimited
-            by contiguous sequences of markers.
+            let the input buffer contains a series of words
+            delimited by a contiguous sequences of markers.
             this function works to filter all words that contain at-least one
             international character. all contiguous sequences of markers are
-            also replaced by a single space ascii character.
+            replaced by a single space ascii character.
         """
         filtered = BytesIO()
 
         # this regex expression filters out only words that have at-least
-        # one international character. it may include one marker character at the
-        # end
+        # one international character. the word may include one marker
+        # character at the end
         words = \
-            re.findall("[a-zA-Z]*[\x80-\xFF]+[a-zA-Z]*[^a-zA-Z\x80-\xFF]?", buf)
+            re.findall(b'[a-zA-Z]*[\x80-\xFF]+[a-zA-Z]*[^a-zA-Z\x80-\xFF]?',
+                       buf)
 
         for word in words:
             filtered.write(word[:-1])
@@ -82,9 +83,9 @@ class CharSetProber:
             # space as markers shouldn't affect our analysis (they are used
             # similarly across all languages and may thus have similar
             # frequencies)
-            last_char = word[-1]
-            last_char = last_char if last_char.isalpha() or last_char >= b'\x80' \
-                else b' '
+            last_char = word[-1:]
+            last_char = last_char if last_char.isalpha() or \
+                last_char >= b'\x80' else b' '
             filtered.write(last_char)
 
         return filtered.getvalue()
