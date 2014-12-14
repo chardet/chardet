@@ -56,13 +56,13 @@ class CharSetProber:
 
     def filter_international_words(self, buf):
         """
-            let there be types of bytes:
+            we define three types of bytes:
             alphabet: english alphabets [a-zA-Z]
-            international: international characters bytes (>= 0x80)
-            marker: everything else [^a-zA-Z] && < 0x80
+            international: international characters [\x80-\xFF]
+            marker: everything else [^a-zA-Z\x80-\xFF]
 
-            let the input buffer contains a series of words
-            delimited by a contiguous sequences of markers.
+            the input buffer can be thought to contain a series of words
+            delimited by markers.
             this function works to filter all words that contain at-least one
             international character. all contiguous sequences of markers are
             replaced by a single space ascii character.
