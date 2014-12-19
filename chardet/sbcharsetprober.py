@@ -69,7 +69,7 @@ class SingleByteCharSetProber(CharSetProber):
 
     def feed(self, aBuf):
         if not self._mModel['keepEnglishLetter']:
-            aBuf = self.filter_without_english_letters(aBuf)
+            aBuf = self.filter_international_words(aBuf)
         aLen = len(aBuf)
         if not aLen:
             return self.get_state()
