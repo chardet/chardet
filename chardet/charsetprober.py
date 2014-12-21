@@ -27,6 +27,7 @@
 ######################### END LICENSE BLOCK #########################
 
 import re
+from io import BytesIO
 
 from . import constants
 
@@ -55,9 +56,41 @@ class CharSetProber(object):
         aBuf = re.sub(b'([\x00-\x7F])+', b' ', aBuf)
         return aBuf
 
-    def filter_without_english_letters(self, aBuf):
-        aBuf = re.sub(b'([A-Za-z])+', b' ', aBuf)
-        return aBuf
+    def filter_international_words(self, buf):
+        """
+            we define three types of bytes:
+            alphabet: english alphabets [a-zA-Z]
+            international: international characters [\x80-\xFF]
+            marker: everything else [^a-zA-Z\x80-\xFF]
+
+            the input buffer can be thought to contain a series of words
+            delimited by markers.
+            this function works to filter all words that contain at-least one
+            international character. all contiguous sequences of markers are
+            replaced by a single space ascii character.
+        """
+        filtered = BytesIO()
+
+        # this regex expression filters out only words that have at-least
+        # one international character. the word may include one marker
+        # character at the end
+        words = \
+            re.findall(b'[a-zA-Z]*[\x80-\xFF]+[a-zA-Z]*[^a-zA-Z\x80-\xFF]?',
+                       buf)
+
+        for word in words:
+            filtered.write(word[:-1])
+
+            # if the last character in the word is a marker, replace it with a
+            # space as markers shouldn't affect our analysis (they are used
+            # similarly across all languages and may thus have similar
+            # frequencies)
+            last_char = word[-1:]
+            last_char = last_char if last_char.isalpha() or \
+                last_char >= b'\x80' else b' '
+            filtered.write(last_char)
+
+        return filtered.getvalue()
 
     def filter_with_english_letters(self, aBuf):
         # TODO
