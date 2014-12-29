@@ -1,12 +1,14 @@
 language: python
+sudo: false
 python:
   - 2.6
   - 2.7
   - 3.3
   - 3.4
+  - pypy
 
 install:
-  - pip install python-coveralls nose-cov
+  - travis_retry pip install python-coveralls nose-cov
   - python setup.py install
 
 # Run test
