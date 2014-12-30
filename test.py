@@ -7,8 +7,6 @@ Run chardet on a bunch of documents and see that we get the correct encodings.
 
 from __future__ import with_statement
 
-import sys
-import unittest
 from os import listdir
 from os.path import dirname, isdir, join, realpath, relpath, splitext
 
@@ -17,10 +15,14 @@ from nose.tools import eq_
 import chardet
 
 
+EQUIVALENT_ENCODINGS = {'latin1': 'windows-1252'}
+
+
 def check_file_encoding(file_name, encoding):
     """ Ensure that we detect the encoding for file_name correctly. """
     with open(file_name, 'rb') as f:
         result = chardet.detect(f.read())
+    encoding = EQUIVALENT_ENCODINGS.get(encoding, encoding)
     eq_(result['encoding'].lower(), encoding, ("Expected %s, but got %s for "
                                                "%s" % (encoding,
                                                        result['encoding'],
