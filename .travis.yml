@@ -13,12 +13,12 @@ install:
 
 # Run test
 script:
-  - if [ "$TRAVIS_PYTHON_VERSION" == "pypy" ]; nosetests -v --with-cov --cov chardet --cov-config .coveragerc --logging-level=DEBUG
-  - if [ "$TRAVIS_PYTHON_VERSION" != "pypy" ]; nosetests -v --logging-level=DEBUG
+  - if [[ $TRAVIS_PYTHON_VERSION == 'pypy' ]]; then nosetests -v --with-cov --cov chardet --cov-config .coveragerc --logging-level=DEBUG; fi
+  - if [[ $TRAVIS_PYTHON_VERSION != 'pypy' ]]; then nosetests -v --logging-level=DEBUG; fi
 
 # Calculate coverage
 after_success:
-  - if [ "$TRAVIS_PYTHON_VERSION" != "pypy" ]; coveralls --config_file .coveragerc
+  - if [[ $TRAVIS_PYTHON_VERSION != 'pypy' ]]; then coveralls --config_file .coveragerc; fi
 
 notifications:
   email:
