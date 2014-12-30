@@ -13,8 +13,8 @@ install:
 
 # Run test
 script:
-  - if [[ $TRAVIS_PYTHON_VERSION == 'pypy' ]]; then nosetests -v --with-cov --cov chardet --cov-config .coveragerc --logging-level=DEBUG; fi
-  - if [[ $TRAVIS_PYTHON_VERSION != 'pypy' ]]; then nosetests -v --logging-level=DEBUG; fi
+  - if [[ $TRAVIS_PYTHON_VERSION != 'pypy' ]]; then nosetests -v --with-cov --cov chardet --cov-config .coveragerc --logging-level=DEBUG; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == 'pypy' ]]; then nosetests -v --logging-level=DEBUG; fi
 
 # Calculate coverage
 after_success:
