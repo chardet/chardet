@@ -5,7 +5,7 @@ python:
   - 2.7
   - 3.3
   - 3.4
-  # - pypy  (Commented out because it is currently 10 times slower)
+  - pypy
 
 install:
   - travis_retry pip install python-coveralls nose-cov
@@ -13,11 +13,12 @@ install:
 
 # Run test
 script:
-  - nosetests -v --with-cov --cov chardet --cov-config .coveragerc --logging-level=DEBUG
+  - if [ "$TRAVIS_PYTHON_VERSION" == "pypy" ]; nosetests -v --with-cov --cov chardet --cov-config .coveragerc --logging-level=DEBUG
+  - if [ "$TRAVIS_PYTHON_VERSION" != "pypy" ]; nosetests -v --logging-level=DEBUG
 
 # Calculate coverage
 after_success:
-  - coveralls --config_file .coveragerc
+  - if [ "$TRAVIS_PYTHON_VERSION" != "pypy" ]; coveralls --config_file .coveragerc
 
 notifications:
   email:
