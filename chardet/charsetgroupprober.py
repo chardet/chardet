@@ -1,11 +1,11 @@
 ######################## BEGIN LICENSE BLOCK ########################
 # The Original Code is Mozilla Communicator client code.
-# 
+#
 # The Initial Developer of the Original Code is
 # Netscape Communications Corporation.
 # Portions created by the Initial Developer are Copyright (C) 1998
 # the Initial Developer. All Rights Reserved.
-# 
+#
 # Contributor(s):
 #   Mark Pilgrim - port to Python
 #
@@ -13,12 +13,12 @@
 # modify it under the terms of the GNU Lesser General Public
 # License as published by the Free Software Foundation; either
 # version 2.1 of the License, or (at your option) any later version.
-# 
+#
 # This library is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
@@ -32,7 +32,7 @@ from .charsetprober import CharSetProber
 
 class CharSetGroupProber(CharSetProber):
     def __init__(self):
-        CharSetProber.__init__(self)
+        super(CharSetGroupProber, self).__init__()
         self._mActiveNum = 0
         self._mProbers = []
         self._mBestGuessProber = None
@@ -52,7 +52,6 @@ class CharSetGroupProber(CharSetProber):
             self.get_confidence()
             if not self._mBestGuessProber:
                 return None
-#                self._mBestGuessProber = self._mProbers[0]
         return self._mBestGuessProber.get_charset_name()
 
     def feed(self, aBuf):
@@ -101,6 +100,3 @@ class CharSetGroupProber(CharSetProber):
         if not self._mBestGuessProber:
             return 0.0
         return bestConf
-#        else:
-#            self._mBestGuessProber = self._mProbers[0]
-#            return self._mBestGuessProber.get_confidence()

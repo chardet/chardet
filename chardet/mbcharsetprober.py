@@ -34,13 +34,13 @@ from .charsetprober import CharSetProber
 
 class MultiByteCharSetProber(CharSetProber):
     def __init__(self):
-        CharSetProber.__init__(self)
+        super(MultiByteCharSetProber, self).__init__()
         self._mDistributionAnalyzer = None
         self._mCodingSM = None
         self._mLastChar = [0, 0]
 
     def reset(self):
-        CharSetProber.reset(self)
+        super(MultiByteCharSetProber, self).reset()
         if self._mCodingSM:
             self._mCodingSM.reset()
         if self._mDistributionAnalyzer:

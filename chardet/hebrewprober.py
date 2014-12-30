@@ -154,7 +154,11 @@ LOGICAL_HEBREW_NAME = "windows-1255"
 
 class HebrewProber(CharSetProber):
     def __init__(self):
-        CharSetProber.__init__(self)
+        super(HebrewProber, self).__init__()
+        self._mFinalCharLogicalScore = None
+        self._mFinalCharVisualScore = None
+        self._mPrev = None
+        self._mBeforePrev = None
         self._mLogicalProber = None
         self._mVisualProber = None
         self.reset()

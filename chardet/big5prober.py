@@ -33,7 +33,7 @@ from .mbcssm import Big5SMModel
 
 class Big5Prober(MultiByteCharSetProber):
     def __init__(self):
-        MultiByteCharSetProber.__init__(self)
+        super(Big5Prober, self).__init__()
         self._mCodingSM = CodingStateMachine(Big5SMModel)
         self._mDistributionAnalyzer = Big5DistributionAnalysis()
         self.reset()

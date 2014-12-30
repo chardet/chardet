@@ -36,14 +36,14 @@ from . import constants
 
 class SJISProber(MultiByteCharSetProber):
     def __init__(self):
-        MultiByteCharSetProber.__init__(self)
+        super(SJISProber, self).__init__()
         self._mCodingSM = CodingStateMachine(SJISSMModel)
         self._mDistributionAnalyzer = SJISDistributionAnalysis()
         self._mContextAnalyzer = SJISContextAnalysis()
         self.reset()
 
     def reset(self):
-        MultiByteCharSetProber.reset(self)
+        super(SJISProber, self).reset()
         self._mContextAnalyzer.reset()
 
     def get_charset_name(self):

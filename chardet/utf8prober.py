@@ -35,12 +35,13 @@ ONE_CHAR_PROB = 0.5
 
 class UTF8Prober(CharSetProber):
     def __init__(self):
-        CharSetProber.__init__(self)
+        super(UTF8Prober, self).__init__()
         self._mCodingSM = CodingStateMachine(UTF8SMModel)
+        self._mNumOfMBChar = None
         self.reset()
 
     def reset(self):
-        CharSetProber.reset(self)
+        super(UTF8Prober, self).reset()
         self._mCodingSM.reset()
         self._mNumOfMBChar = 0
 
@@ -69,8 +70,7 @@ class UTF8Prober(CharSetProber):
     def get_confidence(self):
         unlike = 0.99
         if self._mNumOfMBChar < 6:
-            for i in range(0, self._mNumOfMBChar):
-                unlike = unlike * ONE_CHAR_PROB
+            unlike *= ONE_CHAR_PROB ^ self._mNumOfMBChar
             return 1.0 - unlike
         else:
             return unlike

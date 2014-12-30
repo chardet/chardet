@@ -43,7 +43,7 @@ POSITIVE_CAT = NUMBER_OF_SEQ_CAT - 1
 
 class SingleByteCharSetProber(CharSetProber):
     def __init__(self, model, reversed=False, nameProber=None):
-        CharSetProber.__init__(self)
+        super(SingleByteCharSetProber, self).__init__()
         self._mModel = model
         # TRUE if we need to reverse every pair in the model lookup
         self._mReversed = reversed
@@ -52,7 +52,7 @@ class SingleByteCharSetProber(CharSetProber):
         self.reset()
 
     def reset(self):
-        CharSetProber.reset(self)
+        super(SingleByteCharSetProber, self).reset()
         # char order of last character
         self._mLastOrder = 255
         self._mSeqCounters = [0] * NUMBER_OF_SEQ_CAT

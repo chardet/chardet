@@ -18,10 +18,12 @@
 __version__ = "2.3.0"
 from sys import version_info
 
+from .compat import PY2, PY3
+
 
 def detect(aBuf):
-    if ((version_info < (3, 0) and isinstance(aBuf, unicode)) or
-            (version_info >= (3, 0) and not isinstance(aBuf, bytes))):
+    if (PY2 and isinstance(aBuf, unicode)) or (PY3 and
+                                               not isinstance(aBuf, bytes)):
         raise ValueError('Expected a bytes object, not a unicode object')
 
     from . import universaldetector

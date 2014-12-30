@@ -34,6 +34,7 @@ class CodingStateMachine(object):
         self._mModel = sm
         self._mCurrentBytePos = 0
         self._mCurrentCharLen = 0
+        self._mCurrentState = None
         self.reset()
 
     def reset(self):

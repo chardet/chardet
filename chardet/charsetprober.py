@@ -35,7 +35,7 @@ from . import constants
 class CharSetProber(object):
 
     def __init__(self):
-        pass
+        self._mState = None
 
     def reset(self):
         self._mState = constants.eDetecting

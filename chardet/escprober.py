@@ -36,15 +36,18 @@ from .compat import wrap_ord
 class EscCharSetProber(CharSetProber):
 
     def __init__(self):
-        CharSetProber.__init__(self)
+        super(EscCharSetProber, self).__init__()
         self._mCodingSM = [CodingStateMachine(HZSMModel),
                            CodingStateMachine(ISO2022CNSMModel),
                            CodingStateMachine(ISO2022JPSMModel),
                            CodingStateMachine(ISO2022KRSMModel)]
+        self._mActiveSM = None
+        self._mDetectedCharset = None
+        self._mState = None
         self.reset()
 
     def reset(self):
-        CharSetProber.reset(self)
+        super(EscCharSetProber, self).reset()
         for codingSM in self._mCodingSM:
             if not codingSM:
                 continue
@@ -79,7 +82,7 @@ class EscCharSetProber(CharSetProber):
                         return self.get_state()
                 elif codingState == constants.eItsMe:
                     self._mState = constants.eFoundIt
-                    self._mDetectedCharset = codingSM.get_coding_state_machine()  # nopep8
+                    self._mDetectedCharset = codingSM.get_coding_state_machine()
                     return self.get_state()
 
         return self.get_state()

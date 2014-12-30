@@ -44,9 +44,7 @@ MINIMUM_DATA_THRESHOLD = 3
 
 
 class CharDistributionAnalysis(object):
-    '''
-    This class encapsulates
-    '''
+
     def __init__(self):
         # Mapping table to get frequency order from char order (get from
         # GetOrder())
@@ -57,6 +55,9 @@ class CharDistributionAnalysis(object):
         # http://www.mozilla.org/projects/intl/UniversalCharsetDetection.html
         # for further detail.
         self._mTypicalDistributionRatio = None
+        self._mDone = None
+        self._mTotalChars = None
+        self._mFreqChars = None
         self.reset()
 
     def reset(self):
@@ -113,7 +114,7 @@ class CharDistributionAnalysis(object):
 
 class EUCTWDistributionAnalysis(CharDistributionAnalysis):
     def __init__(self):
-        CharDistributionAnalysis.__init__(self)
+        super(EUCTWDistributionAnalysis, self).__init__()
         self._mCharToFreqOrder = EUCTWCharToFreqOrder
         self._mTableSize = EUCTW_TABLE_SIZE
         self._mTypicalDistributionRatio = EUCTW_TYPICAL_DISTRIBUTION_RATIO
@@ -132,7 +133,7 @@ class EUCTWDistributionAnalysis(CharDistributionAnalysis):
 
 class EUCKRDistributionAnalysis(CharDistributionAnalysis):
     def __init__(self):
-        CharDistributionAnalysis.__init__(self)
+        super(EUCKRDistributionAnalysis, self).__init__()
         self._mCharToFreqOrder = EUCKRCharToFreqOrder
         self._mTableSize = EUCKR_TABLE_SIZE
         self._mTypicalDistributionRatio = EUCKR_TYPICAL_DISTRIBUTION_RATIO
@@ -151,7 +152,7 @@ class EUCKRDistributionAnalysis(CharDistributionAnalysis):
 
 class GB2312DistributionAnalysis(CharDistributionAnalysis):
     def __init__(self):
-        CharDistributionAnalysis.__init__(self)
+        super(GB2312DistributionAnalysis, self).__init__()
         self._mCharToFreqOrder = GB2312CharToFreqOrder
         self._mTableSize = GB2312_TABLE_SIZE
         self._mTypicalDistributionRatio = GB2312_TYPICAL_DISTRIBUTION_RATIO
@@ -170,7 +171,7 @@ class GB2312DistributionAnalysis(CharDistributionAnalysis):
 
 class Big5DistributionAnalysis(CharDistributionAnalysis):
     def __init__(self):
-        CharDistributionAnalysis.__init__(self)
+        super(Big5DistributionAnalysis, self).__init__()
         self._mCharToFreqOrder = Big5CharToFreqOrder
         self._mTableSize = BIG5_TABLE_SIZE
         self._mTypicalDistributionRatio = BIG5_TYPICAL_DISTRIBUTION_RATIO
@@ -192,7 +193,7 @@ class Big5DistributionAnalysis(CharDistributionAnalysis):
 
 class SJISDistributionAnalysis(CharDistributionAnalysis):
     def __init__(self):
-        CharDistributionAnalysis.__init__(self)
+        super(SJISDistributionAnalysis, self).__init__()
         self._mCharToFreqOrder = JISCharToFreqOrder
         self._mTableSize = JIS_TABLE_SIZE
         self._mTypicalDistributionRatio = JIS_TYPICAL_DISTRIBUTION_RATIO
@@ -217,7 +218,7 @@ class SJISDistributionAnalysis(CharDistributionAnalysis):
 
 class EUCJPDistributionAnalysis(CharDistributionAnalysis):
     def __init__(self):
-        CharDistributionAnalysis.__init__(self)
+        super(EUCJPDistributionAnalysis, self).__init__()
         self._mCharToFreqOrder = JISCharToFreqOrder
         self._mTableSize = JIS_TABLE_SIZE
         self._mTypicalDistributionRatio = JIS_TYPICAL_DISTRIBUTION_RATIO

@@ -36,14 +36,14 @@ from .mbcssm import EUCJPSMModel
 
 class EUCJPProber(MultiByteCharSetProber):
     def __init__(self):
-        MultiByteCharSetProber.__init__(self)
+        super(EUCJPProber, self).__init__()
         self._mCodingSM = CodingStateMachine(EUCJPSMModel)
         self._mDistributionAnalyzer = EUCJPDistributionAnalysis()
         self._mContextAnalyzer = EUCJPContextAnalysis()
         self.reset()
 
     def reset(self):
-        MultiByteCharSetProber.reset(self)
+        super(EUCJPProber, self).reset()
         self._mContextAnalyzer.reset()
 
     def get_charset_name(self):

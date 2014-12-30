@@ -120,8 +120,13 @@ jp2CharContext = (
 (0,4,0,3,0,3,0,3,0,3,5,5,3,3,3,3,4,3,4,3,3,3,4,4,4,3,3,3,3,4,3,5,3,3,1,3,2,4,5,5,5,5,4,3,4,5,5,3,2,2,3,3,3,3,2,3,3,1,2,3,2,4,3,3,3,4,0,4,0,2,0,4,3,2,2,1,2,0,3,0,0,4,1),
 )
 
-class JapaneseContextAnalysis:
+class JapaneseContextAnalysis(object):
     def __init__(self):
+        self._mTotalRel = None
+        self._mRelSample = None
+        self._mNeedToSkipCharNum = None
+        self._mLastCharOrder = None
+        self._mDone = None
         self.reset()
 
     def reset(self):
@@ -178,6 +183,7 @@ class JapaneseContextAnalysis:
 
 class SJISContextAnalysis(JapaneseContextAnalysis):
     def __init__(self):
+        super(SJISContextAnalysis, self).__init__()
         self.charset_name = "SHIFT_JIS"
 
     def get_charset_name(self):
@@ -188,7 +194,7 @@ class SJISContextAnalysis(JapaneseContextAnalysis):
             return -1, 1
         # find out current char's byte length
         first_char = wrap_ord(aBuf[0])
-        if ((0x81 <= first_char <= 0x9F) or (0xE0 <= first_char <= 0xFC)):
+        if (0x81 <= first_char <= 0x9F) or (0xE0 <= first_char <= 0xFC):
             charLen = 2
             if (first_char == 0x87) or (0xFA <= first_char <= 0xFC):
                 self.charset_name = "CP932"
