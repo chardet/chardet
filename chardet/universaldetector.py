@@ -49,6 +49,12 @@ class UniversalDetector(object):
         self._escDetector = re.compile(b'(\033|~{)')
         self._mEscCharSetProber = None
         self._mCharSetProbers = []
+        self.result = None
+        self.done = None
+        self._mStart = None
+        self._mGotData = None
+        self._mInputState = None
+        self._mLastChar = None
         self.reset()
 
     def reset(self):
@@ -72,31 +78,27 @@ class UniversalDetector(object):
 
         if not self._mGotData:
             # If the data starts with BOM, we know it is UTF
-            if aBuf[:3] == codecs.BOM_UTF8:
+            if aBuf.startswith(codecs.BOM_UTF8):
                 # EF BB BF  UTF-8 with BOM
                 self.result = {'encoding': "UTF-8-SIG", 'confidence': 1.0}
-            elif aBuf[:4] == codecs.BOM_UTF32_LE:
+            elif aBuf.startswith(codecs.BOM_UTF32_LE):
                 # FF FE 00 00  UTF-32, little-endian BOM
                 self.result = {'encoding': "UTF-32LE", 'confidence': 1.0}
-            elif aBuf[:4] == codecs.BOM_UTF32_BE:
+            elif aBuf.startswith(codecs.BOM_UTF32_BE):
                 # 00 00 FE FF  UTF-32, big-endian BOM
                 self.result = {'encoding': "UTF-32BE", 'confidence': 1.0}
-            elif aBuf[:4] == b'\xFE\xFF\x00\x00':
+            elif aBuf.startswith(b'\xFE\xFF\x00\x00'):
                 # FE FF 00 00  UCS-4, unusual octet order BOM (3412)
-                self.result = {
-                    'encoding': "X-ISO-10646-UCS-4-3412",
-                    'confidence': 1.0
-                }
-            elif aBuf[:4] == b'\x00\x00\xFF\xFE':
+                self.result = {'encoding': "X-ISO-10646-UCS-4-3412",
+                               'confidence': 1.0}
+            elif aBuf.startswith(b'\x00\x00\xFF\xFE'):
                 # 00 00 FF FE  UCS-4, unusual octet order BOM (2143)
-                self.result = {
-                    'encoding': "X-ISO-10646-UCS-4-2143",
-                    'confidence': 1.0
-                }
-            elif aBuf[:2] == codecs.BOM_LE:
+                self.result = {'encoding': "X-ISO-10646-UCS-4-2143",
+                               'confidence': 1.0}
+            elif aBuf.startswith(codecs.BOM_LE):
                 # FF FE  UTF-16, little endian BOM
                 self.result = {'encoding': "UTF-16LE", 'confidence': 1.0}
-            elif aBuf[:2] == codecs.BOM_BE:
+            elif aBuf.startswith(codecs.BOM_BE):
                 # FE FF  UTF-16, big endian BOM
                 self.result = {'encoding': "UTF-16BE", 'confidence': 1.0}
 
@@ -108,8 +110,8 @@ class UniversalDetector(object):
         if self._mInputState == ePureAscii:
             if self._highBitDetector.search(aBuf):
                 self._mInputState = eHighbyte
-            elif ((self._mInputState == ePureAscii) and
-                    self._escDetector.search(self._mLastChar + aBuf)):
+            elif self._mInputState == ePureAscii and \
+                    self._escDetector.search(self._mLastChar + aBuf):
                 self._mInputState = eEscAscii
 
         self._mLastChar = aBuf[-1:]
@@ -118,8 +120,10 @@ class UniversalDetector(object):
             if not self._mEscCharSetProber:
                 self._mEscCharSetProber = EscCharSetProber()
             if self._mEscCharSetProber.feed(aBuf) == constants.eFoundIt:
-                self.result = {'encoding': self._mEscCharSetProber.get_charset_name(),
-                               'confidence': self._mEscCharSetProber.get_confidence()}
+                self.result = {'encoding':
+                               self._mEscCharSetProber.get_charset_name(),
+                               'confidence':
+                               self._mEscCharSetProber.get_confidence()}
                 self.done = True
         elif self._mInputState == eHighbyte:
             if not self._mCharSetProbers:
