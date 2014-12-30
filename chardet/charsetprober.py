@@ -43,7 +43,7 @@ class CharSetProber(object):
     def get_charset_name(self):
         return None
 
-    def feed(self, aBuf):
+    def feed(self, buf):
         pass
 
     def get_state(self):
@@ -52,46 +52,91 @@ class CharSetProber(object):
     def get_confidence(self):
         return 0.0
 
-    def filter_high_bit_only(self, aBuf):
-        aBuf = re.sub(b'([\x00-\x7F])+', b' ', aBuf)
-        return aBuf
+    @staticmethod
+    def filter_high_bit_only(buf):
+        buf = re.sub(b'([\x00-\x7F])+', b' ', buf)
+        return buf
 
-    def filter_international_words(self, buf):
+    @staticmethod
+    def filter_international_words(buf):
         """
-            we define three types of bytes:
-            alphabet: english alphabets [a-zA-Z]
-            international: international characters [\x80-\xFF]
-            marker: everything else [^a-zA-Z\x80-\xFF]
+        We define three types of bytes:
+        alphabet: english alphabets [a-zA-Z]
+        international: international characters [\x80-\xFF]
+        marker: everything else [^a-zA-Z\x80-\xFF]
 
-            the input buffer can be thought to contain a series of words
-            delimited by markers.
-            this function works to filter all words that contain at-least one
-            international character. all contiguous sequences of markers are
-            replaced by a single space ascii character.
+        The input buffer can be thought to contain a series of words delimited
+        by markers. This function works to filter all words that contain at
+        least one international character. All contiguous sequences of markers
+        are replaced by a single space ascii character.
+
+        This filter applies to all scripts which do not use English characters.
         """
         filtered = BytesIO()
 
-        # this regex expression filters out only words that have at-least
-        # one international character. the word may include one marker
-        # character at the end
-        words = \
-            re.findall(b'[a-zA-Z]*[\x80-\xFF]+[a-zA-Z]*[^a-zA-Z\x80-\xFF]?',
-                       buf)
+        # This regex expression filters out only words that have at-least one
+        # international character. The word may include one marker character at
+        # the end.
+        words = re.findall(
+            b'[a-zA-Z]*[\x80-\xFF]+[a-zA-Z]*[^a-zA-Z\x80-\xFF]?', buf)
 
         for word in words:
             filtered.write(word[:-1])
 
-            # if the last character in the word is a marker, replace it with a
+            # If the last character in the word is a marker, replace it with a
             # space as markers shouldn't affect our analysis (they are used
             # similarly across all languages and may thus have similar
-            # frequencies)
+            # frequencies).
             last_char = word[-1:]
-            last_char = last_char if last_char.isalpha() or \
-                last_char >= b'\x80' else b' '
+            last_char = last_char if (last_char.isalpha() or
+                                      last_char >= b'\x80') else b' '
             filtered.write(last_char)
 
         return filtered.getvalue()
 
-    def filter_with_english_letters(self, aBuf):
-        # TODO
-        return aBuf
+    @staticmethod
+    def filter_with_english_letters(buf):
+        """
+        We define three types of bytes:
+        alphabet: english alphabets [a-zA-Z]
+        international: international characters [\x80-\xFF]
+        marker: everything else [^a-zA-Z\x80-\xFF]
+
+        The input buffer can be thought to contain a series of words delimited
+        by markers. This function works to filter all words that contain at
+        least one international character. All contiguous sequences of markers
+        are replaced by a single space ascii character.
+
+        This filter applies to all scripts which contain both English
+        characters and extended ASCII characters.
+        """
+        filtered = BytesIO()
+        in_tag = False
+        prev = 0
+
+        for curr in range(len(buf)):
+            buf_char = buf[curr:curr + 1]
+            # Check if we're coming out of or entering an HTML tag
+            if buf_char == b'>':
+                in_tag = False
+            elif buf_char == b'<':
+                in_tag = True
+
+            # If current character is not extended-ASCII and not alphabetic...
+            if buf_char < b'\x80' and not buf_char.isalpha():
+                # ...and we're not in a tag
+                if curr > prev and not in_tag:
+                    # Keep everything after last non-extended-ASCII,
+                    # non-alphabetic character
+                    filtered.write(buf[prev:curr])
+                    # Output a space to delimit stretch we kept
+                    filtered.write(b' ')
+                prev = curr + 1
+
+        # If we're not in a tag...
+        if not in_tag:
+            # Keep everything after last non-extended-ASCII, non-alphabetic
+            # character
+            filtered.write(buf[prev:])
+
+        return filtered.getvalue()
