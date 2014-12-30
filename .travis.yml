@@ -5,7 +5,7 @@ python:
   - 2.7
   - 3.3
   - 3.4
-  - pypy
+  # - pypy  (Commented out because it is currently 10 times slower)
 
 install:
   - travis_retry pip install python-coveralls nose-cov
