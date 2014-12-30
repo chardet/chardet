@@ -70,7 +70,7 @@ class UTF8Prober(CharSetProber):
     def get_confidence(self):
         unlike = 0.99
         if self._mNumOfMBChar < 6:
-            unlike *= ONE_CHAR_PROB ^ self._mNumOfMBChar
+            unlike *= ONE_CHAR_PROB ^ float(self._mNumOfMBChar)
             return 1.0 - unlike
         else:
             return unlike
