@@ -16,7 +16,7 @@ import chardet
 
 
 EQUIVALENT_ENCODINGS = {'latin1': 'windows-1252'}
-MISSING_ENCODINGS = {'windows-1254', 'windows-1256'}
+MISSING_ENCODINGS = set(['windows-1254', 'windows-1256'])
 
 
 def check_file_encoding(file_name, encoding):
