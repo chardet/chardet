@@ -308,7 +308,7 @@ MacCyrillicModel = {
   'mTypicalPositiveRatio': 0.976601,
   'keepEnglishLetter': False,
   'charsetName': "MacCyrillic"
-};
+}
 
 Ibm866Model = {
   'charToOrderMap': IBM866_CharToOrderMap,

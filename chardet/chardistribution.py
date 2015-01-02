@@ -48,26 +48,26 @@ class CharDistributionAnalysis(object):
     def __init__(self):
         # Mapping table to get frequency order from char order (get from
         # GetOrder())
-        self._mCharToFreqOrder = None
-        self._mTableSize = None  # Size of above table
+        self._CharToFreqOrder = None
+        self._TableSize = None  # Size of above table
         # This is a constant value which varies from language to language,
         # used in calculating confidence.  See
         # http://www.mozilla.org/projects/intl/UniversalCharsetDetection.html
         # for further detail.
-        self._mTypicalDistributionRatio = None
-        self._mDone = None
-        self._mTotalChars = None
-        self._mFreqChars = None
+        self._TypicalDistributionRatio = None
+        self._Done = None
+        self._TotalChars = None
+        self._FreqChars = None
         self.reset()
 
     def reset(self):
         """reset analyser, clear any state"""
         # If this flag is set to True, detection is done and conclusion has
         # been made
-        self._mDone = False
-        self._mTotalChars = 0  # Total characters encountered
+        self._Done = False
+        self._TotalChars = 0  # Total characters encountered
         # The number of characters whose frequency order is less than 512
-        self._mFreqChars = 0
+        self._FreqChars = 0
 
     def feed(self, aBuf, aCharLen):
         """feed a character with known length"""
@@ -77,22 +77,22 @@ class CharDistributionAnalysis(object):
         else:
             order = -1
         if order >= 0:
-            self._mTotalChars += 1
+            self._TotalChars += 1
             # order is valid
-            if order < self._mTableSize:
-                if 512 > self._mCharToFreqOrder[order]:
-                    self._mFreqChars += 1
+            if order < self._TableSize:
+                if 512 > self._CharToFreqOrder[order]:
+                    self._FreqChars += 1
 
     def get_confidence(self):
         """return confidence based on existing data"""
         # if we didn't receive any character in our consideration range,
         # return negative answer
-        if self._mTotalChars <= 0 or self._mFreqChars <= MINIMUM_DATA_THRESHOLD:
+        if self._TotalChars <= 0 or self._FreqChars <= MINIMUM_DATA_THRESHOLD:
             return SURE_NO
 
-        if self._mTotalChars != self._mFreqChars:
-            r = (self._mFreqChars / ((self._mTotalChars - self._mFreqChars)
-                 * self._mTypicalDistributionRatio))
+        if self._TotalChars != self._FreqChars:
+            r = (self._FreqChars / ((self._TotalChars - self._FreqChars)
+                 * self._TypicalDistributionRatio))
             if r < SURE_YES:
                 return r
 
@@ -102,7 +102,7 @@ class CharDistributionAnalysis(object):
     def got_enough_data(self):
         # It is not necessary to receive all data to draw conclusion.
         # For charset detection, certain amount of data is enough
-        return self._mTotalChars > ENOUGH_DATA_THRESHOLD
+        return self._TotalChars > ENOUGH_DATA_THRESHOLD
 
     def get_order(self, aBuf):
         # We do not handle characters based on the original encoding string,
@@ -115,9 +115,9 @@ class CharDistributionAnalysis(object):
 class EUCTWDistributionAnalysis(CharDistributionAnalysis):
     def __init__(self):
         super(EUCTWDistributionAnalysis, self).__init__()
-        self._mCharToFreqOrder = EUCTWCharToFreqOrder
-        self._mTableSize = EUCTW_TABLE_SIZE
-        self._mTypicalDistributionRatio = EUCTW_TYPICAL_DISTRIBUTION_RATIO
+        self._CharToFreqOrder = EUCTWCharToFreqOrder
+        self._TableSize = EUCTW_TABLE_SIZE
+        self._TypicalDistributionRatio = EUCTW_TYPICAL_DISTRIBUTION_RATIO
 
     def get_order(self, aBuf):
         # for euc-TW encoding, we are interested
@@ -134,9 +134,9 @@ class EUCTWDistributionAnalysis(CharDistributionAnalysis):
 class EUCKRDistributionAnalysis(CharDistributionAnalysis):
     def __init__(self):
         super(EUCKRDistributionAnalysis, self).__init__()
-        self._mCharToFreqOrder = EUCKRCharToFreqOrder
-        self._mTableSize = EUCKR_TABLE_SIZE
-        self._mTypicalDistributionRatio = EUCKR_TYPICAL_DISTRIBUTION_RATIO
+        self._CharToFreqOrder = EUCKRCharToFreqOrder
+        self._TableSize = EUCKR_TABLE_SIZE
+        self._TypicalDistributionRatio = EUCKR_TYPICAL_DISTRIBUTION_RATIO
 
     def get_order(self, aBuf):
         # for euc-KR encoding, we are interested
@@ -153,9 +153,9 @@ class EUCKRDistributionAnalysis(CharDistributionAnalysis):
 class GB2312DistributionAnalysis(CharDistributionAnalysis):
     def __init__(self):
         super(GB2312DistributionAnalysis, self).__init__()
-        self._mCharToFreqOrder = GB2312CharToFreqOrder
-        self._mTableSize = GB2312_TABLE_SIZE
-        self._mTypicalDistributionRatio = GB2312_TYPICAL_DISTRIBUTION_RATIO
+        self._CharToFreqOrder = GB2312CharToFreqOrder
+        self._TableSize = GB2312_TABLE_SIZE
+        self._TypicalDistributionRatio = GB2312_TYPICAL_DISTRIBUTION_RATIO
 
     def get_order(self, aBuf):
         # for GB2312 encoding, we are interested
@@ -172,9 +172,9 @@ class GB2312DistributionAnalysis(CharDistributionAnalysis):
 class Big5DistributionAnalysis(CharDistributionAnalysis):
     def __init__(self):
         super(Big5DistributionAnalysis, self).__init__()
-        self._mCharToFreqOrder = Big5CharToFreqOrder
-        self._mTableSize = BIG5_TABLE_SIZE
-        self._mTypicalDistributionRatio = BIG5_TYPICAL_DISTRIBUTION_RATIO
+        self._CharToFreqOrder = Big5CharToFreqOrder
+        self._TableSize = BIG5_TABLE_SIZE
+        self._TypicalDistributionRatio = BIG5_TYPICAL_DISTRIBUTION_RATIO
 
     def get_order(self, aBuf):
         # for big5 encoding, we are interested
@@ -194,9 +194,9 @@ class Big5DistributionAnalysis(CharDistributionAnalysis):
 class SJISDistributionAnalysis(CharDistributionAnalysis):
     def __init__(self):
         super(SJISDistributionAnalysis, self).__init__()
-        self._mCharToFreqOrder = JISCharToFreqOrder
-        self._mTableSize = JIS_TABLE_SIZE
-        self._mTypicalDistributionRatio = JIS_TYPICAL_DISTRIBUTION_RATIO
+        self._CharToFreqOrder = JISCharToFreqOrder
+        self._TableSize = JIS_TABLE_SIZE
+        self._TypicalDistributionRatio = JIS_TYPICAL_DISTRIBUTION_RATIO
 
     def get_order(self, aBuf):
         # for sjis encoding, we are interested
@@ -219,9 +219,9 @@ class SJISDistributionAnalysis(CharDistributionAnalysis):
 class EUCJPDistributionAnalysis(CharDistributionAnalysis):
     def __init__(self):
         super(EUCJPDistributionAnalysis, self).__init__()
-        self._mCharToFreqOrder = JISCharToFreqOrder
-        self._mTableSize = JIS_TABLE_SIZE
-        self._mTypicalDistributionRatio = JIS_TYPICAL_DISTRIBUTION_RATIO
+        self._CharToFreqOrder = JISCharToFreqOrder
+        self._TableSize = JIS_TABLE_SIZE
+        self._TypicalDistributionRatio = JIS_TYPICAL_DISTRIBUTION_RATIO
 
     def get_order(self, aBuf):
         # for euc-JP encoding, we are interested

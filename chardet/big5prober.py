@@ -34,8 +34,8 @@ from .mbcssm import Big5SMModel
 class Big5Prober(MultiByteCharSetProber):
     def __init__(self):
         super(Big5Prober, self).__init__()
-        self._mCodingSM = CodingStateMachine(Big5SMModel)
-        self._mDistributionAnalyzer = Big5DistributionAnalysis()
+        self._CodingSM = CodingStateMachine(Big5SMModel)
+        self._DistributionAnalyzer = Big5DistributionAnalysis()
         self.reset()
 
     def get_charset_name(self):

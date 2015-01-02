@@ -26,19 +26,24 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
+import logging
 import re
 from io import BytesIO
 
-from . import constants
+from .enums import ProbingState
 
 
 class CharSetProber(object):
 
-    def __init__(self):
-        self._mState = None
+    SHORTCUT_THRESHOLD = 0.95
+
+    def __init__(self, language_filter=None):
+        self._State = None
+        self._language_filter = language_filter
+        self.logger = logging.getLogger(__name__)
 
     def reset(self):
-        self._mState = constants.eDetecting
+        self._State = ProbingState.detecting
 
     def get_charset_name(self):
         return None
@@ -47,7 +52,7 @@ class CharSetProber(object):
         pass
 
     def get_state(self):
-        return self._mState
+        return self._State
 
     def get_confidence(self):
         return 0.0
@@ -97,18 +102,14 @@ class CharSetProber(object):
     @staticmethod
     def filter_with_english_letters(buf):
         """
-        We define three types of bytes:
-        alphabet: english alphabets [a-zA-Z]
-        international: international characters [\x80-\xFF]
-        marker: everything else [^a-zA-Z\x80-\xFF]
+        Returns a copy of ``buf`` that retains only the sequences of English
+        alphabet and high byte characters that are not between <> characters.
+        Also retains English alphabet and high byte characters immediately
+        before occurrences of >.
 
-        The input buffer can be thought to contain a series of words delimited
-        by markers. This function works to filter all words that contain at
-        least one international character. All contiguous sequences of markers
-        are replaced by a single space ascii character.
-
-        This filter applies to all scripts which contain both English
-        characters and extended ASCII characters.
+        This filter can be applied to all scripts which contain both English
+        characters and extended ASCII characters, but is currently only used by
+        ``Latin1Prober``.
         """
         filtered = BytesIO()
         in_tag = False

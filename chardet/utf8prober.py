@@ -25,8 +25,8 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-from . import constants
 from .charsetprober import CharSetProber
+from .enums import ProbingState, SMState
 from .codingstatemachine import CodingStateMachine
 from .mbcssm import UTF8SMModel
 
@@ -36,41 +36,41 @@ ONE_CHAR_PROB = 0.5
 class UTF8Prober(CharSetProber):
     def __init__(self):
         super(UTF8Prober, self).__init__()
-        self._mCodingSM = CodingStateMachine(UTF8SMModel)
-        self._mNumOfMBChar = None
+        self._CodingSM = CodingStateMachine(UTF8SMModel)
+        self._NumOfMBChar = None
         self.reset()
 
     def reset(self):
         super(UTF8Prober, self).reset()
-        self._mCodingSM.reset()
-        self._mNumOfMBChar = 0
+        self._CodingSM.reset()
+        self._NumOfMBChar = 0
 
     def get_charset_name(self):
         return "utf-8"
 
     def feed(self, aBuf):
         for c in aBuf:
-            codingState = self._mCodingSM.next_state(c)
-            if codingState == constants.eError:
-                self._mState = constants.eNotMe
+            codingState = self._CodingSM.next_state(c)
+            if codingState == SMState.error:
+                self._State = ProbingState.not_me
                 break
-            elif codingState == constants.eItsMe:
-                self._mState = constants.eFoundIt
+            elif codingState == SMState.its_me:
+                self._State = ProbingState.found_it
                 break
-            elif codingState == constants.eStart:
-                if self._mCodingSM.get_current_charlen() >= 2:
-                    self._mNumOfMBChar += 1
+            elif codingState == SMState.start:
+                if self._CodingSM.get_current_charlen() >= 2:
+                    self._NumOfMBChar += 1
 
-        if self.get_state() == constants.eDetecting:
-            if self.get_confidence() > constants.SHORTCUT_THRESHOLD:
-                self._mState = constants.eFoundIt
+        if self.get_state() == ProbingState.detecting:
+            if self.get_confidence() > self.SHORTCUT_THRESHOLD:
+                self._State = ProbingState.found_it
 
         return self.get_state()
 
     def get_confidence(self):
         unlike = 0.99
-        if self._mNumOfMBChar < 6:
-            unlike *= ONE_CHAR_PROB ^ float(self._mNumOfMBChar)
+        if self._NumOfMBChar < 6:
+            unlike *= ONE_CHAR_PROB ** self._NumOfMBChar
             return 1.0 - unlike
         else:
             return unlike

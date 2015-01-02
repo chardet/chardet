@@ -25,7 +25,7 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-from .constants import eStart, eError, eItsMe
+from .enums import SMState
 
 # BIG5
 
@@ -65,9 +65,9 @@ BIG5_cls = (
 )
 
 BIG5_st = (
-    eError,eStart,eStart,     3,eError,eError,eError,eError,#00-07
-    eError,eError,eItsMe,eItsMe,eItsMe,eItsMe,eItsMe,eError,#08-0f
-    eError,eStart,eStart,eStart,eStart,eStart,eStart,eStart#10-17
+    SMState.error,SMState.start,SMState.start,     3,SMState.error,SMState.error,SMState.error,SMState.error,#00-07
+    SMState.error,SMState.error,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.error,#08-0f
+    SMState.error,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start#10-17
 )
 
 Big5CharLenTable = (0, 1, 1, 2, 0)
@@ -101,13 +101,13 @@ CP949_cls  = (
 
 CP949_st = (
 #cls=    0      1      2      3      4      5      6      7      8      9  # previous state =
-    eError,eStart,     3,eError,eStart,eStart,     4,     5,eError,     6, # eStart
-    eError,eError,eError,eError,eError,eError,eError,eError,eError,eError, # eError
-    eItsMe,eItsMe,eItsMe,eItsMe,eItsMe,eItsMe,eItsMe,eItsMe,eItsMe,eItsMe, # eItsMe
-    eError,eError,eStart,eStart,eError,eError,eError,eStart,eStart,eStart, # 3
-    eError,eError,eStart,eStart,eStart,eStart,eStart,eStart,eStart,eStart, # 4
-    eError,eStart,eStart,eStart,eStart,eStart,eStart,eStart,eStart,eStart, # 5
-    eError,eStart,eStart,eStart,eStart,eError,eError,eStart,eStart,eStart, # 6
+    SMState.error,SMState.start,     3,SMState.error,SMState.start,SMState.start,     4,     5,SMState.error,     6, # SMState.start
+    SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error, # SMState.error
+    SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me, # SMState.its_me
+    SMState.error,SMState.error,SMState.start,SMState.start,SMState.error,SMState.error,SMState.error,SMState.start,SMState.start,SMState.start, # 3
+    SMState.error,SMState.error,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start, # 4
+    SMState.error,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start, # 5
+    SMState.error,SMState.start,SMState.start,SMState.start,SMState.start,SMState.error,SMState.error,SMState.start,SMState.start,SMState.start, # 6
 )
 
 CP949CharLenTable = (0, 1, 2, 0, 1, 1, 2, 2, 0, 2)
@@ -156,11 +156,11 @@ EUCJP_cls = (
 )
 
 EUCJP_st = (
-          3,     4,     3,     5,eStart,eError,eError,eError,#00-07
-     eError,eError,eError,eError,eItsMe,eItsMe,eItsMe,eItsMe,#08-0f
-     eItsMe,eItsMe,eStart,eError,eStart,eError,eError,eError,#10-17
-     eError,eError,eStart,eError,eError,eError,     3,eError,#18-1f
-          3,eError,eError,eError,eStart,eStart,eStart,eStart#20-27
+          3,     4,     3,     5,SMState.start,SMState.error,SMState.error,SMState.error,#00-07
+     SMState.error,SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,#08-0f
+     SMState.its_me,SMState.its_me,SMState.start,SMState.error,SMState.start,SMState.error,SMState.error,SMState.error,#10-17
+     SMState.error,SMState.error,SMState.start,SMState.error,SMState.error,SMState.error,     3,SMState.error,#18-1f
+          3,SMState.error,SMState.error,SMState.error,SMState.start,SMState.start,SMState.start,SMState.start#20-27
 )
 
 EUCJPCharLenTable = (2, 2, 2, 3, 1, 0)
@@ -209,8 +209,8 @@ EUCKR_cls  = (
 )
 
 EUCKR_st = (
-    eError,eStart,     3,eError,eError,eError,eError,eError,#00-07
-    eItsMe,eItsMe,eItsMe,eItsMe,eError,eError,eStart,eStart #08-0f
+    SMState.error,SMState.start,     3,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,#00-07
+    SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.error,SMState.error,SMState.start,SMState.start #08-0f
 )
 
 EUCKRCharLenTable = (0, 1, 2, 0)
@@ -259,12 +259,12 @@ EUCTW_cls = (
 )
 
 EUCTW_st = (
-    eError,eError,eStart,     3,     3,     3,     4,eError,#00-07
-    eError,eError,eError,eError,eError,eError,eItsMe,eItsMe,#08-0f
-    eItsMe,eItsMe,eItsMe,eItsMe,eItsMe,eError,eStart,eError,#10-17
-    eStart,eStart,eStart,eError,eError,eError,eError,eError,#18-1f
-         5,eError,eError,eError,eStart,eError,eStart,eStart,#20-27
-    eStart,eError,eStart,eStart,eStart,eStart,eStart,eStart #28-2f
+    SMState.error,SMState.error,SMState.start,     3,     3,     3,     4,SMState.error,#00-07
+    SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.its_me,#08-0f
+    SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.error,SMState.start,SMState.error,#10-17
+    SMState.start,SMState.start,SMState.start,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,#18-1f
+         5,SMState.error,SMState.error,SMState.error,SMState.start,SMState.error,SMState.start,SMState.start,#20-27
+    SMState.start,SMState.error,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start #28-2f
 )
 
 EUCTWCharLenTable = (0, 0, 1, 2, 2, 2, 3)
@@ -313,12 +313,12 @@ GB2312_cls = (
 )
 
 GB2312_st = (
-    eError,eStart,eStart,eStart,eStart,eStart,     3,eError,#00-07
-    eError,eError,eError,eError,eError,eError,eItsMe,eItsMe,#08-0f
-    eItsMe,eItsMe,eItsMe,eItsMe,eItsMe,eError,eError,eStart,#10-17
-         4,eError,eStart,eStart,eError,eError,eError,eError,#18-1f
-    eError,eError,     5,eError,eError,eError,eItsMe,eError,#20-27
-    eError,eError,eStart,eStart,eStart,eStart,eStart,eStart #28-2f
+    SMState.error,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,     3,SMState.error,#00-07
+    SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.its_me,#08-0f
+    SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.error,SMState.error,SMState.start,#10-17
+         4,SMState.error,SMState.start,SMState.start,SMState.error,SMState.error,SMState.error,SMState.error,#18-1f
+    SMState.error,SMState.error,     5,SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.error,#20-27
+    SMState.error,SMState.error,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start #28-2f
 )
 
 # To be accurate, the length of class 6 can be either 2 or 4.
@@ -374,9 +374,9 @@ SJIS_cls = (
 
 
 SJIS_st = (
-    eError,eStart,eStart,     3,eError,eError,eError,eError,#00-07
-    eError,eError,eError,eError,eItsMe,eItsMe,eItsMe,eItsMe,#08-0f
-    eItsMe,eItsMe,eError,eError,eStart,eStart,eStart,eStart #10-17
+    SMState.error,SMState.start,SMState.start,     3,SMState.error,SMState.error,SMState.error,SMState.error,#00-07
+    SMState.error,SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,#08-0f
+    SMState.its_me,SMState.its_me,SMState.error,SMState.error,SMState.start,SMState.start,SMState.start,SMState.start #10-17
 )
 
 SJISCharLenTable = (0, 1, 1, 2, 0, 0)
@@ -425,13 +425,13 @@ UCS2BE_cls = (
 )
 
 UCS2BE_st  = (
-          5,     7,     7,eError,     4,     3,eError,eError,#00-07
-     eError,eError,eError,eError,eItsMe,eItsMe,eItsMe,eItsMe,#08-0f
-     eItsMe,eItsMe,     6,     6,     6,     6,eError,eError,#10-17
-          6,     6,     6,     6,     6,eItsMe,     6,     6,#18-1f
-          6,     6,     6,     6,     5,     7,     7,eError,#20-27
-          5,     8,     6,     6,eError,     6,     6,     6,#28-2f
-          6,     6,     6,     6,eError,eError,eStart,eStart #30-37
+          5,     7,     7,SMState.error,     4,     3,SMState.error,SMState.error,#00-07
+     SMState.error,SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,#08-0f
+     SMState.its_me,SMState.its_me,     6,     6,     6,     6,SMState.error,SMState.error,#10-17
+          6,     6,     6,     6,     6,SMState.its_me,     6,     6,#18-1f
+          6,     6,     6,     6,     5,     7,     7,SMState.error,#20-27
+          5,     8,     6,     6,SMState.error,     6,     6,     6,#28-2f
+          6,     6,     6,     6,SMState.error,SMState.error,SMState.start,SMState.start #30-37
 )
 
 UCS2BECharLenTable = (2, 2, 2, 0, 2, 2)
@@ -480,13 +480,13 @@ UCS2LE_cls = (
 )
 
 UCS2LE_st = (
-          6,     6,     7,     6,     4,     3,eError,eError,#00-07
-     eError,eError,eError,eError,eItsMe,eItsMe,eItsMe,eItsMe,#08-0f
-     eItsMe,eItsMe,     5,     5,     5,eError,eItsMe,eError,#10-17
-          5,     5,     5,eError,     5,eError,     6,     6,#18-1f
-          7,     6,     8,     8,     5,     5,     5,eError,#20-27
-          5,     5,     5,eError,eError,eError,     5,     5,#28-2f
-          5,     5,     5,eError,     5,eError,eStart,eStart #30-37
+          6,     6,     7,     6,     4,     3,SMState.error,SMState.error,#00-07
+     SMState.error,SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,#08-0f
+     SMState.its_me,SMState.its_me,     5,     5,     5,SMState.error,SMState.its_me,SMState.error,#10-17
+          5,     5,     5,SMState.error,     5,SMState.error,     6,     6,#18-1f
+          7,     6,     8,     8,     5,     5,     5,SMState.error,#20-27
+          5,     5,     5,SMState.error,SMState.error,SMState.error,     5,     5,#28-2f
+          5,     5,     5,SMState.error,     5,SMState.error,SMState.start,SMState.start #30-37
 )
 
 UCS2LECharLenTable = (2, 2, 2, 2, 2, 2)
@@ -535,32 +535,32 @@ UTF8_cls = (
 )
 
 UTF8_st = (
-    eError,eStart,eError,eError,eError,eError,     12,   10,#00-07
+    SMState.error,SMState.start,SMState.error,SMState.error,SMState.error,SMState.error,     12,   10,#00-07
          9,     11,     8,     7,     6,     5,     4,    3,#08-0f
-    eError,eError,eError,eError,eError,eError,eError,eError,#10-17
-    eError,eError,eError,eError,eError,eError,eError,eError,#18-1f
-    eItsMe,eItsMe,eItsMe,eItsMe,eItsMe,eItsMe,eItsMe,eItsMe,#20-27
-    eItsMe,eItsMe,eItsMe,eItsMe,eItsMe,eItsMe,eItsMe,eItsMe,#28-2f
-    eError,eError,     5,     5,     5,     5,eError,eError,#30-37
-    eError,eError,eError,eError,eError,eError,eError,eError,#38-3f
-    eError,eError,eError,     5,     5,     5,eError,eError,#40-47
-    eError,eError,eError,eError,eError,eError,eError,eError,#48-4f
-    eError,eError,     7,     7,     7,     7,eError,eError,#50-57
-    eError,eError,eError,eError,eError,eError,eError,eError,#58-5f
-    eError,eError,eError,eError,     7,     7,eError,eError,#60-67
-    eError,eError,eError,eError,eError,eError,eError,eError,#68-6f
-    eError,eError,     9,     9,     9,     9,eError,eError,#70-77
-    eError,eError,eError,eError,eError,eError,eError,eError,#78-7f
-    eError,eError,eError,eError,eError,     9,eError,eError,#80-87
-    eError,eError,eError,eError,eError,eError,eError,eError,#88-8f
-    eError,eError,    12,    12,    12,    12,eError,eError,#90-97
-    eError,eError,eError,eError,eError,eError,eError,eError,#98-9f
-    eError,eError,eError,eError,eError,    12,eError,eError,#a0-a7
-    eError,eError,eError,eError,eError,eError,eError,eError,#a8-af
-    eError,eError,    12,    12,    12,eError,eError,eError,#b0-b7
-    eError,eError,eError,eError,eError,eError,eError,eError,#b8-bf
-    eError,eError,eStart,eStart,eStart,eStart,eError,eError,#c0-c7
-    eError,eError,eError,eError,eError,eError,eError,eError #c8-cf
+    SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,#10-17
+    SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,#18-1f
+    SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,#20-27
+    SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,#28-2f
+    SMState.error,SMState.error,     5,     5,     5,     5,SMState.error,SMState.error,#30-37
+    SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,#38-3f
+    SMState.error,SMState.error,SMState.error,     5,     5,     5,SMState.error,SMState.error,#40-47
+    SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,#48-4f
+    SMState.error,SMState.error,     7,     7,     7,     7,SMState.error,SMState.error,#50-57
+    SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,#58-5f
+    SMState.error,SMState.error,SMState.error,SMState.error,     7,     7,SMState.error,SMState.error,#60-67
+    SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,#68-6f
+    SMState.error,SMState.error,     9,     9,     9,     9,SMState.error,SMState.error,#70-77
+    SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,#78-7f
+    SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,     9,SMState.error,SMState.error,#80-87
+    SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,#88-8f
+    SMState.error,SMState.error,    12,    12,    12,    12,SMState.error,SMState.error,#90-97
+    SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,#98-9f
+    SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,    12,SMState.error,SMState.error,#a0-a7
+    SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,#a8-af
+    SMState.error,SMState.error,    12,    12,    12,SMState.error,SMState.error,SMState.error,#b0-b7
+    SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,#b8-bf
+    SMState.error,SMState.error,SMState.start,SMState.start,SMState.start,SMState.start,SMState.error,SMState.error,#c0-c7
+    SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error #c8-cf
 )
 
 UTF8CharLenTable = (0, 1, 0, 0, 0, 0, 2, 3, 3, 3, 4, 4, 5, 5, 6, 6)

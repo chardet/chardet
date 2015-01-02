@@ -34,8 +34,8 @@ from .mbcssm import EUCKRSMModel
 class EUCKRProber(MultiByteCharSetProber):
     def __init__(self):
         super(EUCKRProber, self).__init__()
-        self._mCodingSM = CodingStateMachine(EUCKRSMModel)
-        self._mDistributionAnalyzer = EUCKRDistributionAnalysis()
+        self._CodingSM = CodingStateMachine(EUCKRSMModel)
+        self._DistributionAnalyzer = EUCKRDistributionAnalysis()
         self.reset()
 
     def get_charset_name(self):

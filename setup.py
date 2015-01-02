@@ -1,7 +1,14 @@
 #!/usr/bin/env python
-from setuptools import setup
+import re
+import sys
+from setuptools import find_packages, setup
 
-from chardet import __version__
+
+# Get version without importing, which avoids dependency issues
+def get_version():
+    with open('chardet/version.py') as version_file:
+        return re.search(r"""__version__\s+=\s+(['"])(?P<version>.+?)\1""",
+                         version_file.read()).group('version')
 
 
 def readme():
@@ -9,13 +16,8 @@ def readme():
         return f.read()
 
 
-def requirements():
-    with open('requirements.txt') as f:
-        reqs = f.read().splitlines()
-    return reqs
-
 setup(name='chardet',
-      version=__version__,
+      version=get_version(),
       description='Universal encoding detector for Python 2 and 3',
       long_description=readme(),
       author='Mark Pilgrim',
@@ -37,10 +39,12 @@ setup(name='chardet',
                    'Programming Language :: Python :: 3',
                    'Programming Language :: Python :: 3.2',
                    'Programming Language :: Python :: 3.3',
+                   'Programming Language :: Python :: 3.4',
                    ("Topic :: Software Development :: Libraries :: Python "
                     "Modules"),
                    "Topic :: Text Processing :: Linguistic"],
-      packages=['chardet'],
-      install_requires=requirements(),
+      packages=find_packages(),
+      install_requires=['enum34'] if sys.version_info < (3, 4) else [],
+      test_requires=['nose'],
       entry_points={'console_scripts':
-                    ['chardetect = chardet.chardetect:main']})
+                    ['chardetect = chardet.cli.chardetect:main']})

@@ -33,8 +33,8 @@ from .mbcssm import EUCTWSMModel
 class EUCTWProber(MultiByteCharSetProber):
     def __init__(self):
         super(EUCTWProber, self).__init__()
-        self._mCodingSM = CodingStateMachine(EUCTWSMModel)
-        self._mDistributionAnalyzer = EUCTWDistributionAnalysis()
+        self._CodingSM = CodingStateMachine(EUCTWSMModel)
+        self._DistributionAnalyzer = EUCTWDistributionAnalysis()
         self.reset()
 
     def get_charset_name(self):

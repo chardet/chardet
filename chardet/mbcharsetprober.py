@@ -27,25 +27,28 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-import sys
-from . import constants
 from .charsetprober import CharSetProber
+from .enums import ProbingState, SMState
 
 
 class MultiByteCharSetProber(CharSetProber):
-    def __init__(self):
-        super(MultiByteCharSetProber, self).__init__()
-        self._mDistributionAnalyzer = None
-        self._mCodingSM = None
-        self._mLastChar = [0, 0]
+    """
+    MultiByteCharSetProber
+    """
+
+    def __init__(self, language_filter=None):
+        super(MultiByteCharSetProber, self).__init__(language_filter=language_filter)
+        self._DistributionAnalyzer = None
+        self._CodingSM = None
+        self._LastChar = [0, 0]
 
     def reset(self):
         super(MultiByteCharSetProber, self).reset()
-        if self._mCodingSM:
-            self._mCodingSM.reset()
-        if self._mDistributionAnalyzer:
-            self._mDistributionAnalyzer.reset()
-        self._mLastChar = [0, 0]
+        if self._CodingSM:
+            self._CodingSM.reset()
+        if self._DistributionAnalyzer:
+            self._DistributionAnalyzer.reset()
+        self._LastChar = [0, 0]
 
     def get_charset_name(self):
         pass
@@ -53,34 +56,32 @@ class MultiByteCharSetProber(CharSetProber):
     def feed(self, aBuf):
         aLen = len(aBuf)
         for i in range(0, aLen):
-            codingState = self._mCodingSM.next_state(aBuf[i])
-            if codingState == constants.eError:
-                if constants._debug:
-                    sys.stderr.write(self.get_charset_name()
-                                     + ' prober hit error at byte ' + str(i)
-                                     + '\n')
-                self._mState = constants.eNotMe
+            codingState = self._CodingSM.next_state(aBuf[i])
+            if codingState == SMState.error:
+                self.logger.debug('%s prober hit error at byte %s',
+                                  self.get_charset_name(), i)
+                self._State = ProbingState.not_me
                 break
-            elif codingState == constants.eItsMe:
-                self._mState = constants.eFoundIt
+            elif codingState == SMState.its_me:
+                self._State = ProbingState.found_it
                 break
-            elif codingState == constants.eStart:
-                charLen = self._mCodingSM.get_current_charlen()
+            elif codingState == SMState.start:
+                charLen = self._CodingSM.get_current_charlen()
                 if i == 0:
-                    self._mLastChar[1] = aBuf[0]
-                    self._mDistributionAnalyzer.feed(self._mLastChar, charLen)
+                    self._LastChar[1] = aBuf[0]
+                    self._DistributionAnalyzer.feed(self._LastChar, charLen)
                 else:
-                    self._mDistributionAnalyzer.feed(aBuf[i - 1:i + 1],
+                    self._DistributionAnalyzer.feed(aBuf[i - 1:i + 1],
                                                      charLen)
 
-        self._mLastChar[0] = aBuf[aLen - 1]
+        self._LastChar[0] = aBuf[aLen - 1]
 
-        if self.get_state() == constants.eDetecting:
-            if (self._mDistributionAnalyzer.got_enough_data() and
-                    (self.get_confidence() > constants.SHORTCUT_THRESHOLD)):
-                self._mState = constants.eFoundIt
+        if self.get_state() == ProbingState.detecting:
+            if (self._DistributionAnalyzer.got_enough_data() and
+                    (self.get_confidence() > self.SHORTCUT_THRESHOLD)):
+                self._State = ProbingState.found_it
 
         return self.get_state()
 
     def get_confidence(self):
-        return self._mDistributionAnalyzer.get_confidence()
+        return self._DistributionAnalyzer.get_confidence()

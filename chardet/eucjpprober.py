@@ -25,8 +25,7 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-import sys
-from . import constants
+from .enums import ProbingState, SMState
 from .mbcharsetprober import MultiByteCharSetProber
 from .codingstatemachine import CodingStateMachine
 from .chardistribution import EUCJPDistributionAnalysis
@@ -37,14 +36,14 @@ from .mbcssm import EUCJPSMModel
 class EUCJPProber(MultiByteCharSetProber):
     def __init__(self):
         super(EUCJPProber, self).__init__()
-        self._mCodingSM = CodingStateMachine(EUCJPSMModel)
-        self._mDistributionAnalyzer = EUCJPDistributionAnalysis()
-        self._mContextAnalyzer = EUCJPContextAnalysis()
+        self._CodingSM = CodingStateMachine(EUCJPSMModel)
+        self._DistributionAnalyzer = EUCJPDistributionAnalysis()
+        self._ContextAnalyzer = EUCJPContextAnalysis()
         self.reset()
 
     def reset(self):
         super(EUCJPProber, self).reset()
-        self._mContextAnalyzer.reset()
+        self._ContextAnalyzer.reset()
 
     def get_charset_name(self):
         return "EUC-JP"
@@ -53,38 +52,36 @@ class EUCJPProber(MultiByteCharSetProber):
         aLen = len(aBuf)
         for i in range(0, aLen):
             # PY3K: aBuf is a byte array, so aBuf[i] is an int, not a byte
-            codingState = self._mCodingSM.next_state(aBuf[i])
-            if codingState == constants.eError:
-                if constants._debug:
-                    sys.stderr.write(self.get_charset_name()
-                                     + ' prober hit error at byte ' + str(i)
-                                     + '\n')
-                self._mState = constants.eNotMe
+            codingState = self._CodingSM.next_state(aBuf[i])
+            if codingState == SMState.error:
+                self.logger.debug('%s prober hit error at byte %s',
+                                  self.get_charset_name(), i)
+                self._State = ProbingState.not_me
                 break
-            elif codingState == constants.eItsMe:
-                self._mState = constants.eFoundIt
+            elif codingState == SMState.its_me:
+                self._State = ProbingState.found_it
                 break
-            elif codingState == constants.eStart:
-                charLen = self._mCodingSM.get_current_charlen()
+            elif codingState == SMState.start:
+                charLen = self._CodingSM.get_current_charlen()
                 if i == 0:
-                    self._mLastChar[1] = aBuf[0]
-                    self._mContextAnalyzer.feed(self._mLastChar, charLen)
-                    self._mDistributionAnalyzer.feed(self._mLastChar, charLen)
+                    self._LastChar[1] = aBuf[0]
+                    self._ContextAnalyzer.feed(self._LastChar, charLen)
+                    self._DistributionAnalyzer.feed(self._LastChar, charLen)
                 else:
-                    self._mContextAnalyzer.feed(aBuf[i - 1:i + 1], charLen)
-                    self._mDistributionAnalyzer.feed(aBuf[i - 1:i + 1],
+                    self._ContextAnalyzer.feed(aBuf[i - 1:i + 1], charLen)
+                    self._DistributionAnalyzer.feed(aBuf[i - 1:i + 1],
                                                      charLen)
 
-        self._mLastChar[0] = aBuf[aLen - 1]
+        self._LastChar[0] = aBuf[aLen - 1]
 
-        if self.get_state() == constants.eDetecting:
-            if (self._mContextAnalyzer.got_enough_data() and
-               (self.get_confidence() > constants.SHORTCUT_THRESHOLD)):
-                self._mState = constants.eFoundIt
+        if self.get_state() == ProbingState.detecting:
+            if (self._ContextAnalyzer.got_enough_data() and
+               (self.get_confidence() > self.SHORTCUT_THRESHOLD)):
+                self._State = ProbingState.found_it
 
         return self.get_state()
 
     def get_confidence(self):
-        contxtCf = self._mContextAnalyzer.get_confidence()
-        distribCf = self._mDistributionAnalyzer.get_confidence()
+        contxtCf = self._ContextAnalyzer.get_confidence()
+        distribCf = self._DistributionAnalyzer.get_confidence()
         return max(contxtCf, distribCf)

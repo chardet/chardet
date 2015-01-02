@@ -27,8 +27,8 @@
 ######################### END LICENSE BLOCK #########################
 
 from .charsetprober import CharSetProber
-from .constants import eNotMe
 from .compat import wrap_ord
+from .enums import ProbingState
 
 FREQ_CAT_NUM = 4
 
@@ -97,13 +97,13 @@ Latin1ClassModel = (
 class Latin1Prober(CharSetProber):
     def __init__(self):
         super(Latin1Prober, self).__init__()
-        self._mLastCharClass = None
-        self._mFreqCounter = None
+        self._LastCharClass = None
+        self._FreqCounter = None
         self.reset()
 
     def reset(self):
-        self._mLastCharClass = OTH
-        self._mFreqCounter = [0] * FREQ_CAT_NUM
+        self._LastCharClass = OTH
+        self._FreqCounter = [0] * FREQ_CAT_NUM
         CharSetProber.reset(self)
 
     def get_charset_name(self):
@@ -113,25 +113,25 @@ class Latin1Prober(CharSetProber):
         aBuf = self.filter_with_english_letters(aBuf)
         for c in aBuf:
             charClass = Latin1_CharToClass[wrap_ord(c)]
-            freq = Latin1ClassModel[(self._mLastCharClass * CLASS_NUM)
+            freq = Latin1ClassModel[(self._LastCharClass * CLASS_NUM)
                                     + charClass]
             if freq == 0:
-                self._mState = eNotMe
+                self._State = ProbingState.not_me
                 break
-            self._mFreqCounter[freq] += 1
-            self._mLastCharClass = charClass
+            self._FreqCounter[freq] += 1
+            self._LastCharClass = charClass
 
         return self.get_state()
 
     def get_confidence(self):
-        if self.get_state() == eNotMe:
+        if self.get_state() == ProbingState.not_me:
             return 0.01
 
-        total = sum(self._mFreqCounter)
+        total = sum(self._FreqCounter)
         if total < 0.01:
             confidence = 0.0
         else:
-            confidence = ((self._mFreqCounter[3] - self._mFreqCounter[1] * 20.0)
+            confidence = ((self._FreqCounter[3] - self._FreqCounter[1] * 20.0)
                           / total)
         if confidence < 0.0:
             confidence = 0.0

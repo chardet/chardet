@@ -25,38 +25,62 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
+import logging
+
+from .enums import SMState
 from .compat import wrap_ord
-from .constants import eStart
 
 
 class CodingStateMachine(object):
+    """
+    A state machine to verify a byte sequence for a particular encoding. For
+    each byte the detector receives, it will feed that byte to every active
+    state machine available, one byte at a time. The state machine changes its
+    state based on its previous state and the byte it receives. There are 3
+    states in a state machine that are of interest to an auto-detector:
+
+    START state: This is the state to start with, or a legal byte sequence
+                 (i.e. a valid code point) for character has been identified.
+
+    ME state:  This indicates that the state machine identified a byte sequence
+               that is specific to the charset it is designed for and that
+               there is no other possible encoding which can contain this byte
+               sequence. This will to lead to an immediate positive answer for
+               the detector.
+
+    ERROR state: This indicates the state machine identified an illegal byte
+                 sequence for that encoding. This will lead to an immediate
+                 negative answer for this encoding. Detector will exclude this
+                 encoding from consideration from here on.
+    """
     def __init__(self, sm):
-        self._mModel = sm
-        self._mCurrentBytePos = 0
-        self._mCurrentCharLen = 0
-        self._mCurrentState = None
+        self._Model = sm
+        self._CurrentBytePos = 0
+        self._CurrentCharLen = 0
+        self._CurrentState = None
+        self.logger = logging.getLogger(__name__)
         self.reset()
 
     def reset(self):
-        self._mCurrentState = eStart
+        self._CurrentState = SMState.start
 
     def next_state(self, c):
         # for each byte we get its class
         # if it is first byte, we also get byte length
         # PY3K: aBuf is a byte stream, so c is an int, not a byte
-        byteCls = self._mModel['classTable'][wrap_ord(c)]
-        if self._mCurrentState == eStart:
-            self._mCurrentBytePos = 0
-            self._mCurrentCharLen = self._mModel['charLenTable'][byteCls]
+        byteCls = self._Model['classTable'][wrap_ord(c)]
+        if self._CurrentState == SMState.start:
+            self._CurrentBytePos = 0
+            self._CurrentCharLen = self._Model['charLenTable'][byteCls]
         # from byte's class and stateTable, we get its next state
-        curr_state = (self._mCurrentState * self._mModel['classFactor']
+        curr_state = (self._CurrentState * self._Model['classFactor']
                       + byteCls)
-        self._mCurrentState = self._mModel['stateTable'][curr_state]
-        self._mCurrentBytePos += 1
-        return self._mCurrentState
+        self._CurrentState = self._Model['stateTable'][curr_state]
+        self._CurrentBytePos += 1
+        return self._CurrentState
 
     def get_current_charlen(self):
-        return self._mCurrentCharLen
+        return self._CurrentCharLen
 
     def get_coding_state_machine(self):
-        return self._mModel['name']
+        return self._Model['name']

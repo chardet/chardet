@@ -122,27 +122,27 @@ jp2CharContext = (
 
 class JapaneseContextAnalysis(object):
     def __init__(self):
-        self._mTotalRel = None
-        self._mRelSample = None
-        self._mNeedToSkipCharNum = None
-        self._mLastCharOrder = None
-        self._mDone = None
+        self._TotalRel = None
+        self._RelSample = None
+        self._NeedToSkipCharNum = None
+        self._LastCharOrder = None
+        self._Done = None
         self.reset()
 
     def reset(self):
-        self._mTotalRel = 0  # total sequence received
+        self._TotalRel = 0  # total sequence received
         # category counters, each interger counts sequence in its category
-        self._mRelSample = [0] * NUM_OF_CATEGORY
+        self._RelSample = [0] * NUM_OF_CATEGORY
         # if last byte in current buffer is not the last byte of a character,
         # we need to know how many bytes to skip in next buffer
-        self._mNeedToSkipCharNum = 0
-        self._mLastCharOrder = -1  # The order of previous char
+        self._NeedToSkipCharNum = 0
+        self._LastCharOrder = -1  # The order of previous char
         # If this flag is set to True, detection is done and conclusion has
         # been made
-        self._mDone = False
+        self._Done = False
 
     def feed(self, aBuf, aLen):
-        if self._mDone:
+        if self._Done:
             return
 
         # The buffer we got is byte oriented, and a character may span in more than one
@@ -152,29 +152,29 @@ class JapaneseContextAnalysis(object):
         # well and analyse the character once it is complete, but since a
         # character will not make much difference, by simply skipping
         # this character will simply our logic and improve performance.
-        i = self._mNeedToSkipCharNum
+        i = self._NeedToSkipCharNum
         while i < aLen:
             order, charLen = self.get_order(aBuf[i:i + 2])
             i += charLen
             if i > aLen:
-                self._mNeedToSkipCharNum = i - aLen
-                self._mLastCharOrder = -1
+                self._NeedToSkipCharNum = i - aLen
+                self._LastCharOrder = -1
             else:
-                if (order != -1) and (self._mLastCharOrder != -1):
-                    self._mTotalRel += 1
-                    if self._mTotalRel > MAX_REL_THRESHOLD:
-                        self._mDone = True
+                if (order != -1) and (self._LastCharOrder != -1):
+                    self._TotalRel += 1
+                    if self._TotalRel > MAX_REL_THRESHOLD:
+                        self._Done = True
                         break
-                    self._mRelSample[jp2CharContext[self._mLastCharOrder][order]] += 1
-                self._mLastCharOrder = order
+                    self._RelSample[jp2CharContext[self._LastCharOrder][order]] += 1
+                self._LastCharOrder = order
 
     def got_enough_data(self):
-        return self._mTotalRel > ENOUGH_REL_THRESHOLD
+        return self._TotalRel > ENOUGH_REL_THRESHOLD
 
     def get_confidence(self):
         # This is just one way to calculate confidence. It works well for me.
-        if self._mTotalRel > MINIMUM_DATA_THRESHOLD:
-            return (self._mTotalRel - self._mRelSample[0]) / self._mTotalRel
+        if self._TotalRel > MINIMUM_DATA_THRESHOLD:
+            return (self._TotalRel - self._RelSample[0]) / self._TotalRel
         else:
             return DONT_KNOW
 

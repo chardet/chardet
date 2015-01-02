@@ -39,9 +39,9 @@ from .euctwprober import EUCTWProber
 
 
 class MBCSGroupProber(CharSetGroupProber):
-    def __init__(self):
-        CharSetGroupProber.__init__(self)
-        self._mProbers = [
+    def __init__(self, language_filter=None):
+        super(MBCSGroupProber, self).__init__(language_filter=language_filter)
+        self._Probers = [
             UTF8Prober(),
             SJISProber(),
             EUCJPProber(),

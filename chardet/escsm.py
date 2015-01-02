@@ -25,7 +25,7 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-from .constants import eStart, eError, eItsMe
+from .enums import SMState
 
 HZ_cls = (
 1,0,0,0,0,0,0,0,  # 00 - 07
@@ -63,12 +63,12 @@ HZ_cls = (
 )
 
 HZ_st = (
-eStart,eError,     3,eStart,eStart,eStart,eError,eError,# 00-07
-eError,eError,eError,eError,eItsMe,eItsMe,eItsMe,eItsMe,# 08-0f
-eItsMe,eItsMe,eError,eError,eStart,eStart,     4,eError,# 10-17
-     5,eError,     6,eError,     5,     5,     4,eError,# 18-1f
-     4,eError,     4,     4,     4,eError,     4,eError,# 20-27
-     4,eItsMe,eStart,eStart,eStart,eStart,eStart,eStart,# 28-2f
+SMState.start,SMState.error,     3,SMState.start,SMState.start,SMState.start,SMState.error,SMState.error,# 00-07
+SMState.error,SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,# 08-0f
+SMState.its_me,SMState.its_me,SMState.error,SMState.error,SMState.start,SMState.start,     4,SMState.error,# 10-17
+     5,SMState.error,     6,SMState.error,     5,     5,     4,SMState.error,# 18-1f
+     4,SMState.error,     4,     4,     4,SMState.error,     4,SMState.error,# 20-27
+     4,SMState.its_me,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,# 28-2f
 )
 
 HZCharLenTable = (0, 0, 0, 0, 0, 0)
@@ -115,14 +115,14 @@ ISO2022CN_cls = (
 )
 
 ISO2022CN_st = (
-eStart,     3,eError,eStart,eStart,eStart,eStart,eStart,# 00-07
-eStart,eError,eError,eError,eError,eError,eError,eError,# 08-0f
-eError,eError,eItsMe,eItsMe,eItsMe,eItsMe,eItsMe,eItsMe,# 10-17
-eItsMe,eItsMe,eItsMe,eError,eError,eError,     4,eError,# 18-1f
-eError,eError,eError,eItsMe,eError,eError,eError,eError,# 20-27
-     5,     6,eError,eError,eError,eError,eError,eError,# 28-2f
-eError,eError,eError,eItsMe,eError,eError,eError,eError,# 30-37
-eError,eError,eError,eError,eError,eItsMe,eError,eStart,# 38-3f
+SMState.start,     3,SMState.error,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,# 00-07
+SMState.start,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,# 08-0f
+SMState.error,SMState.error,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,# 10-17
+SMState.its_me,SMState.its_me,SMState.its_me,SMState.error,SMState.error,SMState.error,     4,SMState.error,# 18-1f
+SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.error,SMState.error,SMState.error,SMState.error,# 20-27
+     5,     6,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,# 28-2f
+SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.error,SMState.error,SMState.error,SMState.error,# 30-37
+SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.error,SMState.start,# 38-3f
 )
 
 ISO2022CNCharLenTable = (0, 0, 0, 0, 0, 0, 0, 0, 0)
@@ -169,15 +169,15 @@ ISO2022JP_cls = (
 )
 
 ISO2022JP_st = (
-eStart,     3,eError,eStart,eStart,eStart,eStart,eStart,# 00-07
-eStart,eStart,eError,eError,eError,eError,eError,eError,# 08-0f
-eError,eError,eError,eError,eItsMe,eItsMe,eItsMe,eItsMe,# 10-17
-eItsMe,eItsMe,eItsMe,eItsMe,eItsMe,eItsMe,eError,eError,# 18-1f
-eError,     5,eError,eError,eError,     4,eError,eError,# 20-27
-eError,eError,eError,     6,eItsMe,eError,eItsMe,eError,# 28-2f
-eError,eError,eError,eError,eError,eError,eItsMe,eItsMe,# 30-37
-eError,eError,eError,eItsMe,eError,eError,eError,eError,# 38-3f
-eError,eError,eError,eError,eItsMe,eError,eStart,eStart,# 40-47
+SMState.start,     3,SMState.error,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,# 00-07
+SMState.start,SMState.start,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,# 08-0f
+SMState.error,SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,# 10-17
+SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.error,SMState.error,# 18-1f
+SMState.error,     5,SMState.error,SMState.error,SMState.error,     4,SMState.error,SMState.error,# 20-27
+SMState.error,SMState.error,SMState.error,     6,SMState.its_me,SMState.error,SMState.its_me,SMState.error,# 28-2f
+SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.its_me,# 30-37
+SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.error,SMState.error,SMState.error,SMState.error,# 38-3f
+SMState.error,SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.error,SMState.start,SMState.start,# 40-47
 )
 
 ISO2022JPCharLenTable = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
@@ -224,11 +224,11 @@ ISO2022KR_cls = (
 )
 
 ISO2022KR_st = (
-eStart,     3,eError,eStart,eStart,eStart,eError,eError,# 00-07
-eError,eError,eError,eError,eItsMe,eItsMe,eItsMe,eItsMe,# 08-0f
-eItsMe,eItsMe,eError,eError,eError,     4,eError,eError,# 10-17
-eError,eError,eError,eError,     5,eError,eError,eError,# 18-1f
-eError,eError,eError,eItsMe,eStart,eStart,eStart,eStart,# 20-27
+SMState.start,     3,SMState.error,SMState.start,SMState.start,SMState.start,SMState.error,SMState.error,# 00-07
+SMState.error,SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,# 08-0f
+SMState.its_me,SMState.its_me,SMState.error,SMState.error,SMState.error,     4,SMState.error,SMState.error,# 10-17
+SMState.error,SMState.error,SMState.error,SMState.error,     5,SMState.error,SMState.error,SMState.error,# 18-1f
+SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.start,SMState.start,SMState.start,SMState.start,# 20-27
 )
 
 ISO2022KRCharLenTable = (0, 0, 0, 0, 0, 0)

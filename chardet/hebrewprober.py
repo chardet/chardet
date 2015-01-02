@@ -26,7 +26,7 @@
 ######################### END LICENSE BLOCK #########################
 
 from .charsetprober import CharSetProber
-from .constants import eNotMe, eDetecting
+from .enums import ProbingState
 from .compat import wrap_ord
 
 # This prober doesn't actually recognize a language or a charset.
@@ -155,27 +155,27 @@ LOGICAL_HEBREW_NAME = "windows-1255"
 class HebrewProber(CharSetProber):
     def __init__(self):
         super(HebrewProber, self).__init__()
-        self._mFinalCharLogicalScore = None
-        self._mFinalCharVisualScore = None
-        self._mPrev = None
-        self._mBeforePrev = None
-        self._mLogicalProber = None
-        self._mVisualProber = None
+        self._FinalCharLogicalScore = None
+        self._FinalCharVisualScore = None
+        self._Prev = None
+        self._BeforePrev = None
+        self._LogicalProber = None
+        self._VisualProber = None
         self.reset()
 
     def reset(self):
-        self._mFinalCharLogicalScore = 0
-        self._mFinalCharVisualScore = 0
+        self._FinalCharLogicalScore = 0
+        self._FinalCharVisualScore = 0
         # The two last characters seen in the previous buffer,
         # mPrev and mBeforePrev are initialized to space in order to simulate
         # a word delimiter at the beginning of the data
-        self._mPrev = ' '
-        self._mBeforePrev = ' '
+        self._Prev = ' '
+        self._BeforePrev = ' '
         # These probers are owned by the group prober.
 
     def set_model_probers(self, logicalProber, visualProber):
-        self._mLogicalProber = logicalProber
-        self._mVisualProber = visualProber
+        self._LogicalProber = logicalProber
+        self._VisualProber = visualProber
 
     def is_final(self, c):
         return wrap_ord(c) in [FINAL_KAF, FINAL_MEM, FINAL_NUN, FINAL_PE,
@@ -221,50 +221,50 @@ class HebrewProber(CharSetProber):
         # We automatically filter out all 7-bit characters (replace them with
         # spaces) so the word boundary detection works properly. [MAP]
 
-        if self.get_state() == eNotMe:
+        if self.get_state() == ProbingState.not_me:
             # Both model probers say it's not them. No reason to continue.
-            return eNotMe
+            return ProbingState.not_me
 
         aBuf = self.filter_high_bit_only(aBuf)
 
         for cur in aBuf:
             if cur == ' ':
                 # We stand on a space - a word just ended
-                if self._mBeforePrev != ' ':
-                    # next-to-last char was not a space so self._mPrev is not a
+                if self._BeforePrev != ' ':
+                    # next-to-last char was not a space so self._Prev is not a
                     # 1 letter word
-                    if self.is_final(self._mPrev):
+                    if self.is_final(self._Prev):
                         # case (1) [-2:not space][-1:final letter][cur:space]
-                        self._mFinalCharLogicalScore += 1
-                    elif self.is_non_final(self._mPrev):
+                        self._FinalCharLogicalScore += 1
+                    elif self.is_non_final(self._Prev):
                         # case (2) [-2:not space][-1:Non-Final letter][
                         #  cur:space]
-                        self._mFinalCharVisualScore += 1
+                        self._FinalCharVisualScore += 1
             else:
                 # Not standing on a space
-                if ((self._mBeforePrev == ' ') and
-                        (self.is_final(self._mPrev)) and (cur != ' ')):
+                if ((self._BeforePrev == ' ') and
+                        (self.is_final(self._Prev)) and (cur != ' ')):
                     # case (3) [-2:space][-1:final letter][cur:not space]
-                    self._mFinalCharVisualScore += 1
-            self._mBeforePrev = self._mPrev
-            self._mPrev = cur
+                    self._FinalCharVisualScore += 1
+            self._BeforePrev = self._Prev
+            self._Prev = cur
 
         # Forever detecting, till the end or until both model probers return
-        # eNotMe (handled above)
-        return eDetecting
+        # ProbingState.not_me (handled above)
+        return ProbingState.detecting
 
     def get_charset_name(self):
         # Make the decision: is it Logical or Visual?
         # If the final letter score distance is dominant enough, rely on it.
-        finalsub = self._mFinalCharLogicalScore - self._mFinalCharVisualScore
+        finalsub = self._FinalCharLogicalScore - self._FinalCharVisualScore
         if finalsub >= MIN_FINAL_CHAR_DISTANCE:
             return LOGICAL_HEBREW_NAME
         if finalsub <= -MIN_FINAL_CHAR_DISTANCE:
             return VISUAL_HEBREW_NAME
 
         # It's not dominant enough, try to rely on the model scores instead.
-        modelsub = (self._mLogicalProber.get_confidence()
-                    - self._mVisualProber.get_confidence())
+        modelsub = (self._LogicalProber.get_confidence()
+                    - self._VisualProber.get_confidence())
         if modelsub > MIN_MODEL_DISTANCE:
             return LOGICAL_HEBREW_NAME
         if modelsub < -MIN_MODEL_DISTANCE:
@@ -281,7 +281,7 @@ class HebrewProber(CharSetProber):
 
     def get_state(self):
         # Remain active as long as any of the model probers are active.
-        if (self._mLogicalProber.get_state() == eNotMe) and \
-           (self._mVisualProber.get_state() == eNotMe):
-            return eNotMe
-        return eDetecting
+        if (self._LogicalProber.get_state() == ProbingState.not_me) and \
+           (self._VisualProber.get_state() == ProbingState.not_me):
+            return ProbingState.not_me
+        return ProbingState.detecting

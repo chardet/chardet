@@ -16,6 +16,7 @@ import chardet
 
 
 EQUIVALENT_ENCODINGS = {'latin1': 'windows-1252'}
+MISSING_ENCODINGS = {'windows-1254', 'windows-1256'}
 
 
 def check_file_encoding(file_name, encoding):
@@ -43,6 +44,9 @@ def test_encoding_detection():
             if encoding.endswith(postfix):
                 encoding = encoding.rpartition(postfix)[0]
                 break
+        # Skip directories for encodings we don't handle yet.
+        if encoding in MISSING_ENCODINGS:
+            continue
         # Test encoding detection for each file we have of encoding for
         for file_name in listdir(path):
             ext = splitext(file_name)[1].lower()
