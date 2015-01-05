@@ -69,11 +69,11 @@ class CharDistributionAnalysis(object):
         # The number of characters whose frequency order is less than 512
         self._FreqChars = 0
 
-    def feed(self, aBuf, aCharLen):
+    def feed(self, char, char_len):
         """feed a character with known length"""
-        if aCharLen == 2:
+        if char_len == 2:
             # we only care about 2-bytes character in our distribution analysis
-            order = self.get_order(aBuf)
+            order = self.get_order(char)
         else:
             order = -1
         if order >= 0:

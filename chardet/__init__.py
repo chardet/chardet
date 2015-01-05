@@ -20,12 +20,13 @@ from .compat import PY2, PY3
 from .universaldetector import UniversalDetector
 
 
-def detect(aBuf):
-    if (PY2 and isinstance(aBuf, unicode)) or (PY3 and
-                                               not isinstance(aBuf, bytes)):
+def detect(byte_str):
+    if (PY2 and isinstance(byte_str, unicode)) or (PY3 and
+                                               not isinstance(byte_str,
+                                                              bytes)):
         raise ValueError('Expected a bytes object, not a unicode object')
 
     u = UniversalDetector()
-    u.feed(aBuf)
+    u.feed(byte_str)
     u.close()
     return u.result
