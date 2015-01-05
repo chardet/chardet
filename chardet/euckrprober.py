@@ -28,15 +28,16 @@
 from .mbcharsetprober import MultiByteCharSetProber
 from .codingstatemachine import CodingStateMachine
 from .chardistribution import EUCKRDistributionAnalysis
-from .mbcssm import EUCKRSMModel
+from .mbcssm import EUCKR_SM_MODEL
 
 
 class EUCKRProber(MultiByteCharSetProber):
     def __init__(self):
         super(EUCKRProber, self).__init__()
-        self._CodingSM = CodingStateMachine(EUCKRSMModel)
-        self._DistributionAnalyzer = EUCKRDistributionAnalysis()
+        self.coding_sm = CodingStateMachine(EUCKR_SM_MODEL)
+        self._distribution_analyzer = EUCKRDistributionAnalysis()
         self.reset()
 
-    def get_charset_name(self):
+    @property
+    def charset_name(self):
         return "EUC-KR"

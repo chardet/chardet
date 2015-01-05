@@ -29,8 +29,8 @@ from .charsetprober import CharSetProber
 from .codingstatemachine import CodingStateMachine
 from .compat import wrap_ord
 from .enums import LanguageFilter, ProbingState, SMState
-from .escsm import (HZSMModel, ISO2022CNSMModel, ISO2022JPSMModel,
-                    ISO2022KRSMModel)
+from .escsm import (HZ_SM_MODEL, ISO2022CN_SM_MODEL, ISO2022JP_SM_MODEL,
+                    ISO2022KR_SM_MODEL)
 
 
 class EscCharSetProber(CharSetProber):
@@ -40,58 +40,56 @@ class EscCharSetProber(CharSetProber):
     identify these encodings.
     """
 
-    def __init__(self, language_filter=None):
-        super(EscCharSetProber, self).__init__(language_filter=language_filter)
-        self._CodingSM = []
-        if self._language_filter & LanguageFilter.chinese_simplified:
-            self._CodingSM.append(CodingStateMachine(HZSMModel))
-            self._CodingSM.append(CodingStateMachine(ISO2022CNSMModel))
-        if self._language_filter & LanguageFilter.japanese:
-            self._CodingSM.append(CodingStateMachine(ISO2022JPSMModel))
-        if self._language_filter & LanguageFilter.korean:
-            self._CodingSM.append(CodingStateMachine(ISO2022KRSMModel))
+    def __init__(self, lang_filter=None):
+        super(EscCharSetProber, self).__init__(lang_filter=lang_filter)
+        self.coding_sm = []
+        if self._lang_filter & LanguageFilter.chinese_simplified:
+            self.coding_sm.append(CodingStateMachine(HZ_SM_MODEL))
+            self.coding_sm.append(CodingStateMachine(ISO2022CN_SM_MODEL))
+        if self._lang_filter & LanguageFilter.japanese:
+            self.coding_sm.append(CodingStateMachine(ISO2022JP_SM_MODEL))
+        if self._lang_filter & LanguageFilter.korean:
+            self.coding_sm.append(CodingStateMachine(ISO2022KR_SM_MODEL))
         self._ActiveSM = None
-        self._DetectedCharset = None
-        self._State = None
+        self._detected_charset = None
+        self._state = None
         self.reset()
 
     def reset(self):
         super(EscCharSetProber, self).reset()
-        for codingSM in self._CodingSM:
-            if not codingSM:
+        for coding_sm in self.coding_sm:
+            if not coding_sm:
                 continue
-            codingSM.active = True
-            codingSM.reset()
-        self._ActiveSM = len(self._CodingSM)
-        self._DetectedCharset = None
+            coding_sm.active = True
+            coding_sm.reset()
+        self._ActiveSM = len(self.coding_sm)
+        self._detected_charset = None
 
-    def get_charset_name(self):
-        return self._DetectedCharset
+    @property
+    def charset_name(self):
+        return self._detected_charset
 
     def get_confidence(self):
-        if self._DetectedCharset:
+        if self._detected_charset:
             return 0.99
         else:
             return 0.00
 
-    def feed(self, aBuf):
-        for c in aBuf:
-            # PY3K: aBuf is a byte array, so c is an int, not a byte
-            for codingSM in self._CodingSM:
-                if not codingSM:
+    def feed(self, byte_str):
+        for c in byte_str:
+            for coding_sm in self.coding_sm:
+                if not coding_sm or not coding_sm.active:
                     continue
-                if not codingSM.active:
-                    continue
-                codingState = codingSM.next_state(wrap_ord(c))
-                if codingState == SMState.error:
-                    codingSM.active = False
+                coding_state = coding_sm.next_state(wrap_ord(c))
+                if coding_state == SMState.error:
+                    coding_sm.active = False
                     self._ActiveSM -= 1
                     if self._ActiveSM <= 0:
-                        self._State = ProbingState.not_me
-                        return self.get_state()
-                elif codingState == SMState.its_me:
-                    self._State = ProbingState.found_it
-                    self._DetectedCharset = codingSM.get_coding_state_machine()
-                    return self.get_state()
+                        self._state = ProbingState.not_me
+                        return self.state
+                elif coding_state == SMState.its_me:
+                    self._state = ProbingState.found_it
+                    self._detected_charset = coding_sm.get_coding_state_machine()
+                    return self.state
 
-        return self.get_state()
+        return self.state

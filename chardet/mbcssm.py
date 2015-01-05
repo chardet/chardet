@@ -29,7 +29,7 @@ from .enums import SMState
 
 # BIG5
 
-BIG5_cls = (
+BIG5_CLS = (
     1,1,1,1,1,1,1,1,  # 00 - 07    #allow 0x00 as legal value
     1,1,1,1,1,1,0,0,  # 08 - 0f
     1,1,1,1,1,1,1,1,  # 10 - 17
@@ -64,23 +64,23 @@ BIG5_cls = (
     3,3,3,3,3,3,3,0  # f8 - ff
 )
 
-BIG5_st = (
+BIG5_ST = (
     SMState.error,SMState.start,SMState.start,     3,SMState.error,SMState.error,SMState.error,SMState.error,#00-07
     SMState.error,SMState.error,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.error,#08-0f
     SMState.error,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start#10-17
 )
 
-Big5CharLenTable = (0, 1, 1, 2, 0)
+BIG5_CHAR_LEN_TABLE = (0, 1, 1, 2, 0)
 
-Big5SMModel = {'classTable': BIG5_cls,
-               'classFactor': 5,
-               'stateTable': BIG5_st,
-               'charLenTable': Big5CharLenTable,
-               'name': 'Big5'}
+BIG5_SM_MODEL = {'class_table': BIG5_CLS,
+                 'class_factor': 5,
+                 'state_table': BIG5_ST,
+                 'char_len_table': BIG5_CHAR_LEN_TABLE,
+                 'name': 'Big5'}
 
 # CP949
 
-CP949_cls  = (
+CP949_CLS  = (
     1,1,1,1,1,1,1,1, 1,1,1,1,1,1,0,0,  # 00 - 0f
     1,1,1,1,1,1,1,1, 1,1,1,0,1,1,1,1,  # 10 - 1f
     1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,  # 20 - 2f
@@ -99,7 +99,7 @@ CP949_cls  = (
     2,2,2,2,2,2,2,2, 2,2,2,2,2,2,2,0,  # f0 - ff
 )
 
-CP949_st = (
+CP949_ST = (
 #cls=    0      1      2      3      4      5      6      7      8      9  # previous state =
     SMState.error,SMState.start,     3,SMState.error,SMState.start,SMState.start,     4,     5,SMState.error,     6, # SMState.start
     SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error, # SMState.error
@@ -110,17 +110,17 @@ CP949_st = (
     SMState.error,SMState.start,SMState.start,SMState.start,SMState.start,SMState.error,SMState.error,SMState.start,SMState.start,SMState.start, # 6
 )
 
-CP949CharLenTable = (0, 1, 2, 0, 1, 1, 2, 2, 0, 2)
+CP949_CHAR_LEN_TABLE = (0, 1, 2, 0, 1, 1, 2, 2, 0, 2)
 
-CP949SMModel = {'classTable': CP949_cls,
-                'classFactor': 10,
-                'stateTable': CP949_st,
-                'charLenTable': CP949CharLenTable,
-                'name': 'CP949'}
+CP949_SM_MODEL = {'class_table': CP949_CLS,
+                  'class_factor': 10,
+                  'state_table': CP949_ST,
+                  'char_len_table': CP949_CHAR_LEN_TABLE,
+                  'name': 'CP949'}
 
 # EUC-JP
 
-EUCJP_cls = (
+EUCJP_CLS = (
     4,4,4,4,4,4,4,4,  # 00 - 07
     4,4,4,4,4,4,5,5,  # 08 - 0f
     4,4,4,4,4,4,4,4,  # 10 - 17
@@ -155,7 +155,7 @@ EUCJP_cls = (
     0,0,0,0,0,0,0,5  # f8 - ff
 )
 
-EUCJP_st = (
+EUCJP_ST = (
           3,     4,     3,     5,SMState.start,SMState.error,SMState.error,SMState.error,#00-07
      SMState.error,SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,#08-0f
      SMState.its_me,SMState.its_me,SMState.start,SMState.error,SMState.start,SMState.error,SMState.error,SMState.error,#10-17
@@ -163,17 +163,17 @@ EUCJP_st = (
           3,SMState.error,SMState.error,SMState.error,SMState.start,SMState.start,SMState.start,SMState.start#20-27
 )
 
-EUCJPCharLenTable = (2, 2, 2, 3, 1, 0)
+EUCJP_CHAR_LEN_TABLE = (2, 2, 2, 3, 1, 0)
 
-EUCJPSMModel = {'classTable': EUCJP_cls,
-                'classFactor': 6,
-                'stateTable': EUCJP_st,
-                'charLenTable': EUCJPCharLenTable,
-                'name': 'EUC-JP'}
+EUCJP_SM_MODEL = {'class_table': EUCJP_CLS,
+                  'class_factor': 6,
+                  'state_table': EUCJP_ST,
+                  'char_len_table': EUCJP_CHAR_LEN_TABLE,
+                  'name': 'EUC-JP'}
 
 # EUC-KR
 
-EUCKR_cls  = (
+EUCKR_CLS  = (
     1,1,1,1,1,1,1,1,  # 00 - 07
     1,1,1,1,1,1,0,0,  # 08 - 0f
     1,1,1,1,1,1,1,1,  # 10 - 17
@@ -208,22 +208,22 @@ EUCKR_cls  = (
     2,2,2,2,2,2,2,0   # f8 - ff
 )
 
-EUCKR_st = (
+EUCKR_ST = (
     SMState.error,SMState.start,     3,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,#00-07
     SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.error,SMState.error,SMState.start,SMState.start #08-0f
 )
 
-EUCKRCharLenTable = (0, 1, 2, 0)
+EUCKR_CHAR_LEN_TABLE = (0, 1, 2, 0)
 
-EUCKRSMModel = {'classTable': EUCKR_cls,
-                'classFactor': 4,
-                'stateTable': EUCKR_st,
-                'charLenTable': EUCKRCharLenTable,
+EUCKR_SM_MODEL = {'class_table': EUCKR_CLS,
+                'class_factor': 4,
+                'state_table': EUCKR_ST,
+                'char_len_table': EUCKR_CHAR_LEN_TABLE,
                 'name': 'EUC-KR'}
 
 # EUC-TW
 
-EUCTW_cls = (
+EUCTW_CLS = (
     2,2,2,2,2,2,2,2,  # 00 - 07
     2,2,2,2,2,2,0,0,  # 08 - 0f
     2,2,2,2,2,2,2,2,  # 10 - 17
@@ -258,7 +258,7 @@ EUCTW_cls = (
     3,3,3,3,3,3,3,0   # f8 - ff
 )
 
-EUCTW_st = (
+EUCTW_ST = (
     SMState.error,SMState.error,SMState.start,     3,     3,     3,     4,SMState.error,#00-07
     SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.its_me,#08-0f
     SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.error,SMState.start,SMState.error,#10-17
@@ -267,17 +267,17 @@ EUCTW_st = (
     SMState.start,SMState.error,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start #28-2f
 )
 
-EUCTWCharLenTable = (0, 0, 1, 2, 2, 2, 3)
+EUCTW_CHAR_LEN_TABLE = (0, 0, 1, 2, 2, 2, 3)
 
-EUCTWSMModel = {'classTable': EUCTW_cls,
-                'classFactor': 7,
-                'stateTable': EUCTW_st,
-                'charLenTable': EUCTWCharLenTable,
+EUCTW_SM_MODEL = {'class_table': EUCTW_CLS,
+                'class_factor': 7,
+                'state_table': EUCTW_ST,
+                'char_len_table': EUCTW_CHAR_LEN_TABLE,
                 'name': 'x-euc-tw'}
 
 # GB2312
 
-GB2312_cls = (
+GB2312_CLS = (
     1,1,1,1,1,1,1,1,  # 00 - 07
     1,1,1,1,1,1,0,0,  # 08 - 0f
     1,1,1,1,1,1,1,1,  # 10 - 17
@@ -312,7 +312,7 @@ GB2312_cls = (
     6,6,6,6,6,6,6,0   # f8 - ff
 )
 
-GB2312_st = (
+GB2312_ST = (
     SMState.error,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,     3,SMState.error,#00-07
     SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.its_me,#08-0f
     SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.error,SMState.error,SMState.start,#10-17
@@ -326,17 +326,17 @@ GB2312_st = (
 # it is used for frequency analysis only, and we are validing
 # each code range there as well. So it is safe to set it to be
 # 2 here.
-GB2312CharLenTable = (0, 1, 1, 1, 1, 1, 2)
+GB2312_CHAR_LEN_TABLE = (0, 1, 1, 1, 1, 1, 2)
 
-GB2312SMModel = {'classTable': GB2312_cls,
-                  'classFactor': 7,
-                  'stateTable': GB2312_st,
-                  'charLenTable': GB2312CharLenTable,
-                  'name': 'GB2312'}
+GB2312_SM_MODEL = {'class_table': GB2312_CLS,
+                   'class_factor': 7,
+                   'state_table': GB2312_ST,
+                   'char_len_table': GB2312_CHAR_LEN_TABLE,
+                   'name': 'GB2312'}
 
 # Shift_JIS
 
-SJIS_cls = (
+SJIS_CLS = (
     1,1,1,1,1,1,1,1,  # 00 - 07
     1,1,1,1,1,1,0,0,  # 08 - 0f
     1,1,1,1,1,1,1,1,  # 10 - 17
@@ -373,23 +373,23 @@ SJIS_cls = (
     3,3,3,3,3,0,0,0)  # f8 - ff
 
 
-SJIS_st = (
+SJIS_ST = (
     SMState.error,SMState.start,SMState.start,     3,SMState.error,SMState.error,SMState.error,SMState.error,#00-07
     SMState.error,SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,#08-0f
     SMState.its_me,SMState.its_me,SMState.error,SMState.error,SMState.start,SMState.start,SMState.start,SMState.start #10-17
 )
 
-SJISCharLenTable = (0, 1, 1, 2, 0, 0)
+SJIS_CHAR_LEN_TABLE = (0, 1, 1, 2, 0, 0)
 
-SJISSMModel = {'classTable': SJIS_cls,
-               'classFactor': 6,
-               'stateTable': SJIS_st,
-               'charLenTable': SJISCharLenTable,
+SJIS_SM_MODEL = {'class_table': SJIS_CLS,
+               'class_factor': 6,
+               'state_table': SJIS_ST,
+               'char_len_table': SJIS_CHAR_LEN_TABLE,
                'name': 'Shift_JIS'}
 
 # UCS2-BE
 
-UCS2BE_cls = (
+UCS2BE_CLS = (
     0,0,0,0,0,0,0,0,  # 00 - 07
     0,0,1,0,0,2,0,0,  # 08 - 0f
     0,0,0,0,0,0,0,0,  # 10 - 17
@@ -424,7 +424,7 @@ UCS2BE_cls = (
     0,0,0,0,0,0,4,5   # f8 - ff
 )
 
-UCS2BE_st  = (
+UCS2BE_ST  = (
           5,     7,     7,SMState.error,     4,     3,SMState.error,SMState.error,#00-07
      SMState.error,SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,#08-0f
      SMState.its_me,SMState.its_me,     6,     6,     6,     6,SMState.error,SMState.error,#10-17
@@ -434,17 +434,17 @@ UCS2BE_st  = (
           6,     6,     6,     6,SMState.error,SMState.error,SMState.start,SMState.start #30-37
 )
 
-UCS2BECharLenTable = (2, 2, 2, 0, 2, 2)
+UCS2BE_CHAR_LEN_TABLE = (2, 2, 2, 0, 2, 2)
 
-UCS2BESMModel = {'classTable': UCS2BE_cls,
-                 'classFactor': 6,
-                 'stateTable': UCS2BE_st,
-                 'charLenTable': UCS2BECharLenTable,
-                 'name': 'UTF-16BE'}
+UCS2BE_SM_MODEL = {'class_table': UCS2BE_CLS,
+                   'class_factor': 6,
+                   'state_table': UCS2BE_ST,
+                   'char_len_table': UCS2BE_CHAR_LEN_TABLE,
+                   'name': 'UTF-16BE'}
 
 # UCS2-LE
 
-UCS2LE_cls = (
+UCS2LE_CLS = (
     0,0,0,0,0,0,0,0,  # 00 - 07
     0,0,1,0,0,2,0,0,  # 08 - 0f
     0,0,0,0,0,0,0,0,  # 10 - 17
@@ -479,7 +479,7 @@ UCS2LE_cls = (
     0,0,0,0,0,0,4,5   # f8 - ff
 )
 
-UCS2LE_st = (
+UCS2LE_ST = (
           6,     6,     7,     6,     4,     3,SMState.error,SMState.error,#00-07
      SMState.error,SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,#08-0f
      SMState.its_me,SMState.its_me,     5,     5,     5,SMState.error,SMState.its_me,SMState.error,#10-17
@@ -489,17 +489,17 @@ UCS2LE_st = (
           5,     5,     5,SMState.error,     5,SMState.error,SMState.start,SMState.start #30-37
 )
 
-UCS2LECharLenTable = (2, 2, 2, 2, 2, 2)
+UCS2LE_CHAR_LEN_TABLE = (2, 2, 2, 2, 2, 2)
 
-UCS2LESMModel = {'classTable': UCS2LE_cls,
-                 'classFactor': 6,
-                 'stateTable': UCS2LE_st,
-                 'charLenTable': UCS2LECharLenTable,
+UCS2LE_SM_MODEL = {'class_table': UCS2LE_CLS,
+                 'class_factor': 6,
+                 'state_table': UCS2LE_ST,
+                 'char_len_table': UCS2LE_CHAR_LEN_TABLE,
                  'name': 'UTF-16LE'}
 
 # UTF-8
 
-UTF8_cls = (
+UTF8_CLS = (
     1,1,1,1,1,1,1,1,  # 00 - 07  #allow 0x00 as a legal value
     1,1,1,1,1,1,0,0,  # 08 - 0f
     1,1,1,1,1,1,1,1,  # 10 - 17
@@ -534,7 +534,7 @@ UTF8_cls = (
     12,13,13,13,14,15,0,0    # f8 - ff
 )
 
-UTF8_st = (
+UTF8_ST = (
     SMState.error,SMState.start,SMState.error,SMState.error,SMState.error,SMState.error,     12,   10,#00-07
          9,     11,     8,     7,     6,     5,     4,    3,#08-0f
     SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,#10-17
@@ -563,10 +563,10 @@ UTF8_st = (
     SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error #c8-cf
 )
 
-UTF8CharLenTable = (0, 1, 0, 0, 0, 0, 2, 3, 3, 3, 4, 4, 5, 5, 6, 6)
+UTF8_CHAR_LEN_TABLE = (0, 1, 0, 0, 0, 0, 2, 3, 3, 3, 4, 4, 5, 5, 6, 6)
 
-UTF8SMModel = {'classTable': UTF8_cls,
-               'classFactor': 16,
-               'stateTable': UTF8_st,
-               'charLenTable': UTF8CharLenTable,
-               'name': 'UTF-8'}
+UTF8_SM_MODEL = {'class_table': UTF8_CLS,
+                 'class_factor': 16,
+                 'state_table': UTF8_ST,
+                 'char_len_table': UTF8_CHAR_LEN_TABLE,
+                 'name': 'UTF-8'}

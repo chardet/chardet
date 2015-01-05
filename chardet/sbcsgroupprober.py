@@ -42,7 +42,7 @@ from .hebrewprober import HebrewProber
 class SBCSGroupProber(CharSetGroupProber):
     def __init__(self):
         super(SBCSGroupProber, self).__init__()
-        self._Probers = [
+        self._probers = [
             SingleByteCharSetProber(Win1251CyrillicModel),
             SingleByteCharSetProber(Koi8rModel),
             SingleByteCharSetProber(Latin5CyrillicModel),
@@ -57,13 +57,13 @@ class SBCSGroupProber(CharSetGroupProber):
             SingleByteCharSetProber(Win1250HungarianModel),
             SingleByteCharSetProber(TIS620ThaiModel),
         ]
-        hebrewProber = HebrewProber()
-        logicalHebrewProber = SingleByteCharSetProber(Win1255HebrewModel,
-                                                      False, hebrewProber)
-        visualHebrewProber = SingleByteCharSetProber(Win1255HebrewModel, True,
-                                                     hebrewProber)
-        hebrewProber.set_model_probers(logicalHebrewProber, visualHebrewProber)
-        self._Probers.extend([hebrewProber, logicalHebrewProber,
-                               visualHebrewProber])
+        hebrew_prober = HebrewProber()
+        logical_hebrew_prober = SingleByteCharSetProber(Win1255HebrewModel,
+                                                      False, hebrew_prober)
+        visual_hebrew_prober = SingleByteCharSetProber(Win1255HebrewModel, True,
+                                                     hebrew_prober)
+        hebrew_prober.set_model_probers(logical_hebrew_prober, visual_hebrew_prober)
+        self._probers.extend([hebrew_prober, logical_hebrew_prober,
+                               visual_hebrew_prober])
 
         self.reset()

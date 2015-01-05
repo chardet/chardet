@@ -96,7 +96,7 @@ class UniversalDetector(object):
         for prober in self._charset_probers:
             prober.reset()
 
-    def feed(self, buf):
+    def feed(self, byte_str):
         """
         Takes a chunk of a document and feeds it through all of the relevant
         charset probers.
@@ -113,33 +113,33 @@ class UniversalDetector(object):
         if self.done:
             return
 
-        if not len(buf):
+        if not len(byte_str):
             return
 
         # First check for known BOMs, since these are guaranteed to be correct
         if not self._got_data:
             # If the data starts with BOM, we know it is UTF
-            if buf.startswith(codecs.BOM_UTF8):
+            if byte_str.startswith(codecs.BOM_UTF8):
                 # EF BB BF  UTF-8 with BOM
                 self.result = {'encoding': "UTF-8-SIG", 'confidence': 1.0}
-            elif buf.startswith(codecs.BOM_UTF32_LE):
+            elif byte_str.startswith(codecs.BOM_UTF32_LE):
                 # FF FE 00 00  UTF-32, little-endian BOM
                 self.result = {'encoding': "UTF-32LE", 'confidence': 1.0}
-            elif buf.startswith(codecs.BOM_UTF32_BE):
+            elif byte_str.startswith(codecs.BOM_UTF32_BE):
                 # 00 00 FE FF  UTF-32, big-endian BOM
                 self.result = {'encoding': "UTF-32BE", 'confidence': 1.0}
-            elif buf.startswith(b'\xFE\xFF\x00\x00'):
+            elif byte_str.startswith(b'\xFE\xFF\x00\x00'):
                 # FE FF 00 00  UCS-4, unusual octet order BOM (3412)
                 self.result = {'encoding': "X-ISO-10646-UCS-4-3412",
                                'confidence': 1.0}
-            elif buf.startswith(b'\x00\x00\xFF\xFE'):
+            elif byte_str.startswith(b'\x00\x00\xFF\xFE'):
                 # 00 00 FF FE  UCS-4, unusual octet order BOM (2143)
                 self.result = {'encoding': "X-ISO-10646-UCS-4-2143",
                                'confidence': 1.0}
-            elif buf.startswith(codecs.BOM_LE):
+            elif byte_str.startswith(codecs.BOM_LE):
                 # FF FE  UTF-16, little endian BOM
                 self.result = {'encoding': "UTF-16LE", 'confidence': 1.0}
-            elif buf.startswith(codecs.BOM_BE):
+            elif byte_str.startswith(codecs.BOM_BE):
                 # FE FF  UTF-16, big endian BOM
                 self.result = {'encoding': "UTF-16BE", 'confidence': 1.0}
 
@@ -151,13 +151,13 @@ class UniversalDetector(object):
         # If none of those matched and we've only see ASCII so far, check
         # for high bytes and escape sequences
         if self._input_state == InputState.pure_ascii:
-            if self.HIGH_BYTE_DETECTOR.search(buf):
+            if self.HIGH_BYTE_DETECTOR.search(byte_str):
                 self._input_state = InputState.high_byte
             elif self._input_state == InputState.pure_ascii and \
-                    self.ESC_DETECTOR.search(self._last_char + buf):
+                    self.ESC_DETECTOR.search(self._last_char + byte_str):
                 self._input_state = InputState.esc_ascii
 
-        self._last_char = buf[-1:]
+        self._last_char = byte_str[-1:]
 
         # If we've seen escape sequences, use the EscCharSetProber, which
         # uses a simple state machine to check for known escape sequences in
@@ -166,9 +166,9 @@ class UniversalDetector(object):
         if self._input_state == InputState.esc_ascii:
             if not self._esc_charset_prober:
                 self._esc_charset_prober = EscCharSetProber(self.lang_filter)
-            if self._esc_charset_prober.feed(buf) == ProbingState.found_it:
+            if self._esc_charset_prober.feed(byte_str) == ProbingState.found_it:
                 self.result = {'encoding':
-                               self._esc_charset_prober.get_charset_name(),
+                               self._esc_charset_prober.charset_name,
                                'confidence':
                                self._esc_charset_prober.get_confidence()}
                 self.done = True
@@ -186,8 +186,8 @@ class UniversalDetector(object):
                     self._charset_probers.append(SBCSGroupProber())
                 self._charset_probers.append(Latin1Prober())
             for prober in self._charset_probers:
-                if prober.feed(buf) == ProbingState.found_it:
-                    self.result = {'encoding': prober.get_charset_name(),
+                if prober.feed(byte_str) == ProbingState.found_it:
+                    self.result = {'encoding': prober.charset_name,
                                    'confidence': prober.get_confidence()}
                     self.done = True
                     break
@@ -223,7 +223,7 @@ class UniversalDetector(object):
                     max_prober_confidence = proberConfidence
                     max_prober = prober
             if max_prober and (max_prober_confidence > self.MINIMUM_THRESHOLD):
-                self.result = {'encoding': max_prober.get_charset_name(),
+                self.result = {'encoding': max_prober.charset_name,
                                'confidence': max_prober.get_confidence()}
                 return self.result
 
@@ -232,6 +232,5 @@ class UniversalDetector(object):
             for prober in self._charset_probers[0].mProbers:
                 if not prober:
                     continue
-                self.logger.debug('%s confidence = %s\n',
-                                  prober.get_charset_name(),
+                self.logger.debug('%s confidence = %s', prober.charset_name,
                                   prober.get_confidence())

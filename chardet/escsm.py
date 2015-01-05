@@ -27,7 +27,7 @@
 
 from .enums import SMState
 
-HZ_cls = (
+HZ_CLS = (
 1,0,0,0,0,0,0,0,  # 00 - 07
 0,0,0,0,0,0,0,0,  # 08 - 0f
 0,0,0,0,0,0,0,0,  # 10 - 17
@@ -62,7 +62,7 @@ HZ_cls = (
 1,1,1,1,1,1,1,1,  # f8 - ff
 )
 
-HZ_st = (
+HZ_ST = (
 SMState.start,SMState.error,     3,SMState.start,SMState.start,SMState.start,SMState.error,SMState.error,# 00-07
 SMState.error,SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,# 08-0f
 SMState.its_me,SMState.its_me,SMState.error,SMState.error,SMState.start,SMState.start,     4,SMState.error,# 10-17
@@ -71,15 +71,15 @@ SMState.its_me,SMState.its_me,SMState.error,SMState.error,SMState.start,SMState.
      4,SMState.its_me,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,# 28-2f
 )
 
-HZCharLenTable = (0, 0, 0, 0, 0, 0)
+HZ_CHAR_LEN_TABLE = (0, 0, 0, 0, 0, 0)
 
-HZSMModel = {'classTable': HZ_cls,
-             'classFactor': 6,
-             'stateTable': HZ_st,
-             'charLenTable': HZCharLenTable,
-             'name': "HZ-GB-2312"}
+HZ_SM_MODEL = {'class_table': HZ_CLS,
+               'class_factor': 6,
+               'state_table': HZ_ST,
+               'char_len_table': HZ_CHAR_LEN_TABLE,
+               'name': "HZ-GB-2312"}
 
-ISO2022CN_cls = (
+ISO2022CN_CLS = (
 2,0,0,0,0,0,0,0,  # 00 - 07
 0,0,0,0,0,0,0,0,  # 08 - 0f
 0,0,0,0,0,0,0,0,  # 10 - 17
@@ -114,7 +114,7 @@ ISO2022CN_cls = (
 2,2,2,2,2,2,2,2,  # f8 - ff
 )
 
-ISO2022CN_st = (
+ISO2022CN_ST = (
 SMState.start,     3,SMState.error,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,# 00-07
 SMState.start,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,# 08-0f
 SMState.error,SMState.error,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,# 10-17
@@ -125,15 +125,15 @@ SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.error,SMState.e
 SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.error,SMState.start,# 38-3f
 )
 
-ISO2022CNCharLenTable = (0, 0, 0, 0, 0, 0, 0, 0, 0)
+ISO2022CN_CHAR_LEN_TABLE = (0, 0, 0, 0, 0, 0, 0, 0, 0)
 
-ISO2022CNSMModel = {'classTable': ISO2022CN_cls,
-                    'classFactor': 9,
-                    'stateTable': ISO2022CN_st,
-                    'charLenTable': ISO2022CNCharLenTable,
-                    'name': "ISO-2022-CN"}
+ISO2022CN_SM_MODEL = {'class_table': ISO2022CN_CLS,
+                      'class_factor': 9,
+                      'state_table': ISO2022CN_ST,
+                      'char_len_table': ISO2022CN_CHAR_LEN_TABLE,
+                      'name': "ISO-2022-CN"}
 
-ISO2022JP_cls = (
+ISO2022JP_CLS = (
 2,0,0,0,0,0,0,0,  # 00 - 07
 0,0,0,0,0,0,2,2,  # 08 - 0f
 0,0,0,0,0,0,0,0,  # 10 - 17
@@ -168,7 +168,7 @@ ISO2022JP_cls = (
 2,2,2,2,2,2,2,2,  # f8 - ff
 )
 
-ISO2022JP_st = (
+ISO2022JP_ST = (
 SMState.start,     3,SMState.error,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,# 00-07
 SMState.start,SMState.start,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,# 08-0f
 SMState.error,SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,# 10-17
@@ -180,15 +180,15 @@ SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.error,SMState.e
 SMState.error,SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.error,SMState.start,SMState.start,# 40-47
 )
 
-ISO2022JPCharLenTable = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+ISO2022JP_CHAR_LEN_TABLE = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
-ISO2022JPSMModel = {'classTable': ISO2022JP_cls,
-                    'classFactor': 10,
-                    'stateTable': ISO2022JP_st,
-                    'charLenTable': ISO2022JPCharLenTable,
-                    'name': "ISO-2022-JP"}
+ISO2022JP_SM_MODEL = {'class_table': ISO2022JP_CLS,
+                      'class_factor': 10,
+                      'state_table': ISO2022JP_ST,
+                      'char_len_table': ISO2022JP_CHAR_LEN_TABLE,
+                      'name': "ISO-2022-JP"}
 
-ISO2022KR_cls = (
+ISO2022KR_CLS = (
 2,0,0,0,0,0,0,0,  # 00 - 07
 0,0,0,0,0,0,0,0,  # 08 - 0f
 0,0,0,0,0,0,0,0,  # 10 - 17
@@ -223,7 +223,7 @@ ISO2022KR_cls = (
 2,2,2,2,2,2,2,2,  # f8 - ff
 )
 
-ISO2022KR_st = (
+ISO2022KR_ST = (
 SMState.start,     3,SMState.error,SMState.start,SMState.start,SMState.start,SMState.error,SMState.error,# 00-07
 SMState.error,SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,# 08-0f
 SMState.its_me,SMState.its_me,SMState.error,SMState.error,SMState.error,     4,SMState.error,SMState.error,# 10-17
@@ -231,12 +231,12 @@ SMState.error,SMState.error,SMState.error,SMState.error,     5,SMState.error,SMS
 SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.start,SMState.start,SMState.start,SMState.start,# 20-27
 )
 
-ISO2022KRCharLenTable = (0, 0, 0, 0, 0, 0)
+ISO2022KR_CHAR_LEN_TABLE = (0, 0, 0, 0, 0, 0)
 
-ISO2022KRSMModel = {'classTable': ISO2022KR_cls,
-                    'classFactor': 6,
-                    'stateTable': ISO2022KR_st,
-                    'charLenTable': ISO2022KRCharLenTable,
-                    'name': "ISO-2022-KR"}
+ISO2022KR_SM_MODEL = {'class_table': ISO2022KR_CLS,
+                      'class_factor': 6,
+                      'state_table': ISO2022KR_ST,
+                      'char_len_table': ISO2022KR_CHAR_LEN_TABLE,
+                      'name': "ISO-2022-KR"}
 
 # flake8: noqa

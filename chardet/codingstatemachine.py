@@ -54,33 +54,32 @@ class CodingStateMachine(object):
                  encoding from consideration from here on.
     """
     def __init__(self, sm):
-        self._Model = sm
-        self._CurrentBytePos = 0
-        self._CurrentCharLen = 0
-        self._CurrentState = None
+        self._model = sm
+        self._curr_byte_pos = 0
+        self._curr_char_len = 0
+        self._curr_state = None
         self.logger = logging.getLogger(__name__)
         self.reset()
 
     def reset(self):
-        self._CurrentState = SMState.start
+        self._curr_state = SMState.start
 
     def next_state(self, c):
         # for each byte we get its class
         # if it is first byte, we also get byte length
-        # PY3K: aBuf is a byte stream, so c is an int, not a byte
-        byteCls = self._Model['classTable'][wrap_ord(c)]
-        if self._CurrentState == SMState.start:
-            self._CurrentBytePos = 0
-            self._CurrentCharLen = self._Model['charLenTable'][byteCls]
-        # from byte's class and stateTable, we get its next state
-        curr_state = (self._CurrentState * self._Model['classFactor']
-                      + byteCls)
-        self._CurrentState = self._Model['stateTable'][curr_state]
-        self._CurrentBytePos += 1
-        return self._CurrentState
+        byte_class = self._model['class_table'][wrap_ord(c)]
+        if self._curr_state == SMState.start:
+            self._curr_byte_pos = 0
+            self._curr_char_len = self._model['char_len_table'][byte_class]
+        # from byte's class and state_table, we get its next state
+        curr_state = (self._curr_state * self._model['class_factor']
+                      + byte_class)
+        self._curr_state = self._model['state_table'][curr_state]
+        self._curr_byte_pos += 1
+        return self._curr_state
 
     def get_current_charlen(self):
-        return self._CurrentCharLen
+        return self._curr_char_len
 
     def get_coding_state_machine(self):
-        return self._Model['name']
+        return self._model['name']

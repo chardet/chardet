@@ -40,76 +40,82 @@ class SingleByteCharSetProber(CharSetProber):
     NUMBER_OF_SEQ_CAT = 4
     POSITIVE_CAT = NUMBER_OF_SEQ_CAT - 1
 
-    def __init__(self, model, reversed=False, nameProber=None):
+    def __init__(self, model, reversed=False, name_prober=None):
         super(SingleByteCharSetProber, self).__init__()
-        self._Model = model
+        self._model = model
         # TRUE if we need to reverse every pair in the model lookup
-        self._Reversed = reversed
+        self._reversed = reversed
         # Optional auxiliary prober for name decision
-        self._NameProber = nameProber
+        self._name_prober = name_prober
+        self._last_order = None
+        self._seq_counters = None
+        self._total_seqs = None
+        self._total_char = None
+        self._freq_char = None
         self.reset()
 
     def reset(self):
         super(SingleByteCharSetProber, self).reset()
         # char order of last character
-        self._LastOrder = 255
-        self._SeqCounters = [0] * self.NUMBER_OF_SEQ_CAT
-        self._TotalSeqs = 0
-        self._TotalChar = 0
+        self._last_order = 255
+        self._seq_counters = [0] * self.NUMBER_OF_SEQ_CAT
+        self._total_seqs = 0
+        self._total_char = 0
         # characters that fall in our sampling range
-        self._FreqChar = 0
+        self._freq_char = 0
 
-    def get_charset_name(self):
-        if self._NameProber:
-            return self._NameProber.get_charset_name()
+    @property
+    def charset_name(self):
+        if self._name_prober:
+            return self._name_prober.charset_name
         else:
-            return self._Model['charsetName']
+            return self._model['charset_name']
 
-    def feed(self, aBuf):
-        if not self._Model['keepEnglishLetter']:
-            aBuf = self.filter_international_words(aBuf)
-        aLen = len(aBuf)
-        if not aLen:
-            return self.get_state()
-        for c in aBuf:
-            order = self._Model['charToOrderMap'][wrap_ord(c)]
+    def feed(self, byte_str):
+        if not self._model['keep_english_letter']:
+            byte_str = self.filter_international_words(byte_str)
+        num_bytes = len(byte_str)
+        if not num_bytes:
+            return self.state
+        for c in byte_str:
+            order = self._model['char_to_order_map'][wrap_ord(c)]
             if order < self.SYMBOL_CAT_ORDER:
-                self._TotalChar += 1
+                self._total_char += 1
             if order < self.SAMPLE_SIZE:
-                self._FreqChar += 1
-                if self._LastOrder < self.SAMPLE_SIZE:
-                    self._TotalSeqs += 1
-                    if not self._Reversed:
-                        i = (self._LastOrder * self.SAMPLE_SIZE) + order
-                        model = self._Model['precedenceMatrix'][i]
+                self._freq_char += 1
+                if self._last_order < self.SAMPLE_SIZE:
+                    self._total_seqs += 1
+                    if not self._reversed:
+                        i = (self._last_order * self.SAMPLE_SIZE) + order
+                        model = self._model['precedence_matrix'][i]
                     else:  # reverse the order of the letters in the lookup
-                        i = (order * self.SAMPLE_SIZE) + self._LastOrder
-                        model = self._Model['precedenceMatrix'][i]
-                    self._SeqCounters[model] += 1
-            self._LastOrder = order
+                        i = (order * self.SAMPLE_SIZE) + self._last_order
+                        model = self._model['precedence_matrix'][i]
+                    self._seq_counters[model] += 1
+            self._last_order = order
 
-        if self.get_state() == ProbingState.detecting:
-            if self._TotalSeqs > self.SB_ENOUGH_REL_THRESHOLD:
+        if self.state == ProbingState.detecting:
+            if self._total_seqs > self.SB_ENOUGH_REL_THRESHOLD:
                 cf = self.get_confidence()
                 if cf > self.POSITIVE_SHORTCUT_THRESHOLD:
                     self.logger.debug('%s confidence = %s, we have a winner',
-                                      self._Model['charsetName'], cf)
-                    self._State = ProbingState.found_it
+                                      self._model['charset_name'], cf)
+                    self._state = ProbingState.found_it
                 elif cf < self.NEGATIVE_SHORTCUT_THRESHOLD:
                     self.logger.debug('%s confidence = %s, below negative '
                                       'shortcut threshhold %s',
-                                      self._Model['charsetName'], cf,
+                                      self._model['charset_name'], cf,
                                       self.NEGATIVE_SHORTCUT_THRESHOLD)
-                    self._State = ProbingState.not_me
+                    self._state = ProbingState.not_me
 
-        return self.get_state()
+        return self.state
 
     def get_confidence(self):
         r = 0.01
-        if self._TotalSeqs > 0:
-            r = ((1.0 * self._SeqCounters[self.POSITIVE_CAT]) / self._TotalSeqs
-                 / self._Model['mTypicalPositiveRatio'])
-            r = r * self._FreqChar / self._TotalChar
+        if self._total_seqs > 0:
+            r = ((1.0 * self._seq_counters[self.POSITIVE_CAT]) / self._total_seqs
+                 / self._model['typical_positive_ratio'])
+            r = r * self._freq_char / self._total_char
             if r >= 1.0:
                 r = 0.99
         return r

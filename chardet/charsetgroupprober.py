@@ -30,69 +30,69 @@ from .charsetprober import CharSetProber
 
 
 class CharSetGroupProber(CharSetProber):
-    def __init__(self, language_filter=None):
-        super(CharSetGroupProber, self).__init__(language_filter=language_filter)
-        self._ActiveNum = 0
-        self._Probers = []
-        self._BestGuessProber = None
+    def __init__(self, lang_filter=None):
+        super(CharSetGroupProber, self).__init__(lang_filter=lang_filter)
+        self._active_num = 0
+        self._probers = []
+        self._best_guess_prober = None
 
     def reset(self):
         super(CharSetGroupProber, self).reset()
-        self._ActiveNum = 0
-        for prober in self._Probers:
+        self._active_num = 0
+        for prober in self._probers:
             if prober:
                 prober.reset()
                 prober.active = True
-                self._ActiveNum += 1
-        self._BestGuessProber = None
+                self._active_num += 1
+        self._best_guess_prober = None
 
-    def get_charset_name(self):
-        if not self._BestGuessProber:
+    @property
+    def charset_name(self):
+        if not self._best_guess_prober:
             self.get_confidence()
-            if not self._BestGuessProber:
+            if not self._best_guess_prober:
                 return None
-        return self._BestGuessProber.get_charset_name()
+        return self._best_guess_prober.charset_name
 
-    def feed(self, aBuf):
-        for prober in self._Probers:
+    def feed(self, byte_str):
+        for prober in self._probers:
             if not prober:
                 continue
             if not prober.active:
                 continue
-            st = prober.feed(aBuf)
-            if not st:
+            state = prober.feed(byte_str)
+            if not state:
                 continue
-            if st == ProbingState.found_it:
-                self._BestGuessProber = prober
-                return self.get_state()
-            elif st == ProbingState.not_me:
+            if state == ProbingState.found_it:
+                self._best_guess_prober = prober
+                return self.state
+            elif state == ProbingState.not_me:
                 prober.active = False
-                self._ActiveNum -= 1
-                if self._ActiveNum <= 0:
-                    self._State = ProbingState.not_me
-                    return self.get_state()
-        return self.get_state()
+                self._active_num -= 1
+                if self._active_num <= 0:
+                    self._state = ProbingState.not_me
+                    return self.state
+        return self.state
 
     def get_confidence(self):
-        st = self.get_state()
-        if st == ProbingState.found_it:
+        state = self.state
+        if state == ProbingState.found_it:
             return 0.99
-        elif st == ProbingState.not_me:
+        elif state == ProbingState.not_me:
             return 0.01
-        bestConf = 0.0
-        self._BestGuessProber = None
-        for prober in self._Probers:
+        best_conf = 0.0
+        self._best_guess_prober = None
+        for prober in self._probers:
             if not prober:
                 continue
             if not prober.active:
-                self.logger.debug(prober.get_charset_name() + ' not active')
+                self.logger.debug('%s not active', prober.charset_name)
                 continue
-            cf = prober.get_confidence()
-            self.logger.debug('%s confidence = %s\n',
-                              prober.get_charset_name(), cf)
-            if bestConf < cf:
-                bestConf = cf
-                self._BestGuessProber = prober
-        if not self._BestGuessProber:
+            conf = prober.get_confidence()
+            self.logger.debug('%s confidence = %s', prober.charset_name, conf)
+            if best_conf < conf:
+                best_conf = conf
+                self._best_guess_prober = prober
+        if not self._best_guess_prober:
             return 0.0
-        return bestConf
+        return best_conf

@@ -97,41 +97,42 @@ Latin1ClassModel = (
 class Latin1Prober(CharSetProber):
     def __init__(self):
         super(Latin1Prober, self).__init__()
-        self._LastCharClass = None
-        self._FreqCounter = None
+        self._last_char_class = None
+        self._freq_counter = None
         self.reset()
 
     def reset(self):
-        self._LastCharClass = OTH
-        self._FreqCounter = [0] * FREQ_CAT_NUM
+        self._last_char_class = OTH
+        self._freq_counter = [0] * FREQ_CAT_NUM
         CharSetProber.reset(self)
 
-    def get_charset_name(self):
+    @property
+    def charset_name(self):
         return "windows-1252"
 
-    def feed(self, aBuf):
-        aBuf = self.filter_with_english_letters(aBuf)
-        for c in aBuf:
-            charClass = Latin1_CharToClass[wrap_ord(c)]
-            freq = Latin1ClassModel[(self._LastCharClass * CLASS_NUM)
-                                    + charClass]
+    def feed(self, byte_str):
+        byte_str = self.filter_with_english_letters(byte_str)
+        for c in byte_str:
+            char_class = Latin1_CharToClass[wrap_ord(c)]
+            freq = Latin1ClassModel[(self._last_char_class * CLASS_NUM)
+                                    + char_class]
             if freq == 0:
-                self._State = ProbingState.not_me
+                self._state = ProbingState.not_me
                 break
-            self._FreqCounter[freq] += 1
-            self._LastCharClass = charClass
+            self._freq_counter[freq] += 1
+            self._last_char_class = char_class
 
-        return self.get_state()
+        return self.state
 
     def get_confidence(self):
-        if self.get_state() == ProbingState.not_me:
+        if self.state == ProbingState.not_me:
             return 0.01
 
-        total = sum(self._FreqCounter)
+        total = sum(self._freq_counter)
         if total < 0.01:
             confidence = 0.0
         else:
-            confidence = ((self._FreqCounter[3] - self._FreqCounter[1] * 20.0)
+            confidence = ((self._freq_counter[3] - self._freq_counter[1] * 20.0)
                           / total)
         if confidence < 0.0:
             confidence = 0.0

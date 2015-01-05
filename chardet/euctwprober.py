@@ -28,14 +28,15 @@
 from .mbcharsetprober import MultiByteCharSetProber
 from .codingstatemachine import CodingStateMachine
 from .chardistribution import EUCTWDistributionAnalysis
-from .mbcssm import EUCTWSMModel
+from .mbcssm import EUCTW_SM_MODEL
 
 class EUCTWProber(MultiByteCharSetProber):
     def __init__(self):
         super(EUCTWProber, self).__init__()
-        self._CodingSM = CodingStateMachine(EUCTWSMModel)
-        self._DistributionAnalyzer = EUCTWDistributionAnalysis()
+        self.coding_sm = CodingStateMachine(EUCTW_SM_MODEL)
+        self._distribution_analyzer = EUCTWDistributionAnalysis()
         self.reset()
 
-    def get_charset_name(self):
+    @property
+    def charset_name(self):
         return "EUC-TW"

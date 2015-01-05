@@ -36,52 +36,52 @@ class MultiByteCharSetProber(CharSetProber):
     MultiByteCharSetProber
     """
 
-    def __init__(self, language_filter=None):
-        super(MultiByteCharSetProber, self).__init__(language_filter=language_filter)
-        self._DistributionAnalyzer = None
-        self._CodingSM = None
-        self._LastChar = [0, 0]
+    def __init__(self, lang_filter=None):
+        super(MultiByteCharSetProber, self).__init__(lang_filter=lang_filter)
+        self._distribution_analyzer = None
+        self.coding_sm = None
+        self._last_char = [0, 0]
 
     def reset(self):
         super(MultiByteCharSetProber, self).reset()
-        if self._CodingSM:
-            self._CodingSM.reset()
-        if self._DistributionAnalyzer:
-            self._DistributionAnalyzer.reset()
-        self._LastChar = [0, 0]
+        if self.coding_sm:
+            self.coding_sm.reset()
+        if self._distribution_analyzer:
+            self._distribution_analyzer.reset()
+        self._last_char = [0, 0]
 
-    def get_charset_name(self):
+    @property
+    def charset_name(self):
         pass
 
-    def feed(self, aBuf):
-        aLen = len(aBuf)
-        for i in range(0, aLen):
-            codingState = self._CodingSM.next_state(aBuf[i])
-            if codingState == SMState.error:
+    def feed(self, byte_str):
+        for i in range(len(byte_str)):
+            coding_state = self.coding_sm.next_state(byte_str[i])
+            if coding_state == SMState.error:
                 self.logger.debug('%s prober hit error at byte %s',
-                                  self.get_charset_name(), i)
-                self._State = ProbingState.not_me
+                                  self.charset_name, i)
+                self._state = ProbingState.not_me
                 break
-            elif codingState == SMState.its_me:
-                self._State = ProbingState.found_it
+            elif coding_state == SMState.its_me:
+                self._state = ProbingState.found_it
                 break
-            elif codingState == SMState.start:
-                charLen = self._CodingSM.get_current_charlen()
+            elif coding_state == SMState.start:
+                char_len = self.coding_sm.get_current_charlen()
                 if i == 0:
-                    self._LastChar[1] = aBuf[0]
-                    self._DistributionAnalyzer.feed(self._LastChar, charLen)
+                    self._last_char[1] = byte_str[0]
+                    self._distribution_analyzer.feed(self._last_char, char_len)
                 else:
-                    self._DistributionAnalyzer.feed(aBuf[i - 1:i + 1],
-                                                     charLen)
+                    self._distribution_analyzer.feed(byte_str[i - 1:i + 1],
+                                                     char_len)
 
-        self._LastChar[0] = aBuf[aLen - 1]
+        self._last_char[0] = byte_str[-1]
 
-        if self.get_state() == ProbingState.detecting:
-            if (self._DistributionAnalyzer.got_enough_data() and
+        if self.state == ProbingState.detecting:
+            if (self._distribution_analyzer.got_enough_data() and
                     (self.get_confidence() > self.SHORTCUT_THRESHOLD)):
-                self._State = ProbingState.found_it
+                self._state = ProbingState.found_it
 
-        return self.get_state()
+        return self.state
 
     def get_confidence(self):
-        return self._DistributionAnalyzer.get_confidence()
+        return self._distribution_analyzer.get_confidence()
