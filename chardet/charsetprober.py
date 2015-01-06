@@ -95,8 +95,8 @@ class CharSetProber(object):
             # similarly across all languages and may thus have similar
             # frequencies).
             last_char = word[-1:]
-            last_char = last_char if (last_char.isalpha() or
-                                      last_char >= b'\x80') else b' '
+            if not last_char.isalpha() and last_char < b'\x80':
+                last_char = b' '
             filtered.write(last_char)
 
         return filtered.getvalue()
