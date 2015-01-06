@@ -35,7 +35,7 @@ class EUCKRProber(MultiByteCharSetProber):
     def __init__(self):
         super(EUCKRProber, self).__init__()
         self.coding_sm = CodingStateMachine(EUCKR_SM_MODEL)
-        self._distribution_analyzer = EUCKRDistributionAnalysis()
+        self.distribution_analyzer = EUCKRDistributionAnalysis()
         self.reset()
 
     @property

@@ -53,7 +53,7 @@ class CharDistributionAnalysis(object):
         # used in calculating confidence.  See
         # http://www.mozilla.org/projects/intl/UniversalCharsetDetection.html
         # for further detail.
-        self._typical_distribution_ratio = None
+        self.typical_distribution_ratio = None
         self._done = None
         self._total_chars = None
         self._freq_chars = None
@@ -91,7 +91,7 @@ class CharDistributionAnalysis(object):
 
         if self._total_chars != self._freq_chars:
             r = (self._freq_chars / ((self._total_chars - self._freq_chars)
-                 * self._typical_distribution_ratio))
+                 * self.typical_distribution_ratio))
             if r < self.SURE_YES:
                 return r
 
@@ -116,7 +116,7 @@ class EUCTWDistributionAnalysis(CharDistributionAnalysis):
         super(EUCTWDistributionAnalysis, self).__init__()
         self._char_to_freq_order = EUCTW_CHAR_TO_FREQ_ORDER
         self._table_size = EUCTW_TABLE_SIZE
-        self._typical_distribution_ratio = EUCTW_TYPICAL_DISTRIBUTION_RATIO
+        self.typical_distribution_ratio = EUCTW_TYPICAL_DISTRIBUTION_RATIO
 
     def get_order(self, byte_str):
         # for euc-TW encoding, we are interested
@@ -135,7 +135,7 @@ class EUCKRDistributionAnalysis(CharDistributionAnalysis):
         super(EUCKRDistributionAnalysis, self).__init__()
         self._char_to_freq_order = EUCKR_CHAR_TO_FREQ_ORDER
         self._table_size = EUCKR_TABLE_SIZE
-        self._typical_distribution_ratio = EUCKR_TYPICAL_DISTRIBUTION_RATIO
+        self.typical_distribution_ratio = EUCKR_TYPICAL_DISTRIBUTION_RATIO
 
     def get_order(self, byte_str):
         # for euc-KR encoding, we are interested
@@ -154,7 +154,7 @@ class GB2312DistributionAnalysis(CharDistributionAnalysis):
         super(GB2312DistributionAnalysis, self).__init__()
         self._char_to_freq_order = GB2312_CHAR_TO_FREQ_ORDER
         self._table_size = GB2312_TABLE_SIZE
-        self._typical_distribution_ratio = GB2312_TYPICAL_DISTRIBUTION_RATIO
+        self.typical_distribution_ratio = GB2312_TYPICAL_DISTRIBUTION_RATIO
 
     def get_order(self, byte_str):
         # for GB2312 encoding, we are interested
@@ -173,7 +173,7 @@ class Big5DistributionAnalysis(CharDistributionAnalysis):
         super(Big5DistributionAnalysis, self).__init__()
         self._char_to_freq_order = BIG5_CHAR_TO_FREQ_ORDER
         self._table_size = BIG5_TABLE_SIZE
-        self._typical_distribution_ratio = BIG5_TYPICAL_DISTRIBUTION_RATIO
+        self.typical_distribution_ratio = BIG5_TYPICAL_DISTRIBUTION_RATIO
 
     def get_order(self, byte_str):
         # for big5 encoding, we are interested
@@ -195,7 +195,7 @@ class SJISDistributionAnalysis(CharDistributionAnalysis):
         super(SJISDistributionAnalysis, self).__init__()
         self._char_to_freq_order = JIS_CHAR_TO_FREQ_ORDER
         self._table_size = JIS_TABLE_SIZE
-        self._typical_distribution_ratio = JIS_TYPICAL_DISTRIBUTION_RATIO
+        self.typical_distribution_ratio = JIS_TYPICAL_DISTRIBUTION_RATIO
 
     def get_order(self, byte_str):
         # for sjis encoding, we are interested
@@ -220,7 +220,7 @@ class EUCJPDistributionAnalysis(CharDistributionAnalysis):
         super(EUCJPDistributionAnalysis, self).__init__()
         self._char_to_freq_order = JIS_CHAR_TO_FREQ_ORDER
         self._table_size = JIS_TABLE_SIZE
-        self._typical_distribution_ratio = JIS_TYPICAL_DISTRIBUTION_RATIO
+        self.typical_distribution_ratio = JIS_TYPICAL_DISTRIBUTION_RATIO
 
     def get_order(self, byte_str):
         # for euc-JP encoding, we are interested

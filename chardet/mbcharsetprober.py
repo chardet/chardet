@@ -38,7 +38,7 @@ class MultiByteCharSetProber(CharSetProber):
 
     def __init__(self, lang_filter=None):
         super(MultiByteCharSetProber, self).__init__(lang_filter=lang_filter)
-        self._distribution_analyzer = None
+        self.distribution_analyzer = None
         self.coding_sm = None
         self._last_char = [0, 0]
 
@@ -46,8 +46,8 @@ class MultiByteCharSetProber(CharSetProber):
         super(MultiByteCharSetProber, self).reset()
         if self.coding_sm:
             self.coding_sm.reset()
-        if self._distribution_analyzer:
-            self._distribution_analyzer.reset()
+        if self.distribution_analyzer:
+            self.distribution_analyzer.reset()
         self._last_char = [0, 0]
 
     @property
@@ -69,19 +69,19 @@ class MultiByteCharSetProber(CharSetProber):
                 char_len = self.coding_sm.get_current_charlen()
                 if i == 0:
                     self._last_char[1] = byte_str[0]
-                    self._distribution_analyzer.feed(self._last_char, char_len)
+                    self.distribution_analyzer.feed(self._last_char, char_len)
                 else:
-                    self._distribution_analyzer.feed(byte_str[i - 1:i + 1],
+                    self.distribution_analyzer.feed(byte_str[i - 1:i + 1],
                                                      char_len)
 
         self._last_char[0] = byte_str[-1]
 
         if self.state == ProbingState.detecting:
-            if (self._distribution_analyzer.got_enough_data() and
+            if (self.distribution_analyzer.got_enough_data() and
                     (self.get_confidence() > self.SHORTCUT_THRESHOLD)):
                 self._state = ProbingState.found_it
 
         return self.state
 
     def get_confidence(self):
-        return self._distribution_analyzer.get_confidence()
+        return self.distribution_analyzer.get_confidence()

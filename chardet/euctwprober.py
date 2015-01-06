@@ -34,7 +34,7 @@ class EUCTWProber(MultiByteCharSetProber):
     def __init__(self):
         super(EUCTWProber, self).__init__()
         self.coding_sm = CodingStateMachine(EUCTW_SM_MODEL)
-        self._distribution_analyzer = EUCTWDistributionAnalysis()
+        self.distribution_analyzer = EUCTWDistributionAnalysis()
         self.reset()
 
     @property

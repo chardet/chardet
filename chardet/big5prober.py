@@ -35,7 +35,7 @@ class Big5Prober(MultiByteCharSetProber):
     def __init__(self):
         super(Big5Prober, self).__init__()
         self.coding_sm = CodingStateMachine(BIG5_SM_MODEL)
-        self._distribution_analyzer = Big5DistributionAnalysis()
+        self.distribution_analyzer = Big5DistributionAnalysis()
         self.reset()
 
     @property

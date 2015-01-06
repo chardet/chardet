@@ -37,7 +37,7 @@ class CP949Prober(MultiByteCharSetProber):
         self.coding_sm = CodingStateMachine(CP949_SM_MODEL)
         # NOTE: CP949 is a superset of EUC-KR, so the distribution should be
         #       not different.
-        self._distribution_analyzer = EUCKRDistributionAnalysis()
+        self.distribution_analyzer = EUCKRDistributionAnalysis()
         self.reset()
 
     @property

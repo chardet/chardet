@@ -39,7 +39,7 @@ class CharSetProber(object):
 
     def __init__(self, lang_filter=None):
         self._state = None
-        self._lang_filter = lang_filter
+        self.lang_filter = lang_filter
         self.logger = logging.getLogger(__name__)
 
     def reset(self):

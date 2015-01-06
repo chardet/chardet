@@ -37,13 +37,13 @@ class EUCJPProber(MultiByteCharSetProber):
     def __init__(self):
         super(EUCJPProber, self).__init__()
         self.coding_sm = CodingStateMachine(EUCJP_SM_MODEL)
-        self._distribution_analyzer = EUCJPDistributionAnalysis()
-        self._context_analyzer = EUCJPContextAnalysis()
+        self.distribution_analyzer = EUCJPDistributionAnalysis()
+        self.context_analyzer = EUCJPContextAnalysis()
         self.reset()
 
     def reset(self):
         super(EUCJPProber, self).reset()
-        self._context_analyzer.reset()
+        self.context_analyzer.reset()
 
     @property
     def charset_name(self):
@@ -65,24 +65,24 @@ class EUCJPProber(MultiByteCharSetProber):
                 char_len = self.coding_sm.get_current_charlen()
                 if i == 0:
                     self._last_char[1] = byte_str[0]
-                    self._context_analyzer.feed(self._last_char, char_len)
-                    self._distribution_analyzer.feed(self._last_char, char_len)
+                    self.context_analyzer.feed(self._last_char, char_len)
+                    self.distribution_analyzer.feed(self._last_char, char_len)
                 else:
-                    self._context_analyzer.feed(byte_str[i - 1:i + 1],
+                    self.context_analyzer.feed(byte_str[i - 1:i + 1],
                                                 char_len)
-                    self._distribution_analyzer.feed(byte_str[i - 1:i + 1],
+                    self.distribution_analyzer.feed(byte_str[i - 1:i + 1],
                                                      char_len)
 
         self._last_char[0] = byte_str[-1]
 
         if self.state == ProbingState.detecting:
-            if (self._context_analyzer.got_enough_data() and
+            if (self.context_analyzer.got_enough_data() and
                (self.get_confidence() > self.SHORTCUT_THRESHOLD)):
                 self._state = ProbingState.found_it
 
         return self.state
 
     def get_confidence(self):
-        context_conf = self._context_analyzer.get_confidence()
-        distrib_conf = self._distribution_analyzer.get_confidence()
+        context_conf = self.context_analyzer.get_confidence()
+        distrib_conf = self.distribution_analyzer.get_confidence()
         return max(context_conf, distrib_conf)

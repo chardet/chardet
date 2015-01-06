@@ -41,7 +41,7 @@ from .euctwprober import EUCTWProber
 class MBCSGroupProber(CharSetGroupProber):
     def __init__(self, lang_filter=None):
         super(MBCSGroupProber, self).__init__(lang_filter=lang_filter)
-        self._probers = [
+        self.probers = [
             UTF8Prober(),
             SJISProber(),
             EUCJPProber(),

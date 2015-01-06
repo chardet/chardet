@@ -37,17 +37,17 @@ class SJISProber(MultiByteCharSetProber):
     def __init__(self):
         super(SJISProber, self).__init__()
         self.coding_sm = CodingStateMachine(SJIS_SM_MODEL)
-        self._distribution_analyzer = SJISDistributionAnalysis()
-        self._context_analyzer = SJISContextAnalysis()
+        self.distribution_analyzer = SJISDistributionAnalysis()
+        self.context_analyzer = SJISContextAnalysis()
         self.reset()
 
     def reset(self):
         super(SJISProber, self).reset()
-        self._context_analyzer.reset()
+        self.context_analyzer.reset()
 
     @property
     def charset_name(self):
-        return self._context_analyzer.charset_name
+        return self.context_analyzer.charset_name
 
     def feed(self, byte_str):
         for i in range(len(byte_str)):
@@ -64,25 +64,25 @@ class SJISProber(MultiByteCharSetProber):
                 char_len = self.coding_sm.get_current_charlen()
                 if i == 0:
                     self._last_char[1] = byte_str[0]
-                    self._context_analyzer.feed(self._last_char[2 - char_len:],
+                    self.context_analyzer.feed(self._last_char[2 - char_len:],
                                                 char_len)
-                    self._distribution_analyzer.feed(self._last_char, char_len)
+                    self.distribution_analyzer.feed(self._last_char, char_len)
                 else:
-                    self._context_analyzer.feed(byte_str[i + 1 - char_len:i + 3
+                    self.context_analyzer.feed(byte_str[i + 1 - char_len:i + 3
                                                      - char_len], char_len)
-                    self._distribution_analyzer.feed(byte_str[i - 1:i + 1],
+                    self.distribution_analyzer.feed(byte_str[i - 1:i + 1],
                                                      char_len)
 
         self._last_char[0] = byte_str[-1]
 
         if self.state == ProbingState.detecting:
-            if (self._context_analyzer.got_enough_data() and
+            if (self.context_analyzer.got_enough_data() and
                (self.get_confidence() > self.SHORTCUT_THRESHOLD)):
                 self._state = ProbingState.found_it
 
         return self.state
 
     def get_confidence(self):
-        context_conf = self._context_analyzer.get_confidence()
-        distrib_conf = self._distribution_analyzer.get_confidence()
+        context_conf = self.context_analyzer.get_confidence()
+        distrib_conf = self.distribution_analyzer.get_confidence()
         return max(context_conf, distrib_conf)

@@ -34,7 +34,7 @@ class GB2312Prober(MultiByteCharSetProber):
     def __init__(self):
         super(GB2312Prober, self).__init__()
         self.coding_sm = CodingStateMachine(GB2312_SM_MODEL)
-        self._distribution_analyzer = GB2312DistributionAnalysis()
+        self.distribution_analyzer = GB2312DistributionAnalysis()
         self.reset()
 
     @property
