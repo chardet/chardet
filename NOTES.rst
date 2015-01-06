@@ -60,61 +60,65 @@ What's where
 
 Bigram files
 ------------
-- hebrewprober.py
-- jpcntxprober.py
-- langbulgarianmodel.py
-- langcyrillicmodel.py
-- langgreekmodel.py
-- langhebrewmodel.py
-- langhungarianmodel.py
-- langthaimodel.py
-- latin1prober.py
-- sbcharsetprober.py
-- sbcsgroupprober.py
+
+- ``hebrewprober.py``
+- ``jpcntxprober.py``
+- ``langbulgarianmodel.py``
+- ``langcyrillicmodel.py``
+- ``langgreekmodel.py``
+- ``langhebrewmodel.py``
+- ``langhungarianmodel.py``
+- ``langthaimodel.py``
+- ``latin1prober.py``
+- ``sbcharsetprober.py``
+- ``sbcsgroupprober.py``
 
 
 Coding Scheme files
 -------------------
-- escprober.py
-- escsm.py
-- utf8prober.py
-- codingstatemachine.py
-- mbcssmprober.py
+
+- ``escprober.py``
+- ``escsm.py``
+- ``utf8prober.py``
+- ``codingstatemachine.py``
+- ``mbcssmprober.py``
 
 
 Unigram files
 -------------
-- big5freqprober.py
-- chardistribution.py
-- euckrfreqprober.py
-- euctwfreqprober.py
-- gb2312freqprober.py
-- jisfreqprober.py
+
+- ``big5freqprober.py``
+- ``chardistribution.py``
+- ``euckrfreqprober.py``
+- ``euctwfreqprober.py``
+- ``gb2312freqprober.py``
+- ``jisfreqprober.py``
 
 Multibyte probers
 -----------------
-- big5prober.py
-- cp949prober.py
-- eucjpprober.py
-- euckrprober.py
-- euctwprober.py
-- gb2312prober.py
-- mbcharsetprober.py
-- mbcsgroupprober.py
-- sjisprober.py
+
+- ``big5prober.py``
+- ``cp949prober.py``
+- ``eucjpprober.py``
+- ``euckrprober.py``
+- ``euctwprober.py``
+- ``gb2312prober.py``
+- ``mbcharsetprober.py``
+- ``mbcsgroupprober.py``
+- ``sjisprober.py``
 
 Misc files
 ----------
-- __init__.py (currently has detect function in it)
-- compat.py
-- enums.py
-- universaldetector.py
-- version.py
+
+- ``__init__.py`` (currently has ``detect`` function in it)
+- ``compat.py``
+- ``enums.py``
+- ``universaldetector.py``
+- ``version.py``
 
 
 Useful links
 ============
-
 
 This is just a collection of information that I've found useful or thought
 might be useful in the future:
