@@ -18,6 +18,7 @@
 
 from .compat import PY2, PY3
 from .universaldetector import UniversalDetector
+from .version import __version, VERSION
 
 
 def detect(byte_str):
