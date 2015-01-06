@@ -198,4 +198,4 @@ Win1255HebrewModel = {
   'charset_name': "windows-1255"
 }
 
-# flake8: noqa
+

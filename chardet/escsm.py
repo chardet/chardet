@@ -239,4 +239,4 @@ ISO2022KR_SM_MODEL = {'class_table': ISO2022KR_CLS,
                       'char_len_table': ISO2022KR_CHAR_LEN_TABLE,
                       'name': "ISO-2022-KR"}
 
-# flake8: noqa
+

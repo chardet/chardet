@@ -222,4 +222,4 @@ Win1250HungarianModel = {
   'charset_name': "windows-1250"
 }
 
-# flake8: noqa
+

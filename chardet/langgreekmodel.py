@@ -222,4 +222,4 @@ Win1253GreekModel = {
   'charset_name': "windows-1253"
 }
 
-# flake8: noqa
+
