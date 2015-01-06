@@ -25,7 +25,7 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-from .enums import ProbingState, SMState
+from .enums import ProbingState, MachineState
 from .mbcharsetprober import MultiByteCharSetProber
 from .codingstatemachine import CodingStateMachine
 from .chardistribution import EUCJPDistributionAnalysis
@@ -53,15 +53,15 @@ class EUCJPProber(MultiByteCharSetProber):
         for i in range(len(byte_str)):
             # PY3K: byte_str is a byte array, so byte_str[i] is an int, not a byte
             coding_state = self.coding_sm.next_state(byte_str[i])
-            if coding_state == SMState.error:
+            if coding_state == MachineState.error:
                 self.logger.debug('%s prober hit error at byte %s',
                                   self.charset_name, i)
                 self._state = ProbingState.not_me
                 break
-            elif coding_state == SMState.its_me:
+            elif coding_state == MachineState.its_me:
                 self._state = ProbingState.found_it
                 break
-            elif coding_state == SMState.start:
+            elif coding_state == MachineState.start:
                 char_len = self.coding_sm.get_current_charlen()
                 if i == 0:
                     self._last_char[1] = byte_str[0]

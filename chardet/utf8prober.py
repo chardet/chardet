@@ -26,7 +26,7 @@
 ######################### END LICENSE BLOCK #########################
 
 from .charsetprober import CharSetProber
-from .enums import ProbingState, SMState
+from .enums import ProbingState, MachineState
 from .codingstatemachine import CodingStateMachine
 from .mbcssm import UTF8_SM_MODEL
 
@@ -53,13 +53,13 @@ class UTF8Prober(CharSetProber):
     def feed(self, byte_str):
         for c in byte_str:
             coding_state = self.coding_sm.next_state(c)
-            if coding_state == SMState.error:
+            if coding_state == MachineState.error:
                 self._state = ProbingState.not_me
                 break
-            elif coding_state == SMState.its_me:
+            elif coding_state == MachineState.its_me:
                 self._state = ProbingState.found_it
                 break
-            elif coding_state == SMState.start:
+            elif coding_state == MachineState.start:
                 if self.coding_sm.get_current_charlen() >= 2:
                     self._num_mb_chars += 1
 

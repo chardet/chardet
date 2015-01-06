@@ -28,7 +28,7 @@
 ######################### END LICENSE BLOCK #########################
 
 from .charsetprober import CharSetProber
-from .enums import ProbingState, SMState
+from .enums import ProbingState, MachineState
 
 
 class MultiByteCharSetProber(CharSetProber):
@@ -57,15 +57,15 @@ class MultiByteCharSetProber(CharSetProber):
     def feed(self, byte_str):
         for i in range(len(byte_str)):
             coding_state = self.coding_sm.next_state(byte_str[i])
-            if coding_state == SMState.error:
+            if coding_state == MachineState.error:
                 self.logger.debug('%s prober hit error at byte %s',
                                   self.charset_name, i)
                 self._state = ProbingState.not_me
                 break
-            elif coding_state == SMState.its_me:
+            elif coding_state == MachineState.its_me:
                 self._state = ProbingState.found_it
                 break
-            elif coding_state == SMState.start:
+            elif coding_state == MachineState.start:
                 char_len = self.coding_sm.get_current_charlen()
                 if i == 0:
                     self._last_char[1] = byte_str[0]

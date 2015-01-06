@@ -43,7 +43,7 @@ class ProbingState(IntEnum):
     not_me = 2
 
 
-class SMState(IntEnum):
+class MachineState(IntEnum):
     """
     This enum represents the different states a state machine can be in.
     """

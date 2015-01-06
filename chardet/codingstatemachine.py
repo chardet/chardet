@@ -27,7 +27,7 @@
 
 import logging
 
-from .enums import SMState
+from .enums import MachineState
 from .compat import wrap_ord
 
 
@@ -62,13 +62,13 @@ class CodingStateMachine(object):
         self.reset()
 
     def reset(self):
-        self._curr_state = SMState.start
+        self._curr_state = MachineState.start
 
     def next_state(self, c):
         # for each byte we get its class
         # if it is first byte, we also get byte length
         byte_class = self._model['class_table'][wrap_ord(c)]
-        if self._curr_state == SMState.start:
+        if self._curr_state == MachineState.start:
             self._curr_byte_pos = 0
             self._curr_char_len = self._model['char_len_table'][byte_class]
         # from byte's class and state_table, we get its next state

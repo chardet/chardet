@@ -25,7 +25,7 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-from .enums import SMState
+from .enums import MachineState
 
 # BIG5
 
@@ -65,9 +65,9 @@ BIG5_CLS = (
 )
 
 BIG5_ST = (
-    SMState.error,SMState.start,SMState.start,     3,SMState.error,SMState.error,SMState.error,SMState.error,#00-07
-    SMState.error,SMState.error,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.error,#08-0f
-    SMState.error,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start#10-17
+    MachineState.error,MachineState.start,MachineState.start,     3,MachineState.error,MachineState.error,MachineState.error,MachineState.error,#00-07
+    MachineState.error,MachineState.error,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.error,#08-0f
+    MachineState.error,MachineState.start,MachineState.start,MachineState.start,MachineState.start,MachineState.start,MachineState.start,MachineState.start#10-17
 )
 
 BIG5_CHAR_LEN_TABLE = (0, 1, 1, 2, 0)
@@ -101,13 +101,13 @@ CP949_CLS  = (
 
 CP949_ST = (
 #cls=    0      1      2      3      4      5      6      7      8      9  # previous state =
-    SMState.error,SMState.start,     3,SMState.error,SMState.start,SMState.start,     4,     5,SMState.error,     6, # SMState.start
-    SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error, # SMState.error
-    SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me, # SMState.its_me
-    SMState.error,SMState.error,SMState.start,SMState.start,SMState.error,SMState.error,SMState.error,SMState.start,SMState.start,SMState.start, # 3
-    SMState.error,SMState.error,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start, # 4
-    SMState.error,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start, # 5
-    SMState.error,SMState.start,SMState.start,SMState.start,SMState.start,SMState.error,SMState.error,SMState.start,SMState.start,SMState.start, # 6
+    MachineState.error,MachineState.start,     3,MachineState.error,MachineState.start,MachineState.start,     4,     5,MachineState.error,     6, # MachineState.start
+    MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error, # MachineState.error
+    MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me, # MachineState.its_me
+    MachineState.error,MachineState.error,MachineState.start,MachineState.start,MachineState.error,MachineState.error,MachineState.error,MachineState.start,MachineState.start,MachineState.start, # 3
+    MachineState.error,MachineState.error,MachineState.start,MachineState.start,MachineState.start,MachineState.start,MachineState.start,MachineState.start,MachineState.start,MachineState.start, # 4
+    MachineState.error,MachineState.start,MachineState.start,MachineState.start,MachineState.start,MachineState.start,MachineState.start,MachineState.start,MachineState.start,MachineState.start, # 5
+    MachineState.error,MachineState.start,MachineState.start,MachineState.start,MachineState.start,MachineState.error,MachineState.error,MachineState.start,MachineState.start,MachineState.start, # 6
 )
 
 CP949_CHAR_LEN_TABLE = (0, 1, 2, 0, 1, 1, 2, 2, 0, 2)
@@ -156,11 +156,11 @@ EUCJP_CLS = (
 )
 
 EUCJP_ST = (
-          3,     4,     3,     5,SMState.start,SMState.error,SMState.error,SMState.error,#00-07
-     SMState.error,SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,#08-0f
-     SMState.its_me,SMState.its_me,SMState.start,SMState.error,SMState.start,SMState.error,SMState.error,SMState.error,#10-17
-     SMState.error,SMState.error,SMState.start,SMState.error,SMState.error,SMState.error,     3,SMState.error,#18-1f
-          3,SMState.error,SMState.error,SMState.error,SMState.start,SMState.start,SMState.start,SMState.start#20-27
+          3,     4,     3,     5,MachineState.start,MachineState.error,MachineState.error,MachineState.error,#00-07
+     MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,#08-0f
+     MachineState.its_me,MachineState.its_me,MachineState.start,MachineState.error,MachineState.start,MachineState.error,MachineState.error,MachineState.error,#10-17
+     MachineState.error,MachineState.error,MachineState.start,MachineState.error,MachineState.error,MachineState.error,     3,MachineState.error,#18-1f
+          3,MachineState.error,MachineState.error,MachineState.error,MachineState.start,MachineState.start,MachineState.start,MachineState.start#20-27
 )
 
 EUCJP_CHAR_LEN_TABLE = (2, 2, 2, 3, 1, 0)
@@ -209,8 +209,8 @@ EUCKR_CLS  = (
 )
 
 EUCKR_ST = (
-    SMState.error,SMState.start,     3,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,#00-07
-    SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.error,SMState.error,SMState.start,SMState.start #08-0f
+    MachineState.error,MachineState.start,     3,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,#00-07
+    MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.error,MachineState.error,MachineState.start,MachineState.start #08-0f
 )
 
 EUCKR_CHAR_LEN_TABLE = (0, 1, 2, 0)
@@ -259,12 +259,12 @@ EUCTW_CLS = (
 )
 
 EUCTW_ST = (
-    SMState.error,SMState.error,SMState.start,     3,     3,     3,     4,SMState.error,#00-07
-    SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.its_me,#08-0f
-    SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.error,SMState.start,SMState.error,#10-17
-    SMState.start,SMState.start,SMState.start,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,#18-1f
-         5,SMState.error,SMState.error,SMState.error,SMState.start,SMState.error,SMState.start,SMState.start,#20-27
-    SMState.start,SMState.error,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start #28-2f
+    MachineState.error,MachineState.error,MachineState.start,     3,     3,     3,     4,MachineState.error,#00-07
+    MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.its_me,MachineState.its_me,#08-0f
+    MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.error,MachineState.start,MachineState.error,#10-17
+    MachineState.start,MachineState.start,MachineState.start,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,#18-1f
+         5,MachineState.error,MachineState.error,MachineState.error,MachineState.start,MachineState.error,MachineState.start,MachineState.start,#20-27
+    MachineState.start,MachineState.error,MachineState.start,MachineState.start,MachineState.start,MachineState.start,MachineState.start,MachineState.start #28-2f
 )
 
 EUCTW_CHAR_LEN_TABLE = (0, 0, 1, 2, 2, 2, 3)
@@ -313,12 +313,12 @@ GB2312_CLS = (
 )
 
 GB2312_ST = (
-    SMState.error,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,     3,SMState.error,#00-07
-    SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.its_me,#08-0f
-    SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.error,SMState.error,SMState.start,#10-17
-         4,SMState.error,SMState.start,SMState.start,SMState.error,SMState.error,SMState.error,SMState.error,#18-1f
-    SMState.error,SMState.error,     5,SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.error,#20-27
-    SMState.error,SMState.error,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start #28-2f
+    MachineState.error,MachineState.start,MachineState.start,MachineState.start,MachineState.start,MachineState.start,     3,MachineState.error,#00-07
+    MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.its_me,MachineState.its_me,#08-0f
+    MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.error,MachineState.error,MachineState.start,#10-17
+         4,MachineState.error,MachineState.start,MachineState.start,MachineState.error,MachineState.error,MachineState.error,MachineState.error,#18-1f
+    MachineState.error,MachineState.error,     5,MachineState.error,MachineState.error,MachineState.error,MachineState.its_me,MachineState.error,#20-27
+    MachineState.error,MachineState.error,MachineState.start,MachineState.start,MachineState.start,MachineState.start,MachineState.start,MachineState.start #28-2f
 )
 
 # To be accurate, the length of class 6 can be either 2 or 4.
@@ -374,9 +374,9 @@ SJIS_CLS = (
 
 
 SJIS_ST = (
-    SMState.error,SMState.start,SMState.start,     3,SMState.error,SMState.error,SMState.error,SMState.error,#00-07
-    SMState.error,SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,#08-0f
-    SMState.its_me,SMState.its_me,SMState.error,SMState.error,SMState.start,SMState.start,SMState.start,SMState.start #10-17
+    MachineState.error,MachineState.start,MachineState.start,     3,MachineState.error,MachineState.error,MachineState.error,MachineState.error,#00-07
+    MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,#08-0f
+    MachineState.its_me,MachineState.its_me,MachineState.error,MachineState.error,MachineState.start,MachineState.start,MachineState.start,MachineState.start #10-17
 )
 
 SJIS_CHAR_LEN_TABLE = (0, 1, 1, 2, 0, 0)
@@ -425,13 +425,13 @@ UCS2BE_CLS = (
 )
 
 UCS2BE_ST  = (
-          5,     7,     7,SMState.error,     4,     3,SMState.error,SMState.error,#00-07
-     SMState.error,SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,#08-0f
-     SMState.its_me,SMState.its_me,     6,     6,     6,     6,SMState.error,SMState.error,#10-17
-          6,     6,     6,     6,     6,SMState.its_me,     6,     6,#18-1f
-          6,     6,     6,     6,     5,     7,     7,SMState.error,#20-27
-          5,     8,     6,     6,SMState.error,     6,     6,     6,#28-2f
-          6,     6,     6,     6,SMState.error,SMState.error,SMState.start,SMState.start #30-37
+          5,     7,     7,MachineState.error,     4,     3,MachineState.error,MachineState.error,#00-07
+     MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,#08-0f
+     MachineState.its_me,MachineState.its_me,     6,     6,     6,     6,MachineState.error,MachineState.error,#10-17
+          6,     6,     6,     6,     6,MachineState.its_me,     6,     6,#18-1f
+          6,     6,     6,     6,     5,     7,     7,MachineState.error,#20-27
+          5,     8,     6,     6,MachineState.error,     6,     6,     6,#28-2f
+          6,     6,     6,     6,MachineState.error,MachineState.error,MachineState.start,MachineState.start #30-37
 )
 
 UCS2BE_CHAR_LEN_TABLE = (2, 2, 2, 0, 2, 2)
@@ -480,13 +480,13 @@ UCS2LE_CLS = (
 )
 
 UCS2LE_ST = (
-          6,     6,     7,     6,     4,     3,SMState.error,SMState.error,#00-07
-     SMState.error,SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,#08-0f
-     SMState.its_me,SMState.its_me,     5,     5,     5,SMState.error,SMState.its_me,SMState.error,#10-17
-          5,     5,     5,SMState.error,     5,SMState.error,     6,     6,#18-1f
-          7,     6,     8,     8,     5,     5,     5,SMState.error,#20-27
-          5,     5,     5,SMState.error,SMState.error,SMState.error,     5,     5,#28-2f
-          5,     5,     5,SMState.error,     5,SMState.error,SMState.start,SMState.start #30-37
+          6,     6,     7,     6,     4,     3,MachineState.error,MachineState.error,#00-07
+     MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,#08-0f
+     MachineState.its_me,MachineState.its_me,     5,     5,     5,MachineState.error,MachineState.its_me,MachineState.error,#10-17
+          5,     5,     5,MachineState.error,     5,MachineState.error,     6,     6,#18-1f
+          7,     6,     8,     8,     5,     5,     5,MachineState.error,#20-27
+          5,     5,     5,MachineState.error,MachineState.error,MachineState.error,     5,     5,#28-2f
+          5,     5,     5,MachineState.error,     5,MachineState.error,MachineState.start,MachineState.start #30-37
 )
 
 UCS2LE_CHAR_LEN_TABLE = (2, 2, 2, 2, 2, 2)
@@ -535,32 +535,32 @@ UTF8_CLS = (
 )
 
 UTF8_ST = (
-    SMState.error,SMState.start,SMState.error,SMState.error,SMState.error,SMState.error,     12,   10,#00-07
+    MachineState.error,MachineState.start,MachineState.error,MachineState.error,MachineState.error,MachineState.error,     12,   10,#00-07
          9,     11,     8,     7,     6,     5,     4,    3,#08-0f
-    SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,#10-17
-    SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,#18-1f
-    SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,#20-27
-    SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,#28-2f
-    SMState.error,SMState.error,     5,     5,     5,     5,SMState.error,SMState.error,#30-37
-    SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,#38-3f
-    SMState.error,SMState.error,SMState.error,     5,     5,     5,SMState.error,SMState.error,#40-47
-    SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,#48-4f
-    SMState.error,SMState.error,     7,     7,     7,     7,SMState.error,SMState.error,#50-57
-    SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,#58-5f
-    SMState.error,SMState.error,SMState.error,SMState.error,     7,     7,SMState.error,SMState.error,#60-67
-    SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,#68-6f
-    SMState.error,SMState.error,     9,     9,     9,     9,SMState.error,SMState.error,#70-77
-    SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,#78-7f
-    SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,     9,SMState.error,SMState.error,#80-87
-    SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,#88-8f
-    SMState.error,SMState.error,    12,    12,    12,    12,SMState.error,SMState.error,#90-97
-    SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,#98-9f
-    SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,    12,SMState.error,SMState.error,#a0-a7
-    SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,#a8-af
-    SMState.error,SMState.error,    12,    12,    12,SMState.error,SMState.error,SMState.error,#b0-b7
-    SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,#b8-bf
-    SMState.error,SMState.error,SMState.start,SMState.start,SMState.start,SMState.start,SMState.error,SMState.error,#c0-c7
-    SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error #c8-cf
+    MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,#10-17
+    MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,#18-1f
+    MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,#20-27
+    MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,#28-2f
+    MachineState.error,MachineState.error,     5,     5,     5,     5,MachineState.error,MachineState.error,#30-37
+    MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,#38-3f
+    MachineState.error,MachineState.error,MachineState.error,     5,     5,     5,MachineState.error,MachineState.error,#40-47
+    MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,#48-4f
+    MachineState.error,MachineState.error,     7,     7,     7,     7,MachineState.error,MachineState.error,#50-57
+    MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,#58-5f
+    MachineState.error,MachineState.error,MachineState.error,MachineState.error,     7,     7,MachineState.error,MachineState.error,#60-67
+    MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,#68-6f
+    MachineState.error,MachineState.error,     9,     9,     9,     9,MachineState.error,MachineState.error,#70-77
+    MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,#78-7f
+    MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,     9,MachineState.error,MachineState.error,#80-87
+    MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,#88-8f
+    MachineState.error,MachineState.error,    12,    12,    12,    12,MachineState.error,MachineState.error,#90-97
+    MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,#98-9f
+    MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,    12,MachineState.error,MachineState.error,#a0-a7
+    MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,#a8-af
+    MachineState.error,MachineState.error,    12,    12,    12,MachineState.error,MachineState.error,MachineState.error,#b0-b7
+    MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,#b8-bf
+    MachineState.error,MachineState.error,MachineState.start,MachineState.start,MachineState.start,MachineState.start,MachineState.error,MachineState.error,#c0-c7
+    MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error #c8-cf
 )
 
 UTF8_CHAR_LEN_TABLE = (0, 1, 0, 0, 0, 0, 2, 3, 3, 3, 4, 4, 5, 5, 6, 6)

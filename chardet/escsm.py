@@ -25,7 +25,7 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-from .enums import SMState
+from .enums import MachineState
 
 HZ_CLS = (
 1,0,0,0,0,0,0,0,  # 00 - 07
@@ -63,12 +63,12 @@ HZ_CLS = (
 )
 
 HZ_ST = (
-SMState.start,SMState.error,     3,SMState.start,SMState.start,SMState.start,SMState.error,SMState.error,# 00-07
-SMState.error,SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,# 08-0f
-SMState.its_me,SMState.its_me,SMState.error,SMState.error,SMState.start,SMState.start,     4,SMState.error,# 10-17
-     5,SMState.error,     6,SMState.error,     5,     5,     4,SMState.error,# 18-1f
-     4,SMState.error,     4,     4,     4,SMState.error,     4,SMState.error,# 20-27
-     4,SMState.its_me,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,# 28-2f
+MachineState.start,MachineState.error,     3,MachineState.start,MachineState.start,MachineState.start,MachineState.error,MachineState.error,# 00-07
+MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,# 08-0f
+MachineState.its_me,MachineState.its_me,MachineState.error,MachineState.error,MachineState.start,MachineState.start,     4,MachineState.error,# 10-17
+     5,MachineState.error,     6,MachineState.error,     5,     5,     4,MachineState.error,# 18-1f
+     4,MachineState.error,     4,     4,     4,MachineState.error,     4,MachineState.error,# 20-27
+     4,MachineState.its_me,MachineState.start,MachineState.start,MachineState.start,MachineState.start,MachineState.start,MachineState.start,# 28-2f
 )
 
 HZ_CHAR_LEN_TABLE = (0, 0, 0, 0, 0, 0)
@@ -115,14 +115,14 @@ ISO2022CN_CLS = (
 )
 
 ISO2022CN_ST = (
-SMState.start,     3,SMState.error,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,# 00-07
-SMState.start,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,# 08-0f
-SMState.error,SMState.error,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,# 10-17
-SMState.its_me,SMState.its_me,SMState.its_me,SMState.error,SMState.error,SMState.error,     4,SMState.error,# 18-1f
-SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.error,SMState.error,SMState.error,SMState.error,# 20-27
-     5,     6,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,# 28-2f
-SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.error,SMState.error,SMState.error,SMState.error,# 30-37
-SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.error,SMState.start,# 38-3f
+MachineState.start,     3,MachineState.error,MachineState.start,MachineState.start,MachineState.start,MachineState.start,MachineState.start,# 00-07
+MachineState.start,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,# 08-0f
+MachineState.error,MachineState.error,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,# 10-17
+MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.error,MachineState.error,MachineState.error,     4,MachineState.error,# 18-1f
+MachineState.error,MachineState.error,MachineState.error,MachineState.its_me,MachineState.error,MachineState.error,MachineState.error,MachineState.error,# 20-27
+     5,     6,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,# 28-2f
+MachineState.error,MachineState.error,MachineState.error,MachineState.its_me,MachineState.error,MachineState.error,MachineState.error,MachineState.error,# 30-37
+MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.its_me,MachineState.error,MachineState.start,# 38-3f
 )
 
 ISO2022CN_CHAR_LEN_TABLE = (0, 0, 0, 0, 0, 0, 0, 0, 0)
@@ -169,15 +169,15 @@ ISO2022JP_CLS = (
 )
 
 ISO2022JP_ST = (
-SMState.start,     3,SMState.error,SMState.start,SMState.start,SMState.start,SMState.start,SMState.start,# 00-07
-SMState.start,SMState.start,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,# 08-0f
-SMState.error,SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,# 10-17
-SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,SMState.error,SMState.error,# 18-1f
-SMState.error,     5,SMState.error,SMState.error,SMState.error,     4,SMState.error,SMState.error,# 20-27
-SMState.error,SMState.error,SMState.error,     6,SMState.its_me,SMState.error,SMState.its_me,SMState.error,# 28-2f
-SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.its_me,# 30-37
-SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.error,SMState.error,SMState.error,SMState.error,# 38-3f
-SMState.error,SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.error,SMState.start,SMState.start,# 40-47
+MachineState.start,     3,MachineState.error,MachineState.start,MachineState.start,MachineState.start,MachineState.start,MachineState.start,# 00-07
+MachineState.start,MachineState.start,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,# 08-0f
+MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,# 10-17
+MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.error,MachineState.error,# 18-1f
+MachineState.error,     5,MachineState.error,MachineState.error,MachineState.error,     4,MachineState.error,MachineState.error,# 20-27
+MachineState.error,MachineState.error,MachineState.error,     6,MachineState.its_me,MachineState.error,MachineState.its_me,MachineState.error,# 28-2f
+MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.its_me,MachineState.its_me,# 30-37
+MachineState.error,MachineState.error,MachineState.error,MachineState.its_me,MachineState.error,MachineState.error,MachineState.error,MachineState.error,# 38-3f
+MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.its_me,MachineState.error,MachineState.start,MachineState.start,# 40-47
 )
 
 ISO2022JP_CHAR_LEN_TABLE = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
@@ -224,11 +224,11 @@ ISO2022KR_CLS = (
 )
 
 ISO2022KR_ST = (
-SMState.start,     3,SMState.error,SMState.start,SMState.start,SMState.start,SMState.error,SMState.error,# 00-07
-SMState.error,SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.its_me,SMState.its_me,SMState.its_me,# 08-0f
-SMState.its_me,SMState.its_me,SMState.error,SMState.error,SMState.error,     4,SMState.error,SMState.error,# 10-17
-SMState.error,SMState.error,SMState.error,SMState.error,     5,SMState.error,SMState.error,SMState.error,# 18-1f
-SMState.error,SMState.error,SMState.error,SMState.its_me,SMState.start,SMState.start,SMState.start,SMState.start,# 20-27
+MachineState.start,     3,MachineState.error,MachineState.start,MachineState.start,MachineState.start,MachineState.error,MachineState.error,# 00-07
+MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,# 08-0f
+MachineState.its_me,MachineState.its_me,MachineState.error,MachineState.error,MachineState.error,     4,MachineState.error,MachineState.error,# 10-17
+MachineState.error,MachineState.error,MachineState.error,MachineState.error,     5,MachineState.error,MachineState.error,MachineState.error,# 18-1f
+MachineState.error,MachineState.error,MachineState.error,MachineState.its_me,MachineState.start,MachineState.start,MachineState.start,MachineState.start,# 20-27
 )
 
 ISO2022KR_CHAR_LEN_TABLE = (0, 0, 0, 0, 0, 0)
