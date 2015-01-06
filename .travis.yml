@@ -9,7 +9,7 @@ python:
 
 install:
   - travis_retry pip install python-coveralls nose-cov
-  - python setup.py install
+  - pip install .
 
 # Run test
 script:
