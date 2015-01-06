@@ -118,6 +118,7 @@ class CharSetProber(object):
         prev = 0
 
         for curr in range(len(buf)):
+            # Slice here to get bytes instead of an int with Python 3
             buf_char = buf[curr:curr + 1]
             # Check if we're coming out of or entering an HTML tag
             if buf_char == b'>':
