@@ -53,8 +53,10 @@ class SBCSGroupProber(CharSetGroupProber):
             SingleByteCharSetProber(Win1253GreekModel),
             SingleByteCharSetProber(Latin5BulgarianModel),
             SingleByteCharSetProber(Win1251BulgarianModel),
-            SingleByteCharSetProber(Latin2HungarianModel),
-            SingleByteCharSetProber(Win1250HungarianModel),
+            # TODO: Restore Hungarian encodings (iso-8859-2 and windows-1250)
+            #       after we retrain model.
+            # SingleByteCharSetProber(Latin2HungarianModel),
+            # SingleByteCharSetProber(Win1250HungarianModel),
             SingleByteCharSetProber(TIS620ThaiModel),
         ]
         hebrew_prober = HebrewProber()
