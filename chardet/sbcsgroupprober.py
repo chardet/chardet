@@ -37,6 +37,7 @@ from .langhungarianmodel import Latin2HungarianModel, Win1250HungarianModel
 from .langthaimodel import TIS620ThaiModel
 from .langhebrewmodel import Win1255HebrewModel
 from .hebrewprober import HebrewProber
+from .langturkishmodel import Latin5TurkishModel
 
 
 class SBCSGroupProber(CharSetGroupProber):
@@ -56,6 +57,7 @@ class SBCSGroupProber(CharSetGroupProber):
             SingleByteCharSetProber(Latin2HungarianModel),
             SingleByteCharSetProber(Win1250HungarianModel),
             SingleByteCharSetProber(TIS620ThaiModel),
+            SingleByteCharSetProber(Latin5TurkishModel),
         ]
         hebrewProber = HebrewProber()
         logicalHebrewProber = SingleByteCharSetProber(Win1255HebrewModel,
