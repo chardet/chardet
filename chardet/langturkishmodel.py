@@ -186,7 +186,7 @@ TurkishLangModel = (
 Latin5TurkishModel = {
   'charToOrderMap': Latin5_TurkishCharToOrderMap,
   'precedenceMatrix': TurkishLangModel,
-  'mTypicalPositiveRatio': 0.670290,
+  'mTypicalPositiveRatio': 0.970290,
   'keepEnglishLetter': True,
   'charsetName': "ISO-8859-9"
 }
