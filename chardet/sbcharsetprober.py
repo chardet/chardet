@@ -26,95 +26,96 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-import sys
-from . import constants
 from .charsetprober import CharSetProber
 from .compat import wrap_ord
-
-SAMPLE_SIZE = 64
-SB_ENOUGH_REL_THRESHOLD = 1024
-POSITIVE_SHORTCUT_THRESHOLD = 0.95
-NEGATIVE_SHORTCUT_THRESHOLD = 0.05
-SYMBOL_CAT_ORDER = 250
-NUMBER_OF_SEQ_CAT = 4
-POSITIVE_CAT = NUMBER_OF_SEQ_CAT - 1
-#NEGATIVE_CAT = 0
+from .enums import ProbingState
 
 
 class SingleByteCharSetProber(CharSetProber):
-    def __init__(self, model, reversed=False, nameProber=None):
-        CharSetProber.__init__(self)
-        self._mModel = model
+    SAMPLE_SIZE = 64
+    SB_ENOUGH_REL_THRESHOLD = 1024
+    POSITIVE_SHORTCUT_THRESHOLD = 0.95
+    NEGATIVE_SHORTCUT_THRESHOLD = 0.05
+    SYMBOL_CAT_ORDER = 250
+    NUMBER_OF_SEQ_CAT = 4
+    POSITIVE_CAT = NUMBER_OF_SEQ_CAT - 1
+
+    def __init__(self, model, reversed=False, name_prober=None):
+        super(SingleByteCharSetProber, self).__init__()
+        self._model = model
         # TRUE if we need to reverse every pair in the model lookup
-        self._mReversed = reversed
+        self._reversed = reversed
         # Optional auxiliary prober for name decision
-        self._mNameProber = nameProber
+        self._name_prober = name_prober
+        self._last_order = None
+        self._seq_counters = None
+        self._total_seqs = None
+        self._total_char = None
+        self._freq_char = None
         self.reset()
 
     def reset(self):
-        CharSetProber.reset(self)
+        super(SingleByteCharSetProber, self).reset()
         # char order of last character
-        self._mLastOrder = 255
-        self._mSeqCounters = [0] * NUMBER_OF_SEQ_CAT
-        self._mTotalSeqs = 0
-        self._mTotalChar = 0
+        self._last_order = 255
+        self._seq_counters = [0] * self.NUMBER_OF_SEQ_CAT
+        self._total_seqs = 0
+        self._total_char = 0
         # characters that fall in our sampling range
-        self._mFreqChar = 0
+        self._freq_char = 0
 
-    def get_charset_name(self):
-        if self._mNameProber:
-            return self._mNameProber.get_charset_name()
+    @property
+    def charset_name(self):
+        if self._name_prober:
+            return self._name_prober.charset_name
         else:
-            return self._mModel['charsetName']
+            return self._model['charset_name']
 
-    def feed(self, aBuf):
-        if not self._mModel['keepEnglishLetter']:
-            aBuf = self.filter_international_words(aBuf)
-        aLen = len(aBuf)
-        if not aLen:
-            return self.get_state()
-        for c in aBuf:
-            order = self._mModel['charToOrderMap'][wrap_ord(c)]
-            if order < SYMBOL_CAT_ORDER:
-                self._mTotalChar += 1
-            if order < SAMPLE_SIZE:
-                self._mFreqChar += 1
-                if self._mLastOrder < SAMPLE_SIZE:
-                    self._mTotalSeqs += 1
-                    if not self._mReversed:
-                        i = (self._mLastOrder * SAMPLE_SIZE) + order
-                        model = self._mModel['precedenceMatrix'][i]
+    def feed(self, byte_str):
+        if not self._model['keep_english_letter']:
+            byte_str = self.filter_international_words(byte_str)
+        num_bytes = len(byte_str)
+        if not num_bytes:
+            return self.state
+        for c in byte_str:
+            order = self._model['char_to_order_map'][wrap_ord(c)]
+            if order < self.SYMBOL_CAT_ORDER:
+                self._total_char += 1
+            if order < self.SAMPLE_SIZE:
+                self._freq_char += 1
+                if self._last_order < self.SAMPLE_SIZE:
+                    self._total_seqs += 1
+                    if not self._reversed:
+                        i = (self._last_order * self.SAMPLE_SIZE) + order
+                        model = self._model['precedence_matrix'][i]
                     else:  # reverse the order of the letters in the lookup
-                        i = (order * SAMPLE_SIZE) + self._mLastOrder
-                        model = self._mModel['precedenceMatrix'][i]
-                    self._mSeqCounters[model] += 1
-            self._mLastOrder = order
+                        i = (order * self.SAMPLE_SIZE) + self._last_order
+                        model = self._model['precedence_matrix'][i]
+                    self._seq_counters[model] += 1
+            self._last_order = order
 
-        if self.get_state() == constants.eDetecting:
-            if self._mTotalSeqs > SB_ENOUGH_REL_THRESHOLD:
+        if self.state == ProbingState.detecting:
+            if self._total_seqs > self.SB_ENOUGH_REL_THRESHOLD:
                 cf = self.get_confidence()
-                if cf > POSITIVE_SHORTCUT_THRESHOLD:
-                    if constants._debug:
-                        sys.stderr.write('%s confidence = %s, we have a'
-                                         'winner\n' %
-                                         (self._mModel['charsetName'], cf))
-                    self._mState = constants.eFoundIt
-                elif cf < NEGATIVE_SHORTCUT_THRESHOLD:
-                    if constants._debug:
-                        sys.stderr.write('%s confidence = %s, below negative'
-                                         'shortcut threshhold %s\n' %
-                                         (self._mModel['charsetName'], cf,
-                                          NEGATIVE_SHORTCUT_THRESHOLD))
-                    self._mState = constants.eNotMe
+                if cf > self.POSITIVE_SHORTCUT_THRESHOLD:
+                    self.logger.debug('%s confidence = %s, we have a winner',
+                                      self._model['charset_name'], cf)
+                    self._state = ProbingState.found_it
+                elif cf < self.NEGATIVE_SHORTCUT_THRESHOLD:
+                    self.logger.debug('%s confidence = %s, below negative '
+                                      'shortcut threshhold %s',
+                                      self._model['charset_name'], cf,
+                                      self.NEGATIVE_SHORTCUT_THRESHOLD)
+                    self._state = ProbingState.not_me
 
-        return self.get_state()
+        return self.state
 
     def get_confidence(self):
         r = 0.01
-        if self._mTotalSeqs > 0:
-            r = ((1.0 * self._mSeqCounters[POSITIVE_CAT]) / self._mTotalSeqs
-                 / self._mModel['mTypicalPositiveRatio'])
-            r = r * self._mFreqChar / self._mTotalChar
+        if self._total_seqs > 0:
+            r = ((1.0 * self._seq_counters[self.POSITIVE_CAT]) / self._total_seqs
+                 / self._model['typical_positive_ratio'])
+            r = r * self._freq_char / self._total_char
             if r >= 1.0:
                 r = 0.99
         return r

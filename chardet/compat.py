@@ -1,6 +1,7 @@
 ######################## BEGIN LICENSE BLOCK ########################
 # Contributor(s):
-#   Ian Cordasco - port to Python
+#   Dan Blanchard
+#   Ian Cordasco
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -20,14 +21,17 @@
 
 import sys
 
-PY2 = sys.version_info < (3, 0)
-PY3 = not PY2
 
-
-if PY2:
+if sys.version_info < (3, 0):
+    PY2 = True
+    PY3 = False
     base_str = (str, unicode)
+    text_type = unicode
 else:
+    PY2 = False
+    PY3 = True
     base_str = (bytes, str)
+    text_type = str
 
 
 def wrap_ord(a):

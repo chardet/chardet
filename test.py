@@ -1,56 +1,58 @@
-import os
-import sys
-import unittest
+"""
+Run chardet on a bunch of documents and see that we get the correct encodings.
 
-from chardet.universaldetector import UniversalDetector
+:author: Dan Blanchard
+:author: Ian Cordasco
+"""
 
+from __future__ import with_statement
 
-class TestCase(unittest.TestCase):
-    def __init__(self, file_name, encoding):
-        unittest.TestCase.__init__(self)
-        self.file_name = file_name
-        encoding = encoding.lower()
-        for postfix in ['-arabic',
-                        '-bulgarian',
-                        '-cyrillic',
-                        '-greek',
-                        '-hebrew',
-                        '-hungarian',
-                        '-turkish']:
-            if encoding.endswith(postfix):
-                encoding, _, _ = encoding.rpartition(postfix)
-        self.encoding = encoding
+from os import listdir
+from os.path import dirname, isdir, join, realpath, relpath, splitext
 
-    def runTest(self):
-        u = UniversalDetector()
-        for line in open(self.file_name, 'rb'):
-            u.feed(line)
-            if u.done:
-                break
-        u.close()
-        self.assertEqual(u.result['encoding'].lower(), self.encoding,
-                         "Expected %s, but got %r in %s" %
-                         (self.encoding, u.result['encoding'],
-                          self.file_name))
+from nose.tools import eq_
+
+import chardet
 
 
-def main():
-    suite = unittest.TestSuite()
-    if len(sys.argv) > 1:
-        base_path = sys.argv[1]
-    else:
-        base_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), 'tests')
-    for encoding in os.listdir(base_path):
-        path = os.path.join(base_path, encoding)
-        if not os.path.isdir(path):
+EQUIVALENT_ENCODINGS = {'latin1': 'windows-1252'}
+# TODO: Restore Hungarian encodings (iso-8859-2 and windows-1250) after we
+#       retrain model.
+MISSING_ENCODINGS = set(['iso-8859-2', 'iso-8859-6', 'windows-1250',
+                         'windows-1254', 'windows-1256'])
+
+
+def check_file_encoding(file_name, encoding):
+    """ Ensure that we detect the encoding for file_name correctly. """
+    with open(file_name, 'rb') as f:
+        result = chardet.detect(f.read())
+    encoding = EQUIVALENT_ENCODINGS.get(encoding, encoding)
+    eq_(result['encoding'].lower(), encoding, ("Expected %s, but got %s for "
+                                               "%s" % (encoding,
+                                                       result['encoding'],
+                                                       file_name)))
+
+
+def test_encoding_detection():
+    base_path = relpath(join(dirname(realpath(__file__)), 'tests'))
+    for encoding in listdir(base_path):
+        path = join(base_path, encoding)
+        # Skip files in tests directory
+        if not isdir(path):
             continue
-        for file_name in os.listdir(path):
-            _, ext = os.path.splitext(file_name)
+        # Remove language suffixes from encoding if pressent
+        encoding = encoding.lower()
+        for postfix in ['-arabic', '-bulgarian', '-cyrillic', '-greek',
+                        '-hebrew', '-hungarian', '-turkish']:
+            if encoding.endswith(postfix):
+                encoding = encoding.rpartition(postfix)[0]
+                break
+        # Skip directories for encodings we don't handle yet.
+        if encoding in MISSING_ENCODINGS:
+            continue
+        # Test encoding detection for each file we have of encoding for
+        for file_name in listdir(path):
+            ext = splitext(file_name)[1].lower()
             if ext not in ['.html', '.txt', '.xml', '.srt']:
                 continue
-            suite.addTest(TestCase(os.path.join(path, file_name), encoding))
-    unittest.TextTestRunner().run(suite)
-
-
-main()
+            yield check_file_encoding, join(path, file_name), encoding

@@ -3,11 +3,24 @@ sudo: false
 python:
   - 2.6
   - 2.7
-  - 3.2
   - 3.3
+  - 3.4
+  - pypy
 
-script: python test.py
+install:
+  - travis_retry pip install python-coveralls nose-cov
+  - pip install .
+
+# Run test
+script:
+  - if [[ $TRAVIS_PYTHON_VERSION != 'pypy' ]]; then nosetests -v --with-cov --cov chardet --cov-config .coveragerc --logging-level=DEBUG; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == 'pypy' ]]; then nosetests -v --logging-level=DEBUG; fi
+
+# Calculate coverage
+after_success:
+  - if [[ $TRAVIS_PYTHON_VERSION != 'pypy' ]]; then coveralls --config_file .coveragerc; fi
 
 notifications:
-   on_success: change
-   on_failure: always
+  email:
+    on_success: change
+    on_failure: always

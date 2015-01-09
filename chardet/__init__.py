@@ -15,18 +15,19 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-__version__ = "2.3.0"
-from sys import version_info
+
+from .compat import PY2, PY3
+from .universaldetector import UniversalDetector
+from .version import __version__, VERSION
 
 
-def detect(aBuf):
-    if ((version_info < (3, 0) and isinstance(aBuf, unicode)) or
-            (version_info >= (3, 0) and not isinstance(aBuf, bytes))):
+def detect(byte_str):
+    if (PY2 and isinstance(byte_str, unicode)) or (PY3 and
+                                               not isinstance(byte_str,
+                                                              bytes)):
         raise ValueError('Expected a bytes object, not a unicode object')
 
-    from . import universaldetector
-    u = universaldetector.UniversalDetector()
-    u.reset()
-    u.feed(aBuf)
+    u = UniversalDetector()
+    u.feed(byte_str)
     u.close()
     return u.result
