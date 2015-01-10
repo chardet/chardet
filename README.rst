@@ -26,6 +26,10 @@ Install from `PyPI <https://pypi.python.org/pypi/chardet>`_::
 
     pip install chardet
 
+Documentation
+-------------
+
+For users, docs are now available at http://chardet.readthedocs.org.
 
 Command-line Tool
 -----------------
