@@ -51,25 +51,30 @@ class UTF8Prober(CharSetProber):
         return "utf-8"
 
     def feed(self, byte_str):
-        for c in byte_str:
-            coding_state = self.coding_sm.next_state(c)
-            if coding_state == MachineState.error:
-                self._state = ProbingState.not_me
-                break
-            elif coding_state == MachineState.its_me:
-                self._state = ProbingState.found_it
-                break
-            elif coding_state == MachineState.start:
-                if self.coding_sm.get_current_charlen() >= 2:
-                    self._num_mb_chars += 1
+        # Don't bother detecting any more if we already found an error
+        if self.state != ProbingState.not_me:
+            for c in byte_str:
+                coding_state = self.coding_sm.next_state(c)
+                if coding_state == MachineState.its_me:
+                    self._state = ProbingState.found_it
+                    break
+                elif coding_state == MachineState.start:
+                    if self.coding_sm.get_current_charlen() >= 2:
+                        self._num_mb_chars += 1
+                elif coding_state == MachineState.error:
+                    self._state = ProbingState.not_me
+                    break
 
-        if self.state == ProbingState.detecting:
-            if self.get_confidence() > self.SHORTCUT_THRESHOLD:
-                self._state = ProbingState.found_it
+            if self.state == ProbingState.detecting:
+                if self.get_confidence() > self.SHORTCUT_THRESHOLD:
+                    self._state = ProbingState.found_it
 
         return self.state
 
     def get_confidence(self):
+        # Make it very unlikely that UTF8 gets chosen if we reached error state
+        if self.state == ProbingState.not_me:
+            return 0.001
         unlike = 0.99
         if self._num_mb_chars < 6:
             unlike *= self.ONE_CHAR_PROB ** self._num_mb_chars
