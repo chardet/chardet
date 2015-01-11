@@ -184,9 +184,9 @@ TurkishLangModel = (
 )
 
 Latin5TurkishModel = {
-  'charToOrderMap': Latin5_TurkishCharToOrderMap,
-  'precedenceMatrix': TurkishLangModel,
-  'mTypicalPositiveRatio': 0.970290,
-  'keepEnglishLetter': True,
-  'charsetName': "ISO-8859-9"
+  'char_to_order_map': Latin5_TurkishCharToOrderMap,
+  'precedence_matrix': TurkishLangModel,
+  'typical_positive_ratio': 0.970290,
+  'keep_english_letter': True,
+  'charset_name': "ISO-8859-9"
 }
