@@ -33,7 +33,7 @@
 # 252: 0 - 9
 
 # Character Mapping Table:
-Latin5_TurkishCharToOrderMap = (
+LATIN5_TURKISH_CHAR_TO_ORDER_MAP = (
 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
@@ -52,7 +52,7 @@ Latin5_TurkishCharToOrderMap = (
  30, 67,109, 74, 87,102, 34, 95, 81,108, 76, 72, 17,  6, 19,107,
 )
 
-TurkishLangModel = (
+TURKISH_LANG_MODEL = (
 3,2,3,3,3,1,3,3,3,3,3,3,3,3,2,1,1,3,3,1,3,3,0,3,3,3,3,3,0,3,1,3,
 3,2,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,0,0,0,0,0,0,0,2,2,0,0,1,0,0,1,
 3,2,2,3,3,0,3,3,3,3,3,3,3,2,3,1,0,3,3,1,3,3,0,3,3,3,3,3,0,3,0,3,
@@ -183,10 +183,10 @@ TurkishLangModel = (
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 )
 
-Latin5TurkishModel = {
-  'charToOrderMap': Latin5_TurkishCharToOrderMap,
-  'precedenceMatrix': TurkishLangModel,
-  'mTypicalPositiveRatio': 0.970290,
-  'keepEnglishLetter': True,
-  'charsetName': "ISO-8859-9"
+LATIN5_TURKISH_MODEL = {
+  'char_to_order_map': LATIN5_TURKISH_CHAR_TO_ORDER_MAP,
+  'precedence_matrix': TURKISH_LANG_MODEL,
+  'typical_positive_ratio': 0.970290,
+  'keep_english_letter': True,
+  'charset_name': "ISO-8859-9"
 }

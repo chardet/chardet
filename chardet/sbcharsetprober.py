@@ -74,11 +74,14 @@ class SingleByteCharSetProber(CharSetProber):
     def feed(self, byte_str):
         if not self._model['keep_english_letter']:
             byte_str = self.filter_international_words(byte_str)
+        else:
+            byte_str = self.filter_with_english_letters(byte_str)
         num_bytes = len(byte_str)
         if not num_bytes:
             return self.state
         for c in byte_str:
-            order = self._model['char_to_order_map'][wrap_ord(c)]
+            # Order is in [1-64] but we want 0-63 here.
+            order = self._model['char_to_order_map'][wrap_ord(c)] - 1
             if order < self.SYMBOL_CAT_ORDER:
                 self._total_char += 1
             if order < self.SAMPLE_SIZE:

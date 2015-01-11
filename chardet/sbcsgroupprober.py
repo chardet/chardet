@@ -28,46 +28,60 @@
 
 from .charsetgroupprober import CharSetGroupProber
 from .sbcharsetprober import SingleByteCharSetProber
-from .langcyrillicmodel import (Win1251CyrillicModel, Koi8rModel,
-                                Latin5CyrillicModel, MacCyrillicModel,
-                                Ibm866Model, Ibm855Model)
-from .langgreekmodel import Latin7GreekModel, Win1253GreekModel
-from .langbulgarianmodel import Latin5BulgarianModel, Win1251BulgarianModel
-from .langhungarianmodel import Latin2HungarianModel, Win1250HungarianModel
-from .langthaimodel import TIS620ThaiModel
+from .langbulgarianmodel import (ISO_8859_5_BULGARIAN_Model,
+                                 WIN1251_BULGARIAN_MODEL)
+from .langcyrillicmodel import (WIN1251_CYRILLIC_MODEL, KOI8_CYRILLIC_MODEL,
+                                ISO_8859_5_CYRILLIC_MODEL, MAC_CYRILLIC_MODEL,
+                                IBM866_MODEL, IBM855_MODEL)
+from .langczechmodel import LATIN2_CZECH_MODEL
+from .langfinnishmodel import WIN1252_FINNISH_MODEL
+from .langfrenchmodel import WIN1252_FRENCH_MODEL
+from .langgermanmodel import WIN1252_GERMAN_MODEL
+from .langgreekmodel import LATIN7_GREEK_MODEL, WIN1253_GREEK_MODEL
+from .langhungarianmodel import LATIN2_HUNGARIAN_MODEL, WIN1250_HUNGARIAN_MODEL
+from .langpolishmodel import LATIN2_POLISH_MODEL
+from .langspanishmodel import WIN1252_SPANISH_MODEL
+from .langswedishmodel import WIN1252_SWEDISH_MODEL
+from .langthaimodel import TIS620_THAI_MODEL
 from .langhebrewmodel import Win1255HebrewModel
 from .hebrewprober import HebrewProber
-from .langturkishmodel import Latin5TurkishModel
+from .langturkishmodel import LATIN5_TURKISH_MODEL
 
 
 class SBCSGroupProber(CharSetGroupProber):
     def __init__(self):
         super(SBCSGroupProber, self).__init__()
         self.probers = [
-            SingleByteCharSetProber(Win1251CyrillicModel),
-            SingleByteCharSetProber(Koi8rModel),
-            SingleByteCharSetProber(Latin5CyrillicModel),
-            SingleByteCharSetProber(MacCyrillicModel),
-            SingleByteCharSetProber(Ibm866Model),
-            SingleByteCharSetProber(Ibm855Model),
-            SingleByteCharSetProber(Latin7GreekModel),
-            SingleByteCharSetProber(Win1253GreekModel),
-            SingleByteCharSetProber(Latin5BulgarianModel),
-            SingleByteCharSetProber(Win1251BulgarianModel),
-            # TODO: Restore Hungarian encodings (iso-8859-2 and windows-1250)
-            #       after we retrain model.
-            # SingleByteCharSetProber(Latin2HungarianModel),
-            # SingleByteCharSetProber(Win1250HungarianModel),
-            SingleByteCharSetProber(TIS620ThaiModel),
-            SingleByteCharSetProber(Latin5TurkishModel),
+            SingleByteCharSetProber(WIN1251_CYRILLIC_MODEL),
+            SingleByteCharSetProber(KOI8_CYRILLIC_MODEL),
+            SingleByteCharSetProber(ISO_8859_5_CYRILLIC_MODEL),
+            SingleByteCharSetProber(MAC_CYRILLIC_MODEL),
+            SingleByteCharSetProber(IBM866_MODEL),
+            SingleByteCharSetProber(IBM855_MODEL),
+            SingleByteCharSetProber(LATIN7_GREEK_MODEL),
+            SingleByteCharSetProber(WIN1253_GREEK_MODEL),
+            SingleByteCharSetProber(ISO_8859_5_BULGARIAN_Model),
+            SingleByteCharSetProber(WIN1251_BULGARIAN_MODEL),
+            SingleByteCharSetProber(TIS620_THAI_MODEL)
         ]
         hebrew_prober = HebrewProber()
         logical_hebrew_prober = SingleByteCharSetProber(Win1255HebrewModel,
-                                                      False, hebrew_prober)
-        visual_hebrew_prober = SingleByteCharSetProber(Win1255HebrewModel, True,
-                                                     hebrew_prober)
-        hebrew_prober.set_model_probers(logical_hebrew_prober, visual_hebrew_prober)
-        self.probers.extend([hebrew_prober, logical_hebrew_prober,
-                             visual_hebrew_prober])
-
+                                                        False, hebrew_prober)
+        visual_hebrew_prober = SingleByteCharSetProber(Win1255HebrewModel,
+                                                       True, hebrew_prober)
+        hebrew_prober.set_model_probers(logical_hebrew_prober,
+                                        visual_hebrew_prober)
+        self.probers.extend([hebrew_prober,
+                             logical_hebrew_prober,
+                             visual_hebrew_prober,
+                             SingleByteCharSetProber(LATIN2_HUNGARIAN_MODEL),
+                             SingleByteCharSetProber(WIN1250_HUNGARIAN_MODEL),
+                             SingleByteCharSetProber(WIN1252_FRENCH_MODEL),
+                             SingleByteCharSetProber(WIN1252_GERMAN_MODEL),
+                             SingleByteCharSetProber(WIN1252_SWEDISH_MODEL),
+                             SingleByteCharSetProber(LATIN5_TURKISH_MODEL),
+                             SingleByteCharSetProber(WIN1252_FINNISH_MODEL),
+                             SingleByteCharSetProber(WIN1252_SPANISH_MODEL),
+                             SingleByteCharSetProber(LATIN2_CZECH_MODEL),
+                             SingleByteCharSetProber(LATIN2_POLISH_MODEL)])
         self.reset()

@@ -65,7 +65,8 @@ class UniversalDetector(object):
     """
 
     MINIMUM_THRESHOLD = 0.20
-    HIGH_BYTE_DETECTOR = re.compile(b'[\x80-\xFF]')
+    # We skip \xA0 below because many ASCII-only pages contain NBSP
+    HIGH_BYTE_DETECTOR = re.compile(b'[\x80-\x9F\xA1-\xFF]')
     ESC_DETECTOR = re.compile(b'(\033|~{)')
 
     def __init__(self, lang_filter=LanguageFilter.all):

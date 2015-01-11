@@ -31,10 +31,10 @@
 # 252: 0 - 9
 
 # Character Mapping Table:
-# this table is modified base on win1251BulgarianCharToOrderMap, so
+# this table is modified base on WIN1251_BULGARIAN_CHAR_TO_ORDER_MAP, so
 # only number <64 is sure valid
 
-Latin5_BulgarianCharToOrderMap = (
+ISO_8859_5_BULGARIAN_CHAR_TO_ORDER_MAP = (
 255,255,255,255,255,255,255,255,255,255,254,255,255,254,255,255,  # 00
 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,  # 10
 253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,  # 20
@@ -53,7 +53,7 @@ Latin5_BulgarianCharToOrderMap = (
  62,242,243,244, 58,245, 98,246,247,248,249,250,251, 91,252,253,  # f0
 )
 
-win1251BulgarianCharToOrderMap = (
+WIN1251_BULGARIAN_CHAR_TO_ORDER_MAP = (
 255,255,255,255,255,255,255,255,255,255,254,255,255,254,255,255,  # 00
 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,  # 10
 253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,  # 20
@@ -78,7 +78,7 @@ win1251BulgarianCharToOrderMap = (
 # first 1024 sequences:3.0618%
 # rest  sequences:     0.2992%
 # negative sequences:  0.0020%
-BulgarianLangModel = (
+BULGARIAN_LANG_MODEL = (
 0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,2,3,3,3,3,3,3,3,3,2,3,3,3,3,3,
 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,3,3,3,2,2,3,2,2,1,2,2,
 3,1,3,3,2,3,3,3,3,3,3,3,3,3,3,3,3,0,3,3,3,3,3,3,3,3,3,3,0,3,0,1,
@@ -209,17 +209,17 @@ BulgarianLangModel = (
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
 )
 
-Latin5BulgarianModel = {
-  'char_to_order_map': Latin5_BulgarianCharToOrderMap,
-  'precedence_matrix': BulgarianLangModel,
+ISO_8859_5_BULGARIAN_Model = {
+  'char_to_order_map': ISO_8859_5_BULGARIAN_CHAR_TO_ORDER_MAP,
+  'precedence_matrix': BULGARIAN_LANG_MODEL,
   'typical_positive_ratio': 0.969392,
   'keep_english_letter': False,
   'charset_name': "ISO-8859-5"
 }
 
-Win1251BulgarianModel = {
-  'char_to_order_map': win1251BulgarianCharToOrderMap,
-  'precedence_matrix': BulgarianLangModel,
+WIN1251_BULGARIAN_MODEL = {
+  'char_to_order_map': WIN1251_BULGARIAN_CHAR_TO_ORDER_MAP,
+  'precedence_matrix': BULGARIAN_LANG_MODEL,
   'typical_positive_ratio': 0.969392,
   'keep_english_letter': False,
   'charset_name': "windows-1251"
