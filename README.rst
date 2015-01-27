@@ -1,6 +1,24 @@
 Chardet: The Universal Character Encoding Detector
 --------------------------------------------------
 
+.. image:: https://travis-ci.org/chardet/chardet.svg?branch=stable
+   :alt: Build status
+   :target: https://travis-ci.org/chardet/chardet
+
+.. image:: http://img.shields.io/coveralls/chardet/chardet/stable.svg
+    :target: https://coveralls.io/r/chardet/chardet
+
+.. image:: http://img.shields.io/pypi/dm/chardet.svg
+   :target: https://warehouse.python.org/project/chardet/
+   :alt: PyPI downloads
+
+.. image:: http://img.shields.io/pypi/v/chardet.svg
+   :target: https://warehouse.python.org/project/chardet/
+   :alt: Latest version on PyPI
+
+.. image:: http://img.shields.io/pypi/l/chardet.svg
+   :alt: License
+
 Detects
  - ASCII, UTF-8, UTF-16 (2 variants), UTF-32 (4 variants)
  - Big5, GB2312, EUC-TW, HZ-GB-2312, ISO-2022-CN (Traditional and Simplified Chinese)
