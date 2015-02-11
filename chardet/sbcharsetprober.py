@@ -78,7 +78,7 @@ class SingleByteCharSetProber(CharSetProber):
         if not num_bytes:
             return self.state
         for c in byte_str:
-            order = self._model['char_to_order_map'][wrap_ord(c)]
+            order = self._model['char_to_order_map'][wrap_ord(c)] - 1
             if order < self.SYMBOL_CAT_ORDER:
                 self._total_char += 1
             if order < self.SAMPLE_SIZE:
