@@ -1,4 +1,4 @@
-Look here http://www.madore.org/~david/computers/unicode/cstab.html for complet list of the charsets
+Please look here http://www.madore.org/~david/computers/unicode/cstab.html for complet list of the charsets
 
 Latin-1 (ISO-8859-1: Western European)
 1 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
