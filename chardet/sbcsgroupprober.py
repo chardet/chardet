@@ -31,13 +31,19 @@ from .sbcharsetprober import SingleByteCharSetProber
 from .langcyrillicmodel import (Win1251CyrillicModel, Koi8rModel,
                                 Latin5CyrillicModel, MacCyrillicModel,
                                 Ibm866Model, Ibm855Model)
-from .langgreekmodel import Latin7GreekModel, Win1253GreekModel
 from .langbulgarianmodel import Latin5BulgarianModel, Win1251BulgarianModel
-from .langhungarianmodel import Latin2HungarianModel, Win1250HungarianModel
-from .langthaimodel import TIS620ThaiModel
+from .langczechmodel import Iso_8859_2_Czech_Model, Windows_1250_Czech_Model
+from .langcroatianmodel import Iso_8859_2_Croatian_Model, Windows_1250_Croatian_Model
+from .langgreekmodel import Windows_1253_Greek_Model, ISO_8859_7_Greek_Model
+from .langhungarianmodel import Windows_1250_Hungarian_Model
 from .langhebrewmodel import Win1255HebrewModel
+from .langpolishmodel import Iso_8859_2_Polish_Model, Windows_1250_Polish_Model
+from .langromanianmodel import Windows_1250_Romanian_Model
+from .langslovakmodel import Iso_8859_2_Slovak_Model, Windows_1250_Slovak_Model
+from .langslovenemodel import Iso_8859_2_Slovene_Model, Windows_1250_Slovene_Model
+from .langthaimodel import TIS620ThaiModel
+from .langturkishmodel import Windows_1254_Turkish_Model, Iso_8859_9_Turkish_Model
 from .hebrewprober import HebrewProber
-from .langturkishmodel import Latin5TurkishModel
 
 
 class SBCSGroupProber(CharSetGroupProber):
@@ -50,24 +56,30 @@ class SBCSGroupProber(CharSetGroupProber):
             SingleByteCharSetProber(MacCyrillicModel),
             SingleByteCharSetProber(Ibm866Model),
             SingleByteCharSetProber(Ibm855Model),
-            SingleByteCharSetProber(Latin7GreekModel),
-            SingleByteCharSetProber(Win1253GreekModel),
+            SingleByteCharSetProber(ISO_8859_7_Greek_Model),
+            SingleByteCharSetProber(Windows_1253_Greek_Model),
             SingleByteCharSetProber(Latin5BulgarianModel),
             SingleByteCharSetProber(Win1251BulgarianModel),
-            # TODO: Restore Hungarian encodings (iso-8859-2 and windows-1250)
-            #       after we retrain model.
-            # SingleByteCharSetProber(Latin2HungarianModel),
-            # SingleByteCharSetProber(Win1250HungarianModel),
+            SingleByteCharSetProber(Iso_8859_2_Czech_Model),
+            SingleByteCharSetProber(Windows_1250_Czech_Model),
+            SingleByteCharSetProber(Iso_8859_2_Croatian_Model),
+            SingleByteCharSetProber(Windows_1250_Croatian_Model),
+            SingleByteCharSetProber(Windows_1250_Hungarian_Model),
+            SingleByteCharSetProber(Iso_8859_2_Polish_Model),
+            SingleByteCharSetProber(Windows_1250_Polish_Model),
+            SingleByteCharSetProber(Windows_1250_Romanian_Model),
+            SingleByteCharSetProber(Iso_8859_2_Slovak_Model),
+            SingleByteCharSetProber(Windows_1250_Slovak_Model),
+            SingleByteCharSetProber(Iso_8859_2_Slovene_Model),
+            SingleByteCharSetProber(Windows_1250_Slovene_Model),
             SingleByteCharSetProber(TIS620ThaiModel),
-            SingleByteCharSetProber(Latin5TurkishModel),
+            SingleByteCharSetProber(Iso_8859_9_Turkish_Model),
+            SingleByteCharSetProber(Windows_1254_Turkish_Model),
         ]
         hebrew_prober = HebrewProber()
-        logical_hebrew_prober = SingleByteCharSetProber(Win1255HebrewModel,
-                                                      False, hebrew_prober)
-        visual_hebrew_prober = SingleByteCharSetProber(Win1255HebrewModel, True,
-                                                     hebrew_prober)
+        logical_hebrew_prober = SingleByteCharSetProber(Win1255HebrewModel, False, hebrew_prober)
+        visual_hebrew_prober = SingleByteCharSetProber(Win1255HebrewModel, True, hebrew_prober)
         hebrew_prober.set_model_probers(logical_hebrew_prober, visual_hebrew_prober)
-        self.probers.extend([hebrew_prober, logical_hebrew_prober,
-                             visual_hebrew_prober])
+        self.probers.extend([hebrew_prober, logical_hebrew_prober, visual_hebrew_prober])
 
         self.reset()
