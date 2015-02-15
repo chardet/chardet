@@ -138,5 +138,5 @@ class Latin1Prober(CharSetProber):
             confidence = 0.0
         # lower the confidence of latin1 so that other more accurate
         # detector can take priority.
-        confidence = confidence * 0.73
+        confidence = confidence * 0.75
         return confidence

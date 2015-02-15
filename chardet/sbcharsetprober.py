@@ -36,7 +36,7 @@ class SingleByteCharSetProber(CharSetProber):
     SB_ENOUGH_REL_THRESHOLD = 1024
     POSITIVE_SHORTCUT_THRESHOLD = 0.95
     NEGATIVE_SHORTCUT_THRESHOLD = 0.05
-    SYMBOL_CAT_ORDER = 250
+    SYMBOL_CAT_ORDER = 254
     NUMBER_OF_SEQ_CAT = 4
     POSITIVE_CAT = NUMBER_OF_SEQ_CAT - 1
 
@@ -78,7 +78,7 @@ class SingleByteCharSetProber(CharSetProber):
         if not num_bytes:
             return self.state
         for c in byte_str:
-            order = self._model['char_to_order_map'][wrap_ord(c)]
+            order = self._model['char_to_order_map'][wrap_ord(c)] - 1
             if order < self.SYMBOL_CAT_ORDER:
                 self._total_char += 1
             if order < self.SAMPLE_SIZE:
@@ -118,4 +118,7 @@ class SingleByteCharSetProber(CharSetProber):
             r = r * self._freq_char / self._total_char
             if r >= 1.0:
                 r = 0.99
+	    #print 'Charset name: %s confidence = %f' % (self._model['charset_name'], r)
+	    #print 'Frequent chars: %d, Total chars: %d' % (self._freq_char, self._total_char)
+	    #print 'Sequences: %d, Total sequences: %d' % (self._seq_counters[self.POSITIVE_CAT], self._total_seqs)
         return r
