@@ -20,27 +20,10 @@ MISSING_ENCODINGS = set(['iso-8859-6', 'windows-1256'])
 
 import re
 
-remove_whole = ['language', 'generator', 'copyright', 'link', 'url', 'pubDate', 'lastBuildDate', 'category', 'id', 'guid', 'comments', 
-		'published', 'updated', 'issued', 'modified', 'created', 'datePosted', 'dc:[a-z]*'] 
-
-def remove_tags(buf):
-    buf = buf.replace(b'<![CDATA[', '')
-    buf = buf.replace(b']]>', '')
-    for tag in remove_whole:
-	buf = re.compile(b'<' + tag + b'>(.*)</' + tag + b'>').sub('', buf)
-    buf = re.compile(b'<[^<]*?/?>').sub('', buf)
-    buf = re.sub(b'https?://[/\.\?=a-zA-Z0-9&;_]*', '', buf)
-    return buf
-
 def check_file_encoding(file_name, encoding, lang_name):
     # Ensure that we detect the encoding for file_name correctly.
     with open(file_name, 'rb') as f:
-        ext = splitext(file_name)[1].lower()
-        txt = f.read()
-        f.close()
-        if ext in ['.xml']:
-	   txt = remove_tags(txt)
-	result = chardet.detect(txt)
+	result = chardet.detect(f.read())
     encoding = EQUIVALENT_ENCODINGS.get(encoding, encoding)
     if lang_name in LD_EQUIVALENT_ENCODINGS:
 	encoding = LD_EQUIVALENT_ENCODINGS[lang_name].get(encoding, encoding)
