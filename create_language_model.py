@@ -70,7 +70,7 @@ try:
     charset_name = sys.argv[2]
     keep_english_letter = sys.argv[3]
 except:
-    print "Usage: %s input_file_in_utf_8 charset_name keep_english_letter" % sys.argv[0]
+    print("Usage: %s input_file_in_utf_8 charset_name keep_english_letter" % sys.argv[0])
     sys.exit(1)
  
 keep_english_letter = True if keep_english_letter.lower() in ['1', 'true', 'yes', 'y'] else False
@@ -113,10 +113,9 @@ with codecs.open('CharsetsTabs.txt', 'r', encoding='utf-8') as f: # File 'Charse
 			charsmap_table[char] = SYMBOL
 		else:
 		    charsmap_table[char] = CTRL
-    f.close()
-    
+
 if counter == NULL:
-    print "Wrong/unknown charset name! Please check the 'CharsetsTabs.txt' file."
+    print("Wrong/unknown charset name! Please check the 'CharsetsTabs.txt' file.")
     sys.exit(1)
 
 # *************************************************************** CHARS FREQUENCY TABLE *************************************************************** #
@@ -130,13 +129,12 @@ for char in charsmap_table:
     chars_frequency_table[char] = 0
 
 lang_name = os.path.splitext(os.path.basename(file_name))[0] 
-print "Creating chars frequency table for %s language" % lang_name
+print("Creating chars frequency table for %s language" % lang_name)
 with codecs.open(file_name, 'r', encoding='utf-8') as f:
     for line in f:
 	for char in line:
 	    if char in chars_frequency_table:
 		chars_frequency_table[char] += 1
-    f.close()
 
 counter = 0
 frequent_letters_table = []
@@ -158,7 +156,6 @@ with open("lang" + lang_name + "model.py", 'w') as f:
 	    f.write("  # %2X\n  " % int(counter-16))
 	counter += 1
     f.write(")\n\n")
-    f.close()
 
 # *************************************************************** BIGRAM FREQUENCY TABLE ************************************************************** #
 twochars_sequences_frequency_table = OrderedDict([])
@@ -166,7 +163,7 @@ for char1 in frequent_letters_table:
     for char2 in frequent_letters_table:
 	twochars_sequences_frequency_table[char1+char2] = 0
 
-print "Creating bigrams frequency table for %s language" % lang_name
+print("Creating bigrams frequency table for %s language" % lang_name)
 num_chars = 0
 num_frequent_chars = 0
 num_sequences = 0
@@ -183,7 +180,6 @@ with codecs.open(file_name, 'r', encoding='utf-8') as f:
 		num_sequences += 1
 		twochars_sequences_frequency_table[sequence] += 1
 	    last_char = char
-    f.close()
 
 counter = 0
 for sequence, sequences_count in sorted(twochars_sequences_frequency_table.iteritems(), key=operator.itemgetter(1), reverse=True):
@@ -198,7 +194,7 @@ for sequence, sequences_count in sorted(twochars_sequences_frequency_table.iteri
 	twochars_sequences_frequency_table[sequence] = 1
 
 # ******************************************************** CALCULATING TYPICAL POSITIVE RATIO ********************************************************* #
-print "Calulating typical positive ratio"
+print("Calulating typical positive ratio")
 num_positive_sequences = 0
 num_negative_sequences = 0
 with codecs.open(file_name, 'r', encoding='utf-8') as f:
@@ -212,13 +208,12 @@ with codecs.open(file_name, 'r', encoding='utf-8') as f:
 		if twochars_sequences_frequency_table[sequence] == NEGATIVE_SEQUENCE:
 		    num_negative_sequences += 1
 	    last_char = char
-    f.close()
 
 #typical_positive_ratio = float(num_sequences - num_negative_sequences) / num_sequences * num_frequent_chars / num_chars
 typical_positive_ratio = float(num_positive_sequences) / num_sequences * num_frequent_chars / num_chars
 
 # *************************************************************** LANGUAGE MODEL OUTPUT *************************************************************** #
-print "Writing language model"
+print("Writing language model")
 with open("lang" + lang_name + "model.py", 'a') as f:
     f.write("%s_LangModel = (\n  " % first_letter_to_uppercase(lang_name))
     counter = 1
@@ -237,5 +232,3 @@ with open("lang" + lang_name + "model.py", 'a') as f:
     f.write("  'charset_name': \"%s\",\n" % charset_name)
     f.write("  'language': \"%s\"\n" % first_letter_to_uppercase(lang_name))
     f.write("  }\n\n")
-
-    f.close()
