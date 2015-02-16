@@ -118,7 +118,4 @@ class SingleByteCharSetProber(CharSetProber):
             r = r * self._freq_char / self._total_char
             if r >= 1.0:
                 r = 0.99
-	    #print 'Charset name: %s confidence = %f' % (self._model['charset_name'], r)
-	    #print 'Frequent chars: %d, Total chars: %d' % (self._freq_char, self._total_char)
-	    #print 'Sequences: %d, Total sequences: %d' % (self._seq_counters[self.POSITIVE_CAT], self._total_seqs)
         return r
