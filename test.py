@@ -14,20 +14,33 @@ from nose.tools import eq_
 
 import chardet
 
-EQUIVALENT_ENCODINGS = {'latin1': 'windows-1252', 'windows-1254': 'iso-8859-9'}
-LD_EQUIVALENT_ENCODINGS = {'hungarian': {'iso-8859-2': 'windows-1250'}, 'romanian': {'iso-8859-2': 'windows-1250'}} # Language (alphabet) dependend equivalency
+EQUIVALENT_ENCODINGS = [('latin1', 'windows-1252'), ('iso-8859-9', 'windows-1254')]
+LD_EQUIVALENT_ENCODINGS = {'hungarian': ('iso-8859-2', 'windows-1250'), 'romanian': ('iso-8859-2', 'windows-1250')}
 MISSING_ENCODINGS = set(['iso-8859-6', 'windows-1256'])
 
-import re
+def equivalent_encodings(res_encoding, test_encoding, lang_name):
+    if res_encoding == test_encoding:
+	return True
+
+    for tup in EQUIVALENT_ENCODINGS:
+	if res_encoding in tup and test_encoding in tup:
+	    return True
+
+    if lang_name in LD_EQUIVALENT_ENCODINGS:  # Language (alphabet) dependend equivalency
+	tup = LD_EQUIVALENT_ENCODINGS[lang_name]
+	if res_encoding in tup and test_encoding in tup:
+	    return True
+
+    return False
 
 def check_file_encoding(file_name, encoding, lang_name):
     # Ensure that we detect the encoding for file_name correctly.
     with open(file_name, 'rb') as f:
 	result = chardet.detect(f.read())
-    encoding = EQUIVALENT_ENCODINGS.get(encoding, encoding)
-    if lang_name in LD_EQUIVALENT_ENCODINGS:
-	encoding = LD_EQUIVALENT_ENCODINGS[lang_name].get(encoding, encoding)
-    eq_(result['encoding'].lower(), encoding, ("Expected %s, but got %s for %s" % (encoding, result['encoding'], file_name)))
+    res_encoding = result['encoding'].lower()
+    encoding = encoding.lower()
+    if not equivalent_encodings(res_encoding, encoding, lang_name):
+	eq_(res_encoding, encoding, ("Expected %s, but got %s for %s" % (encoding, result['encoding'], file_name)))
 
 def test_encoding_detection():
     base_path = relpath(join(dirname(realpath(__file__)), 'tests'))
@@ -38,7 +51,8 @@ def test_encoding_detection():
             continue
         # Remove language suffixes from encoding if pressent
         encoding = encoding.lower()
-        for postfix in ['-arabic', '-bulgarian', '-czech', '-croatian', '-cyrillic', '-greek', '-hebrew', '-hungarian', '-polish', '-romanian', '-slovak', '-slovene', '-turkish']:
+        for postfix in ['-arabic', '-bulgarian', '-czech', '-croatian', '-cyrillic', '-greek', '-hebrew', '-hungarian', 
+			'-polish', '-romanian', '-slovak', '-slovene', '-turkish']:
             if encoding.endswith(postfix):
                 encoding = encoding.rpartition(postfix)[0]
                 break

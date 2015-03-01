@@ -71,6 +71,16 @@ class SingleByteCharSetProber(CharSetProber):
         else:
             return self._model['charset_name']
 
+    @property
+    def language(self):
+        if self._name_prober:
+            return self._name_prober.language
+        else: 
+	    if 'language' in self._model:
+		return self._model['language']
+	    else:
+		return ''
+
     def feed(self, byte_str):
         if not self._model['keep_english_letter']:
             byte_str = self.filter_international_words(byte_str)

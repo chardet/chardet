@@ -50,6 +50,10 @@ class UTF8Prober(CharSetProber):
     def charset_name(self):
         return "utf-8"
 
+    @property
+    def language(self):
+        return ""
+
     def feed(self, byte_str):
         for c in byte_str:
             coding_state = self.coding_sm.next_state(c)

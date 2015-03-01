@@ -40,3 +40,7 @@ class GB2312Prober(MultiByteCharSetProber):
     @property
     def charset_name(self):
         return "GB2312"
+
+    @property
+    def language(self):
+        return "Chinese"

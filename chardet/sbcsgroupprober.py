@@ -42,7 +42,8 @@ from .langromanianmodel import Windows_1250_Romanian_Model
 from .langslovakmodel import Iso_8859_2_Slovak_Model, Windows_1250_Slovak_Model
 from .langslovenemodel import Iso_8859_2_Slovene_Model, Windows_1250_Slovene_Model
 from .langthaimodel import TIS620ThaiModel
-from .langturkishmodel import Windows_1254_Turkish_Model, Iso_8859_9_Turkish_Model
+from .langgermanmodel import Windows_1252_German_Model
+from .langturkishmodel import Windows_1254_Turkish_Model
 from .hebrewprober import HebrewProber
 
 
@@ -56,8 +57,6 @@ class SBCSGroupProber(CharSetGroupProber):
             SingleByteCharSetProber(MacCyrillicModel),
             SingleByteCharSetProber(Ibm866Model),
             SingleByteCharSetProber(Ibm855Model),
-            SingleByteCharSetProber(ISO_8859_7_Greek_Model),
-            SingleByteCharSetProber(Windows_1253_Greek_Model),
             SingleByteCharSetProber(Latin5BulgarianModel),
             SingleByteCharSetProber(Win1251BulgarianModel),
             SingleByteCharSetProber(Iso_8859_2_Czech_Model),
@@ -72,9 +71,11 @@ class SBCSGroupProber(CharSetGroupProber):
             SingleByteCharSetProber(Windows_1250_Slovak_Model),
             SingleByteCharSetProber(Iso_8859_2_Slovene_Model),
             SingleByteCharSetProber(Windows_1250_Slovene_Model),
-            SingleByteCharSetProber(TIS620ThaiModel),
-            SingleByteCharSetProber(Iso_8859_9_Turkish_Model),
+            SingleByteCharSetProber(ISO_8859_7_Greek_Model),
+            SingleByteCharSetProber(Windows_1252_German_Model),
+            SingleByteCharSetProber(Windows_1253_Greek_Model),
             SingleByteCharSetProber(Windows_1254_Turkish_Model),
+            SingleByteCharSetProber(TIS620ThaiModel),
         ]
         hebrew_prober = HebrewProber()
         logical_hebrew_prober = SingleByteCharSetProber(Win1255HebrewModel, False, hebrew_prober)
