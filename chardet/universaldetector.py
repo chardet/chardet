@@ -68,6 +68,48 @@ class UniversalDetector(object):
     HIGH_BYTE_DETECTOR = re.compile(b'[\x80-\xFF]')
     ESC_DETECTOR = re.compile(b'(\033|~{)')
 
+    CLEANUP_INPUT = True
+    XML_ESC_MAP = (('&gt;', b'>'), ('&lt;', b'<'), ('&amp;', b'&'), ('&apos;', b"'"), ('&quot;', b'"'), ('&nbsp;', b' '))
+
+    def remove_tags(self, txt):
+	for esc, char in  self.XML_ESC_MAP:
+	    txt = txt.replace(esc, char)
+
+	txt = txt.replace('<![CDATA[', '')
+	txt = txt.replace(']]>', '')
+
+	txt = re.sub(br'<!--([^>]*)-->', '', txt, flags=re.DOTALL)
+	txt = re.sub(br'<\?*\/*[A-Z]+[^>]*>', '', txt, flags=re.IGNORECASE)
+	return txt
+
+    def remove_urls(self, txt):
+	txt = re.sub(br'\b(?:(?:https?|ftp|file)://|www\.|ftp\.)'
+			 '(?:\([-A-Z0-9+&@#/%=~_|$?!:;,.]*\)|[-A-Z0-9+&@#\/%=~_|$?!:;,.])*'
+			 '(?:\([-A-Z0-9+&@#/%=~_|$?!:;,.]*\)|[A-Z0-9+&@#/%=~_|$])', 
+		     '', txt, flags=re.IGNORECASE)
+	return txt
+
+    def remove_html_numbers(self, txt):
+	txt = re.sub(br'&#[0-9]{2,};', '', txt)
+	txt = re.sub(br'and#[0-9]{2,};', ' ', txt)
+	return txt
+
+    def remove_ascii_symbols(self, txt):
+	txt = re.sub(br'[-#$%&*()=+:<>/]', ' ', txt)
+	return txt
+
+    def remove_digits(self, txt):
+	txt = re.sub(br'[0-9]+', '', txt)
+	return txt
+
+    def remove_mutliple_spaces(self, txt):
+	txt = re.sub(br'\s{2,}', ' ', txt)
+	return txt
+
+    def remove_empty_lines(self, txt):
+	txt = re.sub(br'^(\s|\t)*\n', '', txt, flags=re.MULTILINE)
+	return txt
+    
     def __init__(self, lang_filter=LanguageFilter.all):
         self._esc_charset_prober = None
         self._charset_probers = []
@@ -179,6 +221,15 @@ class UniversalDetector(object):
         # the multi-byte probers use a combination of character unigram and
         # bigram distributions.
         elif self._input_state == InputState.high_byte:
+	    if self.CLEANUP_INPUT:
+		byte_str = self.remove_tags(byte_str)
+		byte_str = self.remove_urls(byte_str)
+		byte_str = self.remove_html_numbers(byte_str)
+		byte_str = self.remove_ascii_symbols(byte_str)
+		byte_str = self.remove_digits(byte_str)
+		byte_str = self.remove_mutliple_spaces(byte_str)
+		byte_str = self.remove_empty_lines(byte_str)
+		byte_str += '\n'
             if not self._charset_probers:
                 self._charset_probers = [MBCSGroupProber(self.lang_filter)]
                 # If we're checking non-CJK encodings, use single-byte prober

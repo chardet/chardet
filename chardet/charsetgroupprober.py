@@ -54,6 +54,14 @@ class CharSetGroupProber(CharSetProber):
                 return None
         return self._best_guess_prober.charset_name
 
+    @property
+    def language(self):
+        if not self._best_guess_prober:
+            self.get_confidence()
+            if not self._best_guess_prober:
+                return None
+        return self._best_guess_prober.language
+
     def feed(self, byte_str):
         for prober in self.probers:
             if not prober:
@@ -89,7 +97,7 @@ class CharSetGroupProber(CharSetProber):
                 self.logger.debug('%s not active', prober.charset_name)
                 continue
             conf = prober.get_confidence()
-            self.logger.debug('%s confidence = %s', prober.charset_name, conf)
+            self.logger.debug('%s %s confidence = %s', prober.charset_name, prober.language, conf)
             if best_conf < conf:
                 best_conf = conf
                 self._best_guess_prober = prober

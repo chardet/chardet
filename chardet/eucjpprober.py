@@ -49,6 +49,10 @@ class EUCJPProber(MultiByteCharSetProber):
     def charset_name(self):
         return "EUC-JP"
 
+    @property
+    def language(self):
+        return "Japanese"
+
     def feed(self, byte_str):
         for i in range(len(byte_str)):
             # PY3K: byte_str is a byte array, so byte_str[i] is an int, not a byte
