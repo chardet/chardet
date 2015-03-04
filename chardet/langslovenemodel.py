@@ -25,7 +25,7 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-Windows_1250_Slovene_CharToOrderMap = (
+Windows_1250_Slovene_char_to_order_map = (
   #0   1   2   3   4   5   6   7   8   9   A   B   C   D   E   F
   255,255,255,255,255,255,255,255,255,255,254,255,255,254,255,255,  #  0
   255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,  # 10
@@ -45,7 +45,7 @@ Windows_1250_Slovene_CharToOrderMap = (
    74,127,128, 57, 66,129, 65,253, 75,130, 63,131, 61,132,133,253,  # F0
   )
 
-Iso_8859_2_Slovene_CharToOrderMap = (
+Iso_8859_2_Slovene_char_to_order_map = (
   #0   1   2   3   4   5   6   7   8   9   A   B   C   D   E   F
   255,255,255,255,255,255,255,255,255,255,254,255,255,254,255,255,  #  0
   255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,  # 10
@@ -197,7 +197,7 @@ Slovene_LangModel = (
   )
 
 Windows_1250_Slovene_Model = {
-  'char_to_order_map': Windows_1250_Slovene_CharToOrderMap,
+  'char_to_order_map': Windows_1250_Slovene_char_to_order_map,
   'precedence_matrix': Slovene_LangModel,
   'typical_positive_ratio': 0.9930,
   'keep_english_letter': True,
@@ -206,7 +206,7 @@ Windows_1250_Slovene_Model = {
   }
 
 Iso_8859_2_Slovene_Model = {
-  'char_to_order_map': Iso_8859_2_Slovene_CharToOrderMap,
+  'char_to_order_map': Iso_8859_2_Slovene_char_to_order_map,
   'precedence_matrix': Slovene_LangModel,
   'typical_positive_ratio': 0.9930,
   'keep_english_letter': True,
