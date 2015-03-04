@@ -106,7 +106,7 @@ Expect: windows-1250
    <item rdf:about="http://www.bbc.co.uk/go/wsy/pub/rss/1.0/-/hungarian/learningenglish/witn/2005/05/050506_election.shtml">
       <title xml:lang="hu">Labour wins UK election</title>
       <link>http://www.bbc.co.uk/go/wsy/pub/rss/1.0/-/hungarian/learningenglish/witn/2005/05/050506_election.shtml</link>
-      <description xml:lang="hu">Nagy-Britannia miniszterelnökét, Tony Blairt harmadik alkalommal is újraválasztották</description>
+      <description xml:lang="hu">Nagy—Britannia miniszterelnökét, Tony Blairt harmadik alkalommal is újraválasztották</description>
       <dc:date>2005-05-25T10:33:13+00:00</dc:date>
       <dc:format>text/plain</dc:format>
       <dc:language>hu</dc:language>
