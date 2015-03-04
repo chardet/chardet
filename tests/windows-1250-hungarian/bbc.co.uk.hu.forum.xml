@@ -99,7 +99,7 @@ Expect: windows-1250
    <item rdf:about="http://www.bbc.co.uk/go/wsy/pub/rss/1.0/-/hungarian/news/story/2005/05/050518_chinaeuminster.shtml">
       <title xml:lang="hu">Barroso aggódik a kínai textilbehozatal miatt</title>
       <link>http://www.bbc.co.uk/go/wsy/pub/rss/1.0/-/hungarian/news/story/2005/05/050518_chinaeuminster.shtml</link>
-      <description xml:lang="hu">A kínai kereskedelmi miniszter, Po Hszilai tisztességtelennek nevezte az Egyesült Államok és az Európai Unió által a kínai textilexportra tervezett korlátozásokat. 
+      <description xml:lang="hu">A kínai kereskedelmi miniszter, Po Hszilai tisztességtelennek nevezte az Egyesült Államok és az Európai Unió által a kínai textilexportra tervezett korlátozásokat.
 </description>
       <dc:date>2005-05-18T13:32:06+00:00</dc:date>
       <dc:format>text/plain</dc:format>
@@ -238,7 +238,7 @@ Expect: windows-1250
       <dc:type>External Link, News</dc:type>
    </item>
    <item rdf:about="http://www.bbc.co.uk/go/wsy/pub/rss/1.0/-/hungarian/news/external_link/2005/04/050420_ratzinger_life.shtml">
-      <title xml:lang="hu">XVI. Benedek élete képekben</title>
+      <title xml:lang="hu">XVI. „Benedek” élete képekben</title>
       <link>http://www.bbc.co.uk/hungarian/specials/1144_ratzinger_life/</link>
       <description xml:lang="hu"/>
       <dc:date>2005-04-20T10:55:22+0000</dc:date>
