@@ -14,24 +14,13 @@ from nose.tools import eq_
 
 import chardet
 
+MISSING_ENCODINGS = set(['iso-8859-6', 'windows-1256'])
 
-EQUIVALENT_ENCODINGS = {'latin1': 'windows-1252'}
-# TODO: Restore Hungarian encodings (iso-8859-2 and windows-1250) after we
-#       retrain model.
-MISSING_ENCODINGS = set(['iso-8859-2', 'iso-8859-6', 'windows-1250',
-                         'windows-1254', 'windows-1256'])
-
-
-def check_file_encoding(file_name, encoding):
-    """ Ensure that we detect the encoding for file_name correctly. """
+def check_file_encoding(file_name, encoding, lang_name):
+    # Ensure that we detect the encoding for file_name correctly.
     with open(file_name, 'rb') as f:
-        result = chardet.detect(f.read())
-    encoding = EQUIVALENT_ENCODINGS.get(encoding, encoding)
-    eq_(result['encoding'].lower(), encoding, ("Expected %s, but got %s for "
-                                               "%s" % (encoding,
-                                                       result['encoding'],
-                                                       file_name)))
-
+	result = chardet.detect(f.read())
+	eq_(result['encoding'].lower(), encoding, ("Expected %s, but got %s for %s" % (encoding, result['encoding'], file_name)))
 
 def test_encoding_detection():
     base_path = relpath(join(dirname(realpath(__file__)), 'tests'))
@@ -42,8 +31,8 @@ def test_encoding_detection():
             continue
         # Remove language suffixes from encoding if pressent
         encoding = encoding.lower()
-        for postfix in ['-arabic', '-bulgarian', '-cyrillic', '-greek',
-                        '-hebrew', '-hungarian', '-turkish']:
+        for postfix in ['-arabic', '-bulgarian', '-czech', '-croatian', '-cyrillic', '-greek', '-hebrew', '-hungarian',
+			'-polish', '-romanian', '-slovak', '-slovene', '-turkish']:
             if encoding.endswith(postfix):
                 encoding = encoding.rpartition(postfix)[0]
                 break
@@ -55,4 +44,4 @@ def test_encoding_detection():
             ext = splitext(file_name)[1].lower()
             if ext not in ['.html', '.txt', '.xml', '.srt']:
                 continue
-            yield check_file_encoding, join(path, file_name), encoding
+            yield check_file_encoding, join(path, file_name), encoding, postfix[1:]

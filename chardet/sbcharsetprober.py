@@ -36,9 +36,10 @@ class SingleByteCharSetProber(CharSetProber):
     SB_ENOUGH_REL_THRESHOLD = 1024
     POSITIVE_SHORTCUT_THRESHOLD = 0.95
     NEGATIVE_SHORTCUT_THRESHOLD = 0.05
-    SYMBOL_CAT_ORDER = 250
+    SYMBOL_CAT_ORDER = 253
     NUMBER_OF_SEQ_CAT = 4
-    POSITIVE_CAT = NUMBER_OF_SEQ_CAT - 1
+    POSITIVE_CAT = 3
+    LIKELY_CAT   = 2
 
     def __init__(self, model, reversed=False, name_prober=None):
         super(SingleByteCharSetProber, self).__init__()
@@ -71,6 +72,16 @@ class SingleByteCharSetProber(CharSetProber):
         else:
             return self._model['charset_name']
 
+    @property
+    def language(self):
+        if self._name_prober:
+            return self._name_prober.language
+        else:
+	    if 'language' in self._model:
+		return self._model['language']
+	    else:
+		return ''
+
     def feed(self, byte_str):
         if not self._model['keep_english_letter']:
             byte_str = self.filter_international_words(byte_str)
@@ -78,7 +89,7 @@ class SingleByteCharSetProber(CharSetProber):
         if not num_bytes:
             return self.state
         for c in byte_str:
-            order = self._model['char_to_order_map'][wrap_ord(c)]
+            order = self._model['char_to_order_map'][wrap_ord(c)] - 1
             if order < self.SYMBOL_CAT_ORDER:
                 self._total_char += 1
             if order < self.SAMPLE_SIZE:
@@ -113,8 +124,8 @@ class SingleByteCharSetProber(CharSetProber):
     def get_confidence(self):
         r = 0.01
         if self._total_seqs > 0:
-            r = ((1.0 * self._seq_counters[self.POSITIVE_CAT]) / self._total_seqs
-                 / self._model['typical_positive_ratio'])
+            r = ((self._seq_counters[self.POSITIVE_CAT] + 0.25 * self._seq_counters[self.LIKELY_CAT])
+                 / self._total_seqs / self._model['typical_positive_ratio'])
             r = r * self._freq_char / self._total_char
             if r >= 1.0:
                 r = 0.99

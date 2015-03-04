@@ -26,15 +26,13 @@ Detects
  - EUC-JP, SHIFT_JIS, CP932, ISO-2022-JP (Japanese)
  - EUC-KR, ISO-2022-KR (Korean)
  - KOI8-R, MacCyrillic, IBM855, IBM866, ISO-8859-5, windows-1251 (Cyrillic)
+ - ISO-8859-2 windows-1250 (Czech, Croatian, Hungarian, Polish, Romanian, Slovak, Slovene)
  - ISO-8859-5, windows-1251 (Bulgarian)
  - windows-1252 (English)
  - ISO-8859-7, windows-1253 (Greek)
  - ISO-8859-8, windows-1255 (Visual and Logical Hebrew)
+ - ISO-8859-9, windows-1254 (Turkish)
  - TIS-620 (Thai)
-
-.. note::
-   Our ISO-8859-2 and windows-1250 (Hungarian) probers have been temporarily
-   disabled until we can retrain the models.
 
 Requires Python 2.6 or later
 

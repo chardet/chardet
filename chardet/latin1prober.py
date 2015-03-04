@@ -10,6 +10,11 @@
 #   Mark Pilgrim - port to Python
 #   Shy Shalom - original C code
 #
+#   helour - new model for Dutch, English, Finnish, French, Italy,
+#            Portuguese and Spanish
+#            German language has own model because of wrong correlation
+#            with Portuguese and some others languages
+#
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
 # License as published by the Free Software Foundation; either
@@ -30,96 +35,101 @@ from .charsetprober import CharSetProber
 from .compat import wrap_ord
 from .enums import ProbingState
 
-FREQ_CAT_NUM = 4
+NUMBER_OF_SEQ_CAT = 4
+POSITIVE_CAT = 3
+LIKELY_CAT   = 2
+UNLIKELY_CAT = 1
+NEGATIVE_CAT = 0
 
-UDF = 0  # undefined
-OTH = 1  # other
-ASC = 2  # ascii capital letter
-ASS = 3  # ascii small letter
-ACV = 4  # accent capital vowel
-ACO = 5  # accent capital other
-ASV = 6  # accent small vowel
-ASO = 7  # accent small other
-CLASS_NUM = 8  # total classes
+ASV = 0  # ascii small vowel
+SVA = 1  # small vowel accent
+SVO = 2  # small vowel other
+ASC = 3  # ascii small consonant
+SCO = 4  # small consonant other
+ACV = 5  # ascii capital vowel
+CVA = 6  # capital vowel accent
+CVO = 7  # capital vowel other
+ACC = 8  # ascii capital consonant
+CCO = 9  # capital consonant other
+CLASS_NUM = CCO + 1
+
+CTR = 251 # control char
+DIG = 252 # digit
+SYM = 253 # symbol
+CRF = 254 # CR/LF
+UDF = 255 # undefined char
 
 Latin1_CharToClass = (
-    OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   # 00 - 07
-    OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   # 08 - 0F
-    OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   # 10 - 17
-    OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   # 18 - 1F
-    OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   # 20 - 27
-    OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   # 28 - 2F
-    OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   # 30 - 37
-    OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   # 38 - 3F
-    OTH, ASC, ASC, ASC, ASC, ASC, ASC, ASC,   # 40 - 47
-    ASC, ASC, ASC, ASC, ASC, ASC, ASC, ASC,   # 48 - 4F
-    ASC, ASC, ASC, ASC, ASC, ASC, ASC, ASC,   # 50 - 57
-    ASC, ASC, ASC, OTH, OTH, OTH, OTH, OTH,   # 58 - 5F
-    OTH, ASS, ASS, ASS, ASS, ASS, ASS, ASS,   # 60 - 67
-    ASS, ASS, ASS, ASS, ASS, ASS, ASS, ASS,   # 68 - 6F
-    ASS, ASS, ASS, ASS, ASS, ASS, ASS, ASS,   # 70 - 77
-    ASS, ASS, ASS, OTH, OTH, OTH, OTH, OTH,   # 78 - 7F
-    OTH, UDF, OTH, ASO, OTH, OTH, OTH, OTH,   # 80 - 87
-    OTH, OTH, ACO, OTH, ACO, UDF, ACO, UDF,   # 88 - 8F
-    UDF, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   # 90 - 97
-    OTH, OTH, ASO, OTH, ASO, UDF, ASO, ACO,   # 98 - 9F
-    OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   # A0 - A7
-    OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   # A8 - AF
-    OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   # B0 - B7
-    OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   # B8 - BF
-    ACV, ACV, ACV, ACV, ACV, ACV, ACO, ACO,   # C0 - C7
-    ACV, ACV, ACV, ACV, ACV, ACV, ACV, ACV,   # C8 - CF
-    ACO, ACO, ACV, ACV, ACV, ACV, ACV, OTH,   # D0 - D7
-    ACV, ACV, ACV, ACV, ACV, ACO, ACO, ACO,   # D8 - DF
-    ASV, ASV, ASV, ASV, ASV, ASV, ASO, ASO,   # E0 - E7
-    ASV, ASV, ASV, ASV, ASV, ASV, ASV, ASV,   # E8 - EF
-    ASO, ASO, ASV, ASV, ASV, ASV, ASV, OTH,   # F0 - F7
-    ASV, ASV, ASV, ASV, ASV, ASO, ASO, ASO,   # F8 - FF
+  #0   1   2   3   4   5   6   7   8   9   A   B   C   D   E   F
+  CTR,CTR,CTR,CTR,CTR,CTR,CTR,CTR,CTR,CTR,CRF,CTR,CTR,CRF,CTR,CTR,  #  0
+  CTR,CTR,CTR,CTR,CTR,CTR,CTR,CTR,CTR,CTR,CTR,CTR,CTR,CTR,CTR,CTR,  # 10
+  SYM,SYM,SYM,SYM,SYM,SYM,SYM,SYM,SYM,SYM,SYM,SYM,SYM,SYM,SYM,SYM,  # 20
+  DIG,DIG,DIG,DIG,DIG,DIG,DIG,DIG,DIG,DIG,SYM,SYM,SYM,SYM,SYM,SYM,  # 30
+  SYM,ACV,ACC,ACC,ACC,ACV,ACC,ACC,ACC,ACV,ACC,ACC,ACC,ACC,ACC,ACV,  # 40
+  ACC,ACC,ACC,ACC,ACC,ACV,ACC,ACC,ACC,ACV,ACC,SYM,SYM,SYM,SYM,SYM,  # 50
+  SYM,ASV,ASC,ASC,ASC,ASV,ASC,ASC,ASC,ASV,ASC,ASC,ASC,ASC,ASC,ASV,  # 60
+  ASC,ASC,ASC,ASC,ASC,ASV,ASC,ASC,ASC,ASV,ASC,SYM,SYM,SYM,SYM,CTR,  # 70
+  SYM,UDF,SYM,SCO,SYM,SYM,SYM,SYM,SYM,SYM,CCO,SYM,CVO,UDF,CCO,UDF,  # 80
+  UDF,SYM,SYM,SYM,SYM,SYM,SYM,SYM,SYM,SYM,SCO,SYM,SVO,UDF,SCO,CVO,  # 90
+  SYM,SYM,SYM,SYM,SYM,SYM,SYM,SYM,SYM,SYM,SYM,SYM,SYM,SYM,SYM,SYM,  # A0
+  SYM,SYM,SYM,SYM,SYM,SYM,SYM,SYM,SYM,SYM,SYM,SYM,SYM,SYM,SYM,SYM,  # B0
+  CVA,CVA,CVA,CVA,CVO,CVO,CVO,CCO,CVA,CVA,CVA,CVO,CVA,CVA,CVA,CVO,  # C0
+  CCO,CCO,CVA,CVA,CVA,CVA,CVO,SYM,CVO,CVA,CVA,CVA,CVO,CVA,CCO,SCO,  # D0
+  SVA,SVA,SVA,SVA,SVO,SVO,SVO,SCO,SVA,SVA,SVA,SVO,SVA,SVA,SVA,SVO,  # E0
+  SCO,SCO,SVA,SVA,SVA,SVA,SVO,SYM,SVO,SVA,SVA,SVA,SVO,SVA,SCO,SVO,  # F0
 )
 
 # 0 : illegal
 # 1 : very unlikely
 # 2 : normal
 # 3 : very likely
-Latin1ClassModel = (
-# UDF OTH ASC ASS ACV ACO ASV ASO
-    0,  0,  0,  0,  0,  0,  0,  0,  # UDF
-    0,  3,  3,  3,  3,  3,  3,  3,  # OTH
-    0,  3,  3,  3,  3,  3,  3,  3,  # ASC
-    0,  3,  3,  3,  1,  1,  3,  3,  # ASS
-    0,  3,  3,  3,  1,  2,  1,  2,  # ACV
-    0,  3,  3,  3,  3,  3,  3,  3,  # ACO
-    0,  3,  1,  3,  1,  1,  1,  3,  # ASV
-    0,  3,  1,  3,  1,  1,  3,  3,  # ASO
+Latin1_ClassModel = (
+  #ASV SVA SVO ASC SCO ACV CVA CVO ACC CCO
+    3,  2,  2,  3,  2,  1,  0,  0,  1,  0,  # ASV
+    3,  1,  0,  3,  1,  0,  0,  0,  0,  0,  # SVA
+    2,  1,  2,  3,  0,  0,  0,  0,  0,  0,  # SVO
+    3,  3,  3,  3,  1,  0,  0,  0,  1,  0,  # ASC
+    2,  1,  0,  0,  0,  0,  0,  0,  0,  0,  # SCO
+    2,  1,  1,  3,  1,  1,  1,  1,  1,  1,  # ACV
+    1,  0,  0,  1,  0,  1,  0,  0,  1,  0,  # CVA
+    1,  0,  1,  1,  0,  1,  0,  1,  1,  0,  # CVO
+    3,  1,  1,  2,  0,  2,  1,  1,  1,  1,  # ACC
+    1,  1,  0,  0,  0,  1,  1,  0,  0,  0,  # CCO
 )
-
 
 class Latin1Prober(CharSetProber):
     def __init__(self):
         super(Latin1Prober, self).__init__()
         self._last_char_class = None
-        self._freq_counter = None
+        self._seq_counters = None
+        self._total_seqs = None
         self.reset()
 
     def reset(self):
-        self._last_char_class = OTH
-        self._freq_counter = [0] * FREQ_CAT_NUM
+        self._last_char_class = CTR # or SYM
+        self._seq_counters = [0] * NUMBER_OF_SEQ_CAT
+        self._total_seqs = 0
         CharSetProber.reset(self)
 
     @property
     def charset_name(self):
-        return "windows-1252"
+        return "ISO-8859-1"
+
+    @property
+    def language(self):
+        return "Latin1"
 
     def feed(self, byte_str):
         byte_str = self.filter_with_english_letters(byte_str)
         for c in byte_str:
             char_class = Latin1_CharToClass[wrap_ord(c)]
-            freq = Latin1ClassModel[(self._last_char_class * CLASS_NUM)
-                                    + char_class]
-            if freq == 0:
+            if char_class == UDF:
                 self._state = ProbingState.not_me
                 break
-            self._freq_counter[freq] += 1
+            if self._last_char_class < CLASS_NUM and char_class < CLASS_NUM:
+                self._total_seqs += 1
+		freq = Latin1_ClassModel[(self._last_char_class * CLASS_NUM) + char_class]
+		self._seq_counters[freq] += 1
             self._last_char_class = char_class
 
         return self.state
@@ -128,15 +138,10 @@ class Latin1Prober(CharSetProber):
         if self.state == ProbingState.not_me:
             return 0.01
 
-        total = sum(self._freq_counter)
-        if total < 0.01:
+        if self._total_seqs < 2:
             confidence = 0.0
         else:
-            confidence = ((self._freq_counter[3] - self._freq_counter[1] * 20.0)
-                          / total)
-        if confidence < 0.0:
-            confidence = 0.0
-        # lower the confidence of latin1 so that other more accurate
-        # detector can take priority.
-        confidence = confidence * 0.73
+            confidence = float(self._seq_counters[POSITIVE_CAT] - (self._seq_counters[UNLIKELY_CAT] + self._seq_counters[NEGATIVE_CAT])) / self._total_seqs
+        # lower the confidence of latin1 so that other more accurate detector can take priority.
+        confidence = confidence * 0.80
         return confidence

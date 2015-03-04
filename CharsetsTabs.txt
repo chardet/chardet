@@ -1,0 +1,780 @@
+Look here http://www.madore.org/~david/computers/unicode/cstab.html for complet list of the charsets
+
+Latin-1 (ISO-8859-1: Western European)
+1 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	pad	hop	bph	nbh 	ind	nel	ssa	esa 	hts	htj	vts	pld 	plu	ri	ss2	ss3
+0x9	dcs	pu1	pu2	sts 	cch	mw	spa	epa 	sos	sgci	sci	csi 	st	osc	pm	apc
+0xa	nbsp	¡	¢	£ 	¤	¥	¦	§ 	¨	©	ª	« 	¬	shy	®	¯
+0xb	°	±	²	³ 	´	µ	¶	· 	¸	¹	º	» 	¼	½	¾	¿
+0xc	À	Á	Â	Ã 	Ä	Å	Æ	Ç 	È	É	Ê	Ë 	Ì	Í	Î	Ï
+0xd	Ð	Ñ	Ò	Ó 	Ô	Õ	Ö	× 	Ø	Ù	Ú	Û 	Ü	Ý	Þ	ß
+0xe	à	á	â	ã 	ä	å	æ	ç 	è	é	ê	ë 	ì	í	î	ï
+0xf	ð	ñ	ò	ó 	ô	õ	ö	÷ 	ø	ù	ú	û 	ü	ý	þ	ÿ
+
+Latin-2 (ISO-8859-2: Central European)
+2 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	pad	hop	bph	nbh 	ind	nel	ssa	esa 	hts	htj	vts	pld 	plu	ri	ss2	ss3
+0x9	dcs	pu1	pu2	sts 	cch	mw	spa	epa 	sos	sgci	sci	csi 	st	osc	pm	apc
+0xa	nbsp	Ą	˘	Ł 	¤	Ľ	Ś	§ 	¨	Š	Ş	Ť 	Ź	shy	Ž	Ż
+0xb	°	ą	˛	ł 	´	ľ	ś	ˇ 	¸	š	ş	ť 	ź	˝	ž	ż
+0xc	Ŕ	Á	Â	Ă 	Ä	Ĺ	Ć	Ç 	Č	É	Ę	Ë 	Ě	Í	Î	Ď
+0xd	Đ	Ń	Ň	Ó 	Ô	Ő	Ö	× 	Ř	Ů	Ú	Ű 	Ü	Ý	Ţ	ß
+0xe	ŕ	á	â	ă 	ä	ĺ	ć	ç 	č	é	ę	ë 	ě	í	î	ď
+0xf	đ	ń	ň	ó 	ô	ő	ö	÷ 	ř	ů	ú	ű 	ü	ý	ţ	˙
+
+Latin-3 (ISO-8859-3: South European and Esperanto)
+3 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	pad	hop	bph	nbh 	ind	nel	ssa	esa 	hts	htj	vts	pld 	plu	ri	ss2	ss3
+0x9	dcs	pu1	pu2	sts 	cch	mw	spa	epa 	sos	sgci	sci	csi 	st	osc	pm	apc
+0xa	nbsp	Ħ	˘	£ 	¤	XX	Ĥ	§ 	¨	İ	Ş	Ğ 	Ĵ	shy	XX	Ż
+0xb	°	ħ	²	³ 	´	µ	ĥ	· 	¸	ı	ş	ğ 	ĵ	½	XX	ż
+0xc	À	Á	Â	XX 	Ä	Ċ	Ĉ	Ç 	È	É	Ê	Ë 	Ì	Í	Î	Ï
+0xd	XX	Ñ	Ò	Ó 	Ô	Ġ	Ö	× 	Ĝ	Ù	Ú	Û 	Ü	Ŭ	Ŝ	ß
+0xe	à	á	â	XX 	ä	ċ	ĉ	ç 	è	é	ê	ë 	ì	í	î	ï
+0xf	XX	ñ	ò	ó 	ô	ġ	ö	÷ 	ĝ	ù	ú	û 	ü	ŭ	ŝ	˙
+
+Latin-4 (ISO-8859-4: Baltic, old)
+4 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	pad	hop	bph	nbh 	ind	nel	ssa	esa 	hts	htj	vts	pld 	plu	ri	ss2	ss3
+0x9	dcs	pu1	pu2	sts 	cch	mw	spa	epa 	sos	sgci	sci	csi 	st	osc	pm	apc
+0xa	nbsp	Ą	ĸ	Ŗ 	¤	Ĩ	Ļ	§ 	¨	Š	Ē	Ģ 	Ŧ	shy	Ž	¯
+0xb	°	ą	˛	ŗ 	´	ĩ	ļ	ˇ 	¸	š	ē	ģ 	ŧ	Ŋ	ž	ŋ
+0xc	Ā	Á	Â	Ã 	Ä	Å	Æ	Į 	Č	É	Ę	Ë 	Ė	Í	Î	Ī
+0xd	Đ	Ņ	Ō	Ķ 	Ô	Õ	Ö	× 	Ø	Ų	Ú	Û 	Ü	Ũ	Ū	ß
+0xe	ā	á	â	ã 	ä	å	æ	į 	č	é	ę	ë 	ė	í	î	ī
+0xf	đ	ņ	ō	ķ 	ô	õ	ö	÷ 	ø	ų	ú	û 	ü	ũ	ū	˙
+
+Cyrillic (ISO-8859-5)
+C 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	pad	hop	bph	nbh 	ind	nel	ssa	esa 	hts	htj	vts	pld 	plu	ri	ss2	ss3
+0x9	dcs	pu1	pu2	sts 	cch	mw	spa	epa 	sos	sgci	sci	csi 	st	osc	pm	apc
+0xa	nbsp	Ё	Ђ	Ѓ 	Є	Ѕ	І	Ї 	Ј	Љ	Њ	Ћ 	Ќ	shy	Ў	Џ
+0xb	А	Б	В	Г 	Д	Е	Ж	З 	И	Й	К	Л 	М	Н	О	П
+0xc	Р	С	Т	У 	Ф	Х	Ц	Ч 	Ш	Щ	Ъ	Ы 	Ь	Э	Ю	Я
+0xd	а	б	в	г 	д	е	ж	з 	и	й	к	л 	м	н	о	п
+0xe	р	с	т	у 	ф	х	ц	ч 	ш	щ	ъ	ы 	ь	э	ю	я
+0xf	№	ё	ђ	ѓ 	є	ѕ	і	ї 	ј	љ	њ	ћ 	ќ	§	ў	џ
+
+Arabic (ISO-8859-6)
+A 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	٠	١	٢	٣ 	٤	٥	٦	٧ 	٨	٩	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	pad	hop	bph	nbh 	ind	nel	ssa	esa 	hts	htj	vts	pld 	plu	ri	ss2	ss3
+0x9	dcs	pu1	pu2	sts 	cch	mw	spa	epa 	sos	sgci	sci	csi 	st	osc	pm	apc
+0xa	nbsp	XX	XX	XX 	¤	XX	XX	XX 	XX	XX	XX	XX 	،	shy	XX	XX
+0xb	XX	XX	XX	XX 	XX	XX	XX	XX 	XX	XX	XX	؛ 	XX	XX	XX	؟
+0xc	XX	ء	آ	أ 	ؤ	إ	ئ	ا 	ب	ة	ت	ث 	ج	ح	خ	د
+0xd	ذ	ر	ز	س 	ش	ص	ض	ط 	ظ	ع	غ	XX 	XX	XX	XX	XX
+0xe	ـ	ف	ق	ك 	ل	م	ن	ه 	و	ى	ي	ً 	ٌ	ٍ	َ	ُ
+0xf	ِ	ّ	ْ	XX 	XX	XX	XX	XX 	XX	XX	XX	XX 	XX	XX	XX	XX
+
+Greek (ISO-8859-7)
+G 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	pad	hop	bph	nbh 	ind	nel	ssa	esa 	hts	htj	vts	pld 	plu	ri	ss2	ss3
+0x9	dcs	pu1	pu2	sts 	cch	mw	spa	epa 	sos	sgci	sci	csi 	st	osc	pm	apc
+0xa	nbsp	ʽ	ʼ	£ 	XX	XX	¦	§ 	¨	©	XX	« 	¬	shy	XX	―
+0xb	°	±	²	³ 	΄	΅	Ά	· 	Έ	Ή	Ί	» 	Ό	½	Ύ	Ώ
+0xc	ΐ	Α	Β	Γ 	Δ	Ε	Ζ	Η 	Θ	Ι	Κ	Λ 	Μ	Ν	Ξ	Ο
+0xd	Π	Ρ	XX	Σ 	Τ	Υ	Φ	Χ 	Ψ	Ω	Ϊ	Ϋ 	ά	έ	ή	ί
+0xe	ΰ	α	β	γ 	δ	ε	ζ	η 	θ	ι	κ	λ 	μ	ν	ξ	ο
+0xf	π	ρ	ς	σ 	τ	υ	φ	χ 	ψ	ω	ϊ	ϋ 	ό	ύ	ώ	XX
+
+Hebrew (ISO-8859-8)
+H 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	pad	hop	bph	nbh 	ind	nel	ssa	esa 	hts	htj	vts	pld 	plu	ri	ss2	ss3
+0x9	dcs	pu1	pu2	sts 	cch	mw	spa	epa 	sos	sgci	sci	csi 	st	osc	pm	apc
+0xa	nbsp	XX	¢	£ 	¤	¥	¦	§ 	¨	©	×	« 	¬	shy	®	‾
+0xb	°	±	²	³ 	´	µ	¶	· 	¸	¹	÷	» 	¼	½	¾	XX
+0xc	XX	XX	XX	XX 	XX	XX	XX	XX 	XX	XX	XX	XX 	XX	XX	XX	XX
+0xd	XX	XX	XX	XX 	XX	XX	XX	XX 	XX	XX	XX	XX 	XX	XX	XX	‗
+0xe	א	ב	ג	ד 	ה	ו	ז	ח 	ט	י	ך	כ 	ל	ם	מ	ן
+0xf	נ	ס	ע	ף 	פ	ץ	צ	ק 	ר	ש	ת	XX 	XX	XX	XX	XX
+
+Latin-5 (ISO-8859-9: Turkish)
+5 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	pad	hop	bph	nbh 	ind	nel	ssa	esa 	hts	htj	vts	pld 	plu	ri	ss2	ss3
+0x9	dcs	pu1	pu2	sts 	cch	mw	spa	epa 	sos	sgci	sci	csi 	st	osc	pm	apc
+0xa	nbsp	¡	¢	£ 	¤	¥	¦	§ 	¨	©	ª	« 	¬	shy	®	¯
+0xb	°	±	²	³ 	´	µ	¶	· 	¸	¹	º	» 	¼	½	¾	¿
+0xc	À	Á	Â	Ã 	Ä	Å	Æ	Ç 	È	É	Ê	Ë 	Ì	Í	Î	Ï
+0xd	Ğ	Ñ	Ò	Ó 	Ô	Õ	Ö	× 	Ø	Ù	Ú	Û 	Ü	İ	Ş	ß
+0xe	à	á	â	ã 	ä	å	æ	ç 	è	é	ê	ë 	ì	í	î	ï
+0xf	ğ	ñ	ò	ó 	ô	õ	ö	÷ 	ø	ù	ú	û 	ü	ı	ş	ÿ
+
+Latin-6 (ISO-8859-10: Nordic)
+6 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	pad	hop	bph	nbh 	ind	nel	ssa	esa 	hts	htj	vts	pld 	plu	ri	ss2	ss3
+0x9	dcs	pu1	pu2	sts 	cch	mw	spa	epa 	sos	sgci	sci	csi 	st	osc	pm	apc
+0xa	nbsp	Ą	Ē	Ģ 	Ī	Ĩ	Ķ	§ 	Ļ	Đ	Š	Ŧ 	Ž	shy	Ū	Ŋ
+0xb	°	ą	ē	ģ 	ī	ĩ	ķ	· 	ļ	đ	š	ŧ 	ž	―	ū	ŋ
+0xc	Ā	Á	Â	Ã 	Ä	Å	Æ	Į 	Č	É	Ę	Ë 	Ė	Í	Î	Ï
+0xd	Ð	Ņ	Ō	Ó 	Ô	Õ	Ö	Ũ 	Ø	Ų	Ú	Û 	Ü	Ý	Þ	ß
+0xe	ā	á	â	ã 	ä	å	æ	į 	č	é	ę	ë 	ė	í	î	ï
+0xf	ð	ņ	ō	ó 	ô	õ	ö	ũ 	ø	ų	ú	û 	ü	ý	þ	ĸ
+
+Thai (ISO-8859-11, unofficial)
+T 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	pad	hop	bph	nbh 	ind	nel	ssa	esa 	hts	htj	vts	pld 	plu	ri	ss2	ss3
+0x9	dcs	pu1	pu2	sts 	cch	mw	spa	epa 	sos	sgci	sci	csi 	st	osc	pm	apc
+0xa	XX	ก	ข	ฃ 	ค	ฅ	ฆ	ง 	จ	ฉ	ช	ซ 	ฌ	ญ	ฎ	ฏ
+0xb	ฐ	ฑ	ฒ	ณ 	ด	ต	ถ	ท 	ธ	น	บ	ป 	ผ	ฝ	พ	ฟ
+0xc	ภ	ม	ย	ร 	ฤ	ล	ฦ	ว 	ศ	ษ	ส	ห 	ฬ	อ	ฮ	ฯ
+0xd	ะ	ั	า	ำ 	ิ	ี	ึ	ื 	ุ	ู	ฺ	XX 	XX	XX	XX	฿
+0xe	เ	แ	โ	ใ 	ไ	ๅ	ๆ	็ 	่	้	๊	๋ 	์	ํ	๎	๏
+0xf	๐	๑	๒	๓ 	๔	๕	๖	๗ 	๘	๙	๚	๛ 	XX	XX	XX	XX
+
+Latin-7 (ISO-8859-13: Baltic, new)
+7 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	pad	hop	bph	nbh 	ind	nel	ssa	esa 	hts	htj	vts	pld 	plu	ri	ss2	ss3
+0x9	dcs	pu1	pu2	sts 	cch	mw	spa	epa 	sos	sgci	sci	csi 	st	osc	pm	apc
+0xa	nbsp	”	¢	£ 	¤	„	¦	§ 	Ø	©	Ŗ	« 	¬	shy	®	Æ
+0xb	°	±	²	³ 	“	µ	¶	· 	ø	¹	ŗ	» 	¼	½	¾	æ
+0xc	Ą	Į	Ā	Ć 	Ä	Å	Ę	Ē 	Č	É	Ź	Ė 	Ģ	Ķ	Ī	Ļ
+0xd	Š	Ń	Ņ	Ó 	Ō	Õ	Ö	× 	Ų	Ł	Ś	Ū 	Ü	Ż	Ž	ß
+0xe	ą	į	ā	ć 	ä	å	ę	ē 	č	é	ź	ė 	ģ	ķ	ī	ļ
+0xf	š	ń	ņ	ó 	ō	õ	ö	÷ 	ų	ł	ś	ū 	ü	ż	ž	’
+
+Latin-8 (ISO-8859-14: Celtic)
+8 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	pad	hop	bph	nbh 	ind	nel	ssa	esa 	hts	htj	vts	pld 	plu	ri	ss2	ss3
+0x9	dcs	pu1	pu2	sts 	cch	mw	spa	epa 	sos	sgci	sci	csi 	st	osc	pm	apc
+0xa	nbsp	Ḃ	ḃ	£ 	Ċ	ċ	Ḋ	§ 	Ẁ	©	Ẃ	ḋ 	Ỳ	shy	®	Ÿ
+0xb	Ḟ	ḟ	Ġ	ġ 	Ṁ	ṁ	¶	Ṗ 	ẁ	ṗ	ẃ	Ṡ 	ỳ	Ẅ	ẅ	ṡ
+0xc	À	Á	Â	Ã 	Ä	Å	Æ	Ç 	È	É	Ê	Ë 	Ì	Í	Î	Ï
+0xd	Ŵ	Ñ	Ò	Ó 	Ô	Õ	Ö	Ṫ 	Ø	Ù	Ú	Û 	Ü	Ý	Ŷ	ß
+0xe	à	á	â	ã 	ä	å	æ	ç 	è	é	ê	ë 	ì	í	î	ï
+0xf	ŵ	ñ	ò	ó 	ô	õ	ö	ṫ 	ø	ù	ú	û 	ü	ý	ŷ	ÿ
+
+Latin-9 (ISO-8859-15: Revised Western European)
+9 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	pad	hop	bph	nbh 	ind	nel	ssa	esa 	hts	htj	vts	pld 	plu	ri	ss2	ss3
+0x9	dcs	pu1	pu2	sts 	cch	mw	spa	epa 	sos	sgci	sci	csi 	st	osc	pm	apc
+0xa	nbsp	¡	¢	£ 	€	¥	Š	§ 	š	©	ª	« 	¬	shy	®	¯
+0xb	°	±	²	³ 	Ž	µ	¶	· 	ž	¹	º	» 	Œ	œ	Ÿ	¿
+0xc	À	Á	Â	Ã 	Ä	Å	Æ	Ç 	È	É	Ê	Ë 	Ì	Í	Î	Ï
+0xd	Ð	Ñ	Ò	Ó 	Ô	Õ	Ö	× 	Ø	Ù	Ú	Û 	Ü	Ý	Þ	ß
+0xe	à	á	â	ã 	ä	å	æ	ç 	è	é	ê	ë 	ì	í	î	ï
+0xf	ð	ñ	ò	ó 	ô	õ	ö	÷ 	ø	ù	ú	û 	ü	ý	þ	ÿ
+
+Codepage 1252 (windows-1252: Microsoft Windows Western European)
+w 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	€	XX	‚	ƒ 	„	…	†	‡ 	ˆ	‰	Š	‹ 	Œ	XX	Ž	XX
+0x9	XX	‘	’	“ 	”	•	–	— 	˜	™	š	› 	œ	XX	ž	Ÿ
+0xa	nbsp	¡	¢	£ 	¤	¥	¦	§ 	¨	©	ª	« 	¬	shy	®	¯
+0xb	°	±	²	³ 	´	µ	¶	· 	¸	¹	º	» 	¼	½	¾	¿
+0xc	À	Á	Â	Ã 	Ä	Å	Æ	Ç 	È	É	Ê	Ë 	Ì	Í	Î	Ï
+0xd	Ð	Ñ	Ò	Ó 	Ô	Õ	Ö	× 	Ø	Ù	Ú	Û 	Ü	Ý	Þ	ß
+0xe	à	á	â	ã 	ä	å	æ	ç 	è	é	ê	ë 	ì	í	î	ï
+0xf	ð	ñ	ò	ó 	ô	õ	ö	÷ 	ø	ù	ú	û 	ü	ý	þ	ÿ
+
+Codepage 1250 (windows-1250: Microsoft Windows Central European)
+w2 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	€	XX	‚	XX 	„	…	†	‡ 	XX	‰	Š	‹ 	Ś	Ť	Ž	Ź
+0x9	XX	‘	’	“ 	”	•	–	— 	XX	™	š	› 	ś	ť	ž	ź
+0xa	nbsp	ˇ	˘	Ł 	¤	Ą	¦	§ 	¨	©	Ş	« 	¬	shy	®	Ż
+0xb	°	±	˛	ł 	´	µ	¶	· 	¸	ą	ş	» 	Ľ	˝	ľ	ż
+0xc	Ŕ	Á	Â	Ă 	Ä	Ĺ	Ć	Ç 	Č	É	Ę	Ë 	Ě	Í	Î	Ď
+0xd	Đ	Ń	Ň	Ó 	Ô	Ő	Ö	× 	Ř	Ů	Ú	Ű 	Ü	Ý	Ţ	ß
+0xe	ŕ	á	â	ă 	ä	ĺ	ć	ç 	č	é	ę	ë 	ě	í	î	ď
+0xf	đ	ń	ň	ó 	ô	ő	ö	÷ 	ř	ů	ú	ű 	ü	ý	ţ	˙
+
+Codepage 1251 (windows-1251: Microsoft Windows Cyrillic)
+wC 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	Ђ	Ѓ	‚	ѓ 	„	…	†	‡ 	€	‰	Љ	‹ 	Њ	Ќ	Ћ	Џ
+0x9	ђ	‘	’	“ 	”	•	–	— 	XX	™	љ	› 	њ	ќ	ћ	џ
+0xa	nbsp	Ў	ў	Ј 	¤	Ґ	¦	§ 	Ё	©	Є	« 	¬	shy	®	Ї
+0xb	°	±	І	і 	ґ	µ	¶	· 	ё	№	є	» 	ј	Ѕ	ѕ	ї
+0xc	А	Б	В	Г 	Д	Е	Ж	З 	И	Й	К	Л 	М	Н	О	П
+0xd	Р	С	Т	У 	Ф	Х	Ц	Ч 	Ш	Щ	Ъ	Ы 	Ь	Э	Ю	Я
+0xe	а	б	в	г 	д	е	ж	з 	и	й	к	л 	м	н	о	п
+0xf	р	с	т	у 	ф	х	ц	ч 	ш	щ	ъ	ы 	ь	э	ю	я
+
+Codepage 1253 (windows-1253: Microsoft Windows Greek)
+wG 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	€	XX	‚	ƒ 	„	…	†	‡ 	XX	‰	XX	‹ 	XX	XX	XX	XX
+0x9	XX	‘	’	“ 	”	•	–	— 	XX	™	XX	› 	XX	XX	XX	XX
+0xa	nbsp	΅	Ά	£ 	¤	¥	¦	§ 	¨	©	XX	« 	¬	shy	®	―
+0xb	°	±	²	³ 	΄	µ	¶	· 	Έ	Ή	Ί	» 	Ό	½	Ύ	Ώ
+0xc	ΐ	Α	Β	Γ 	Δ	Ε	Ζ	Η 	Θ	Ι	Κ	Λ 	Μ	Ν	Ξ	Ο
+0xd	Π	Ρ	XX	Σ 	Τ	Υ	Φ	Χ 	Ψ	Ω	Ϊ	Ϋ 	ά	έ	ή	ί
+0xe	ΰ	α	β	γ 	δ	ε	ζ	η 	θ	ι	κ	λ 	μ	ν	ξ	ο
+0xf	π	ρ	ς	σ 	τ	υ	φ	χ 	ψ	ω	ϊ	ϋ 	ό	ύ	ώ	XX
+
+Codepage 1254 (windows-1254: Microsoft Windows Turkish)
+w5 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	€	XX	‚	ƒ 	„	…	†	‡ 	ˆ	‰	Š	‹ 	Œ	XX	XX	XX
+0x9	XX	‘	’	“ 	”	•	–	— 	˜	™	š	› 	œ	XX	XX	Ÿ
+0xa	nbsp	¡	¢	£ 	¤	¥	¦	§ 	¨	©	ª	« 	¬	shy	®	¯
+0xb	°	±	²	³ 	´	µ	¶	· 	¸	¹	º	» 	¼	½	¾	¿
+0xc	À	Á	Â	Ã 	Ä	Å	Æ	Ç 	È	É	Ê	Ë 	Ì	Í	Î	Ï
+0xd	Ğ	Ñ	Ò	Ó 	Ô	Õ	Ö	× 	Ø	Ù	Ú	Û 	Ü	İ	Ş	ß
+0xe	à	á	â	ã 	ä	å	æ	ç 	è	é	ê	ë 	ì	í	î	ï
+0xf	ğ	ñ	ò	ó 	ô	õ	ö	÷ 	ø	ù	ú	û 	ü	ı	ş	ÿ
+
+Codepage 1255 (windows-1255: Microsoft Windows Hebrew)
+wH 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	€	XX	‚	ƒ 	„	…	†	‡ 	ˆ	‰	XX	‹ 	XX	XX	XX	XX
+0x9	XX	‘	’	“ 	”	•	–	— 	˜	™	XX	› 	XX	XX	XX	XX
+0xa	nbsp	¡	¢	£ 	₪	¥	¦	§ 	¨	©	×	« 	¬	shy	®	¯
+0xb	°	±	²	³ 	´	µ	¶	· 	¸	¹	÷	» 	¼	½	¾	¿
+0xc	ְ	ֱ	ֲ	ֳ 	ִ	ֵ	ֶ	ַ 	ָ	ֹ	XX	ֻ 	ּ	ֽ	־	ֿ
+0xd	׀	ׁ	ׂ	׃ 	װ	ױ	ײ	׳ 	״	XX	XX	XX 	XX	XX	XX	XX
+0xe	א	ב	ג	ד 	ה	ו	ז	ח 	ט	י	ך	כ 	ל	ם	מ	ן
+0xf	נ	ס	ע	ף 	פ	ץ	צ	ק 	ר	ש	ת	XX 	XX	‎	‏	XX
+
+Codepage 1256 (windows-1256: Microsoft Windows Arabic)
+wA 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	€	پ	‚	ƒ 	„	…	†	‡ 	ˆ	‰	ٹ	‹ 	Œ	چ	ژ	ڈ
+0x9	گ	‘	’	“ 	”	•	–	— 	ک	™	ڑ	› 	œ	‌	‍	ں
+0xa	nbsp	،	¢	£ 	¤	¥	¦	§ 	¨	©	ھ	« 	¬	shy	®	¯
+0xb	°	±	²	³ 	´	µ	¶	· 	¸	¹	؛	» 	¼	½	¾	؟
+0xc	ہ	ء	آ	أ 	ؤ	إ	ئ	ا 	ب	ة	ت	ث 	ج	ح	خ	د
+0xd	ذ	ر	ز	س 	ش	ص	ض	× 	ط	ظ	ع	غ 	ـ	ف	ق	ك
+0xe	à	ل	â	م 	ن	ه	و	ç 	è	é	ê	ë 	ى	ي	î	ï
+0xf	ً	ٌ	ٍ	َ 	ô	ُ	ِ	÷ 	ّ	ù	ْ	û 	ü	‎	‏	ے
+
+Codepage 1257 (windows-1257: Microsoft Windows Baltic)
+w7 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	€	XX	‚	XX 	„	…	†	‡ 	XX	‰	XX	‹ 	XX	¨	ˇ	¸
+0x9	XX	‘	’	“ 	”	•	–	— 	XX	™	XX	› 	XX	¯	˛	XX
+0xa	nbsp	XX	¢	£ 	¤	XX	¦	§ 	Ø	©	Ŗ	« 	¬	shy	®	Æ
+0xb	°	±	²	³ 	´	µ	¶	· 	ø	¹	ŗ	» 	¼	½	¾	æ
+0xc	Ą	Į	Ā	Ć 	Ä	Å	Ę	Ē 	Č	É	Ź	Ė 	Ģ	Ķ	Ī	Ļ
+0xd	Š	Ń	Ņ	Ó 	Ō	Õ	Ö	× 	Ų	Ł	Ś	Ū 	Ü	Ż	Ž	ß
+0xe	ą	į	ā	ć 	ä	å	ę	ē 	č	é	ź	ė 	ģ	ķ	ī	ļ
+0xf	š	ń	ņ	ó 	ō	õ	ö	÷ 	ų	ł	ś	ū 	ü	ż	ž	˙
+
+Codepage 1258 (windows-1258: Microsoft Windows Vietnamese)
+wv 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	€	XX	‚	ƒ 	„	…	†	‡ 	ˆ	‰	XX	‹ 	Œ	XX	XX	XX
+0x9	XX	‘	’	“ 	”	•	–	— 	˜	™	XX	› 	œ	XX	XX	Ÿ
+0xa	nbsp	¡	¢	£ 	¤	¥	¦	§ 	¨	©	ª	« 	¬	shy	®	¯
+0xb	°	±	²	³ 	´	µ	¶	· 	¸	¹	º	» 	¼	½	¾	¿
+0xc	À	Á	Â	Ă 	Ä	Å	Æ	Ç 	È	É	Ê	Ë 	̀	Í	Î	Ï
+0xd	Đ	Ñ	̉	Ó 	Ô	Ơ	Ö	× 	Ø	Ù	Ú	Û 	Ü	Ư	̃	ß
+0xe	à	á	â	ă 	ä	å	æ	ç 	è	é	ê	ë 	́	í	î	ï
+0xf	đ	ñ	̣	ó 	ô	ơ	ö	÷ 	ø	ù	ú	û 	ü	ư	₫	ÿ
+
+Codepage 437 (IBM437: default)
+* 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	Ç	ü	é	â 	ä	à	å	ç 	ê	ë	è	ï 	î	ì	Ä	Å
+0x9	É	æ	Æ	ô 	ö	ò	û	ù 	ÿ	Ö	Ü	¢ 	£	¥	₧	ƒ
+0xa	á	í	ó	ú 	ñ	Ñ	ª	º 	¿	⌐	¬	½ 	¼	¡	«	»
+0xb	░	▒	▓	│ 	┤	╡	╢	╖ 	╕	╣	║	╗ 	╝	╜	╛	┐
+0xc	└	┴	┬	├ 	─	┼	╞	╟ 	╚	╔	╩	╦ 	╠	═	╬	╧
+0xd	╨	╤	╥	╙ 	╘	╒	╓	╫ 	╪	┘	┌	█ 	▄	▌	▐	▀
+0xe	α	ß	Γ	π 	Σ	σ	µ	τ 	Φ	Θ	Ω	δ 	∞	φ	ε	∩
+0xf	≡	±	≥	≤ 	⌠	⌡	÷	≈ 	°	∙	·	√ 	ⁿ	²	■	nbsp
+
+Codepage 737 (IBM737: Greek)
+*G 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	Α	Β	Γ	Δ 	Ε	Ζ	Η	Θ 	Ι	Κ	Λ	Μ 	Ν	Ξ	Ο	Π
+0x9	Ρ	Σ	Τ	Υ 	Φ	Χ	Ψ	Ω 	α	β	γ	δ 	ε	ζ	η	θ
+0xa	ι	κ	λ	μ 	ν	ξ	ο	π 	ρ	σ	ς	τ 	υ	φ	χ	ψ
+0xb	░	▒	▓	│ 	┤	╡	╢	╖ 	╕	╣	║	╗ 	╝	╜	╛	┐
+0xc	└	┴	┬	├ 	─	┼	╞	╟ 	╚	╔	╩	╦ 	╠	═	╬	╧
+0xd	╨	╤	╥	╙ 	╘	╒	╓	╫ 	╪	┘	┌	█ 	▄	▌	▐	▀
+0xe	ω	ά	έ	ή 	ϊ	ί	ό	ύ 	ϋ	ώ	Ά	Έ 	Ή	Ί	Ό	Ύ
+0xf	Ώ	±	≥	≤ 	Ϊ	Ϋ	÷	≈ 	°	∙	·	√ 	ⁿ	²	■	nbsp
+
+Codepage 775 (IBM775: Baltic)
+*b 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	Ć	ü	é	ā 	ä	ģ	å	ć 	ł	ē	Ŗ	ŗ 	ī	Ź	Ä	Å
+0x9	É	æ	Æ	ō 	ö	Ģ	¢	Ś 	ś	Ö	Ü	ø 	£	Ø	×	¤
+0xa	Ā	Ī	ó	Ż 	ż	ź	”	¦ 	©	®	¬	½ 	¼	Ł	«	»
+0xb	░	▒	▓	│ 	┤	Ą	Č	Ę 	Ė	╣	║	╗ 	╝	Į	Š	┐
+0xc	└	┴	┬	├ 	─	┼	Ų	Ū 	╚	╔	╩	╦ 	╠	═	╬	Ž
+0xd	ą	č	ę	ė 	į	š	ų	ū 	ž	┘	┌	█ 	▄	▌	▐	▀
+0xe	Ó	ß	Ō	Ń 	õ	Õ	µ	ń 	Ķ	ķ	Ļ	ļ 	ņ	Ē	Ņ	’
+0xf	shy	±	“	¾ 	¶	§	÷	„ 	°	∙	·	¹ 	³	²	■	nbsp
+
+Codepage 850 (IBM850: European)
+*w 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	Ç	ü	é	â 	ä	à	å	ç 	ê	ë	è	ï 	î	ì	Ä	Å
+0x9	É	æ	Æ	ô 	ö	ò	û	ù 	ÿ	Ö	Ü	ø 	£	Ø	×	ƒ
+0xa	á	í	ó	ú 	ñ	Ñ	ª	º 	¿	®	¬	½ 	¼	¡	«	»
+0xb	░	▒	▓	│ 	┤	Á	Â	À 	©	╣	║	╗ 	╝	¢	¥	┐
+0xc	└	┴	┬	├ 	─	┼	ã	Ã 	╚	╔	╩	╦ 	╠	═	╬	¤
+0xd	ð	Ð	Ê	Ë 	È	ı	Í	Î 	Ï	┘	┌	█ 	▄	¦	Ì	▀
+0xe	Ó	ß	Ô	Ò 	õ	Õ	µ	þ 	Þ	Ú	Û	Ù 	ý	Ý	¯	´
+0xf	shy	±	‗	¾ 	¶	§	÷	¸ 	°	¨	·	¹ 	³	²	■	nbsp
+
+Codepage 852 (IBM852: East European)
+*e 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	Ç	ü	é	â 	ä	ů	ć	ç 	ł	ë	Ő	ő 	î	Ź	Ä	Ć
+0x9	É	Ĺ	ĺ	ô 	ö	Ľ	ľ	Ś 	ś	Ö	Ü	Ť 	ť	Ł	×	č
+0xa	á	í	ó	ú 	Ą	ą	Ž	ž 	Ę	ę	¬	ź 	Č	ş	«	»
+0xb	░	▒	▓	│ 	┤	Á	Â	Ě 	Ş	╣	║	╗ 	╝	Ż	ż	┐
+0xc	└	┴	┬	├ 	─	┼	Ă	ă 	╚	╔	╩	╦ 	╠	═	╬	¤
+0xd	đ	Đ	Ď	Ë 	ď	Ň	Í	Î 	ě	┘	┌	█ 	▄	Ţ	Ů	▀
+0xe	Ó	ß	Ô	Ń 	ń	ň	Š	š 	Ŕ	Ú	ŕ	Ű 	ý	Ý	ţ	´
+0xf	shy	˝	˛	ˇ 	˘	§	÷	¸ 	°	¨	˙	ű 	Ř	ř	■	nbsp
+
+Codepage 855 (IBM855: Cyrillic)
+*C 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	ђ	Ђ	ѓ	Ѓ 	ё	Ё	є	Є 	ѕ	Ѕ	і	І 	ї	Ї	ј	Ј
+0x9	љ	Љ	њ	Њ 	ћ	Ћ	ќ	Ќ 	ў	Ў	џ	Џ 	ю	Ю	ъ	Ъ
+0xa	а	А	б	Б 	ц	Ц	д	Д 	е	Е	ф	Ф 	г	Г	«	»
+0xb	░	▒	▓	│ 	┤	х	Х	и 	И	╣	║	╗ 	╝	й	Й	┐
+0xc	└	┴	┬	├ 	─	┼	к	К 	╚	╔	╩	╦ 	╠	═	╬	¤
+0xd	л	Л	м	М 	н	Н	о	О 	п	┘	┌	█ 	▄	П	я	▀
+0xe	Я	р	Р	с 	С	т	Т	у 	У	ж	Ж	в 	В	ь	Ь	№
+0xf	shy	ы	Ы	з 	З	ш	Ш	э 	Э	щ	Щ	ч 	Ч	§	■	nbsp
+
+Codepage 857 (IBM857: Turkish)
+*t 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	Ç	ü	é	â 	ä	à	å	ç 	ê	ë	è	ï 	î	ı	Ä	Å
+0x9	É	æ	Æ	ô 	ö	ò	û	ù 	İ	Ö	Ü	ø 	£	Ø	Ş	ş
+0xa	á	í	ó	ú 	ñ	Ñ	Ğ	ğ 	¿	®	¬	½ 	¼	¡	«	»
+0xb	░	▒	▓	│ 	┤	Á	Â	À 	©	╣	║	╗ 	╝	¢	¥	┐
+0xc	└	┴	┬	├ 	─	┼	ã	Ã 	╚	╔	╩	╦ 	╠	═	╬	¤
+0xd	º	ª	Ê	Ë 	È	XX	Í	Î 	Ï	┘	┌	█ 	▄	¦	Ì	▀
+0xe	Ó	ß	Ô	Ò 	õ	Õ	µ	XX 	×	Ú	Û	Ù 	ì	ÿ	¯	´
+0xf	shy	±	XX	¾ 	¶	§	÷	¸ 	°	¨	·	¹ 	³	²	■	nbsp
+
+Codepage 860 (IBM860: Portuguese)
+*p 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	Ç	ü	é	â 	ã	à	Á	ç 	ê	Ê	è	Í 	Ô	ì	Ã	Â
+0x9	É	À	È	ô 	õ	ò	Ú	ù 	Ì	Õ	Ü	¢ 	£	Ù	₧	Ó
+0xa	á	í	ó	ú 	ñ	Ñ	ª	º 	¿	Ò	¬	½ 	¼	¡	«	»
+0xb	░	▒	▓	│ 	┤	╡	╢	╖ 	╕	╣	║	╗ 	╝	╜	╛	┐
+0xc	└	┴	┬	├ 	─	┼	╞	╟ 	╚	╔	╩	╦ 	╠	═	╬	╧
+0xd	╨	╤	╥	╙ 	╘	╒	╓	╫ 	╪	┘	┌	█ 	▄	▌	▐	▀
+0xe	α	ß	Γ	π 	Σ	σ	µ	τ 	Φ	Θ	Ω	δ 	∞	φ	ε	∩
+0xf	≡	±	≥	≤ 	⌠	⌡	÷	≈ 	°	∙	·	√ 	ⁿ	²	■	nbsp
+
+Codepage 861 (IBM861: Icelandic)
+*i 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	Ç	ü	é	â 	ä	à	å	ç 	ê	ë	è	Ð 	ð	Þ	Ä	Å
+0x9	É	æ	Æ	ô 	ö	þ	û	Ý 	ý	Ö	Ü	ø 	£	Ø	₧	ƒ
+0xa	á	í	ó	ú 	Á	Í	Ó	Ú 	¿	⌐	¬	½ 	¼	¡	«	»
+0xb	░	▒	▓	│ 	┤	╡	╢	╖ 	╕	╣	║	╗ 	╝	╜	╛	┐
+0xc	└	┴	┬	├ 	─	┼	╞	╟ 	╚	╔	╩	╦ 	╠	═	╬	╧
+0xd	╨	╤	╥	╙ 	╘	╒	╓	╫ 	╪	┘	┌	█ 	▄	▌	▐	▀
+0xe	α	ß	Γ	π 	Σ	σ	µ	τ 	Φ	Θ	Ω	δ 	∞	φ	ε	∩
+0xf	≡	±	≥	≤ 	⌠	⌡	÷	≈ 	°	∙	·	√ 	ⁿ	²	■	nbsp
+
+Codepage 862 (IBM862: Hebrew)
+*H 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	א	ב	ג	ד 	ה	ו	ז	ח 	ט	י	ך	כ 	ל	ם	מ	ן
+0x9	נ	ס	ע	ף 	פ	ץ	צ	ק 	ר	ש	ת	¢ 	£	¥	₧	ƒ
+0xa	á	í	ó	ú 	ñ	Ñ	ª	º 	¿	⌐	¬	½ 	¼	¡	«	»
+0xb	░	▒	▓	│ 	┤	╡	╢	╖ 	╕	╣	║	╗ 	╝	╜	╛	┐
+0xc	└	┴	┬	├ 	─	┼	╞	╟ 	╚	╔	╩	╦ 	╠	═	╬	╧
+0xd	╨	╤	╥	╙ 	╘	╒	╓	╫ 	╪	┘	┌	█ 	▄	▌	▐	▀
+0xe	α	ß	Γ	π 	Σ	σ	µ	τ 	Φ	Θ	Ω	δ 	∞	φ	ε	∩
+0xf	≡	±	≥	≤ 	⌠	⌡	÷	≈ 	°	∙	·	√ 	ⁿ	²	■	nbsp
+
+Codepage 863 (IBM863: Canadian French)
+*q 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	Ç	ü	é	â 	Â	à	¶	ç 	ê	ë	è	ï 	î	‗	À	§
+0x9	É	È	Ê	ô 	Ë	Ï	û	ù 	¤	Ô	Ü	¢ 	£	Ù	Û	ƒ
+0xa	¦	´	ó	ú 	¨	¸	³	¯ 	Î	⌐	¬	½ 	¼	¾	«	»
+0xb	░	▒	▓	│ 	┤	╡	╢	╖ 	╕	╣	║	╗ 	╝	╜	╛	┐
+0xc	└	┴	┬	├ 	─	┼	╞	╟ 	╚	╔	╩	╦ 	╠	═	╬	╧
+0xd	╨	╤	╥	╙ 	╘	╒	╓	╫ 	╪	┘	┌	█ 	▄	▌	▐	▀
+0xe	α	ß	Γ	π 	Σ	σ	µ	τ 	Φ	Θ	Ω	δ 	∞	φ	ε	∩
+0xf	≡	±	≥	≤ 	⌠	⌡	÷	≈ 	°	∙	·	√ 	ⁿ	²	■	nbsp
+
+Codepage 864 (IBM864: Arabic)
+*A 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	٪	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	°	·	∙	√ 	▒	─	│	┼ 	┤	┬	├	┴ 	┐	┌	└	┘
+0x9	β	∞	φ	± 	½	¼	≈	« 	»	ﻷ	ﻸ	XX 	XX	ﻻ	ﻼ	XX
+0xa	nbsp	shy	ﺂ	£ 	¤	ﺄ	XX	XX 	ﺎ	ﺏ	ﺕ	ﺙ 	،	ﺝ	ﺡ	ﺥ
+0xb	٠	١	٢	٣ 	٤	٥	٦	٧ 	٨	٩	ﻑ	؛ 	ﺱ	ﺵ	ﺹ	؟
+0xc	¢	ﺀ	ﺁ	ﺃ 	ﺅ	ﻊ	ﺋ	ﺍ 	ﺑ	ﺓ	ﺗ	ﺛ 	ﺟ	ﺣ	ﺧ	ﺩ
+0xd	ﺫ	ﺭ	ﺯ	ﺳ 	ﺷ	ﺻ	ﺿ	ﻁ 	ﻅ	ﻋ	ﻏ	¦ 	¬	÷	×	ﻉ
+0xe	ـ	ﻓ	ﻗ	ﻛ 	ﻟ	ﻣ	ﻧ	ﻫ 	ﻭ	ﻯ	ﻳ	ﺽ 	ﻌ	ﻎ	ﻍ	ﻡ
+0xf	ﹽ	ّ	ﻥ	ﻩ 	ﻬ	ﻰ	ﻲ	ﻐ 	ﻕ	ﻵ	ﻶ	ﻝ 	ﻙ	ﻱ	■	XX
+
+Codepage 865 (IBM865: Nordic European)
+*n 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	Ç	ü	é	â 	ä	à	å	ç 	ê	ë	è	ï 	î	ì	Ä	Å
+0x9	É	æ	Æ	ô 	ö	ò	û	ù 	ÿ	Ö	Ü	ø 	£	Ø	₧	ƒ
+0xa	á	í	ó	ú 	ñ	Ñ	ª	º 	¿	⌐	¬	½ 	¼	¡	«	¤
+0xb	░	▒	▓	│ 	┤	╡	╢	╖ 	╕	╣	║	╗ 	╝	╜	╛	┐
+0xc	└	┴	┬	├ 	─	┼	╞	╟ 	╚	╔	╩	╦ 	╠	═	╬	╧
+0xd	╨	╤	╥	╙ 	╘	╒	╓	╫ 	╪	┘	┌	█ 	▄	▌	▐	▀
+0xe	α	ß	Γ	π 	Σ	σ	µ	τ 	Φ	Θ	Ω	δ 	∞	φ	ε	∩
+0xf	≡	±	≥	≤ 	⌠	⌡	÷	≈ 	°	∙	·	√ 	ⁿ	²	■	nbsp
+
+Codepage 866 (IBM866: Cyrillic 2)
+*C2 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	А	Б	В	Г 	Д	Е	Ж	З 	И	Й	К	Л 	М	Н	О	П
+0x9	Р	С	Т	У 	Ф	Х	Ц	Ч 	Ш	Щ	Ъ	Ы 	Ь	Э	Ю	Я
+0xa	а	б	в	г 	д	е	ж	з 	и	й	к	л 	м	н	о	п
+0xb	░	▒	▓	│ 	┤	╡	╢	╖ 	╕	╣	║	╗ 	╝	╜	╛	┐
+0xc	└	┴	┬	├ 	─	┼	╞	╟ 	╚	╔	╩	╦ 	╠	═	╬	╧
+0xd	╨	╤	╥	╙ 	╘	╒	╓	╫ 	╪	┘	┌	█ 	▄	▌	▐	▀
+0xe	р	с	т	у 	ф	х	ц	ч 	ш	щ	ъ	ы 	ь	э	ю	я
+0xf	Ё	ё	Є	є 	Ї	ї	Ў	ў 	°	∙	·	√ 	№	¤	■	nbsp
+
+Codepage 869 (IBM869: Greek 2)
+*G2 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	XX	XX	XX	XX 	XX	XX	Ά	XX 	·	¬	¦	‘ 	’	Έ	―	Ή
+0x9	Ί	Ϊ	Ό	XX 	XX	Ύ	Ϋ	© 	Ώ	²	³	ά 	£	έ	ή	ί
+0xa	ϊ	ΐ	ό	ύ 	Α	Β	Γ	Δ 	Ε	Ζ	Η	½ 	Θ	Ι	«	»
+0xb	░	▒	▓	│ 	┤	Κ	Λ	Μ 	Ν	╣	║	╗ 	╝	Ξ	Ο	┐
+0xc	└	┴	┬	├ 	─	┼	Π	Ρ 	╚	╔	╩	╦ 	╠	═	╬	Σ
+0xd	Τ	Υ	Φ	Χ 	Ψ	Ω	α	β 	γ	┘	┌	█ 	▄	δ	ε	▀
+0xe	ζ	η	θ	ι 	κ	λ	μ	ν 	ξ	ο	π	ρ 	σ	ς	τ	΄
+0xf	shy	±	υ	φ 	χ	§	ψ	΅ 	°	¨	ω	ϋ 	ΰ	ώ	■	nbsp
+
+Codepage 874 (IBM874 / Microsoft Windows: Thai)
+*T 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	€	XX	XX	XX 	XX	…	XX	XX 	XX	XX	XX	XX 	XX	XX	XX	XX
+0x9	XX	‘	’	“ 	”	•	–	— 	XX	XX	XX	XX 	XX	XX	XX	XX
+0xa	nbsp	ก	ข	ฃ 	ค	ฅ	ฆ	ง 	จ	ฉ	ช	ซ 	ฌ	ญ	ฎ	ฏ
+0xb	ฐ	ฑ	ฒ	ณ 	ด	ต	ถ	ท 	ธ	น	บ	ป 	ผ	ฝ	พ	ฟ
+0xc	ภ	ม	ย	ร 	ฤ	ล	ฦ	ว 	ศ	ษ	ส	ห 	ฬ	อ	ฮ	ฯ
+0xd	ะ	ั	า	ำ 	ิ	ี	ึ	ื 	ุ	ู	ฺ	XX 	XX	XX	XX	฿
+0xe	เ	แ	โ	ใ 	ไ	ๅ	ๆ	็ 	่	้	๊	๋ 	์	ํ	๎	๏
+0xf	๐	๑	๒	๓ 	๔	๕	๖	๗ 	๘	๙	๚	๛ 	XX	XX	XX	XX
+
+KOI8-R (RFC 1489)
+kC 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	─	│	┌	┐ 	└	┘	├	┤ 	┬	┴	┼	▀ 	▄	█	▌	▐
+0x9	░	▒	▓	⌠ 	■	∙	√	≈ 	≤	≥	nbsp	⌡ 	°	²	·	÷
+0xa	═	║	╒	ё 	╓	╔	╕	╖ 	╗	╘	╙	╚ 	╛	╜	╝	╞
+0xb	╟	╠	╡	Ё 	╢	╣	╤	╥ 	╦	╧	╨	╩ 	╪	╫	╬	©
+0xc	ю	а	б	ц 	д	е	ф	г 	х	и	й	к 	л	м	н	о
+0xd	п	я	р	с 	т	у	ж	в 	ь	ы	з	ш 	э	щ	ч	ъ
+0xe	Ю	А	Б	Ц 	Д	Е	Ф	Г 	Х	И	Й	К 	Л	М	Н	О
+0xf	П	Я	Р	С 	Т	У	Ж	В 	Ь	Ы	З	Ш 	Э	Щ	Ч	Ъ
+
+KOI8-U (RFC 2319)
+kCU 	0	1	2	3	4	5	6	7	8	9	a	b	c	d	e	f
+0x0	nul	stx	sot	etx 	eot	enq	ack	bel 	bs	ht	lf	vt 	ff	cr	so	si
+0x1	dle	dc1	dc2	dc3 	dc4	nak	syn	etb 	can	em	sub	esc 	fs	gs	rs	us
+0x2	sp	!	"	# 	$	%	&	' 	(	)	*	+ 	,	-	.	/
+0x3	0	1	2	3 	4	5	6	7 	8	9	:	; 	<	=	>	?
+0x4	@	A	B	C 	D	E	F	G 	H	I	J	K 	L	M	N	O
+0x5	P	Q	R	S 	T	U	V	W 	X	Y	Z	[ 	\	]	^	_
+0x6	`	a	b	c 	d	e	f	g 	h	i	j	k 	l	m	n	o
+0x7	p	q	r	s 	t	u	v	w 	x	y	z	{ 	|	}	~	del
+0x8	─	│	┌	┐ 	└	┘	├	┤ 	┬	┴	┼	▀ 	▄	█	▌	▐
+0x9	░	▒	▓	⌠ 	■	∙	√	≈ 	≤	≥	nbsp	⌡ 	°	²	·	÷
+0xa	═	║	╒	ё 	є	╔	і	ї 	╗	╘	╙	╚ 	╛	ґ	╝	╞
+0xb	╟	╠	╡	Ё 	Ѓ	╣	І	Ї 	╦	╧	╨	╩ 	╪	Ґ	╬	©
+0xc	ю	а	б	ц 	д	е	ф	г 	х	и	й	к 	л	м	н	о
+0xd	п	я	р	с 	т	у	ж	в 	ь	ы	з	ш 	э	щ	ч	ъ
+0xe	Ю	А	Б	Ц 	Д	Е	Ф	Г 	Х	И	Й	К 	Л	М	Н	О
+0xf	П	Я	Р	С 	Т	У	Ж	В 	Ь	Ы	З	Ш 	Э	Щ	Ч	Ъ

@@ -49,6 +49,10 @@ class SJISProber(MultiByteCharSetProber):
     def charset_name(self):
         return self.context_analyzer.charset_name
 
+    @property
+    def language(self):
+        return "Japanese"
+
     def feed(self, byte_str):
         for i in range(len(byte_str)):
             coding_state = self.coding_sm.next_state(byte_str[i])

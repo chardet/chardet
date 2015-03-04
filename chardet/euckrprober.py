@@ -41,3 +41,7 @@ class EUCKRProber(MultiByteCharSetProber):
     @property
     def charset_name(self):
         return "EUC-KR"
+
+    @property
+    def language(self):
+        return "Korean"
