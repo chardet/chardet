@@ -32,18 +32,18 @@ from .langcyrillicmodel import (Win1251CyrillicModel, Koi8rModel,
                                 Latin5CyrillicModel, MacCyrillicModel,
                                 Ibm866Model, Ibm855Model)
 from .langbulgarianmodel import Latin5BulgarianModel, Win1251BulgarianModel
+from .langgermanmodel import Iso_8859_1_German_Model, Windows_1252_German_Model
 from .langczechmodel import Iso_8859_2_Czech_Model, Windows_1250_Czech_Model
 from .langcroatianmodel import Iso_8859_2_Croatian_Model, Windows_1250_Croatian_Model
-from .langgreekmodel import Windows_1253_Greek_Model, ISO_8859_7_Greek_Model
-from .langhungarianmodel import Windows_1250_Hungarian_Model
-from .langhebrewmodel import Win1255HebrewModel
+from .langgreekmodel import Iso_8859_7_Greek_Model, Windows_1253_Greek_Model
+from .langhungarianmodel import Iso_8859_2_Hungarian_Model, Windows_1250_Hungarian_Model
 from .langpolishmodel import Iso_8859_2_Polish_Model, Windows_1250_Polish_Model
-from .langromanianmodel import Windows_1250_Romanian_Model
+from .langromanianmodel import Iso_8859_2_Romanian_Model, Windows_1250_Romanian_Model
 from .langslovakmodel import Iso_8859_2_Slovak_Model, Windows_1250_Slovak_Model
 from .langslovenemodel import Iso_8859_2_Slovene_Model, Windows_1250_Slovene_Model
+from .langturkishmodel import Iso_8859_9_Turkish_Model, Windows_1254_Turkish_Model
+from .langhebrewmodel import Win1255HebrewModel
 from .langthaimodel import TIS620ThaiModel
-from .langgermanmodel import Windows_1252_German_Model
-from .langturkishmodel import Windows_1254_Turkish_Model
 from .hebrewprober import HebrewProber
 
 
@@ -63,17 +63,21 @@ class SBCSGroupProber(CharSetGroupProber):
             SingleByteCharSetProber(Windows_1250_Czech_Model),
             SingleByteCharSetProber(Iso_8859_2_Croatian_Model),
             SingleByteCharSetProber(Windows_1250_Croatian_Model),
+            SingleByteCharSetProber(Iso_8859_2_Hungarian_Model),
             SingleByteCharSetProber(Windows_1250_Hungarian_Model),
             SingleByteCharSetProber(Iso_8859_2_Polish_Model),
             SingleByteCharSetProber(Windows_1250_Polish_Model),
+            SingleByteCharSetProber(Iso_8859_2_Romanian_Model),
             SingleByteCharSetProber(Windows_1250_Romanian_Model),
             SingleByteCharSetProber(Iso_8859_2_Slovak_Model),
             SingleByteCharSetProber(Windows_1250_Slovak_Model),
             SingleByteCharSetProber(Iso_8859_2_Slovene_Model),
             SingleByteCharSetProber(Windows_1250_Slovene_Model),
-            SingleByteCharSetProber(ISO_8859_7_Greek_Model),
-            SingleByteCharSetProber(Windows_1252_German_Model),
+            SingleByteCharSetProber(Iso_8859_7_Greek_Model),
             SingleByteCharSetProber(Windows_1253_Greek_Model),
+            SingleByteCharSetProber(Iso_8859_1_German_Model),
+            SingleByteCharSetProber(Windows_1252_German_Model),
+            SingleByteCharSetProber(Iso_8859_9_Turkish_Model),
             SingleByteCharSetProber(Windows_1254_Turkish_Model),
             SingleByteCharSetProber(TIS620ThaiModel),
         ]
