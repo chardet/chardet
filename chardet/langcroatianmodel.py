@@ -25,7 +25,7 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-Windows_1250_Croatian_CharToOrderMap = (
+Windows_1250_Croatian_char_to_order_map = (
   #0   1   2   3   4   5   6   7   8   9   A   B   C   D   E   F
   255,255,255,255,255,255,255,255,255,255,254,255,255,254,255,255,  #  0
   255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,  # 10
@@ -45,7 +45,7 @@ Windows_1250_Croatian_CharToOrderMap = (
    32,126,127, 64, 71,128, 69,253,129,130, 57, 83,131,132,133,253,  # F0
   )
 
-Iso_8859_2_Croatian_CharToOrderMap = (
+Iso_8859_2_Croatian_char_to_order_map = (
   #0   1   2   3   4   5   6   7   8   9   A   B   C   D   E   F
   255,255,255,255,255,255,255,255,255,255,254,255,255,254,255,255,  #  0
   255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,  # 10
@@ -197,7 +197,7 @@ Croatian_LangModel = (
   )
 
 Windows_1250_Croatian_Model = {
-  'char_to_order_map': Windows_1250_Croatian_CharToOrderMap,
+  'char_to_order_map': Windows_1250_Croatian_char_to_order_map,
   'precedence_matrix': Croatian_LangModel,
   'typical_positive_ratio': 0.9903,
   'keep_english_letter': True,
@@ -206,7 +206,7 @@ Windows_1250_Croatian_Model = {
   }
 
 Iso_8859_2_Croatian_Model = {
-  'char_to_order_map': Iso_8859_2_Croatian_CharToOrderMap,
+  'char_to_order_map': Iso_8859_2_Croatian_char_to_order_map,
   'precedence_matrix': Croatian_LangModel,
   'typical_positive_ratio': 0.9903,
   'keep_english_letter': True,
