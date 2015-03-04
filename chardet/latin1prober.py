@@ -84,7 +84,7 @@ Latin1_CharToClass = (
 # 2 : normal
 # 3 : very likely
 Latin1_ClassModel = (
-  #ASV SVA SVO ASC SCO ACV CVA CVO ACC CCO 
+  #ASV SVA SVO ASC SCO ACV CVA CVO ACC CCO
     3,  2,  2,  3,  2,  1,  0,  0,  1,  0,  # ASV
     3,  1,  0,  3,  1,  0,  0,  0,  0,  0,  # SVA
     2,  1,  2,  3,  0,  0,  0,  0,  0,  0,  # SVO
@@ -113,7 +113,11 @@ class Latin1Prober(CharSetProber):
 
     @property
     def charset_name(self):
-        return "windows-1252"
+        return "ISO-8859-1"
+
+    @property
+    def language(self):
+        return "Latin1"
 
     def feed(self, byte_str):
         byte_str = self.filter_with_english_letters(byte_str)
@@ -139,5 +143,5 @@ class Latin1Prober(CharSetProber):
         else:
             confidence = float(self._seq_counters[POSITIVE_CAT] - (self._seq_counters[UNLIKELY_CAT] + self._seq_counters[NEGATIVE_CAT])) / self._total_seqs
         # lower the confidence of latin1 so that other more accurate detector can take priority.
-        confidence = confidence * 0.7907
+        confidence = confidence * 0.80
         return confidence
