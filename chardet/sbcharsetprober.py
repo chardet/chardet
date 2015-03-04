@@ -38,7 +38,8 @@ class SingleByteCharSetProber(CharSetProber):
     NEGATIVE_SHORTCUT_THRESHOLD = 0.05
     SYMBOL_CAT_ORDER = 253
     NUMBER_OF_SEQ_CAT = 4
-    POSITIVE_CAT = NUMBER_OF_SEQ_CAT - 1
+    POSITIVE_CAT = 3
+    LIKELY_CAT   = 2
 
     def __init__(self, model, reversed=False, name_prober=None):
         super(SingleByteCharSetProber, self).__init__()
@@ -75,7 +76,7 @@ class SingleByteCharSetProber(CharSetProber):
     def language(self):
         if self._name_prober:
             return self._name_prober.language
-        else: 
+        else:
 	    if 'language' in self._model:
 		return self._model['language']
 	    else:
@@ -123,8 +124,8 @@ class SingleByteCharSetProber(CharSetProber):
     def get_confidence(self):
         r = 0.01
         if self._total_seqs > 0:
-            r = ((1.0 * self._seq_counters[self.POSITIVE_CAT]) / self._total_seqs
-                 / self._model['typical_positive_ratio'])
+            r = ((self._seq_counters[self.POSITIVE_CAT] + 0.25 * self._seq_counters[self.LIKELY_CAT])
+                 / self._total_seqs / self._model['typical_positive_ratio'])
             r = r * self._freq_char / self._total_char
             if r >= 1.0:
                 r = 0.99
