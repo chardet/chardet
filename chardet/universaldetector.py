@@ -68,48 +68,52 @@ class UniversalDetector(object):
     HIGH_BYTE_DETECTOR = re.compile(b'[\x80-\xFF]')
     ESC_DETECTOR = re.compile(b'(\033|~{)')
 
-    CLEANUP_INPUT = True
+    EXTRA_WINCHARS = re.compile(b'[\x80-\x9F]')
+    ISO_WIN_MAP = {'iso-8859-2': 'Windows-1250', 'iso-8859-5':  'Windows-1251', 'iso-8859-1': 'Windows-1252',
+                   'iso-8859-7': 'Windows-1253', 'iso-8859-9':  'Windows-1254', 'iso-8859-8': 'Windows-1255',
+                   'iso-8859-6': 'Windows-1256', 'iso-8859-13': 'Windows-1257'}
+
     XML_ESC_MAP = (('&gt;', b'>'), ('&lt;', b'<'), ('&amp;', b'&'), ('&apos;', b"'"), ('&quot;', b'"'), ('&nbsp;', b' '))
 
     def remove_tags(self, txt):
-	for esc, char in  self.XML_ESC_MAP:
-	    txt = txt.replace(esc, char)
+        for esc, char in  self.XML_ESC_MAP:
+            txt = txt.replace(esc, char)
 
-	txt = txt.replace('<![CDATA[', '')
-	txt = txt.replace(']]>', '')
+        txt = txt.replace('<![CDATA[', '')
+        txt = txt.replace(']]>', '')
 
-	txt = re.sub(br'<!--([^>]*)-->', '', txt, flags=re.DOTALL)
-	txt = re.sub(br'<\?*\/*[A-Z]+[^>]*>', '', txt, flags=re.IGNORECASE)
-	return txt
+        txt = re.sub(br'<!--([^>]*)-->', '', txt, flags=re.DOTALL)
+        txt = re.sub(br'<\?*\/*[A-Z]+[^>]*>', '', txt, flags=re.IGNORECASE)
+        return txt
 
     def remove_urls(self, txt):
-	txt = re.sub(br'\b(?:(?:https?|ftp|file)://|www\.|ftp\.)'
-			 '(?:\([-A-Z0-9+&@#/%=~_|$?!:;,.]*\)|[-A-Z0-9+&@#\/%=~_|$?!:;,.])*'
-			 '(?:\([-A-Z0-9+&@#/%=~_|$?!:;,.]*\)|[A-Z0-9+&@#/%=~_|$])', 
-		     '', txt, flags=re.IGNORECASE)
-	return txt
+        txt = re.sub(br'\b(?:(?:https?|ftp|file)://|www\.|ftp\.)'
+                         '(?:\([-A-Z0-9+&@#/%=~_|$?!:;,.]*\)|[-A-Z0-9+&@#\/%=~_|$?!:;,.])*'
+                         '(?:\([-A-Z0-9+&@#/%=~_|$?!:;,.]*\)|[A-Z0-9+&@#/%=~_|$])',
+                     '', txt, flags=re.IGNORECASE)
+        return txt
 
     def remove_html_numbers(self, txt):
-	txt = re.sub(br'&#[0-9]{2,};', '', txt)
-	txt = re.sub(br'and#[0-9]{2,};', ' ', txt)
-	return txt
+        txt = re.sub(br'&#[0-9]{2,};', '', txt)
+        txt = re.sub(br'and#[0-9]{2,};', ' ', txt)
+        return txt
 
     def remove_ascii_symbols(self, txt):
-	txt = re.sub(br'[-#$%&*()=+:<>/]', ' ', txt)
-	return txt
+        txt = re.sub(br'[-#$%&*()=+:<>/]', ' ', txt)
+        return txt
 
     def remove_digits(self, txt):
-	txt = re.sub(br'[0-9]+', '', txt)
-	return txt
+        txt = re.sub(br'[0-9]+', '', txt)
+        return txt
 
-    def remove_mutliple_spaces(self, txt):
-	txt = re.sub(br'\s{2,}', ' ', txt)
-	return txt
+    def remove_multiple_spaces(self, txt):
+        txt = re.sub(br'\s{2,}', ' ', txt)
+        return txt
 
     def remove_empty_lines(self, txt):
-	txt = re.sub(br'^(\s|\t)*\n', '', txt, flags=re.MULTILINE)
-	return txt
-    
+        txt = re.sub(br'^(\s|\t)*\n', '', txt, flags=re.MULTILINE)
+        return txt
+
     def __init__(self, lang_filter=LanguageFilter.all):
         self._esc_charset_prober = None
         self._charset_probers = []
@@ -120,6 +124,7 @@ class UniversalDetector(object):
         self._last_char = None
         self.lang_filter = lang_filter
         self.logger = logging.getLogger(__name__)
+        self._txt_buf = None
         self.reset()
 
     def reset(self):
@@ -138,7 +143,7 @@ class UniversalDetector(object):
         for prober in self._charset_probers:
             prober.reset()
 
-    def feed(self, byte_str):
+    def feed(self, byte_str, txt_cleanup=True):
         """
         Takes a chunk of a document and feeds it through all of the relevant
         charset probers.
@@ -158,6 +163,7 @@ class UniversalDetector(object):
         if not len(byte_str):
             return
 
+        self._txt_buf = byte_str
         # First check for known BOMs, since these are guaranteed to be correct
         if not self._got_data:
             # If the data starts with BOM, we know it is UTF
@@ -221,15 +227,15 @@ class UniversalDetector(object):
         # the multi-byte probers use a combination of character unigram and
         # bigram distributions.
         elif self._input_state == InputState.high_byte:
-	    if self.CLEANUP_INPUT:
-		byte_str = self.remove_tags(byte_str)
-		byte_str = self.remove_urls(byte_str)
-		byte_str = self.remove_html_numbers(byte_str)
-		byte_str = self.remove_ascii_symbols(byte_str)
-		byte_str = self.remove_digits(byte_str)
-		byte_str = self.remove_mutliple_spaces(byte_str)
-		byte_str = self.remove_empty_lines(byte_str)
-		byte_str += '\n'
+            if txt_cleanup:
+                byte_str = self.remove_tags(byte_str)
+                byte_str = self.remove_urls(byte_str)
+                byte_str = self.remove_html_numbers(byte_str)
+                byte_str = self.remove_ascii_symbols(byte_str)
+                byte_str = self.remove_digits(byte_str)
+                byte_str = self.remove_multiple_spaces(byte_str)
+                byte_str = self.remove_empty_lines(byte_str)
+                byte_str += '\n'
             if not self._charset_probers:
                 self._charset_probers = [MBCSGroupProber(self.lang_filter)]
                 # If we're checking non-CJK encodings, use single-byte prober
@@ -274,8 +280,12 @@ class UniversalDetector(object):
                     max_prober_confidence = proberConfidence
                     max_prober = prober
             if max_prober and (max_prober_confidence > self.MINIMUM_THRESHOLD):
-                self.result = {'encoding': max_prober.charset_name,
-                               'confidence': max_prober.get_confidence()}
+                charset_name = max_prober.charset_name
+                confidence = max_prober.get_confidence()
+                if 'iso-8859' in charset_name.lower():
+                    if self.EXTRA_WINCHARS.search(self._txt_buf):
+                        charset_name = self.ISO_WIN_MAP.get(charset_name.lower(), charset_name)
+                self.result = {'encoding': charset_name, 'confidence': confidence}
                 return self.result
 
         if self.logger.getEffectiveLevel() == logging.DEBUG:
