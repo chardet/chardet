@@ -45,7 +45,7 @@ Windows_1253_Greek_char_to_order_map = (
     7,  9, 14, 10,  4, 15, 27, 23, 36, 25, 64, 66, 19, 26, 30,255,  # F0
   )
 
-ISO_8859_7_Greek_char_to_order_map = (
+Iso_8859_7_Greek_char_to_order_map = (
   #0   1   2   3   4   5   6   7   8   9   A   B   C   D   E   F
   255,255,255,255,255,255,255,255,255,255,254,255,255,254,255,255,  #  0
   255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,  # 10
@@ -201,16 +201,16 @@ Windows_1253_Greek_Model = {
   'precedence_matrix': Greek_LangModel,
   'typical_positive_ratio': 0.9454,
   'keep_english_letter': False,
-  'charset_name': "windows-1253",
+  'charset_name': "Windows-1253",
   'language': "Greek"
   }
 
-ISO_8859_7_Greek_Model = {
-  'char_to_order_map': ISO_8859_7_Greek_char_to_order_map,
+Iso_8859_7_Greek_Model = {
+  'char_to_order_map': Iso_8859_7_Greek_char_to_order_map,
   'precedence_matrix': Greek_LangModel,
   'typical_positive_ratio': 0.9454,
   'keep_english_letter': False,
-  'charset_name': "ISO-8859-7",
+  'charset_name': "Iso-8859-7",
   'language': "Greek"
   }
 
