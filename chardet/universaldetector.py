@@ -235,7 +235,6 @@ class UniversalDetector(object):
                 byte_str = self.remove_digits(byte_str)
                 byte_str = self.remove_multiple_spaces(byte_str)
                 byte_str = self.remove_empty_lines(byte_str)
-                byte_str += '\n'
             if not self._charset_probers:
                 self._charset_probers = [MBCSGroupProber(self.lang_filter)]
                 # If we're checking non-CJK encodings, use single-byte prober
