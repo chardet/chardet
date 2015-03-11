@@ -85,16 +85,16 @@ Latin1_CharToClass = (
 # 3 : very likely
 Latin1_ClassModel = (
   #ASV SVA SVO ASC SCO ACV CVA CVO ACC CCO
-    3,  2,  2,  3,  2,  1,  0,  0,  1,  0,  # ASV
-    3,  1,  0,  3,  1,  0,  0,  0,  0,  0,  # SVA
-    2,  1,  2,  3,  0,  0,  0,  0,  0,  0,  # SVO
-    3,  3,  3,  3,  1,  0,  0,  0,  1,  0,  # ASC
-    2,  1,  0,  0,  0,  0,  0,  0,  0,  0,  # SCO
-    2,  1,  1,  3,  1,  1,  1,  1,  1,  1,  # ACV
-    1,  0,  0,  1,  0,  1,  0,  0,  1,  0,  # CVA
-    1,  0,  1,  1,  0,  1,  0,  1,  1,  0,  # CVO
-    3,  1,  1,  2,  0,  2,  1,  1,  1,  1,  # ACC
-    1,  1,  0,  0,  0,  1,  1,  0,  0,  0,  # CCO
+    3,  3,  2,  3,  3,  1,  0,  0,  1,  0,  # ASV
+    3,  1,  0,  3,  1,  0,  0,  0,  0,  0,  # ASV
+    2,  1,  3,  3,  0,  0,  0,  0,  0,  0,  # SVA
+    3,  3,  3,  3,  2,  0,  0,  0,  1,  0,  # SVO
+    3,  2,  0,  0,  0,  0,  0,  0,  0,  0,  # ASC
+    2,  1,  1,  3,  1,  1,  1,  1,  2,  1,  # SCO
+    1,  0,  0,  1,  0,  1,  0,  0,  1,  0,  # ACV
+    1,  0,  1,  1,  0,  1,  0,  1,  1,  0,  # CVA
+    3,  2,  1,  3,  0,  2,  1,  1,  1,  1,  # CVO
+    1,  1,  0,  0,  0,  1,  1,  0,  0,  0,  # ACC
 )
 
 class Latin1Prober(CharSetProber):
@@ -128,8 +128,8 @@ class Latin1Prober(CharSetProber):
                 break
             if self._last_char_class < CLASS_NUM and char_class < CLASS_NUM:
                 self._total_seqs += 1
-		freq = Latin1_ClassModel[(self._last_char_class * CLASS_NUM) + char_class]
-		self._seq_counters[freq] += 1
+                freq = Latin1_ClassModel[(self._last_char_class * CLASS_NUM) + char_class]
+                self._seq_counters[freq] += 1
             self._last_char_class = char_class
 
         return self.state
@@ -138,10 +138,11 @@ class Latin1Prober(CharSetProber):
         if self.state == ProbingState.not_me:
             return 0.01
 
-        if self._total_seqs < 2:
+        if self._total_seqs < 5:
             confidence = 0.0
         else:
-            confidence = float(self._seq_counters[POSITIVE_CAT] - (self._seq_counters[UNLIKELY_CAT] + self._seq_counters[NEGATIVE_CAT])) / self._total_seqs
+            confidence = (self._seq_counters[POSITIVE_CAT] + 0.25 * self._seq_counters[LIKELY_CAT] -
+                          self._seq_counters[UNLIKELY_CAT] - self._seq_counters[NEGATIVE_CAT]) / self._total_seqs
         # lower the confidence of latin1 so that other more accurate detector can take priority.
-        confidence = confidence * 0.80
+        confidence = confidence * 0.805
         return confidence
