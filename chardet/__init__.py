@@ -21,13 +21,13 @@ from .universaldetector import UniversalDetector
 from .version import __version__, VERSION
 
 
-def detect(byte_str):
+def detect(byte_str, txt_cleanup=True):
     if (PY2 and isinstance(byte_str, unicode)) or (PY3 and
                                                not isinstance(byte_str,
                                                               bytes)):
         raise ValueError('Expected a bytes object, not a unicode object')
 
     u = UniversalDetector()
-    u.feed(byte_str)
+    u.feed(byte_str, txt_cleanup)
     u.close()
     return u.result
