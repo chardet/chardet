@@ -123,7 +123,7 @@ class SingleByteCharSetProber(CharSetProber):
 
     def get_confidence(self):
         r = 0.01
-        if self._total_seqs > 0:
+        if self._total_seqs > 5:
             r = ((self._seq_counters[self.POSITIVE_CAT] + 0.25 * self._seq_counters[self.LIKELY_CAT])
                  / self._total_seqs / self._model['typical_positive_ratio'])
             r = r * self._freq_char / self._total_char
