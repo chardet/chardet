@@ -77,10 +77,10 @@ class SingleByteCharSetProber(CharSetProber):
         if self._name_prober:
             return self._name_prober.language
         else:
-	    if 'language' in self._model:
-		return self._model['language']
-	    else:
-		return ''
+            if 'language' in self._model:
+                return self._model['language']
+            else:
+                return ''
 
     def feed(self, byte_str):
         if not self._model['keep_english_letter']:

@@ -282,7 +282,7 @@ class HebrewProber(CharSetProber):
 
     @property
     def language(self):
-	return 'Hebrew'
+        return 'Hebrew'
 
     @property
     def state(self):

@@ -73,45 +73,44 @@ class UniversalDetector(object):
                    'iso-8859-7': 'Windows-1253', 'iso-8859-9':  'Windows-1254', 'iso-8859-8': 'Windows-1255',
                    'iso-8859-6': 'Windows-1256', 'iso-8859-13': 'Windows-1257'}
 
-    XML_ESC_MAP = (('&gt;', b'>'), ('&lt;', b'<'), ('&amp;', b'&'), ('&apos;', b"'"), ('&quot;', b'"'), ('&nbsp;', b' '))
+    XML_ESC_MAP = ((b'&gt;', b'>'), (b'&lt;', b'<'), (b'&amp;', b'&'), (b'&apos;', b"'"), (b'&quot;', b'"'), (b'&nbsp;', b' '))
 
     def remove_tags(self, txt):
         for esc, char in  self.XML_ESC_MAP:
             txt = txt.replace(esc, char)
 
-        txt = txt.replace('<![CDATA[', '')
-        txt = txt.replace(']]>', '')
+        txt = txt.replace(b'<![CDATA[', b'')
+        txt = txt.replace(b']]>', b'')
 
-        txt = re.sub(br'<!--([^>]*)-->', '', txt, flags=re.DOTALL)
-        txt = re.sub(br'<\?*\/*[A-Z]+[^>]*>', '', txt, flags=re.IGNORECASE)
+        txt = re.sub(br'<!--([^>]*)-->', b'', txt, flags=re.DOTALL)
+        txt = re.sub(br'<\?*\/*[A-Z]+[^>]*>', b'', txt, flags=re.IGNORECASE)
         return txt
 
     def remove_urls(self, txt):
-        txt = re.sub(br'\b(?:(?:https?|ftp|file)://|www\.|ftp\.)'
-                         '(?:\([-A-Z0-9+&@#/%=~_|$?!:;,.]*\)|[-A-Z0-9+&@#\/%=~_|$?!:;,.])*'
-                         '(?:\([-A-Z0-9+&@#/%=~_|$?!:;,.]*\)|[A-Z0-9+&@#/%=~_|$])',
-                     '', txt, flags=re.IGNORECASE)
+        txt = re.sub( # Next line with the regex can't be splitted in the python3 !
+br'\b(?:(?:https?|ftp|file)://|www\.|ftp\.)(?:\([-A-Z0-9+&@#/%=~_|$?!:;,.]*\)|[-A-Z0-9+&@#\/%=~_|$?!:;,.])*(?:\([-A-Z0-9+&@#/%=~_|$?!:;,.]*\)|[A-Z0-9+&@#/%=~_|$])',
+b'', txt, flags=re.IGNORECASE)
         return txt
 
-    def remove_html_numbers(self, txt):
-        txt = re.sub(br'&#[0-9]{2,};', '', txt)
-        txt = re.sub(br'and#[0-9]{2,};', ' ', txt)
+    def remove_html_chars_numbers(self, txt):
+        txt = re.sub(br'&#[0-9]{2,};', b'', txt)
+        txt = re.sub(br'and#[0-9]{2,};', b'', txt)
         return txt
 
     def remove_ascii_symbols(self, txt):
-        txt = re.sub(br'[-#$%&*()=+:<>/]', ' ', txt)
+        txt = re.sub(br'[-#$%&*()=+:<>/]', b' ', txt)
         return txt
 
     def remove_digits(self, txt):
-        txt = re.sub(br'[0-9]+', '', txt)
+        txt = re.sub(br'[0-9]+', b'', txt)
         return txt
 
     def remove_multiple_spaces(self, txt):
-        txt = re.sub(br'\s{2,}', ' ', txt)
+        txt = re.sub(br'\s{2,}', b' ', txt)
         return txt
 
     def remove_empty_lines(self, txt):
-        txt = re.sub(br'^(\s|\t)*\n', '', txt, flags=re.MULTILINE)
+        txt = re.sub(br'^(\s|\t)*\n', b'', txt, flags=re.MULTILINE)
         return txt
 
     def __init__(self, lang_filter=LanguageFilter.all):
@@ -230,7 +229,7 @@ class UniversalDetector(object):
             if txt_cleanup:
                 byte_str = self.remove_tags(byte_str)
                 byte_str = self.remove_urls(byte_str)
-                byte_str = self.remove_html_numbers(byte_str)
+                byte_str = self.remove_html_chars_numbers(byte_str)
                 byte_str = self.remove_ascii_symbols(byte_str)
                 byte_str = self.remove_digits(byte_str)
                 byte_str = self.remove_multiple_spaces(byte_str)
