@@ -28,7 +28,7 @@ Detects
  - KOI8-R, MacCyrillic, IBM855, IBM866, ISO-8859-5, windows-1251 (Cyrillic)
  - ISO-8859-2 windows-1250 (Czech, Croatian, Hungarian, Polish, Romanian, Slovak, Slovene)
  - ISO-8859-5, windows-1251 (Bulgarian)
- - windows-1252 (English)
+ - ISO-8859-1, windows-1252 (Dutch, English, Finnish, French, German, Italy, Portuguese, Spanish)
  - ISO-8859-7, windows-1253 (Greek)
  - ISO-8859-8, windows-1255 (Visual and Logical Hebrew)
  - ISO-8859-9, windows-1254 (Turkish)
