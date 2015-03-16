@@ -28,7 +28,6 @@
 
 import logging
 import re
-from io import BytesIO
 
 from .enums import ProbingState
 
@@ -79,8 +78,8 @@ class CharSetProber(object):
 
         This filter applies to all scripts which do not use English characters.
         """
-        filtered = BytesIO()
 
+        out = b''
         # This regex expression filters out only words that have at-least one
         # international character. The word may include one marker character at
         # the end.
@@ -88,7 +87,7 @@ class CharSetProber(object):
             b'[a-zA-Z]*[\x80-\xFF]+[a-zA-Z]*[^a-zA-Z\x80-\xFF]?', buf)
 
         for word in words:
-            filtered.write(word[:-1])
+            out += word[:-1]
 
             # If the last character in the word is a marker, replace it with a
             # space as markers shouldn't affect our analysis (they are used
@@ -97,9 +96,9 @@ class CharSetProber(object):
             last_char = word[-1:]
             if not last_char.isalpha() and last_char < b'\x80':
                 last_char = b' '
-            filtered.write(last_char)
+            out += last_char
 
-        return filtered.getvalue()
+        return out
 
     @staticmethod
     def filter_with_english_letters(buf):
@@ -113,7 +112,6 @@ class CharSetProber(object):
         characters and extended ASCII characters, but is currently only used by
         ``Latin1Prober``.
         """
-        filtered = BytesIO()
         in_tag = False
         prev = 0
 
@@ -132,15 +130,15 @@ class CharSetProber(object):
                 if curr > prev and not in_tag:
                     # Keep everything after last non-extended-ASCII,
                     # non-alphabetic character
-                    filtered.write(buf[prev:curr])
+                    out += buf[prev:curr]
                     # Output a space to delimit stretch we kept
-                    filtered.write(b' ')
+                    out += b' '
                 prev = curr + 1
 
         # If we're not in a tag...
         if not in_tag:
             # Keep everything after last non-extended-ASCII, non-alphabetic
             # character
-            filtered.write(buf[prev:])
+            out += buf[prev:]
 
-        return filtered.getvalue()
+        return out

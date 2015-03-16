@@ -32,7 +32,6 @@
 ######################### END LICENSE BLOCK #########################
 
 from .charsetprober import CharSetProber
-from .compat import wrap_ord
 from .enums import ProbingState
 
 NUMBER_OF_SEQ_CAT = 4
@@ -120,9 +119,9 @@ class Latin1Prober(CharSetProber):
         return "Latin1"
 
     def feed(self, byte_str):
-        byte_str = self.filter_with_english_letters(byte_str)
-        for c in byte_str:
-            char_class = Latin1_CharToClass[wrap_ord(c)]
+        num_bytes = len(byte_str)
+        for i in range(0, num_bytes):
+            char_class = Latin1_CharToClass[byte_str[i]]
             if char_class == UDF:
                 self._state = ProbingState.not_me
                 break
