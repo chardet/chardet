@@ -67,6 +67,7 @@ Bigram files
 - ``langcroatianmodel.py``
 - ``langcyrillicmodel.py``
 - ``langczechmodel.py``
+- ``langgermanmodel.py``
 - ``langgreekmodel.py``
 - ``langhebrewmodel.py``
 - ``langhungarianmodel.py``
@@ -118,7 +119,6 @@ Misc files
 ----------
 
 - ``__init__.py`` (currently has ``detect`` function in it)
-- ``compat.py``
 - ``enums.py``
 - ``universaldetector.py``
 - ``version.py``
