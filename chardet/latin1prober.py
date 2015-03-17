@@ -134,14 +134,11 @@ class Latin1Prober(CharSetProber):
         return self.state
 
     def get_confidence(self):
-        if self.state == ProbingState.not_me:
+        if self.state == ProbingState.not_me or self._total_seqs < 1:
             return 0.01
 
-        if self._total_seqs < 5:
-            confidence = 0.0
-        else:
-            confidence = (self._seq_counters[POSITIVE_CAT] + 0.25 * self._seq_counters[LIKELY_CAT] -
-                          self._seq_counters[UNLIKELY_CAT] - self._seq_counters[NEGATIVE_CAT]) / self._total_seqs
+        confidence = (self._seq_counters[POSITIVE_CAT] + 0.25 * self._seq_counters[LIKELY_CAT] -
+                      self._seq_counters[UNLIKELY_CAT] - self._seq_counters[NEGATIVE_CAT]) / self._total_seqs
         # lower the confidence of latin1 so that other more accurate detector can take priority.
         confidence = confidence * 0.805
         return confidence
