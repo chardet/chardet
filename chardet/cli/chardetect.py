@@ -19,12 +19,11 @@ import argparse
 import sys
 from io import open
 
-from chardet import __version__
-from chardet.compat import PY2
+from chardet.version import __version__
 from chardet.universaldetector import UniversalDetector
 
 
-
+PY_VER = 2 if sys.version_info < (3, 0) else 3
 
 def description_of(lines, name='stdin'):
     """
@@ -38,10 +37,12 @@ def description_of(lines, name='stdin'):
     """
     u = UniversalDetector()
     for line in lines:
+        if PY_VER == 2:
+            line = bytearray(line)
         u.feed(line)
     u.close()
     result = u.result
-    if PY2:
+    if PY_VER == 2:
         name = name.decode(sys.getfilesystemencoding(), 'ignore')
     if result['encoding']:
         return '{0}: {1} with confidence {2}'.format(name, result['encoding'],
@@ -66,7 +67,7 @@ def main(argv=None):
                         help='File whose encoding we would like to determine. \
                               (default: stdin)',
                         type=argparse.FileType('rb'), nargs='*',
-                        default=[sys.stdin if PY2 else sys.stdin.buffer])
+                        default=[sys.stdin if PY_VER == 2 else sys.stdin.buffer])
     parser.add_argument('--version', action='version',
                         version='%(prog)s {0}'.format(__version__))
     args = parser.parse_args(argv)
