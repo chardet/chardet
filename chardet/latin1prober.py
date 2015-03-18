@@ -127,7 +127,7 @@ class Latin1Prober(CharSetProber):
                 break
             if self._last_char_class < CLASS_NUM and char_class < CLASS_NUM:
                 self._total_seqs += 1
-                freq = Latin1_ClassModel[(self._last_char_class * CLASS_NUM) + char_class]
+                freq = Latin1_ClassModel[self._last_char_class * CLASS_NUM + char_class]
                 self._seq_counters[freq] += 1
             self._last_char_class = char_class
 
