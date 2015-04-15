@@ -16,16 +16,15 @@
 ######################### END LICENSE BLOCK #########################
 
 
-from .compat import PY2, PY3
+from .compat import PY2, PY3, bin_type as _bin_type
 from .universaldetector import UniversalDetector
 from .version import __version__, VERSION
 
 
 def detect(byte_str):
-    if (PY2 and isinstance(byte_str, unicode)) or (PY3 and
-                                               not isinstance(byte_str,
-                                                              bytes)):
-        raise ValueError('Expected a bytes object, not a unicode object')
+    if not isinstance(byte_str, _bin_type):
+        raise TypeError('Expected object of {0} type, got: {1}'
+                        ''.format(_bin_type, type(byte_str)))
 
     u = UniversalDetector()
     u.feed(byte_str)
