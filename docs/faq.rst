@@ -100,6 +100,6 @@ If following the relevant standards gets you nowhere, *and* you decide
 that processing the text is more important than maintaining
 interoperability, then you can try to auto-detect the character encoding
 as a last resort. An example is my `Universal Feed
-Parser <http://feedparser.org/>`__, which calls this auto-detection
+Parser <https://pythonhosted.org/feedparser/>`__, which calls this auto-detection
 library `only after exhausting all other
-options <http://feedparser.org/docs/character-encoding.html>`__.
+options <https://pythonhosted.org/feedparser/character-encoding.html>`__.
