@@ -7,6 +7,8 @@ Run chardet on a bunch of documents and see that we get the correct encodings.
 
 from __future__ import with_statement
 
+from hypothesis import given, assume
+import hypothesis.strategies as st
 from os import listdir
 from os.path import dirname, isdir, join, realpath, relpath, splitext
 
@@ -56,3 +58,15 @@ def test_encoding_detection():
             if ext not in ['.html', '.txt', '.xml', '.srt']:
                 continue
             yield check_file_encoding, join(path, file_name), encoding
+
+
+@given(st.text(min_size=100), st.sampled_from([
+       'ascii', 'utf-8', 'utf-16', 'utf-32',
+       'iso-8859-7', 'iso-8859-8', 'windows-1255']))
+def test_never_fails_to_detect_if_there_is_a_valid_encoding(txt, enc):
+    try:
+        data = txt.encode(enc)
+    except UnicodeEncodeError:
+        assume(False)
+    detected = chardet.detect(data)['encoding']
+    assert detected is not None
