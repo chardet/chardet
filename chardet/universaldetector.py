@@ -207,7 +207,7 @@ class UniversalDetector(object):
             return
         self.done = True
 
-        if self._input_state == InputState.pure_ascii:
+        if self._input_state in (InputState.pure_ascii, InputState.esc_ascii):
             self.result = {'encoding': 'ascii', 'confidence': 1.0}
             return self.result
 
