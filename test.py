@@ -83,9 +83,9 @@ class JustALengthIssue(Exception):
     pass
 
 
-@given(st.text(min_size=1), st.sampled_from([
-           'ascii', 'utf-8', 'utf-16', 'utf-32',
-           'iso-8859-7', 'iso-8859-8', 'windows-1255']),
+@given(st.text(min_size=1), st.sampled_from(['ascii', 'utf-8', 'utf-16',
+                                             'utf-32', 'iso-8859-7',
+                                             'iso-8859-8', 'windows-1255']),
        st.randoms(), settings=Settings(max_examples=200))
 def test_never_fails_to_detect_if_there_is_a_valid_encoding(txt, enc, rnd):
     try:
@@ -94,10 +94,9 @@ def test_never_fails_to_detect_if_there_is_a_valid_encoding(txt, enc, rnd):
         assume(False)
     detected = chardet.detect(data)['encoding']
     if detected is None:
-        @given(st.text(), settings=Settings(
-            verbosity=Verbosity.quiet, max_shrinks=0,
-            max_examples=50,
-        ), random=rnd)
+        @given(st.text(), settings=Settings(verbosity=Verbosity.quiet,
+                                            max_shrinks=0, max_examples=50),
+               random=rnd)
         def string_poisons_following_text(suffix):
             try:
                 extended = (txt + suffix).encode(enc)
