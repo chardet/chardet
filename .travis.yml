@@ -7,8 +7,16 @@ python:
   - 3.4
   - pypy
 
+cache:
+    directories:
+        - $HOME/.hypothesis
+
+env:
+  global:
+    - HYPOTHESIS_STORAGE_DIRECTORY=$HOME/.hypothesis
+
 install:
-  - travis_retry pip install python-coveralls nose-cov
+  - travis_retry pip install python-coveralls nose-cov hypothesis
   - pip install .
 
 # Run test
