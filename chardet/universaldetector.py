@@ -229,7 +229,7 @@ class UniversalDetector(object):
 
         if self.logger.getEffectiveLevel() == logging.DEBUG:
             self.logger.debug('no probers hit minimum threshhold')
-            for prober in self._charset_probers[0].mProbers:
+            for prober in self._charset_probers[0].probers:
                 if not prober:
                     continue
                 self.logger.debug('%s confidence = %s', prober.charset_name,
