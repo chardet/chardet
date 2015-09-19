@@ -44,7 +44,6 @@ setup(name='chardet',
                     "Modules"),
                    "Topic :: Text Processing :: Linguistic"],
       packages=find_packages(),
-      install_requires=['enum34'] if sys.version_info < (3, 4) else [],
       test_requires=['nose', 'hypothesis'],
       entry_points={'console_scripts':
                     ['chardetect = chardet.cli.chardetect:main']})

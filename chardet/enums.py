@@ -4,13 +4,8 @@ All of the Enums that are used throughout the chardet package.
 :author: Dan Blanchard (dblanchard@ets.org)
 """
 
-try:
-    from enum import IntEnum
-except ImportError:
-    from enum34 import IntEnum
 
-
-class InputState(IntEnum):
+class InputState(object):
     """
     This enum represents the different states a universal detector can be in.
     """
@@ -19,7 +14,7 @@ class InputState(IntEnum):
     high_byte = 2
 
 
-class LanguageFilter(IntEnum):
+class LanguageFilter(object):
     """
     This enum represents the different language filters we can apply to a
     ``UniversalDetector``.
@@ -34,7 +29,7 @@ class LanguageFilter(IntEnum):
     cjk = chinese | japanese | korean
 
 
-class ProbingState(IntEnum):
+class ProbingState(object):
     """
     This enum represents the different states a prober can be in.
     """
@@ -43,7 +38,7 @@ class ProbingState(IntEnum):
     not_me = 2
 
 
-class MachineState(IntEnum):
+class MachineState(object):
     """
     This enum represents the different states a state machine can be in.
     """
