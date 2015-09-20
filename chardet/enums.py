@@ -1,7 +1,7 @@
 """
 All of the Enums that are used throughout the chardet package.
 
-:author: Dan Blanchard (dblanchard@ets.org)
+:author: Dan Blanchard (dan.blanchard@gmail.com)
 """
 
 
