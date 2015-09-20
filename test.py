@@ -44,8 +44,8 @@ def check_file_encoding(file_name, encoding):
     if result['encoding'].lower() != encoding:
         wrapped_expected = '\n'.join(textwrap.wrap(expected_unicode, 100)) + '\n'
         wrapped_detected = '\n'.join(textwrap.wrap(detected_unicode, 100)) + '\n'
-        diff = ''.join(ndiff(wrapped_expected.splitlines(keepends=True),
-                             wrapped_detected.splitlines(keepends=True)))
+        diff = ''.join(ndiff(wrapped_expected.splitlines(True),
+                             wrapped_detected.splitlines(True)))
     else:
         diff = ''
     eq_(result['encoding'].lower(), encoding,
