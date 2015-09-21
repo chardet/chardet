@@ -27,7 +27,6 @@
 ######################### END LICENSE BLOCK #########################
 
 from .charsetprober import CharSetProber
-from .compat import wrap_ord
 from .enums import ProbingState
 
 
@@ -74,11 +73,11 @@ class SingleByteCharSetProber(CharSetProber):
     def feed(self, byte_str):
         if not self._model['keep_english_letter']:
             byte_str = self.filter_international_words(byte_str)
-        num_bytes = len(byte_str)
-        if not num_bytes:
+        if not byte_str:
             return self.state
-        for c in byte_str:
-            order = self._model['char_to_order_map'][wrap_ord(c)]
+        char_to_order_map = self._model['char_to_order_map']
+        for i, c in enumerate(byte_str):
+            order = char_to_order_map[c] - 1
             if order < self.SYMBOL_CAT_ORDER:
                 self._total_char += 1
             if order < self.SAMPLE_SIZE:
