@@ -96,7 +96,7 @@ class UniversalDetector(object):
         initial states.  This is called by ``__init__``, so you only need to
         call this directly in between analyses of different documents.
         """
-        self.result = {'encoding': None, 'confidence': 0.0}
+        self.result = {'encoding': None, 'confidence': 0.0, 'language': None}
         self.done = False
         self._got_data = False
         self._has_win_bytes = False
@@ -135,23 +135,31 @@ class UniversalDetector(object):
             # If the data starts with BOM, we know it is UTF
             if byte_str.startswith(codecs.BOM_UTF8):
                 # EF BB BF  UTF-8 with BOM
-                self.result = {'encoding': "UTF-8-SIG", 'confidence': 1.0}
+                self.result = {'encoding': "UTF-8-SIG",
+                               'confidence': 1.0,
+                               'language': ''}
             elif byte_str.startswith(codecs.BOM_UTF32_LE) or byte_str.startswith(codecs.BOM_UTF32_BE):
                 # FF FE 00 00  UTF-32, little-endian BOM
                 # 00 00 FE FF  UTF-32, big-endian BOM
-                self.result = {'encoding': "UTF-32", 'confidence': 1.0}
+                self.result = {'encoding': "UTF-32",
+                               'confidence': 1.0,
+                               'language': ''}
             elif byte_str.startswith(b'\xFE\xFF\x00\x00'):
                 # FE FF 00 00  UCS-4, unusual octet order BOM (3412)
                 self.result = {'encoding': "X-ISO-10646-UCS-4-3412",
-                               'confidence': 1.0}
+                               'confidence': 1.0,
+                               'language': ''}
             elif byte_str.startswith(b'\x00\x00\xFF\xFE'):
                 # 00 00 FF FE  UCS-4, unusual octet order BOM (2143)
                 self.result = {'encoding': "X-ISO-10646-UCS-4-2143",
-                               'confidence': 1.0}
+                               'confidence': 1.0,
+                               'language': ''}
             elif byte_str.startswith(codecs.BOM_LE) or byte_str.startswith(codecs.BOM_BE):
                 # FF FE  UTF-16, little endian BOM
                 # FE FF  UTF-16, big endian BOM
-                self.result = {'encoding': "UTF-16", 'confidence': 1.0}
+                self.result = {'encoding': "UTF-16",
+                               'confidence': 1.0,
+                               'language': ''}
 
             self._got_data = True
             if self.result['encoding'] is not None:
@@ -180,7 +188,9 @@ class UniversalDetector(object):
                 self.result = {'encoding':
                                self._esc_charset_prober.charset_name,
                                'confidence':
-                               self._esc_charset_prober.get_confidence()}
+                               self._esc_charset_prober.get_confidence(),
+                               'language':
+                               self._esc_charset_prober.language}
                 self.done = True
         # If we've seen high bytes (i.e., those with values greater than 127),
         # we need to do more complicated checks using all our multi-byte and
@@ -198,7 +208,8 @@ class UniversalDetector(object):
             for prober in self._charset_probers:
                 if prober.feed(byte_str) == ProbingState.FOUND_IT:
                     self.result = {'encoding': prober.charset_name,
-                                   'confidence': prober.get_confidence()}
+                                   'confidence': prober.get_confidence(),
+                                   'language': prober.language}
                     self.done = True
                     break
             if self.WIN_BYTE_DETECTOR.search(byte_str):
@@ -220,7 +231,9 @@ class UniversalDetector(object):
         self.done = True
 
         if self._input_state == InputState.PURE_ASCII:
-            self.result = {'encoding': 'ascii', 'confidence': 1.0}
+            self.result = {'encoding': 'ascii',
+                           'confidence': 1.0,
+                           'language': ''}
             return self.result
 
         if self._input_state == InputState.HIGH_BYTE:
@@ -245,7 +258,8 @@ class UniversalDetector(object):
                         charset_name = self.ISO_WIN_MAP.get(lower_charset_name,
                                                             charset_name)
                 self.result = {'encoding': charset_name,
-                               'confidence': confidence}
+                               'confidence': confidence,
+                               'language': max_prober.language}
                 return self.result
 
         if self.logger.getEffectiveLevel() == logging.DEBUG:
@@ -253,5 +267,7 @@ class UniversalDetector(object):
             for prober in self._charset_probers[0].probers:
                 if not prober:
                     continue
-                self.logger.debug('%s confidence = %s', prober.charset_name,
+                self.logger.debug('%s %s confidence = %s',
+                                  prober.charset_name,
+                                  prober.language,
                                   prober.get_confidence())

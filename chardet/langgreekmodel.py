@@ -211,7 +211,8 @@ Latin7GreekModel = {
   'precedence_matrix': GreekLangModel,
   'typical_positive_ratio': 0.982851,
   'keep_english_letter': False,
-  'charset_name': "ISO-8859-7"
+  'charset_name': "ISO-8859-7",
+  'language': 'Greek',
 }
 
 Win1253GreekModel = {
@@ -219,7 +220,6 @@ Win1253GreekModel = {
   'precedence_matrix': GreekLangModel,
   'typical_positive_ratio': 0.982851,
   'keep_english_letter': False,
-  'charset_name': "windows-1253"
+  'charset_name': "windows-1253",
+  'language': 'Greek',
 }
-
-

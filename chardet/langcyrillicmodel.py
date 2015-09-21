@@ -283,7 +283,8 @@ Koi8rModel = {
   'precedence_matrix': RussianLangModel,
   'typical_positive_ratio': 0.976601,
   'keep_english_letter': False,
-  'charset_name': "KOI8-R"
+  'charset_name': "KOI8-R",
+  'language': 'Russian',
 }
 
 Win1251CyrillicModel = {
@@ -291,7 +292,8 @@ Win1251CyrillicModel = {
   'precedence_matrix': RussianLangModel,
   'typical_positive_ratio': 0.976601,
   'keep_english_letter': False,
-  'charset_name': "windows-1251"
+  'charset_name': "windows-1251",
+  'language': 'Russian',
 }
 
 Latin5CyrillicModel = {
@@ -299,7 +301,8 @@ Latin5CyrillicModel = {
   'precedence_matrix': RussianLangModel,
   'typical_positive_ratio': 0.976601,
   'keep_english_letter': False,
-  'charset_name': "ISO-8859-5"
+  'charset_name': "ISO-8859-5",
+  'language': 'Russian',
 }
 
 MacCyrillicModel = {
@@ -307,7 +310,8 @@ MacCyrillicModel = {
   'precedence_matrix': RussianLangModel,
   'typical_positive_ratio': 0.976601,
   'keep_english_letter': False,
-  'charset_name': "MacCyrillic"
+  'charset_name': "MacCyrillic",
+  'language': 'Russian',
 }
 
 Ibm866Model = {
@@ -315,7 +319,8 @@ Ibm866Model = {
   'precedence_matrix': RussianLangModel,
   'typical_positive_ratio': 0.976601,
   'keep_english_letter': False,
-  'charset_name': "IBM866"
+  'charset_name': "IBM866",
+  'language': 'Russian',
 }
 
 Ibm855Model = {
@@ -323,7 +328,6 @@ Ibm855Model = {
   'precedence_matrix': RussianLangModel,
   'typical_positive_ratio': 0.976601,
   'keep_english_letter': False,
-  'charset_name': "IBM855"
+  'charset_name': "IBM855",
+  'language': 'Russian',
 }
-
-

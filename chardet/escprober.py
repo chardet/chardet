@@ -51,6 +51,7 @@ class EscCharSetProber(CharSetProber):
             self.coding_sm.append(CodingStateMachine(ISO2022KR_SM_MODEL))
         self.active_sm_count = None
         self._detected_charset = None
+        self._detected_language = None
         self._state = None
         self.reset()
 
@@ -63,10 +64,15 @@ class EscCharSetProber(CharSetProber):
             coding_sm.reset()
         self.active_sm_count = len(self.coding_sm)
         self._detected_charset = None
+        self._detected_language = None
 
     @property
     def charset_name(self):
         return self._detected_charset
+
+    @property
+    def language(self):
+        return self._detected_language
 
     def get_confidence(self):
         if self._detected_charset:
@@ -89,6 +95,7 @@ class EscCharSetProber(CharSetProber):
                 elif coding_state == MachineState.ITS_ME:
                     self._state = ProbingState.FOUND_IT
                     self._detected_charset = coding_sm.get_coding_state_machine()
+                    self._detected_language = coding_sm.language
                     return self.state
 
         return self.state

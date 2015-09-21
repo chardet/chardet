@@ -211,7 +211,8 @@ Latin2HungarianModel = {
   'precedence_matrix': HungarianLangModel,
   'typical_positive_ratio': 0.947368,
   'keep_english_letter': True,
-  'charset_name': "ISO-8859-2"
+  'charset_name': "ISO-8859-2",
+  'language': 'Hungarian',
 }
 
 Win1250HungarianModel = {
@@ -219,7 +220,6 @@ Win1250HungarianModel = {
   'precedence_matrix': HungarianLangModel,
   'typical_positive_ratio': 0.947368,
   'keep_english_letter': True,
-  'charset_name': "windows-1250"
+  'charset_name': "windows-1250",
+  'language': 'Hungarian',
 }
-
-

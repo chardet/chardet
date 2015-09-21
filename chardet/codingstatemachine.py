@@ -82,3 +82,7 @@ class CodingStateMachine(object):
 
     def get_coding_state_machine(self):
         return self._model['name']
+
+    @property
+    def language(self):
+        return self._model['language']

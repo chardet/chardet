@@ -52,14 +52,18 @@ class MultiByteCharSetProber(CharSetProber):
 
     @property
     def charset_name(self):
-        pass
+        raise NotImplementedError
+
+    @property
+    def language(self):
+        raise NotImplementedError
 
     def feed(self, byte_str):
         for i in range(len(byte_str)):
             coding_state = self.coding_sm.next_state(byte_str[i])
             if coding_state == MachineState.ERROR:
-                self.logger.debug('%s prober hit error at byte %s',
-                                  self.charset_name, i)
+                self.logger.debug('%s %s prober hit error at byte %s',
+                                  self.charset_name, self.language, i)
                 self._state = ProbingState.NOT_ME
                 break
             elif coding_state == MachineState.ITS_ME:
@@ -72,7 +76,7 @@ class MultiByteCharSetProber(CharSetProber):
                     self.distribution_analyzer.feed(self._last_char, char_len)
                 else:
                     self.distribution_analyzer.feed(byte_str[i - 1:i + 1],
-                                                     char_len)
+                                                    char_len)
 
         self._last_char[0] = byte_str[-1]
 
