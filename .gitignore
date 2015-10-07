@@ -5,3 +5,5 @@ PKG-INFO
 /dist
 /build
 .hypothesis
+.coverage
+.tox

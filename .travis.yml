@@ -5,6 +5,7 @@ python:
   - 2.7
   - 3.3
   - 3.4
+  - 3.5
   - pypy
 
 cache:
@@ -16,17 +17,11 @@ env:
     - HYPOTHESIS_STORAGE_DIRECTORY=$HOME/.hypothesis
 
 install:
-  - travis_retry pip install python-coveralls nose-cov hypothesis
-  - pip install .
+  - pip install tox
 
 # Run test
 script:
-  - if [[ $TRAVIS_PYTHON_VERSION != 'pypy' ]]; then nosetests -v --with-cov --cov chardet --cov-config .coveragerc --logging-level=DEBUG; fi
-  - if [[ $TRAVIS_PYTHON_VERSION == 'pypy' ]]; then nosetests -v --logging-level=DEBUG; fi
-
-# Calculate coverage
-after_success:
-  - if [[ $TRAVIS_PYTHON_VERSION != 'pypy' ]]; then coveralls --config_file .coveragerc; fi
+  - tox -e $(echo $TRAVIS_PYTHON_VERSION | sed 's/^\([0-9]\)\.\([0-9]\).*/py\1\2/')
 
 notifications:
   email:
