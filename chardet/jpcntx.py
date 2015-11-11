@@ -131,7 +131,7 @@ class JapaneseContextAnalysis(object):
 
     def reset(self):
         self._total_rel = 0  # total sequence received
-        # category counters, each interger counts sequence in its category
+        # category counters, each integer counts sequence in its category
         self._rel_sample = [0] * self.NUM_OF_CATEGORY
         # if last byte in current buffer is not the last byte of a character,
         # we need to know how many bytes to skip in next buffer

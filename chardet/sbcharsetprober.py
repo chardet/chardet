@@ -103,7 +103,7 @@ class SingleByteCharSetProber(CharSetProber):
                     self._state = ProbingState.found_it
                 elif cf < self.NEGATIVE_SHORTCUT_THRESHOLD:
                     self.logger.debug('%s confidence = %s, below negative '
-                                      'shortcut threshhold %s',
+                                      'shortcut threshold %s',
                                       self._model['charset_name'], cf,
                                       self.NEGATIVE_SHORTCUT_THRESHOLD)
                     self._state = ProbingState.not_me

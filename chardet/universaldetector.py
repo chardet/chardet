@@ -29,7 +29,7 @@
 Module containing the UniversalDetector detector class, which is the primary
 class a user of ``chardet`` should use.
 
-:author: Mark Pilgrim (intial port to Python)
+:author: Mark Pilgrim (initial port to Python)
 :author: Shy Shalom (original C code)
 :author: Dan Blanchard (major refactoring for 3.0)
 :author: Ian Cordasco
@@ -224,7 +224,7 @@ class UniversalDetector(object):
                 return self.result
 
         if self.logger.getEffectiveLevel() == logging.DEBUG:
-            self.logger.debug('no probers hit minimum threshhold')
+            self.logger.debug('no probers hit minimum threshold')
             for prober in self._charset_probers[0].probers:
                 if not prober:
                     continue
