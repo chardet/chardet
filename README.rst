@@ -56,7 +56,7 @@ Command-line Tool
 chardet comes with a command-line script which reports on the encodings of one
 or more files::
 
-    % chardetect somefile someotherfile
+    % chardet somefile someotherfile
     somefile: windows-1252 with confidence 0.5
     someotherfile: ascii with confidence 1.0
 
