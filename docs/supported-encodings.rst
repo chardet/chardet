@@ -12,7 +12,7 @@ encodings.
    and ``windows-1251`` (Russian)
 -  ``ISO-8859-2`` and ``windows-1250`` (Hungarian)
 -  ``ISO-8859-5`` and ``windows-1251`` (Bulgarian)
--  ``windows-1252``
+-  ``ISO-8859-1`` and ``windows-1252`` (Western European languages)
 -  ``ISO-8859-7`` and ``windows-1253`` (Greek)
 -  ``ISO-8859-8`` and ``windows-1255`` (Visual and Logical Hebrew)
 -  ``TIS-620`` (Thai)

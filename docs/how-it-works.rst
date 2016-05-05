@@ -30,9 +30,10 @@ There are 5 categories of encodings that ``UniversalDetector`` handles:
 #. Single-byte encodings, where each character is represented by one
    byte. Examples: ``KOI8-R`` (Russian), ``windows-1255`` (Hebrew), and
    ``TIS-620`` (Thai).
-#. ``windows-1252``, which is used primarily on Microsoft Windows by
-   middle managers who don’t know a character encoding from a hole in
-   the ground.
+#. ``windows-1252``, which is used primarily on Microsoft Windows; its
+   subset, ``ISO-8859-1`` is widely used for legacy 8-bit-encoded text.
+   chardet, like many encoding detectors, defaults to guessing this
+   encoding when no other can be reliably established.
 
 ``UTF-n`` with a BOM
 --------------------
