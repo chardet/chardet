@@ -59,7 +59,7 @@ authors’ comments, which are quite extensive and informative.
 
 You may also be interested in the research paper which led to the
 Mozilla implementation, `A composite approach to language/encoding
-detection <http://www.mozilla.org/projects/intl/UniversalCharsetDetection.html>`__.
+detection <http://www-archive.mozilla.org/projects/intl/UniversalCharsetDetection.html>`__.
 
 Yippie! Screw the standards, I’ll just auto-detect everything!
 --------------------------------------------------------------
