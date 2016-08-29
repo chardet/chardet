@@ -24,38 +24,30 @@
 ######################### END LICENSE BLOCK #########################
 
 """
-Input text will be filtered. Only chars from the given charset will be
-processed.
-If you want to create good language model you need at least 10MB file.
-For example the Mozilla Russian language model was created from 20MB file.
-Please don't use XML or HTML files, because they contains too many English
-terms,
-also please remove all english paragraphs such as infolines from the project
-Gutenberg.
-
-Usage: python CreateLanguageModel.py input_file_in_utf_8 charset_name keep_ascii_letters
-
-- input_file_in_utf_8 is any raw text file in UTF-8!
-proper file name is 'czech.raw', 'slovak.txt', 'slovene.txt', ...
-
-- charset_name is name of the charset for which you want to create language model
-e.g. ISO-8859-2, windows-1250, IBM866, ... Please look at 'CharsetsTabs.txt' file.
-
-- keep_ascii_letters is flag which controls the using of the english alphabet
+Create a language model for single byte character encoding detection based on
+the given file(s).
 """
 from __future__ import absolute_import, print_function
 
 import os
+import re
 import sys
 import unicodedata
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from collections import Counter, defaultdict
-from io import open, StringIO
+from io import open
 from operator import itemgetter
 from string import ascii_letters
 
+try:
+    import wikipedia
+    HAVE_WIKIPEDIA = True
+except:
+    HAVE_WIKIPEDIA = False
+
 from chardet import __version__
 from chardet.compat import iteritems
+from chardet.metadata.languages import LANGUAGES
 from chardet.enums import CharacterCategory, SequenceLikelihood
 from chardet.sbcharsetprober import SingleByteCharSetModel
 
@@ -122,14 +114,69 @@ def get_charset_mappings(charset_name, char_ranks, keep_ascii_letters=False):
     return char_to_order, charset_code_points
 
 
-def calc_ngram_freqs(input_paths, input_encoding, sample_size,
-                     sequence_count_threshold, keep_ascii_letters):
+def gen_input_lines(input_paths, input_encoding):
+    """Yield decoded lines from files in input_paths"""
+    for input_path in input_paths:
+        with open(input_path, 'r', encoding=input_encoding) as input_file:
+            for line in input_file:
+                yield line
+
+
+def gen_wiki_lines(titles, max_depth, depth=0, visited_pages=None,
+                   skipped_pages=None):
+    """Recursively Wikipedia articles, starting with titles, up to max_depth."""
+    if visited_pages is None:
+        visited_pages = set()
+
+    if skipped_pages is None:
+        skipped_pages = set()
+
+    if not titles or depth > max_depth:
+        print('Visited pages: {} ({} skipped)'.format(len(visited_pages),
+                                                      len(skipped_pages)))
+        return
+
+    # Visit all pages in titles and add their links to next_titles
+    next_titles = set()
+    for title in titles:
+        if title in visited_pages or title in skipped_pages:
+            continue
+        print('Visited pages: {} ({} skipped)'.format(len(visited_pages),
+                                                      len(skipped_pages)),
+              end='\r')
+        sys.stdout.flush()
+        try:
+            page = wikipedia.page(title)
+        except:
+            skipped_pages.add(title)
+            continue
+
+        visited_pages.add(title)
+
+        # Remove Wikipedia markup
+        content = re.sub(r'(=+) *([^=]+) *\1', r'\2', page.content)
+        # Clean up repeated whitespace, since that could skew model
+        content = re.sub(r'(\s)\1+', '\1', content)
+
+        for line in content.splitlines(True):
+            yield line
+
+        next_titles.update(page.links)
+
+    # Recursive generators are fun
+    for line in gen_wiki_lines(next_titles, max_depth, depth=depth + 1,
+                               visited_pages=visited_pages,
+                               skipped_pages=skipped_pages):
+        yield line
+
+
+def calc_ngram_freqs(input_generator, alphabet_size, keep_ascii_letters):
     """Create a language model with the likelihoods of all bigrams in input.
 
     This LM is based on Unicode code point frequencies and not encoded character
     frequencies so that this can be used for all encodings.
 
-    The LM is filtered down to bigrams for the `sample_size` most frequent
+    The LM is filtered down to bigrams for the `alphabet_size` most frequent
     unigrams.
     """
     char_freqs = Counter()
@@ -137,25 +184,25 @@ def calc_ngram_freqs(input_paths, input_encoding, sample_size,
     language_model = defaultdict(Counter)
     num_bigrams = 0
     # Calculate unfiltered frequencies
-    for input_path in input_paths:
+    for line in input_generator:
         prev_char = None
-        with open(input_path, 'r', encoding=input_encoding) as input_file:
-            for line in input_file:
-                # Normalize so that combining and non-combining forms are
-                # counted as the same, and because this is meant for single-byte
-                # encodings, which don't support combining forms
-                line = unicodedata.normalize('NFC', line)
-                for unicode_char in line:
-                    # Skip ASCII letters if we're supposed to
-                    if not keep_ascii_letters and unicode_char in ascii_letters:
-                        continue
-                    char_freqs[unicode_char] += 1
-                    if prev_char is not None:
-                        language_model[prev_char][unicode_char] += 1
-                        num_bigrams += 1
-                    prev_char = unicode_char
+        # Normalize so that combining and non-combining forms are
+        # counted as the same, and because this is meant for single-byte
+        # encodings, which don't support combining forms
+        line = unicodedata.normalize('NFC', line)
+        for unicode_char in line:
+            # Skip ASCII letters if we're supposed to
+            if not keep_ascii_letters and unicode_char in ascii_letters:
+                continue
+            char_freqs[unicode_char] += 1
+            if prev_char is not None:
+                language_model[prev_char][unicode_char] += 1
+                num_bigrams += 1
+            prev_char = unicode_char
 
     print('Unique character types in training data: {}'.format(len(char_freqs)))
+    print('Number of character tokens in training data: {}'
+          .format(sum(char_freqs.values())))
 
     # Filter language model down to only those within sample size
     for rank, (unicode_char, _) in enumerate(sorted(list(char_freqs.items()),
@@ -163,7 +210,7 @@ def calc_ngram_freqs(input_paths, input_encoding, sample_size,
                                                     reverse=True),
                                              1):
         char_ranks[unicode_char] = rank
-        if rank > sample_size:
+        if rank > alphabet_size:
             del char_freqs[unicode_char]
             language_model.pop(unicode_char, None)
             for sub_dict in language_model.values():
@@ -202,7 +249,7 @@ def flatten_language_model(language_model):
             yield count, first_char, second_char
 
 
-def generate_sbcs_model(charset_name, language, sample_size, language_model,
+def generate_sbcs_model(charset_name, language, alphabet_size, language_model,
                         num_bigrams, char_ranks, keep_ascii_letters):
     """Create a SingleByteCharSetModel object representing the charset."""
     # Setup tables necessary for computing transition frequencies for model
@@ -220,7 +267,7 @@ def generate_sbcs_model(charset_name, language, sample_size, language_model,
         if rank <= 512 and (first_char in charset_code_points and
                             second_char in charset_code_points):
             pos_count += count
-    pos_ratio = pos_count / num_bigrams
+    pos_ratio = (pos_count / num_bigrams) if num_bigrams else 0
 
     curr_model = SingleByteCharSetModel(charset_name=charset_name,
                                         language=language,
@@ -229,7 +276,7 @@ def generate_sbcs_model(charset_name, language, sample_size, language_model,
                                         language_model=None,
                                         typical_positive_ratio=pos_ratio,
                                         keep_ascii_letters=keep_ascii_letters,
-                                        sample_size=sample_size)
+                                        alphabet_size=alphabet_size)
     return curr_model
 
 
@@ -262,87 +309,79 @@ def print_language_model(var_name, language_model, output_file, char_ranks):
     print('}\n', file=output_file)
 
 
-def main():
-    parser = ArgumentParser(description='Creates a language model for single '
-                                        'byte character encoding detection '
-                                        'based on the given file(s).',
-                            formatter_class=ArgumentDefaultsHelpFormatter)
-    parser.add_argument('language',
-                        help='The name of the language the input documents are '
-                             'in. Also the name of the language the generated '
-                             'model will detect.')
-    parser.add_argument('-c', '--charset_name',
-                        help='Name of encoding language model can be used for.',
-                        nargs='+')
-    parser.add_argument('-i', '--input_file',
-                        help='File to use to train language model.',
-                        nargs='+',
-                        dest='input_paths')
-    parser.add_argument('-a', '--keep_ascii_letters',
-                        help='By default all ASCII/English letters are filtered'
-                             ' out of the documents (and any docs processed by '
-                             'the trained model. Use this flag to retain them.',
-                        action='store_true')
-    parser.add_argument('-e', '--input_encoding',
-                        help='Encoding the input files are in. Does not need to'
-                             ' match CHARSET_NAME.',
-                        default='UTF-8')
-    parser.add_argument('-s', '--sample_size',
-                        help='The number of most frequent non-symbol characters'
-                             ' to calculate precedence/transition/bigram matrix'
-                             ' for.',
-                        type=int, default=64)
-    parser.add_argument('-t', '--sequence_count_threshold',
-                        help='Minimum number of times a particular two-'
-                             'character sequence must have occurred in the '
-                             'input files in order to be considered unlikely '
-                             '(instead of illegal).',
-                        type=int, default=3)
-    parser.add_argument('--version', action='version', version=__version__)
-    args = parser.parse_args()
+def train_model_for_lang(language, depth, input_encoding, input_paths,
+                         sequence_count_threshold):
+    """Train a SingleByteCharSetModel for the given language and settings"""
+    # Validate language
+    language = language.title()
+    lang_metadata = LANGUAGES.get(language)
+    if not lang_metadata:
+        raise ValueError('Unknown language: {}. If you are adding a model for a'
+                         ' new language, you must first update metadata/'
+                         'languages.py'.format(language))
 
-    # Check that files are big enough before doing anything else
-    data_size = sum(os.path.getsize(input_path) for input_path in args.input_paths)
-    if data_size < 10000000:
-        raise ValueError('Input files must be at least 10MB to train a decent '
-                         'model. You only provided {} bytes.'.format(data_size))
+    # Set alphabet size
+    if lang_metadata.alphabet:
+        alphabet_size = len(lang_metadata.alphabet)
+    else:
+        alphabet_size = 64
 
-    print('Input Encoding: {}'.format(args.input_encoding))
-    print('Keep ASCII Letters: {}'.format(args.keep_ascii_letters))
-    print('Sample Size: {}'.format(args.sample_size))
-    print('Unlikely Sequence Count Threshold: {}'.format(args.sequence_count_threshold))
+    # See if we're doing file-based or wiki-based training
+    if input_paths:
+        # Check that files are big enough before doing anything else
+        data_size = sum(os.path.getsize(input_path)
+                        for input_path in input_paths)
+        if data_size < 10000000:
+            raise ValueError('Input files must be at least 10MB to train a '
+                             'decent model. You only provided {} bytes.'
+                             .format(data_size))
 
-    print('\nCreating character frequency tables for {} from {} bytes of '
-          'training data'.format(args.language, data_size))
+        input_gen = gen_input_lines(input_paths, input_encoding)
+
+        print('Input Encoding: {}'.format(input_encoding))
+        data_size_str = '{} bytes of'.format(data_size)
+    else:
+        if not HAVE_WIKIPEDIA:
+            raise ValueError('The wikipedia Python package could not be '
+                             'imported, so you must either specify input files '
+                             'to use for training, or install it with pip.')
+        input_gen = gen_wiki_lines(lang_metadata.wiki_start_pages, depth)
+        data_size_str = 'Wikipedia'
+        print('Wikipedia Depth: {}'.format(depth))
+
+    print('Keep ASCII Letters: {}'.format(lang_metadata.use_ascii))
+    print('Alphabet Size: {}'.format(alphabet_size))
+    print('Unlikely Sequence Count Threshold: {}'.format(sequence_count_threshold))
+
+    print('\nCreating character frequency tables for {} from {} training data'
+          .format(language, data_size_str))
     sys.stdout.flush()
-    char_ranks, language_model, num_bigrams = calc_ngram_freqs(args.input_paths,
-                                                               args.input_encoding,
-                                                               args.sample_size,
-                                                               args.sequence_count_threshold,
-                                                               args.keep_ascii_letters)
+    char_ranks, language_model, num_bigrams = calc_ngram_freqs(input_gen,
+                                                               alphabet_size,
+                                                               lang_metadata.use_ascii)
 
     # Create char-to-order maps (aka char-to-rank dicts)
     charset_models = {}
-    for charset_name in args.charset_name:
+    for charset_name in lang_metadata.charsets:
         print('Creating charset model for {}'.format(charset_name))
         sys.stdout.flush()
         charset_models[charset_name] = generate_sbcs_model(charset_name,
-                                                           args.language,
-                                                           args.sample_size,
+                                                           language,
+                                                           alphabet_size,
                                                            language_model,
                                                            num_bigrams,
                                                            char_ranks,
-                                                           args.keep_ascii_letters)
+                                                           lang_metadata.use_ascii)
 
     # Collapse language model freqs to SequenceLikelihood values after
     # calculating positive ratio for each charset
-    collapse_language_model_freqs(language_model, args.sequence_count_threshold)
+    collapse_language_model_freqs(language_model, sequence_count_threshold)
 
     # Write output files
-    print('Writing output file for {}'.format(args.language))
+    print('Writing output file for {}'.format(language))
     sys.stdout.flush()
-    with open('lang{}model.py'.format(args.language.lower()), 'w') as output_file:
-        upper_lang = args.language.upper()
+    with open('lang{}model.py'.format(language.lower()), 'w') as output_file:
+        upper_lang = language.upper()
         # print header to set encoding
         print('#!/usr/bin/env python\n'
               '# -*- coding: utf-8 -*-\n',
@@ -376,6 +415,53 @@ def main():
             print('{} = {}\n'.format(sbcs_model_name, sbcs_model_repr),
                   file=output_file)
 
+
+def main():
+    parser = ArgumentParser(description=__doc__,
+                            formatter_class=ArgumentDefaultsHelpFormatter)
+    parser.add_argument('language',
+                        help='The name of the language the input documents are '
+                             'in. Also the name of the language the generated '
+                             'model will detect. If no language is specified, '
+                             'models for all languages known to chardet will be'
+                             ' trained.',
+                        nargs='*')
+    parser.add_argument('-d', '--depth',
+                        help='Maximum depth to crawl Wikipedia articles for '
+                             'training data.',
+                        type=int, default=2)
+    parser.add_argument('-e', '--input_encoding',
+                        help='Encoding the input files are in. Does not need to'
+                             ' match CHARSET_NAME.',
+                        default='UTF-8')
+    parser.add_argument('-i', '--input_files',
+                        help='File to use to train language model. If no files '
+                             'are specified, will crawl Wikipedia for training '
+                             'data.',
+                        nargs='*',
+                        dest='input_paths')
+    parser.add_argument('-t', '--sequence_count_threshold',
+                        help='Minimum number of times a particular two-'
+                             'character sequence must have occurred in the '
+                             'input files in order to be considered unlikely '
+                             '(instead of illegal).',
+                        type=int, default=3)
+    parser.add_argument('--version', action='version', version=__version__)
+    args = parser.parse_args()
+
+    if not args.language:
+        args.language = list(sorted(LANGUAGES.keys()))
+
+    # Make sure we aren't trying to do anything weird
+    if len(args.language) > 1:
+        if args.input_paths:
+            raise ValueError('Specifying input paths is not valid when training'
+                             ' models for multiple languages at the same time. '
+                             ' This only works for Wikipedia training.')
+
+    for language in args.language:
+        train_model_for_lang(language, args.depth, args.input_encoding,
+                             args.input_paths, args.sequence_count_threshold)
 
 if __name__ == '__main__':
     main()
