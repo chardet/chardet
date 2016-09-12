@@ -42,12 +42,12 @@ class EscCharSetProber(CharSetProber):
     def __init__(self, lang_filter=None):
         super(EscCharSetProber, self).__init__(lang_filter=lang_filter)
         self.coding_sm = []
-        if self.lang_filter & LanguageFilter.chinese_simplified:
+        if self.lang_filter & LanguageFilter.CHINESE_SIMPLIFIED:
             self.coding_sm.append(CodingStateMachine(HZ_SM_MODEL))
             self.coding_sm.append(CodingStateMachine(ISO2022CN_SM_MODEL))
-        if self.lang_filter & LanguageFilter.japanese:
+        if self.lang_filter & LanguageFilter.JAPANESE:
             self.coding_sm.append(CodingStateMachine(ISO2022JP_SM_MODEL))
-        if self.lang_filter & LanguageFilter.korean:
+        if self.lang_filter & LanguageFilter.KOREAN:
             self.coding_sm.append(CodingStateMachine(ISO2022KR_SM_MODEL))
         self.active_sm_count = None
         self._detected_charset = None
@@ -80,14 +80,14 @@ class EscCharSetProber(CharSetProber):
                 if not coding_sm or not coding_sm.active:
                     continue
                 coding_state = coding_sm.next_state(c)
-                if coding_state == MachineState.error:
+                if coding_state == MachineState.ERROR:
                     coding_sm.active = False
                     self.active_sm_count -= 1
                     if self.active_sm_count <= 0:
-                        self._state = ProbingState.not_me
+                        self._state = ProbingState.NOT_ME
                         return self.state
-                elif coding_state == MachineState.its_me:
-                    self._state = ProbingState.found_it
+                elif coding_state == MachineState.ITS_ME:
+                    self._state = ProbingState.FOUND_IT
                     self._detected_charset = coding_sm.get_coding_state_machine()
                     return self.state
 

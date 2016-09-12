@@ -53,19 +53,19 @@ class UTF8Prober(CharSetProber):
     def feed(self, byte_str):
         for c in byte_str:
             coding_state = self.coding_sm.next_state(c)
-            if coding_state == MachineState.error:
-                self._state = ProbingState.not_me
+            if coding_state == MachineState.ERROR:
+                self._state = ProbingState.NOT_ME
                 break
-            elif coding_state == MachineState.its_me:
-                self._state = ProbingState.found_it
+            elif coding_state == MachineState.ITS_ME:
+                self._state = ProbingState.FOUND_IT
                 break
-            elif coding_state == MachineState.start:
+            elif coding_state == MachineState.START:
                 if self.coding_sm.get_current_charlen() >= 2:
                     self._num_mb_chars += 1
 
-        if self.state == ProbingState.detecting:
+        if self.state == ProbingState.DETECTING:
             if self.get_confidence() > self.SHORTCUT_THRESHOLD:
-                self._state = ProbingState.found_it
+                self._state = ProbingState.FOUND_IT
 
         return self.state
 

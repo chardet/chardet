@@ -63,22 +63,22 @@ class CharSetGroupProber(CharSetProber):
             state = prober.feed(byte_str)
             if not state:
                 continue
-            if state == ProbingState.found_it:
+            if state == ProbingState.FOUND_IT:
                 self._best_guess_prober = prober
                 return self.state
-            elif state == ProbingState.not_me:
+            elif state == ProbingState.NOT_ME:
                 prober.active = False
                 self._active_num -= 1
                 if self._active_num <= 0:
-                    self._state = ProbingState.not_me
+                    self._state = ProbingState.NOT_ME
                     return self.state
         return self.state
 
     def get_confidence(self):
         state = self.state
-        if state == ProbingState.found_it:
+        if state == ProbingState.FOUND_IT:
             return 0.99
-        elif state == ProbingState.not_me:
+        elif state == ProbingState.NOT_ME:
             return 0.01
         best_conf = 0.0
         self._best_guess_prober = None
