@@ -42,8 +42,7 @@ class SingleByteCharSetModel(NamedTuple):
 
 
 class SingleByteCharSetProber(CharSetProber):
-    SAMPLE_SIZE = 64
-    SB_ENOUGH_REL_THRESHOLD = 1024  # 0.25 * SAMPLE_SIZE^2
+    SB_ENOUGH_REL_THRESHOLD = 1024  #  0.25 * SAMPLE_SIZE^2 (SAMPLE_SIZE was 64)
     POSITIVE_SHORTCUT_THRESHOLD = 0.95
     NEGATIVE_SHORTCUT_THRESHOLD = 0.05
 
@@ -109,9 +108,11 @@ class SingleByteCharSetProber(CharSetProber):
             #      _total_char purposes.
             if order < CharacterCategory.CONTROL:
                 self._total_char += 1
-            if order < self.SAMPLE_SIZE:
+                # TODO: Follow uchardet's lead and discount confidence for frequent
+                #       control characters.
+                #       See https://github.com/BYVoid/uchardet/commit/55b4f23971db61
                 self._freq_char += 1
-                if self._last_order < self.SAMPLE_SIZE:
+                if self._last_order < CharacterCategory.CONTROL:
                     self._total_seqs += 1
                     if not self._reversed:
                         lm_cat = language_model[self._last_order][order]
