@@ -138,6 +138,7 @@ class HebrewProber(CharSetProber):
     NORMAL_PE = 0xf4
     FINAL_TSADI = 0xf5
     NORMAL_TSADI = 0xf6
+    SPACE = 0x20
 
     # Minimum Visual vs Logical final letter score difference.
     # If the difference is below this, don't rely solely on the final letter score
@@ -168,8 +169,8 @@ class HebrewProber(CharSetProber):
         # The two last characters seen in the previous buffer,
         # mPrev and mBeforePrev are initialized to space in order to simulate
         # a word delimiter at the beginning of the data
-        self._prev = ' '
-        self._before_prev = ' '
+        self._prev = self.SPACE
+        self._before_prev = self.SPACE
         # These probers are owned by the group prober.
 
     def set_model_probers(self, logicalProber, visualProber):
@@ -228,9 +229,9 @@ class HebrewProber(CharSetProber):
         byte_str = self.filter_high_byte_only(byte_str)
 
         for cur in byte_str:
-            if cur == ' ':
+            if cur == self.SPACE:
                 # We stand on a space - a word just ended
-                if self._before_prev != ' ':
+                if self._before_prev != self.SPACE:
                     # next-to-last char was not a space so self._prev is not a
                     # 1 letter word
                     if self.is_final(self._prev):
@@ -242,8 +243,8 @@ class HebrewProber(CharSetProber):
                         self._final_char_visual_score += 1
             else:
                 # Not standing on a space
-                if ((self._before_prev == ' ') and
-                        (self.is_final(self._prev)) and (cur != ' ')):
+                if ((self._before_prev == self.SPACE) and
+                        (self.is_final(self._prev)) and (cur != self.SPACE)):
                     # case (3) [-2:space][-1:final letter][cur:not space]
                     self._final_char_visual_score += 1
             self._before_prev = self._prev
