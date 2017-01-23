@@ -122,10 +122,15 @@ def gen_input_lines(input_paths, input_encoding):
                 yield line
 
 
-def gen_wiki_lines(titles, max_depth, depth=0, visited_pages=None,
+def gen_wiki_lines(titles, language, max_depth, depth=0, visited_pages=None,
                    skipped_pages=None):
-    """Recursively Wikipedia articles, starting with titles, up to max_depth."""
+    """Generate lines from Wikipedia articles, starting with titles.
+
+    Will crawl at most `max_depth` deep in the page hierarchy.
+    """
     if visited_pages is None:
+        # Set the appropriate language the first time through
+        wikipedia.set_lang(language)
         visited_pages = set()
 
     if skipped_pages is None:
@@ -148,8 +153,12 @@ def gen_wiki_lines(titles, max_depth, depth=0, visited_pages=None,
         try:
             page = wikipedia.page(title)
         except:
-            skipped_pages.add(title)
-            continue
+            if depth > 0:
+                skipped_pages.add(title)
+                continue
+            else:
+                print('Failed to visit start page:')
+                raise
 
         visited_pages.add(title)
 
@@ -161,10 +170,15 @@ def gen_wiki_lines(titles, max_depth, depth=0, visited_pages=None,
         for line in content.splitlines(True):
             yield line
 
-        next_titles.update(page.links)
+        # Sometimes things go wrong when extracting the links
+        try:
+            next_titles.update(page.links)
+        except:
+            continue
 
     # Recursive generators are fun
-    for line in gen_wiki_lines(next_titles, max_depth, depth=depth + 1,
+    for line in gen_wiki_lines(next_titles, language, max_depth,
+                               depth=depth + 1,
                                visited_pages=visited_pages,
                                skipped_pages=skipped_pages):
         yield line
@@ -200,7 +214,7 @@ def calc_ngram_freqs(input_generator, alphabet_size, keep_ascii_letters):
                 num_bigrams += 1
             prev_char = unicode_char
 
-    print('Unique character types in training data: {}'.format(len(char_freqs)))
+    print('\nUnique character types in training data: {}'.format(len(char_freqs)))
     print('Number of character tokens in training data: {}'
           .format(sum(char_freqs.values())))
 
@@ -283,7 +297,7 @@ def generate_sbcs_model(charset_name, language, alphabet_size, language_model,
 def print_dict_literal(var_name, to_print, output_file):
     print('{} = {{'.format(var_name), file=output_file)
     for key, val in sorted(iteritems(to_print)):
-        print('     {!r}: {!r}'.format(key, val), file=output_file)
+        print('     {!r}: {!r},'.format(key, val), file=output_file)
     print('}\n', file=output_file)
 
 
@@ -326,6 +340,9 @@ def train_model_for_lang(language, depth, input_encoding, input_paths,
     else:
         alphabet_size = 64
 
+    print('{}\n----------------------------------------------------------------'
+          .format(language))
+
     # See if we're doing file-based or wiki-based training
     if input_paths:
         # Check that files are big enough before doing anything else
@@ -345,14 +362,14 @@ def train_model_for_lang(language, depth, input_encoding, input_paths,
             raise ValueError('The wikipedia Python package could not be '
                              'imported, so you must either specify input files '
                              'to use for training, or install it with pip.')
-        input_gen = gen_wiki_lines(lang_metadata.wiki_start_pages, depth)
+        input_gen = gen_wiki_lines(lang_metadata.wiki_start_pages,
+                                   lang_metadata.iso_code, depth)
         data_size_str = 'Wikipedia'
         print('Wikipedia Depth: {}'.format(depth))
 
     print('Keep ASCII Letters: {}'.format(lang_metadata.use_ascii))
     print('Alphabet Size: {}'.format(alphabet_size))
     print('Unlikely Sequence Count Threshold: {}'.format(sequence_count_threshold))
-
     print('\nCreating character frequency tables for {} from {} training data'
           .format(language, data_size_str))
     sys.stdout.flush()
@@ -378,13 +395,14 @@ def train_model_for_lang(language, depth, input_encoding, input_paths,
     collapse_language_model_freqs(language_model, sequence_count_threshold)
 
     # Write output files
-    print('Writing output file for {}'.format(language))
+    print('Writing output file for {}\n\n'.format(language))
     sys.stdout.flush()
     with open('lang{}model.py'.format(language.lower()), 'w') as output_file:
         upper_lang = language.upper()
         # print header to set encoding
         print('#!/usr/bin/env python\n'
-              '# -*- coding: utf-8 -*-\n',
+              '# -*- coding: utf-8 -*-\n\n'
+              'from chardet.sbcharsetprober import SingleByteCharSetModel\n\n',
               file=output_file)
 
         lm_name = '{}_LANG_MODEL'.format(upper_lang)
