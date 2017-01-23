@@ -35,7 +35,9 @@ import sys
 import unicodedata
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from collections import Counter, defaultdict
+from functools import partial
 from io import open
+from multiprocessing import Pool
 from operator import itemgetter
 from string import ascii_letters
 
@@ -122,8 +124,8 @@ def gen_input_lines(input_paths, input_encoding):
                 yield line
 
 
-def gen_wiki_lines(titles, language, max_depth, depth=0, visited_pages=None,
-                   skipped_pages=None):
+def gen_wiki_lines(titles, language, max_depth, max_pages=None, depth=0,
+                   visited_pages=None, skipped_pages=None):
     """Generate lines from Wikipedia articles, starting with titles.
 
     Will crawl at most `max_depth` deep in the page hierarchy.
@@ -136,9 +138,10 @@ def gen_wiki_lines(titles, language, max_depth, depth=0, visited_pages=None,
     if skipped_pages is None:
         skipped_pages = set()
 
-    if not titles or depth > max_depth:
-        print('Visited pages: {} ({} skipped)'.format(len(visited_pages),
-                                                      len(skipped_pages)))
+    if not titles or depth > max_depth or len(visited_pages) > max_pages:
+        print('Visited {} pages: {} ({} skipped)'.format(language,
+                                                         len(visited_pages),
+                                                         len(skipped_pages)))
         return
 
     # Visit all pages in titles and add their links to next_titles
@@ -146,8 +149,9 @@ def gen_wiki_lines(titles, language, max_depth, depth=0, visited_pages=None,
     for title in titles:
         if title in visited_pages or title in skipped_pages:
             continue
-        print('Visited pages: {} ({} skipped)'.format(len(visited_pages),
-                                                      len(skipped_pages)),
+        print('Visited {} pages: {} ({} skipped)'.format(language,
+                                                         len(visited_pages),
+                                                         len(skipped_pages)),
               end='\r')
         sys.stdout.flush()
         try:
@@ -180,7 +184,8 @@ def gen_wiki_lines(titles, language, max_depth, depth=0, visited_pages=None,
     for line in gen_wiki_lines(next_titles, language, max_depth,
                                depth=depth + 1,
                                visited_pages=visited_pages,
-                               skipped_pages=skipped_pages):
+                               skipped_pages=skipped_pages,
+                               max_pages=max_pages):
         yield line
 
 
@@ -323,8 +328,9 @@ def print_language_model(var_name, language_model, output_file, char_ranks):
     print('}\n', file=output_file)
 
 
-def train_model_for_lang(language, depth, input_encoding, input_paths,
-                         sequence_count_threshold):
+def train_model_for_lang(language, depth=None, input_encoding=None,
+                         input_paths=None, sequence_count_threshold=None,
+                         max_pages=None):
     """Train a SingleByteCharSetModel for the given language and settings"""
     # Validate language
     language = language.title()
@@ -363,7 +369,8 @@ def train_model_for_lang(language, depth, input_encoding, input_paths,
                              'imported, so you must either specify input files '
                              'to use for training, or install it with pip.')
         input_gen = gen_wiki_lines(lang_metadata.wiki_start_pages,
-                                   lang_metadata.iso_code, depth)
+                                   lang_metadata.iso_code, depth,
+                                   max_pages=max_pages)
         data_size_str = 'Wikipedia'
         print('Wikipedia Depth: {}'.format(depth))
 
@@ -458,6 +465,13 @@ def main():
                              'data.',
                         nargs='*',
                         dest='input_paths')
+    parser.add_argument('-m', '--max_pages',
+                        help='Maximum number of Wikipedia pages to crawl per '
+                             'language.',
+                        type=int, default=20000)
+    parser.add_argument('-p', '--parallel_langs',
+                        help='Number of languages models to train at once.',
+                        type=int, default=8)
     parser.add_argument('-t', '--sequence_count_threshold',
                         help='Minimum number of times a particular two-'
                              'character sequence must have occurred in the '
@@ -477,9 +491,16 @@ def main():
                              ' models for multiple languages at the same time. '
                              ' This only works for Wikipedia training.')
 
-    for language in args.language:
-        train_model_for_lang(language, args.depth, args.input_encoding,
-                             args.input_paths, args.sequence_count_threshold)
+    pool = Pool(args.parallel_langs)
+    pool.map_async(partial(train_model_for_lang,
+                           depth=args.depth,
+                           input_encoding=args.input_encoding,
+                           input_paths=args.input_paths,
+                           sequence_count_threshold=args.sequence_count_threshold,
+                           max_pages=args.max_pages),
+                   args.language)
+    pool.close()
+    pool.join()
 
 if __name__ == '__main__':
     main()
