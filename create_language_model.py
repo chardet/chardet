@@ -42,7 +42,7 @@ from operator import itemgetter
 from string import ascii_letters
 
 try:
-    import wikipedia
+    from mediawiki import MediaWiki
     HAVE_WIKIPEDIA = True
 except:
     HAVE_WIKIPEDIA = False
@@ -54,6 +54,10 @@ from chardet.enums import CharacterCategory, SequenceLikelihood
 from chardet.sbcharsetprober import SingleByteCharSetModel
 
 
+# Turn ascii_letters into a set to make other ops easier
+ascii_letters = set(ascii_letters)
+
+
 def normalize_name(charset_name):
     """Convert name to proper Python constant format"""
     # Title case to start
@@ -62,18 +66,22 @@ def normalize_name(charset_name):
     charset_name = charset_name.replace('-', '_')
     return charset_name
 
-
-def unicode_to_category(unicode_char, char_ranks, keep_ascii_letters=False):
+def unicode_to_category(unicode_char, char_ranks, keep_ascii_letters=False,
+                        alphabet=None):
     """Convert a Unicode character to categories used by SingleByteCharSetProber
     """
+    if alphabet is None:
+        alphabet = set()
+    valid_letters = (alphabet | ascii_letters) if keep_ascii_letters else alphabet
     unicode_cat = unicodedata.category(unicode_char)
     if unicode_cat.startswith('N'):
         ret_val = CharacterCategory.DIGIT
+    # Valid letters have their category set to their order/rank
     elif unicode_cat.startswith('L'):
-        if not keep_ascii_letters and unicode_char in ascii_letters:
-            ret_val = CharacterCategory.CONTROL
-        else:
+        if unicode_char in valid_letters:
             ret_val = char_ranks.get(unicode_char, CharacterCategory.UNDEFINED)
+        else:
+            ret_val = CharacterCategory.UNDEFINED
     elif unicode_char in ('\r', '\n'):
         ret_val = CharacterCategory.LINE_BREAK
     # Punctuation, Symbols, and Marks are all symbols as far as we care
@@ -84,12 +92,13 @@ def unicode_to_category(unicode_char, char_ranks, keep_ascii_letters=False):
     return ret_val
 
 
-def get_charset_mappings(charset_name, char_ranks, keep_ascii_letters=False):
+def get_charset_mappings(charset_name, char_ranks, keep_ascii_letters=False,
+                         alphabet=None):
     """Returns `charset_categories` & `charset_code_points` mappings for charset
 
     `charset_categories` maps from bytes in charset/encoding to categories
     expected by SingleByteCharSetProber except for letters, which have their
-    category set to `ALPHA`. These will be modified later to map to an "order",
+    category set to `None`. These will be modified later to map to an "order",
     which is the frequency ranking of each non-symbol character.
 
     `charset_code_points` maps from unicode code points to charset bytes. This
@@ -108,11 +117,12 @@ def get_charset_mappings(charset_name, char_ranks, keep_ascii_letters=False):
             unicode_char = char.decode(charset_name)
             char_cat = unicode_to_category(unicode_char,
                                            char_ranks,
-                                           keep_ascii_letters=keep_ascii_letters)
+                                           keep_ascii_letters=keep_ascii_letters,
+                                           alphabet=alphabet)
             charset_code_points[unicode_char] = char
         except UnicodeDecodeError:
             char_cat = CharacterCategory.UNDEFINED
-        char_to_order[char] = char_cat
+        char_to_order[byte_hex] = char_cat
     return char_to_order, charset_code_points
 
 
@@ -125,14 +135,12 @@ def gen_input_lines(input_paths, input_encoding):
 
 
 def gen_wiki_lines(titles, language, max_depth, max_pages=None, depth=0,
-                   visited_pages=None, skipped_pages=None):
+                   visited_pages=None, skipped_pages=None, wikipedia=None):
     """Generate lines from Wikipedia articles, starting with titles.
 
     Will crawl at most `max_depth` deep in the page hierarchy.
     """
     if visited_pages is None:
-        # Set the appropriate language the first time through
-        wikipedia.set_lang(language)
         visited_pages = set()
 
     if skipped_pages is None:
@@ -154,8 +162,10 @@ def gen_wiki_lines(titles, language, max_depth, max_pages=None, depth=0,
                                                          len(skipped_pages)),
               end='\r')
         sys.stdout.flush()
+        if len(visited_pages) == max_pages:
+            break
         try:
-            page = wikipedia.page(title)
+            page = wikipedia.page(title, auto_suggest=False)
         except:
             if depth > 0:
                 skipped_pages.add(title)
@@ -185,18 +195,20 @@ def gen_wiki_lines(titles, language, max_depth, max_pages=None, depth=0,
                                depth=depth + 1,
                                visited_pages=visited_pages,
                                skipped_pages=skipped_pages,
-                               max_pages=max_pages):
+                               max_pages=max_pages,
+                               wikipedia=wikipedia):
         yield line
 
 
-def calc_ngram_freqs(input_generator, alphabet_size, keep_ascii_letters):
+def calc_ngram_freqs(input_generator, alphabet, keep_ascii_letters):
     """Create a language model with the likelihoods of all bigrams in input.
 
     This LM is based on Unicode code point frequencies and not encoded character
     frequencies so that this can be used for all encodings.
 
-    The LM is filtered down to bigrams for the `alphabet_size` most frequent
-    unigrams.
+    The LM is filtered down to bigrams to those with unigrams that have
+    frequencies greater than equal to the lowest seen alphabet character
+    frequency.
     """
     char_freqs = Counter()
     char_ranks = {}
@@ -223,36 +235,45 @@ def calc_ngram_freqs(input_generator, alphabet_size, keep_ascii_letters):
     print('Number of character tokens in training data: {}'
           .format(sum(char_freqs.values())))
 
+    min_alpha_freq = min(freq for unicode_char, freq in char_freqs.items()
+                         if unicode_char in alphabet)
+
     # Filter language model down to only those within sample size
-    for rank, (unicode_char, _) in enumerate(sorted(list(char_freqs.items()),
-                                                    key=itemgetter(1),
-                                                    reverse=True),
-                                             1):
-        char_ranks[unicode_char] = rank
-        if rank > alphabet_size:
+    for rank, (unicode_char, freq) in enumerate(sorted(list(char_freqs.items()),
+                                                       key=itemgetter(1),
+                                                       reverse=True),
+                                                1):
+        if rank >= CharacterCategory.CONTROL or freq < min_alpha_freq:
             del char_freqs[unicode_char]
             language_model.pop(unicode_char, None)
             for sub_dict in language_model.values():
                 sub_dict.pop(unicode_char, None)
+        # TODO: Consider changing this next part to only work for letters in
+        #       alphabet
         else:
+            char_ranks[unicode_char] = rank
             # Set all unseen combos involving this character to NEGATIVE
             # Note: We do this here instead of in SingleByteCharSetProber
-            # because this is much faster than switching .get(char, 0) in there.
+            # because this is much faster than doing .get(char, 0) in there.
             for sub_dict in language_model.values():
                 if unicode_char not in sub_dict:
-                    sub_dict[unicode_char] = 0
+                    sub_dict[unicode_char] = SequenceLikelihood.NEGATIVE
     return char_ranks, language_model, num_bigrams
 
 
 def collapse_language_model_freqs(language_model, sequence_count_threshold):
     """Collapse bigram frequencies to SequenceLikelihood categories"""
+    num_unigram_types = len(language_model)
+    pos_threshold = num_unigram_types * 8  # Used to be 64 * 8 = 512
+    likely_threshold = num_unigram_types * 16  # Used to be 64 * 16 = 1024
     sorted_lm = sorted(flatten_language_model(language_model), reverse=True)
 
+    # TODO: Re-evaluate these numbers because positive happens really often now
     # Collapse bigram frequencies to SequenceLikelihood categories
     for rank, (count, first_char, second_char) in enumerate(sorted_lm, 1):
-        if rank <= 512:
+        if rank <= pos_threshold:
             language_model[first_char][second_char] = SequenceLikelihood.POSITIVE
-        elif rank <= 1024:
+        elif rank <= likely_threshold:
             language_model[first_char][second_char] = SequenceLikelihood.LIKELY
         # Really infrequent bigrams are considered illegal
         elif count <= sequence_count_threshold:
@@ -268,8 +289,8 @@ def flatten_language_model(language_model):
             yield count, first_char, second_char
 
 
-def generate_sbcs_model(charset_name, language, alphabet_size, language_model,
-                        num_bigrams, char_ranks, keep_ascii_letters):
+def generate_sbcs_model(charset_name, language, language_model, num_bigrams,
+                        char_ranks, keep_ascii_letters, alphabet):
     """Create a SingleByteCharSetModel object representing the charset."""
     # Setup tables necessary for computing transition frequencies for model
     char_to_order, charset_code_points = get_charset_mappings(charset_name,
@@ -295,14 +316,20 @@ def generate_sbcs_model(charset_name, language, alphabet_size, language_model,
                                         language_model=None,
                                         typical_positive_ratio=pos_ratio,
                                         keep_ascii_letters=keep_ascii_letters,
-                                        alphabet_size=alphabet_size)
+                                        alphabet=alphabet)
     return curr_model
 
 
-def print_dict_literal(var_name, to_print, output_file):
+def print_char_to_order(var_name, order_map, charset_name, output_file):
     print('{} = {{'.format(var_name), file=output_file)
-    for key, val in sorted(iteritems(to_print)):
-        print('     {!r}: {!r},'.format(key, val), file=output_file)
+    for char, order in sorted(iteritems(order_map)):
+        char_bytes = bytes(bytearray((char,)))
+        try:
+            unicode_char = char_bytes.decode(charset_name)
+        except UnicodeError:
+            unicode_char = None
+        print('     {!r}: {!r},  # {!r}'.format(char, order, unicode_char),
+              file=output_file)
     print('}\n', file=output_file)
 
 
@@ -310,7 +337,7 @@ def print_language_model(var_name, language_model, output_file, char_ranks):
     print('# 3: Positive\n'
           '# 2: Likely\n'
           '# 1: Unlikely\n'
-          '# 0: 0 - 9\n',
+          '# 0: Negative\n',
           file=output_file)
     print('{} = {{'.format(var_name), file=output_file)
     for first_char, sub_dict in sorted(iteritems(language_model)):
@@ -340,14 +367,17 @@ def train_model_for_lang(language, depth=None, input_encoding=None,
                          ' new language, you must first update metadata/'
                          'languages.py'.format(language))
 
-    # Set alphabet size
-    if lang_metadata.alphabet:
-        alphabet_size = len(lang_metadata.alphabet)
-    else:
-        alphabet_size = 64
-
-    print('{}\n----------------------------------------------------------------'
+    print('\n{}\n----------------------------------------------------------------'
           .format(language))
+    print('Keep ASCII Letters: {}'.format(lang_metadata.use_ascii))
+    print('Alphabet: {}'.format(lang_metadata.alphabet))
+    print('Unlikely Sequence Count Threshold: {}'.format(sequence_count_threshold))
+    # Do this before other branch to increase chance that this header gets spit
+    # out together when using multiprocessing
+    if input_paths:
+        print('Input Encoding: {}'.format(input_encoding))
+    else:
+        print('Wikipedia Depth: {}'.format(depth))
 
     # See if we're doing file-based or wiki-based training
     if input_paths:
@@ -361,27 +391,24 @@ def train_model_for_lang(language, depth=None, input_encoding=None,
 
         input_gen = gen_input_lines(input_paths, input_encoding)
 
-        print('Input Encoding: {}'.format(input_encoding))
         data_size_str = '{} bytes of'.format(data_size)
     else:
         if not HAVE_WIKIPEDIA:
             raise ValueError('The wikipedia Python package could not be '
                              'imported, so you must either specify input files '
                              'to use for training, or install it with pip.')
+        wikipedia = MediaWiki(lang=lang_metadata.iso_code)
         input_gen = gen_wiki_lines(lang_metadata.wiki_start_pages,
                                    lang_metadata.iso_code, depth,
-                                   max_pages=max_pages)
+                                   max_pages=max_pages,
+                                   wikipedia=wikipedia)
         data_size_str = 'Wikipedia'
-        print('Wikipedia Depth: {}'.format(depth))
 
-    print('Keep ASCII Letters: {}'.format(lang_metadata.use_ascii))
-    print('Alphabet Size: {}'.format(alphabet_size))
-    print('Unlikely Sequence Count Threshold: {}'.format(sequence_count_threshold))
     print('\nCreating character frequency tables for {} from {} training data'
           .format(language, data_size_str))
     sys.stdout.flush()
     char_ranks, language_model, num_bigrams = calc_ngram_freqs(input_gen,
-                                                               alphabet_size,
+                                                               lang_metadata.alphabet,
                                                                lang_metadata.use_ascii)
 
     # Create char-to-order maps (aka char-to-rank dicts)
@@ -391,11 +418,11 @@ def train_model_for_lang(language, depth=None, input_encoding=None,
         sys.stdout.flush()
         charset_models[charset_name] = generate_sbcs_model(charset_name,
                                                            language,
-                                                           alphabet_size,
                                                            language_model,
                                                            num_bigrams,
                                                            char_ranks,
-                                                           lang_metadata.use_ascii)
+                                                           lang_metadata.use_ascii,
+                                                           lang_metadata.alphabet)
 
     # Collapse language model freqs to SequenceLikelihood values after
     # calculating positive ratio for each charset
@@ -426,8 +453,8 @@ def train_model_for_lang(language, depth=None, input_encoding=None,
             normal_name = normalize_name(charset_name)
             char_to_order_name = ('{}_{}_CHAR_TO_ORDER'.format(normal_name,
                                                                upper_lang))
-            print_dict_literal(char_to_order_name, sbcs_model.char_to_order_map,
-                               output_file)
+            print_char_to_order(char_to_order_name, sbcs_model.char_to_order_map,
+                                charset_name, output_file)
 
             sbcs_model_name = '{}_{}_MODEL'.format(normal_name, upper_lang)
             sbcs_model.char_to_order_map.clear()
@@ -491,16 +518,28 @@ def main():
                              ' models for multiple languages at the same time. '
                              ' This only works for Wikipedia training.')
 
-    pool = Pool(args.parallel_langs)
-    pool.map_async(partial(train_model_for_lang,
-                           depth=args.depth,
-                           input_encoding=args.input_encoding,
-                           input_paths=args.input_paths,
-                           sequence_count_threshold=args.sequence_count_threshold,
-                           max_pages=args.max_pages),
-                   args.language)
-    pool.close()
-    pool.join()
+    # Only create multiprocessing pool if doing things in parallel, otherwise
+    # it's harder to debug
+    if args.parallel_langs > 1 and len(args.language) > 1:
+        pool = Pool(args.parallel_langs)
+        pool.map_async(partial(train_model_for_lang,
+                               depth=args.depth,
+                               input_encoding=args.input_encoding,
+                               input_paths=args.input_paths,
+                               sequence_count_threshold=args.sequence_count_threshold,
+                               max_pages=args.max_pages),
+                       args.language)
+        pool.close()
+        pool.join()
+    else:
+        for language in args.language:
+            train_model_for_lang(language,
+                                 depth=args.depth,
+                                 input_encoding=args.input_encoding,
+                                 input_paths=args.input_paths,
+                                 sequence_count_threshold=args.sequence_count_threshold,
+                                 max_pages=args.max_pages)
+
 
 if __name__ == '__main__':
     main()
