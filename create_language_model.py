@@ -166,6 +166,11 @@ def gen_wiki_lines(titles, language, max_depth, max_pages=None, depth=0,
             break
         try:
             page = wikipedia.page(title, auto_suggest=False)
+            # Remove Wikipedia markup (this is inside of try block because it
+            # an implicit request to Wikipedia to get the content does)
+            content = re.sub(r'(=+) *([^=]+) *\1', r'\2', page.content)
+            # Clean up repeated whitespace, since that could skew model
+            content = re.sub(r'(\s)\1+', '\1', content)
         except:
             if depth > 0:
                 skipped_pages.add(title)
@@ -175,11 +180,6 @@ def gen_wiki_lines(titles, language, max_depth, max_pages=None, depth=0,
                 raise
 
         visited_pages.add(title)
-
-        # Remove Wikipedia markup
-        content = re.sub(r'(=+) *([^=]+) *\1', r'\2', page.content)
-        # Clean up repeated whitespace, since that could skew model
-        content = re.sub(r'(\s)\1+', '\1', content)
 
         for line in content.splitlines(True):
             yield line
