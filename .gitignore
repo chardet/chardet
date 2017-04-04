@@ -6,3 +6,4 @@ PKG-INFO
 /build
 .hypothesis
 .cache
+.eggs
