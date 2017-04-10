@@ -35,7 +35,6 @@ from .big5freq import (BIG5_CHAR_TO_FREQ_ORDER, BIG5_TABLE_SIZE,
                        BIG5_TYPICAL_DISTRIBUTION_RATIO)
 from .jisfreq import (JIS_CHAR_TO_FREQ_ORDER, JIS_TABLE_SIZE,
                       JIS_TYPICAL_DISTRIBUTION_RATIO)
-from .compat import wrap_ord
 
 
 class CharDistributionAnalysis(object):
@@ -123,9 +122,9 @@ class EUCTWDistributionAnalysis(CharDistributionAnalysis):
         #   first  byte range: 0xc4 -- 0xfe
         #   second byte range: 0xa1 -- 0xfe
         # no validation needed here. State machine has done that
-        first_char = wrap_ord(byte_str[0])
+        first_char = byte_str[0]
         if first_char >= 0xC4:
-            return 94 * (first_char - 0xC4) + wrap_ord(byte_str[1]) - 0xA1
+            return 94 * (first_char - 0xC4) + byte_str[1] - 0xA1
         else:
             return -1
 
@@ -142,9 +141,9 @@ class EUCKRDistributionAnalysis(CharDistributionAnalysis):
         #   first  byte range: 0xb0 -- 0xfe
         #   second byte range: 0xa1 -- 0xfe
         # no validation needed here. State machine has done that
-        first_char = wrap_ord(byte_str[0])
+        first_char = byte_str[0]
         if first_char >= 0xB0:
-            return 94 * (first_char - 0xB0) + wrap_ord(byte_str[1]) - 0xA1
+            return 94 * (first_char - 0xB0) + byte_str[1] - 0xA1
         else:
             return -1
 
@@ -161,7 +160,7 @@ class GB2312DistributionAnalysis(CharDistributionAnalysis):
         #  first  byte range: 0xb0 -- 0xfe
         #  second byte range: 0xa1 -- 0xfe
         # no validation needed here. State machine has done that
-        first_char, second_char = wrap_ord(byte_str[0]), wrap_ord(byte_str[1])
+        first_char, second_char = byte_str[0], byte_str[1]
         if (first_char >= 0xB0) and (second_char >= 0xA1):
             return 94 * (first_char - 0xB0) + second_char - 0xA1
         else:
@@ -180,7 +179,7 @@ class Big5DistributionAnalysis(CharDistributionAnalysis):
         #   first  byte range: 0xa4 -- 0xfe
         #   second byte range: 0x40 -- 0x7e , 0xa1 -- 0xfe
         # no validation needed here. State machine has done that
-        first_char, second_char = wrap_ord(byte_str[0]), wrap_ord(byte_str[1])
+        first_char, second_char = byte_str[0], byte_str[1]
         if first_char >= 0xA4:
             if second_char >= 0xA1:
                 return 157 * (first_char - 0xA4) + second_char - 0xA1 + 63
@@ -202,7 +201,7 @@ class SJISDistributionAnalysis(CharDistributionAnalysis):
         #   first  byte range: 0x81 -- 0x9f , 0xe0 -- 0xfe
         #   second byte range: 0x40 -- 0x7e,  0x81 -- oxfe
         # no validation needed here. State machine has done that
-        first_char, second_char = wrap_ord(byte_str[0]), wrap_ord(byte_str[1])
+        first_char, second_char = byte_str[0], byte_str[1]
         if (first_char >= 0x81) and (first_char <= 0x9F):
             order = 188 * (first_char - 0x81)
         elif (first_char >= 0xE0) and (first_char <= 0xEF):
@@ -227,8 +226,8 @@ class EUCJPDistributionAnalysis(CharDistributionAnalysis):
         #   first  byte range: 0xa0 -- 0xfe
         #   second byte range: 0xa1 -- 0xfe
         # no validation needed here. State machine has done that
-        char = wrap_ord(byte_str[0])
+        char = byte_str[0]
         if char >= 0xA0:
-            return 94 * (char - 0xA1) + wrap_ord(byte_str[1]) - 0xa1
+            return 94 * (char - 0xA1) + byte_str[1] - 0xa1
         else:
             return -1

@@ -27,7 +27,6 @@
 
 from .charsetprober import CharSetProber
 from .enums import ProbingState
-from .compat import wrap_ord
 
 # This prober doesn't actually recognize a language or a charset.
 # It is a helper prober for the use of the Hebrew model probers
@@ -177,8 +176,8 @@ class HebrewProber(CharSetProber):
         self._visual_prober = visualProber
 
     def is_final(self, c):
-        return wrap_ord(c) in [self.FINAL_KAF, self.FINAL_MEM, self.FINAL_NUN,
-                               self.FINAL_PE, self.FINAL_TSADI]
+        return c in [self.FINAL_KAF, self.FINAL_MEM, self.FINAL_NUN,
+                     self.FINAL_PE, self.FINAL_TSADI]
 
     def is_non_final(self, c):
         # The normal Tsadi is not a good Non-Final letter due to words like
@@ -191,8 +190,8 @@ class HebrewProber(CharSetProber):
         # for example legally end with a Non-Final Pe or Kaf. However, the
         # benefit of these letters as Non-Final letters outweighs the damage
         # since these words are quite rare.
-        return wrap_ord(c) in [self.NORMAL_KAF, self.NORMAL_MEM,
-                               self.NORMAL_NUN, self.NORMAL_PE]
+        return c in [self.NORMAL_KAF, self.NORMAL_MEM,
+                     self.NORMAL_NUN, self.NORMAL_PE]
 
     def feed(self, byte_str):
         # Final letter analysis for logical-visual decision.

@@ -127,6 +127,8 @@ class UniversalDetector(object):
         if not len(byte_str):
             return
 
+        if not isinstance(byte_str, bytearray):
+            byte_str = bytearray(byte_str)
         # First check for known BOMs, since these are guaranteed to be correct
         if not self._got_data:
             # If the data starts with BOM, we know it is UTF

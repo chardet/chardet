@@ -27,17 +27,8 @@ if sys.version_info < (3, 0):
     PY3 = False
     base_str = (str, unicode)
     text_type = unicode
-    bin_type = str
 else:
     PY2 = False
     PY3 = True
     base_str = (bytes, str)
     text_type = str
-    bin_type = (bytes, bytearray)
-
-
-def wrap_ord(a):
-    if PY2 and isinstance(a, base_str):
-        return ord(a)
-    else:
-        return a

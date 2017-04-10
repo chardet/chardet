@@ -16,17 +16,25 @@
 ######################### END LICENSE BLOCK #########################
 
 
-from .compat import PY2, PY3, bin_type as _bin_type
+from .compat import PY2, PY3
 from .universaldetector import UniversalDetector
 from .version import __version__, VERSION
 
 
 def detect(byte_str):
-    if not isinstance(byte_str, _bin_type):
-        raise TypeError('Expected object of {0} type, got: {1}'
-                        ''.format(_bin_type, type(byte_str)))
+    """
+    Detect the encoding of the given byte string.
 
-    u = UniversalDetector()
-    u.feed(byte_str)
-    u.close()
-    return u.result
+    :param byte_str:     The byte sequence to examine.
+    :type byte_str:      ``bytes`` or ``bytearray``
+    """
+    if not isinstance(byte_str, bytearray):
+        if not isinstance(byte_str, bytes):
+            raise TypeError('Expected object of type bytes or bytearray, got: '
+                            '{0}'.format(type(byte_str)))
+        else:
+            byte_str = bytearray(byte_str)
+    detector = UniversalDetector()
+    detector.feed(byte_str)
+    detector.close()
+    return detector.result

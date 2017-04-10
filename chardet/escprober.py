@@ -27,7 +27,6 @@
 
 from .charsetprober import CharSetProber
 from .codingstatemachine import CodingStateMachine
-from .compat import wrap_ord
 from .enums import LanguageFilter, ProbingState, MachineState
 from .escsm import (HZ_SM_MODEL, ISO2022CN_SM_MODEL, ISO2022JP_SM_MODEL,
                     ISO2022KR_SM_MODEL)
@@ -80,7 +79,7 @@ class EscCharSetProber(CharSetProber):
             for coding_sm in self.coding_sm:
                 if not coding_sm or not coding_sm.active:
                     continue
-                coding_state = coding_sm.next_state(wrap_ord(c))
+                coding_state = coding_sm.next_state(c)
                 if coding_state == MachineState.error:
                     coding_sm.active = False
                     self.active_sm_count -= 1
