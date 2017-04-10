@@ -36,5 +36,4 @@ def detect(byte_str):
             byte_str = bytearray(byte_str)
     detector = UniversalDetector()
     detector.feed(byte_str)
-    detector.close()
-    return detector.result
+    return detector.close()
