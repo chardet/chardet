@@ -569,4 +569,4 @@ UTF8_SM_MODEL = {'class_table': UTF8_CLS,
                  'class_factor': 16,
                  'state_table': UTF8_ST,
                  'char_len_table': UTF8_CHAR_LEN_TABLE,
-                 'name': 'UTF-8'}
+                 'name': 'utf-8'}

@@ -136,7 +136,7 @@ class UniversalDetector(object):
             elif byte_str.startswith(codecs.BOM_UTF32_LE) or byte_str.startswith(codecs.BOM_UTF32_BE):
                 # FF FE 00 00  UTF-32, little-endian BOM
                 # 00 00 FE FF  UTF-32, big-endian BOM
-                self.result = {'encoding': "UTF-32", 'confidence': 1.0}
+                self.result = {'encoding': "utf-32", 'confidence': 1.0}
             elif byte_str.startswith(b'\xFE\xFF\x00\x00'):
                 # FE FF 00 00  UCS-4, unusual octet order BOM (3412)
                 self.result = {'encoding': "X-ISO-10646-UCS-4-3412",
@@ -148,7 +148,7 @@ class UniversalDetector(object):
             elif byte_str.startswith(codecs.BOM_LE) or byte_str.startswith(codecs.BOM_BE):
                 # FF FE  UTF-16, little endian BOM
                 # FE FF  UTF-16, big endian BOM
-                self.result = {'encoding': "UTF-16", 'confidence': 1.0}
+                self.result = {'encoding': "utf-16", 'confidence': 1.0}
 
             self._got_data = True
             if self.result['encoding'] is not None:
