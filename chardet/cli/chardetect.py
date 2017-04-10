@@ -39,6 +39,9 @@ def description_of(lines, name='stdin'):
     u = UniversalDetector()
     for line in lines:
         u.feed(line)
+        # shortcut out of the loop to save reading further - particularly useful if we read a BOM.
+        if u.done:
+            break
     u.close()
     result = u.result
     if PY2:
