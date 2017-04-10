@@ -194,7 +194,6 @@ TIS620ThaiModel = {
   'precedence_matrix': ThaiLangModel,
   'typical_positive_ratio': 0.926386,
   'keep_english_letter': False,
-  'charset_name': "TIS-620"
+  'charset_name': "TIS-620",
+  'language': 'Thai',
 }
-
-

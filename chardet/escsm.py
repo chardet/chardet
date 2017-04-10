@@ -77,7 +77,8 @@ HZ_SM_MODEL = {'class_table': HZ_CLS,
                'class_factor': 6,
                'state_table': HZ_ST,
                'char_len_table': HZ_CHAR_LEN_TABLE,
-               'name': "HZ-GB-2312"}
+               'name': "HZ-GB-2312",
+               'language': 'Chinese'}
 
 ISO2022CN_CLS = (
 2,0,0,0,0,0,0,0,  # 00 - 07
@@ -131,7 +132,8 @@ ISO2022CN_SM_MODEL = {'class_table': ISO2022CN_CLS,
                       'class_factor': 9,
                       'state_table': ISO2022CN_ST,
                       'char_len_table': ISO2022CN_CHAR_LEN_TABLE,
-                      'name': "ISO-2022-CN"}
+                      'name': "ISO-2022-CN",
+                      'language': 'Chinese'}
 
 ISO2022JP_CLS = (
 2,0,0,0,0,0,0,0,  # 00 - 07
@@ -186,7 +188,8 @@ ISO2022JP_SM_MODEL = {'class_table': ISO2022JP_CLS,
                       'class_factor': 10,
                       'state_table': ISO2022JP_ST,
                       'char_len_table': ISO2022JP_CHAR_LEN_TABLE,
-                      'name': "ISO-2022-JP"}
+                      'name': "ISO-2022-JP",
+                      'language': 'Japanese'}
 
 ISO2022KR_CLS = (
 2,0,0,0,0,0,0,0,  # 00 - 07
@@ -237,6 +240,7 @@ ISO2022KR_SM_MODEL = {'class_table': ISO2022KR_CLS,
                       'class_factor': 6,
                       'state_table': ISO2022KR_ST,
                       'char_len_table': ISO2022KR_CHAR_LEN_TABLE,
-                      'name': "ISO-2022-KR"}
+                      'name': "ISO-2022-KR",
+                      'language': 'Korean'}
 
 

@@ -214,7 +214,8 @@ Latin5BulgarianModel = {
   'precedence_matrix': BulgarianLangModel,
   'typical_positive_ratio': 0.969392,
   'keep_english_letter': False,
-  'charset_name': "ISO-8859-5"
+  'charset_name': "ISO-8859-5",
+  'language': 'Bulgairan',
 }
 
 Win1251BulgarianModel = {
@@ -222,8 +223,6 @@ Win1251BulgarianModel = {
   'precedence_matrix': BulgarianLangModel,
   'typical_positive_ratio': 0.969392,
   'keep_english_letter': False,
-  'charset_name': "windows-1251"
+  'charset_name': "windows-1251",
+  'language': 'Bulgarian',
 }
-
-
-

@@ -188,5 +188,6 @@ Latin5TurkishModel = {
   'precedence_matrix': TurkishLangModel,
   'typical_positive_ratio': 0.970290,
   'keep_english_letter': True,
-  'charset_name': "ISO-8859-9"
+  'charset_name': "ISO-8859-9",
+  'language': 'Turkish',
 }

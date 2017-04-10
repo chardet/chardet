@@ -280,6 +280,10 @@ class HebrewProber(CharSetProber):
         return self.LOGICAL_HEBREW_NAME
 
     @property
+    def language(self):
+        return 'Hebrew'
+
+    @property
     def state(self):
         # Remain active as long as any of the model probers are active.
         if (self._logical_prober.state == ProbingState.NOT_ME) and \

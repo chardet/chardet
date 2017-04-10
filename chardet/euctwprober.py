@@ -40,3 +40,7 @@ class EUCTWProber(MultiByteCharSetProber):
     @property
     def charset_name(self):
         return "EUC-TW"
+
+    @property
+    def language(self):
+        return "Taiwan"

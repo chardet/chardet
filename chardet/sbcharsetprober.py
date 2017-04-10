@@ -26,8 +26,6 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-from collections import namedtuple
-
 from .charsetprober import CharSetProber
 from .enums import CharacterCategory, ProbingState, SequenceLikelihood
 
@@ -68,6 +66,13 @@ class SingleByteCharSetProber(CharSetProber):
             return self._name_prober.charset_name
         else:
             return self._model['charset_name']
+
+    @property
+    def language(self):
+        if self._name_prober:
+            return self._name_prober.language
+        else:
+            return self._model.get('language')
 
     def feed(self, byte_str):
         if not self._model['keep_english_letter']:

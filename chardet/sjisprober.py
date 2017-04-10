@@ -49,12 +49,16 @@ class SJISProber(MultiByteCharSetProber):
     def charset_name(self):
         return self.context_analyzer.charset_name
 
+    @property
+    def language(self):
+        return "Japanese"
+
     def feed(self, byte_str):
         for i in range(len(byte_str)):
             coding_state = self.coding_sm.next_state(byte_str[i])
             if coding_state == MachineState.ERROR:
-                self.logger.debug('%s prober hit error at byte %s',
-                                  self.charset_name, i)
+                self.logger.debug('%s %s prober hit error at byte %s',
+                                  self.charset_name, self.language, i)
                 self._state = ProbingState.NOT_ME
                 break
             elif coding_state == MachineState.ITS_ME:
@@ -65,13 +69,13 @@ class SJISProber(MultiByteCharSetProber):
                 if i == 0:
                     self._last_char[1] = byte_str[0]
                     self.context_analyzer.feed(self._last_char[2 - char_len:],
-                                                char_len)
+                                               char_len)
                     self.distribution_analyzer.feed(self._last_char, char_len)
                 else:
                     self.context_analyzer.feed(byte_str[i + 1 - char_len:i + 3
-                                                     - char_len], char_len)
+                                                        - char_len], char_len)
                     self.distribution_analyzer.feed(byte_str[i - 1:i + 1],
-                                                     char_len)
+                                                    char_len)
 
         self._last_char[0] = byte_str[-1]
 
