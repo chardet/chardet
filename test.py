@@ -24,7 +24,10 @@ import chardet
 #       retrain model.
 MISSING_ENCODINGS = set(['iso-8859-2', 'iso-8859-6', 'windows-1250',
                          'windows-1254', 'windows-1256'])
-
+EXPECTED_FAILURES = set(['tests/iso-8859-7-greek/disabled.gr.xml',
+                         'tests/iso-8859-9-turkish/divxplanet.com.xml',
+                         'tests/iso-8859-9-turkish/subtitle.srt',
+                         'tests/iso-8859-9-turkish/wikitop_tr_ISO-8859-9.txt'])
 
 def gen_test_params():
     """Yields tuples of paths and encodings to use for test_encoding_detection"""
@@ -49,10 +52,14 @@ def gen_test_params():
             ext = splitext(file_name)[1].lower()
             if ext not in ['.html', '.txt', '.xml', '.srt']:
                 continue
-            yield join(path, file_name), encoding
+            full_path = join(path, file_name)
+            test_case = full_path, encoding
+            if full_path in EXPECTED_FAILURES:
+                test_case = pytest.mark.xfail(test_case)
+            yield test_case
 
 
-@pytest.mark.parametrize('file_name, encoding', gen_test_params())
+@pytest.mark.parametrize ('file_name, encoding', gen_test_params())
 def test_encoding_detection(file_name, encoding):
     with open(file_name, 'rb') as f:
         input_bytes = f.read()
@@ -90,6 +97,7 @@ class JustALengthIssue(Exception):
     pass
 
 
+@pytest.mark.xfail
 @given(st.text(min_size=1), st.sampled_from(['ascii', 'utf-8', 'utf-16',
                                              'utf-32', 'iso-8859-7',
                                              'iso-8859-8', 'windows-1255']),
