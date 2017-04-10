@@ -77,7 +77,7 @@ class UniversalDetector(object):
                    'iso-8859-9': 'Windows-1254',
                    'iso-8859-13': 'Windows-1257'}
 
-    def __init__(self, lang_filter=LanguageFilter.all):
+    def __init__(self, lang_filter=LanguageFilter.ALL):
         self._esc_charset_prober = None
         self._charset_probers = []
         self.result = None
@@ -100,7 +100,7 @@ class UniversalDetector(object):
         self.done = False
         self._got_data = False
         self._has_win_bytes = False
-        self._input_state = InputState.pure_ascii
+        self._input_state = InputState.PURE_ASCII
         self._last_char = b''
         if self._esc_charset_prober:
             self._esc_charset_prober.reset()
@@ -160,12 +160,12 @@ class UniversalDetector(object):
 
         # If none of those matched and we've only see ASCII so far, check
         # for high bytes and escape sequences
-        if self._input_state == InputState.pure_ascii:
+        if self._input_state == InputState.PURE_ASCII:
             if self.HIGH_BYTE_DETECTOR.search(byte_str):
-                self._input_state = InputState.high_byte
-            elif self._input_state == InputState.pure_ascii and \
+                self._input_state = InputState.HIGH_BYTE
+            elif self._input_state == InputState.PURE_ASCII and \
                     self.ESC_DETECTOR.search(self._last_char + byte_str):
-                self._input_state = InputState.esc_ascii
+                self._input_state = InputState.ESC_ASCII
 
         self._last_char = byte_str[-1:]
 
@@ -173,10 +173,10 @@ class UniversalDetector(object):
         # uses a simple state machine to check for known escape sequences in
         # HZ and ISO-2022 encodings, since those are the only encodings that
         # use such sequences.
-        if self._input_state == InputState.esc_ascii:
+        if self._input_state == InputState.ESC_ASCII:
             if not self._esc_charset_prober:
                 self._esc_charset_prober = EscCharSetProber(self.lang_filter)
-            if self._esc_charset_prober.feed(byte_str) == ProbingState.found_it:
+            if self._esc_charset_prober.feed(byte_str) == ProbingState.FOUND_IT:
                 self.result = {'encoding':
                                self._esc_charset_prober.charset_name,
                                'confidence':
@@ -188,15 +188,15 @@ class UniversalDetector(object):
         # use character bigram distributions to determine the encoding, whereas
         # the multi-byte probers use a combination of character unigram and
         # bigram distributions.
-        elif self._input_state == InputState.high_byte:
+        elif self._input_state == InputState.HIGH_BYTE:
             if not self._charset_probers:
                 self._charset_probers = [MBCSGroupProber(self.lang_filter)]
                 # If we're checking non-CJK encodings, use single-byte prober
-                if self.lang_filter & LanguageFilter.non_cjk:
+                if self.lang_filter & LanguageFilter.NON_CJK:
                     self._charset_probers.append(SBCSGroupProber())
                 self._charset_probers.append(Latin1Prober())
             for prober in self._charset_probers:
-                if prober.feed(byte_str) == ProbingState.found_it:
+                if prober.feed(byte_str) == ProbingState.FOUND_IT:
                     self.result = {'encoding': prober.charset_name,
                                    'confidence': prober.get_confidence()}
                     self.done = True
@@ -219,11 +219,11 @@ class UniversalDetector(object):
             return
         self.done = True
 
-        if self._input_state in (InputState.pure_ascii, InputState.esc_ascii):
+        if self._input_state == InputState.PURE_ASCII:
             self.result = {'encoding': 'ascii', 'confidence': 1.0}
             return self.result
 
-        if self._input_state == InputState.high_byte:
+        if self._input_state == InputState.HIGH_BYTE:
             prober_confidence = None
             max_prober_confidence = 0.0
             max_prober = None

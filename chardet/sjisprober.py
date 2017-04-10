@@ -52,15 +52,15 @@ class SJISProber(MultiByteCharSetProber):
     def feed(self, byte_str):
         for i in range(len(byte_str)):
             coding_state = self.coding_sm.next_state(byte_str[i])
-            if coding_state == MachineState.error:
+            if coding_state == MachineState.ERROR:
                 self.logger.debug('%s prober hit error at byte %s',
                                   self.charset_name, i)
-                self._state = ProbingState.not_me
+                self._state = ProbingState.NOT_ME
                 break
-            elif coding_state == MachineState.its_me:
-                self._state = ProbingState.found_it
+            elif coding_state == MachineState.ITS_ME:
+                self._state = ProbingState.FOUND_IT
                 break
-            elif coding_state == MachineState.start:
+            elif coding_state == MachineState.START:
                 char_len = self.coding_sm.get_current_charlen()
                 if i == 0:
                     self._last_char[1] = byte_str[0]
@@ -75,10 +75,10 @@ class SJISProber(MultiByteCharSetProber):
 
         self._last_char[0] = byte_str[-1]
 
-        if self.state == ProbingState.detecting:
+        if self.state == ProbingState.DETECTING:
             if (self.context_analyzer.got_enough_data() and
                (self.get_confidence() > self.SHORTCUT_THRESHOLD)):
-                self._state = ProbingState.found_it
+                self._state = ProbingState.FOUND_IT
 
         return self.state
 

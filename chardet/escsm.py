@@ -63,12 +63,12 @@ HZ_CLS = (
 )
 
 HZ_ST = (
-MachineState.start,MachineState.error,     3,MachineState.start,MachineState.start,MachineState.start,MachineState.error,MachineState.error,# 00-07
-MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,# 08-0f
-MachineState.its_me,MachineState.its_me,MachineState.error,MachineState.error,MachineState.start,MachineState.start,     4,MachineState.error,# 10-17
-     5,MachineState.error,     6,MachineState.error,     5,     5,     4,MachineState.error,# 18-1f
-     4,MachineState.error,     4,     4,     4,MachineState.error,     4,MachineState.error,# 20-27
-     4,MachineState.its_me,MachineState.start,MachineState.start,MachineState.start,MachineState.start,MachineState.start,MachineState.start,# 28-2f
+MachineState.START,MachineState.ERROR,     3,MachineState.START,MachineState.START,MachineState.START,MachineState.ERROR,MachineState.ERROR,# 00-07
+MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,# 08-0f
+MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ERROR,MachineState.ERROR,MachineState.START,MachineState.START,     4,MachineState.ERROR,# 10-17
+     5,MachineState.ERROR,     6,MachineState.ERROR,     5,     5,     4,MachineState.ERROR,# 18-1f
+     4,MachineState.ERROR,     4,     4,     4,MachineState.ERROR,     4,MachineState.ERROR,# 20-27
+     4,MachineState.ITS_ME,MachineState.START,MachineState.START,MachineState.START,MachineState.START,MachineState.START,MachineState.START,# 28-2f
 )
 
 HZ_CHAR_LEN_TABLE = (0, 0, 0, 0, 0, 0)
@@ -115,14 +115,14 @@ ISO2022CN_CLS = (
 )
 
 ISO2022CN_ST = (
-MachineState.start,     3,MachineState.error,MachineState.start,MachineState.start,MachineState.start,MachineState.start,MachineState.start,# 00-07
-MachineState.start,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,# 08-0f
-MachineState.error,MachineState.error,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,# 10-17
-MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.error,MachineState.error,MachineState.error,     4,MachineState.error,# 18-1f
-MachineState.error,MachineState.error,MachineState.error,MachineState.its_me,MachineState.error,MachineState.error,MachineState.error,MachineState.error,# 20-27
-     5,     6,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,# 28-2f
-MachineState.error,MachineState.error,MachineState.error,MachineState.its_me,MachineState.error,MachineState.error,MachineState.error,MachineState.error,# 30-37
-MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.its_me,MachineState.error,MachineState.start,# 38-3f
+MachineState.START,     3,MachineState.ERROR,MachineState.START,MachineState.START,MachineState.START,MachineState.START,MachineState.START,# 00-07
+MachineState.START,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,# 08-0f
+MachineState.ERROR,MachineState.ERROR,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,# 10-17
+MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,     4,MachineState.ERROR,# 18-1f
+MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ITS_ME,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,# 20-27
+     5,     6,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,# 28-2f
+MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ITS_ME,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,# 30-37
+MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ITS_ME,MachineState.ERROR,MachineState.START,# 38-3f
 )
 
 ISO2022CN_CHAR_LEN_TABLE = (0, 0, 0, 0, 0, 0, 0, 0, 0)
@@ -169,15 +169,15 @@ ISO2022JP_CLS = (
 )
 
 ISO2022JP_ST = (
-MachineState.start,     3,MachineState.error,MachineState.start,MachineState.start,MachineState.start,MachineState.start,MachineState.start,# 00-07
-MachineState.start,MachineState.start,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,# 08-0f
-MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,# 10-17
-MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.error,MachineState.error,# 18-1f
-MachineState.error,     5,MachineState.error,MachineState.error,MachineState.error,     4,MachineState.error,MachineState.error,# 20-27
-MachineState.error,MachineState.error,MachineState.error,     6,MachineState.its_me,MachineState.error,MachineState.its_me,MachineState.error,# 28-2f
-MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.its_me,MachineState.its_me,# 30-37
-MachineState.error,MachineState.error,MachineState.error,MachineState.its_me,MachineState.error,MachineState.error,MachineState.error,MachineState.error,# 38-3f
-MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.its_me,MachineState.error,MachineState.start,MachineState.start,# 40-47
+MachineState.START,     3,MachineState.ERROR,MachineState.START,MachineState.START,MachineState.START,MachineState.START,MachineState.START,# 00-07
+MachineState.START,MachineState.START,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,# 08-0f
+MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,# 10-17
+MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ERROR,MachineState.ERROR,# 18-1f
+MachineState.ERROR,     5,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,     4,MachineState.ERROR,MachineState.ERROR,# 20-27
+MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,     6,MachineState.ITS_ME,MachineState.ERROR,MachineState.ITS_ME,MachineState.ERROR,# 28-2f
+MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ITS_ME,MachineState.ITS_ME,# 30-37
+MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ITS_ME,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,# 38-3f
+MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ITS_ME,MachineState.ERROR,MachineState.START,MachineState.START,# 40-47
 )
 
 ISO2022JP_CHAR_LEN_TABLE = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
@@ -224,11 +224,11 @@ ISO2022KR_CLS = (
 )
 
 ISO2022KR_ST = (
-MachineState.start,     3,MachineState.error,MachineState.start,MachineState.start,MachineState.start,MachineState.error,MachineState.error,# 00-07
-MachineState.error,MachineState.error,MachineState.error,MachineState.error,MachineState.its_me,MachineState.its_me,MachineState.its_me,MachineState.its_me,# 08-0f
-MachineState.its_me,MachineState.its_me,MachineState.error,MachineState.error,MachineState.error,     4,MachineState.error,MachineState.error,# 10-17
-MachineState.error,MachineState.error,MachineState.error,MachineState.error,     5,MachineState.error,MachineState.error,MachineState.error,# 18-1f
-MachineState.error,MachineState.error,MachineState.error,MachineState.its_me,MachineState.start,MachineState.start,MachineState.start,MachineState.start,# 20-27
+MachineState.START,     3,MachineState.ERROR,MachineState.START,MachineState.START,MachineState.START,MachineState.ERROR,MachineState.ERROR,# 00-07
+MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,# 08-0f
+MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,     4,MachineState.ERROR,MachineState.ERROR,# 10-17
+MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,     5,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,# 18-1f
+MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ITS_ME,MachineState.START,MachineState.START,MachineState.START,MachineState.START,# 20-27
 )
 
 ISO2022KR_CHAR_LEN_TABLE = (0, 0, 0, 0, 0, 0)

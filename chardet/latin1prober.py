@@ -116,7 +116,7 @@ class Latin1Prober(CharSetProber):
             freq = Latin1ClassModel[(self._last_char_class * CLASS_NUM)
                                     + char_class]
             if freq == 0:
-                self._state = ProbingState.not_me
+                self._state = ProbingState.NOT_ME
                 break
             self._freq_counter[freq] += 1
             self._last_char_class = char_class
@@ -124,7 +124,7 @@ class Latin1Prober(CharSetProber):
         return self.state
 
     def get_confidence(self):
-        if self.state == ProbingState.not_me:
+        if self.state == ProbingState.NOT_ME:
             return 0.01
 
         total = sum(self._freq_counter)

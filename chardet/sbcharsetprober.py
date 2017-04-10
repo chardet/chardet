@@ -26,18 +26,17 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
+from collections import namedtuple
+
 from .charsetprober import CharSetProber
-from .enums import ProbingState
+from .enums import CharacterCategory, ProbingState, SequenceLikelihood
 
 
 class SingleByteCharSetProber(CharSetProber):
     SAMPLE_SIZE = 64
-    SB_ENOUGH_REL_THRESHOLD = 1024
+    SB_ENOUGH_REL_THRESHOLD = 1024  #  0.25 * SAMPLE_SIZE^2
     POSITIVE_SHORTCUT_THRESHOLD = 0.95
     NEGATIVE_SHORTCUT_THRESHOLD = 0.05
-    SYMBOL_CAT_ORDER = 250
-    NUMBER_OF_SEQ_CAT = 4
-    POSITIVE_CAT = NUMBER_OF_SEQ_CAT - 1
 
     def __init__(self, model, reversed=False, name_prober=None):
         super(SingleByteCharSetProber, self).__init__()
@@ -57,7 +56,7 @@ class SingleByteCharSetProber(CharSetProber):
         super(SingleByteCharSetProber, self).reset()
         # char order of last character
         self._last_order = 255
-        self._seq_counters = [0] * self.NUMBER_OF_SEQ_CAT
+        self._seq_counters = [0] * SequenceLikelihood.get_num_categories()
         self._total_seqs = 0
         self._total_char = 0
         # characters that fall in our sampling range
@@ -77,8 +76,9 @@ class SingleByteCharSetProber(CharSetProber):
             return self.state
         char_to_order_map = self._model['char_to_order_map']
         for i, c in enumerate(byte_str):
+            # Order is in range 1-64 but we want 0-63 here.
             order = char_to_order_map[c] - 1
-            if order < self.SYMBOL_CAT_ORDER:
+            if order < CharacterCategory.SYMBOL:
                 self._total_char += 1
             if order < self.SAMPLE_SIZE:
                 self._freq_char += 1
@@ -93,27 +93,28 @@ class SingleByteCharSetProber(CharSetProber):
                     self._seq_counters[model] += 1
             self._last_order = order
 
-        if self.state == ProbingState.detecting:
+        charset_name = self._model['charset_name']
+        if self.state == ProbingState.DETECTING:
             if self._total_seqs > self.SB_ENOUGH_REL_THRESHOLD:
-                cf = self.get_confidence()
-                if cf > self.POSITIVE_SHORTCUT_THRESHOLD:
+                confidence = self.get_confidence()
+                if confidence > self.POSITIVE_SHORTCUT_THRESHOLD:
                     self.logger.debug('%s confidence = %s, we have a winner',
-                                      self._model['charset_name'], cf)
-                    self._state = ProbingState.found_it
-                elif cf < self.NEGATIVE_SHORTCUT_THRESHOLD:
+                                      charset_name, confidence)
+                    self._state = ProbingState.FOUND_IT
+                elif confidence < self.NEGATIVE_SHORTCUT_THRESHOLD:
                     self.logger.debug('%s confidence = %s, below negative '
-                                      'shortcut threshold %s',
-                                      self._model['charset_name'], cf,
+                                      'shortcut threshhold %s', charset_name,
+                                      confidence,
                                       self.NEGATIVE_SHORTCUT_THRESHOLD)
-                    self._state = ProbingState.not_me
+                    self._state = ProbingState.NOT_ME
 
         return self.state
 
     def get_confidence(self):
         r = 0.01
         if self._total_seqs > 0:
-            r = ((1.0 * self._seq_counters[self.POSITIVE_CAT]) / self._total_seqs
-                 / self._model['typical_positive_ratio'])
+            r = ((1.0 * self._seq_counters[SequenceLikelihood.POSITIVE]) /
+                 self._total_seqs / self._model['typical_positive_ratio'])
             r = r * self._freq_char / self._total_char
             if r >= 1.0:
                 r = 0.99

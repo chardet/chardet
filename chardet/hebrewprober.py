@@ -220,9 +220,9 @@ class HebrewProber(CharSetProber):
         # We automatically filter out all 7-bit characters (replace them with
         # spaces) so the word boundary detection works properly. [MAP]
 
-        if self.state == ProbingState.not_me:
+        if self.state == ProbingState.NOT_ME:
             # Both model probers say it's not them. No reason to continue.
-            return ProbingState.not_me
+            return ProbingState.NOT_ME
 
         byte_str = self.filter_high_byte_only(byte_str)
 
@@ -249,8 +249,8 @@ class HebrewProber(CharSetProber):
             self._prev = cur
 
         # Forever detecting, till the end or until both model probers return
-        # ProbingState.not_me (handled above)
-        return ProbingState.detecting
+        # ProbingState.NOT_ME (handled above)
+        return ProbingState.DETECTING
 
     @property
     def charset_name(self):
@@ -282,7 +282,7 @@ class HebrewProber(CharSetProber):
     @property
     def state(self):
         # Remain active as long as any of the model probers are active.
-        if (self._logical_prober.state == ProbingState.not_me) and \
-           (self._visual_prober.state == ProbingState.not_me):
-            return ProbingState.not_me
-        return ProbingState.detecting
+        if (self._logical_prober.state == ProbingState.NOT_ME) and \
+           (self._visual_prober.state == ProbingState.NOT_ME):
+            return ProbingState.NOT_ME
+        return ProbingState.DETECTING

@@ -9,9 +9,9 @@ class InputState(object):
     """
     This enum represents the different states a universal detector can be in.
     """
-    pure_ascii = 0
-    esc_ascii = 1
-    high_byte = 2
+    PURE_ASCII = 0
+    ESC_ASCII = 1
+    HIGH_BYTE = 2
 
 
 class LanguageFilter(object):
@@ -19,29 +19,58 @@ class LanguageFilter(object):
     This enum represents the different language filters we can apply to a
     ``UniversalDetector``.
     """
-    chinese_simplified = 0x01
-    chinese_traditional = 0x02
-    japanese = 0x04
-    korean = 0x08
-    non_cjk = 0x10
-    all = 0x1F
-    chinese = chinese_simplified | chinese_traditional
-    cjk = chinese | japanese | korean
+    CHINESE_SIMPLIFIED = 0x01
+    CHINESE_TRADITIONAL = 0x02
+    JAPANESE = 0x04
+    KOREAN = 0x08
+    NON_CJK = 0x10
+    ALL = 0x1F
+    CHINESE = CHINESE_SIMPLIFIED | CHINESE_TRADITIONAL
+    CJK = CHINESE | JAPANESE | KOREAN
 
 
 class ProbingState(object):
     """
     This enum represents the different states a prober can be in.
     """
-    detecting = 0
-    found_it = 1
-    not_me = 2
+    DETECTING = 0
+    FOUND_IT = 1
+    NOT_ME = 2
 
 
 class MachineState(object):
     """
     This enum represents the different states a state machine can be in.
     """
-    start = 0
-    error = 1
-    its_me = 2
+    START = 0
+    ERROR = 1
+    ITS_ME = 2
+
+
+class SequenceLikelihood(object):
+    """
+    This enum represents the likelihood of a character following the previous one.
+    """
+    NEGATIVE = 0
+    UNLIKELY = 1
+    LIKELY = 2
+    POSITIVE = 3
+
+    @classmethod
+    def get_num_categories(cls):
+        """:returns: The number of likelihood categories in the enum."""
+        return 4
+
+
+class CharacterCategory(object):
+    """
+    This enum represents the different categories language models for
+    ``SingleByteCharsetProber`` put characters into.
+
+    Anything less than CONTROL is considered a letter.
+    """
+    UNDEFINED = 255
+    LINE_BREAK = 254
+    SYMBOL = 253
+    DIGIT = 252
+    CONTROL = 251
