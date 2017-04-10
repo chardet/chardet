@@ -36,8 +36,11 @@ else:
     bin_type = (bytes, bytearray)
 
 
-def wrap_ord(a):
-    if PY2 and isinstance(a, base_str):
-        return ord(a)
-    else:
-        return a
+if PY2:
+    def wrap_ord(a):
+        if isinstance(a, base_str):
+            return ord(a)
+        else:
+            return a
+else:
+    wrap_ord = int  # leaves the input unchanged
