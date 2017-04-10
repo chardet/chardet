@@ -20,7 +20,6 @@ from hypothesis import given, assume, settings, Verbosity
 import chardet
 
 
-EQUIVALENT_ENCODINGS = {'latin1': 'windows-1252'}
 # TODO: Restore Hungarian encodings (iso-8859-2 and windows-1250) after we
 #       retrain model.
 MISSING_ENCODINGS = set(['iso-8859-2', 'iso-8859-6', 'windows-1250',
