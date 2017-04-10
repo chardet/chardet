@@ -67,6 +67,15 @@ class UniversalDetector(object):
     MINIMUM_THRESHOLD = 0.20
     HIGH_BYTE_DETECTOR = re.compile(b'[\x80-\xFF]')
     ESC_DETECTOR = re.compile(b'(\033|~{)')
+    WIN_BYTE_DETECTOR = re.compile(b'[\x80-\x9F]')
+    ISO_WIN_MAP = {'iso-8859-1': 'Windows-1252',
+                   'iso-8859-2': 'Windows-1250',
+                   'iso-8859-5': 'Windows-1251',
+                   'iso-8859-6': 'Windows-1256',
+                   'iso-8859-7': 'Windows-1253',
+                   'iso-8859-8': 'Windows-1255',
+                   'iso-8859-9': 'Windows-1254',
+                   'iso-8859-13': 'Windows-1257'}
 
     def __init__(self, lang_filter=LanguageFilter.all):
         self._esc_charset_prober = None
@@ -78,6 +87,7 @@ class UniversalDetector(object):
         self._last_char = None
         self.lang_filter = lang_filter
         self.logger = logging.getLogger(__name__)
+        self._has_win_bytes = None
         self.reset()
 
     def reset(self):
@@ -89,6 +99,7 @@ class UniversalDetector(object):
         self.result = {'encoding': None, 'confidence': 0.0}
         self.done = False
         self._got_data = False
+        self._has_win_bytes = False
         self._input_state = InputState.pure_ascii
         self._last_char = b''
         if self._esc_charset_prober:
@@ -187,6 +198,8 @@ class UniversalDetector(object):
                                    'confidence': prober.get_confidence()}
                     self.done = True
                     break
+            if self.WIN_BYTE_DETECTOR.search(byte_str):
+                self._has_win_bytes = True
 
     def close(self):
         """
@@ -208,19 +221,28 @@ class UniversalDetector(object):
             return self.result
 
         if self._input_state == InputState.high_byte:
-            proberConfidence = None
+            prober_confidence = None
             max_prober_confidence = 0.0
             max_prober = None
             for prober in self._charset_probers:
                 if not prober:
                     continue
-                proberConfidence = prober.get_confidence()
-                if proberConfidence > max_prober_confidence:
-                    max_prober_confidence = proberConfidence
+                prober_confidence = prober.get_confidence()
+                if prober_confidence > max_prober_confidence:
+                    max_prober_confidence = prober_confidence
                     max_prober = prober
             if max_prober and (max_prober_confidence > self.MINIMUM_THRESHOLD):
-                self.result = {'encoding': max_prober.charset_name,
-                               'confidence': max_prober.get_confidence()}
+                charset_name = max_prober.charset_name
+                lower_charset_name = max_prober.charset_name.lower()
+                confidence = max_prober.get_confidence()
+                # Use Windows encoding name instead of ISO-8859 if we saw any
+                # extra Windows-specific bytes
+                if lower_charset_name.startswith('iso-8859'):
+                    if self._has_win_bytes:
+                        charset_name = self.ISO_WIN_MAP.get(lower_charset_name,
+                                                            charset_name)
+                self.result = {'encoding': charset_name,
+                               'confidence': confidence}
                 return self.result
 
         if self.logger.getEffectiveLevel() == logging.DEBUG:

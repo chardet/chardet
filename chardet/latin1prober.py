@@ -108,7 +108,7 @@ class Latin1Prober(CharSetProber):
 
     @property
     def charset_name(self):
-        return "windows-1252"
+        return "ISO-8859-1"
 
     def feed(self, byte_str):
         byte_str = self.filter_with_english_letters(byte_str)
