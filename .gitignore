@@ -5,3 +5,4 @@ PKG-INFO
 /dist
 /build
 .hypothesis
+.cache
