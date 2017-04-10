@@ -63287,6 +63287,7 @@ ISO_8859_9_TURKISH_CHAR_TO_ORDER = {
      253: 255,  # 'ı'
      254: 255,  # 'ş'
      255: 255,  # 'ÿ'
+}
 
 ISO_8859_9_TURKISH_MODEL = SingleByteCharSetModel(charset_name='ISO-8859-9',
                                                   language='Turkish',
