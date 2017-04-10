@@ -40,10 +40,13 @@ setup(name='chardet',
                    'Programming Language :: Python :: 3.2',
                    'Programming Language :: Python :: 3.3',
                    'Programming Language :: Python :: 3.4',
+                   'Programming Language :: Python :: 3.5',
+                   'Programming Language :: Python :: 3.6',
                    ("Topic :: Software Development :: Libraries :: Python "
                     "Modules"),
                    "Topic :: Text Processing :: Linguistic"],
       packages=find_packages(),
-      test_requires=['nose', 'hypothesis'],
+      setup_requires=['pytest-runner'],
+      tests_require=['pytest', 'hypothesis'],
       entry_points={'console_scripts':
                     ['chardetect = chardet.cli.chardetect:main']})

@@ -6,6 +6,7 @@ python:
   - 3.3
   - 3.4
   - 3.5
+  - 3.6
   - pypy
 
 cache:
@@ -17,17 +18,12 @@ env:
     - HYPOTHESIS_STORAGE_DIRECTORY=$HOME/.hypothesis
 
 install:
-  - travis_retry pip install python-coveralls nose-cov hypothesis
+  - travis_retry pip install hypothesis pytest-catchlog
   - pip install .
 
 # Run test
 script:
-  - if [[ $TRAVIS_PYTHON_VERSION != 'pypy' ]]; then nosetests -v --with-cov --cov chardet --cov-config .coveragerc --logging-level=DEBUG; fi
-  - if [[ $TRAVIS_PYTHON_VERSION == 'pypy' ]]; then nosetests -v --logging-level=DEBUG; fi
-
-# Calculate coverage
-after_success:
-  - if [[ $TRAVIS_PYTHON_VERSION != 'pypy' ]]; then coveralls --config_file .coveragerc; fi
+  - py.test -vv test.py
 
 notifications:
   email:
