@@ -81,9 +81,15 @@ class SingleByteCharSetProber(CharSetProber):
             return self.state
         char_to_order_map = self._model['char_to_order_map']
         for i, c in enumerate(byte_str):
-            # Order is in range 1-64 but we want 0-63 here.
-            order = char_to_order_map[c] - 1
-            if order < CharacterCategory.SYMBOL:
+            # XXX: Order is in range 1-64, so one would think we want 0-63 here,
+            #      but that leads to 27 more test failures than before.
+            order = char_to_order_map[c]
+            # XXX: This was SYMBOL_CAT_ORDER before, with a value of 250, but
+            #      CharacterCategory.SYMBOL is actually 253, so we use CONTROL
+            #      to make it closer to the original intent. The only difference
+            #      is whether or not we count digits and control characters for
+            #      _total_char purposes.
+            if order < CharacterCategory.CONTROL:
                 self._total_char += 1
             if order < self.SAMPLE_SIZE:
                 self._freq_char += 1
