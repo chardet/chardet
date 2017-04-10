@@ -18,7 +18,9 @@ env:
     - HYPOTHESIS_STORAGE_DIRECTORY=$HOME/.hypothesis
 
 install:
-  - travis_retry pip install hypothesis pytest-catchlog
+  - travis_retry pip install pytest pytest-catchlog
+  # Hypothesis doesn't work on 2.6
+  - if [ $TRAVIS_PYTHON_VERSION != "2.6" ]; then travis_retry pip install hypothesis; fi
   - pip install .
 
 # Run test
