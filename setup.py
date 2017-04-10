@@ -44,6 +44,7 @@ setup(name='chardet',
                     "Modules"),
                    "Topic :: Text Processing :: Linguistic"],
       packages=find_packages(),
-      test_requires=['nose', 'hypothesis'],
+      test_suite='nose.collector',
+      tests_require=['nose', 'hypothesis'],
       entry_points={'console_scripts':
                     ['chardetect = chardet.cli.chardetect:main']})

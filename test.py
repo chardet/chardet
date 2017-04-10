@@ -14,7 +14,7 @@ from os import listdir
 from os.path import dirname, isdir, join, realpath, relpath, splitext
 
 import hypothesis.strategies as st
-from hypothesis import given, assume, Settings, Verbosity
+from hypothesis import given, assume, settings, Verbosity
 from nose.tools import eq_, assert_raises
 
 import chardet
@@ -86,7 +86,7 @@ class JustALengthIssue(Exception):
 @given(st.text(min_size=1), st.sampled_from(['ascii', 'utf-8', 'utf-16',
                                              'utf-32', 'iso-8859-7',
                                              'iso-8859-8', 'windows-1255']),
-       st.randoms(), settings=Settings(max_examples=200))
+       st.randoms(), settings=settings(max_examples=200))
 def test_never_fails_to_detect_if_there_is_a_valid_encoding(txt, enc, rnd):
     try:
         data = txt.encode(enc)
