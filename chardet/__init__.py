@@ -21,12 +21,14 @@ from .universaldetector import UniversalDetector
 from .version import __version__, VERSION
 
 
-def detect(byte_str):
+def detect(byte_str, return_all=False):
     """
     Detect the encoding of the given byte string.
 
     :param byte_str:     The byte sequence to examine.
     :type byte_str:      ``bytes`` or ``bytearray``
+    :param return_all:   Whether to return all the results or only the best
+    :type return_all:    ``bool``
     """
     if not isinstance(byte_str, bytearray):
         if not isinstance(byte_str, bytes):
@@ -36,4 +38,5 @@ def detect(byte_str):
             byte_str = bytearray(byte_str)
     detector = UniversalDetector()
     detector.feed(byte_str)
-    return detector.close()
+    detector.close()
+    return detector.all_results if return_all else detector.result
