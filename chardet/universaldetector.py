@@ -221,23 +221,25 @@ class UniversalDetector(object):
         Stop analyzing the current document and come up with a final
         prediction.
 
-        :returns:  The ``result`` attribute if a prediction was made, otherwise
-                   ``None``.
+        :returns:  The ``result`` attribute, a ``dict`` with the keys
+                   `encoding`, `confidence`, and `language`.
         """
+        # Don't bother with checks if we're already done
         if self.done:
             return self.result
-        if not self._got_data:
-            self.logger.debug('no data received!')
-            return
         self.done = True
 
-        if self._input_state == InputState.PURE_ASCII:
+        if not self._got_data:
+            self.logger.debug('no data received!')
+
+        # Default to ASCII if it is all we've seen so far
+        elif self._input_state == InputState.PURE_ASCII:
             self.result = {'encoding': 'ascii',
                            'confidence': 1.0,
                            'language': ''}
-            return self.result
 
-        if self._input_state == InputState.HIGH_BYTE:
+        # If we have seen non-ASCII, return the best that met MINIMUM_THRESHOLD
+        elif self._input_state == InputState.HIGH_BYTE:
             prober_confidence = None
             max_prober_confidence = 0.0
             max_prober = None
@@ -261,14 +263,16 @@ class UniversalDetector(object):
                 self.result = {'encoding': charset_name,
                                'confidence': confidence,
                                'language': max_prober.language}
-                return self.result
 
+        # Log all prober confidences if none met MINIMUM_THRESHOLD
         if self.logger.getEffectiveLevel() == logging.DEBUG:
-            self.logger.debug('no probers hit minimum threshold')
-            for prober in self._charset_probers[0].probers:
-                if not prober:
-                    continue
-                self.logger.debug('%s %s confidence = %s',
-                                  prober.charset_name,
-                                  prober.language,
-                                  prober.get_confidence())
+            if self.result['encoding'] is None:
+                self.logger.debug('no probers hit minimum threshold')
+                for prober in self._charset_probers[0].probers:
+                    if not prober:
+                        continue
+                    self.logger.debug('%s %s confidence = %s',
+                                      prober.charset_name,
+                                      prober.language,
+                                      prober.get_confidence())
+        return self.result
