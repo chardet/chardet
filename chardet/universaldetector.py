@@ -167,6 +167,7 @@ class UniversalDetector(object):
 
             self._got_data = True
             if self.result['encoding'] is not None:
+                self.all_results = [self.result]
                 self.done = True
                 return
 
@@ -195,6 +196,7 @@ class UniversalDetector(object):
                                self._esc_charset_prober.get_confidence(),
                                'language':
                                self._esc_charset_prober.language}
+                self.all_results = [self.result]
                 self.done = True
         # If we've seen high bytes (i.e., those with values greater than 127),
         # we need to do more complicated checks using all our multi-byte and
@@ -214,6 +216,7 @@ class UniversalDetector(object):
                     self.result = {'encoding': prober.charset_name,
                                    'confidence': prober.get_confidence(),
                                    'language': prober.language}
+                    self.all_results = [self.result]
                     self.done = True
                     break
             if self.WIN_BYTE_DETECTOR.search(byte_str):
@@ -229,7 +232,6 @@ class UniversalDetector(object):
         """
         # Don't bother with checks if we're already done
         if self.done:
-            self.all_results = [self.result]
             return self.result
         self.done = True
 
