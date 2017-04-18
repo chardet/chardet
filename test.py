@@ -127,6 +127,7 @@ if HAVE_HYPOTHESIS:
                     if result and result['encoding'] is not None:
                         raise JustALengthIssue()
 
+
     @given(st.text(min_size=1), st.sampled_from(['ascii', 'utf-8', 'utf-16',
                                                  'utf-32', 'iso-8859-7',
                                                  'iso-8859-8', 'windows-1255']),
@@ -139,7 +140,7 @@ if HAVE_HYPOTHESIS:
             assume(False)
         try:
             result = chardet.detect(data)
-            results = chardet.detect(data, return_all=True)
+            results = chardet.detect_all(data)
             assert result['encoding'] == results[0]['encoding']
         except Exception:
             raise Exception('%s != %s' % (result, results))

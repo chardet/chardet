@@ -82,7 +82,6 @@ class UniversalDetector(object):
         self._esc_charset_prober = None
         self._charset_probers = []
         self.result = None
-        self.all_results = []
         self.done = None
         self._got_data = None
         self._input_state = None
@@ -99,7 +98,6 @@ class UniversalDetector(object):
         call this directly in between analyses of different documents.
         """
         self.result = {'encoding': None, 'confidence': 0.0, 'language': None}
-        self.all_results = [self.result]
         self.done = False
         self._got_data = False
         self._has_win_bytes = False
@@ -167,7 +165,6 @@ class UniversalDetector(object):
 
             self._got_data = True
             if self.result['encoding'] is not None:
-                self.all_results = [self.result]
                 self.done = True
                 return
 
@@ -196,7 +193,6 @@ class UniversalDetector(object):
                                self._esc_charset_prober.get_confidence(),
                                'language':
                                self._esc_charset_prober.language}
-                self.all_results = [self.result]
                 self.done = True
         # If we've seen high bytes (i.e., those with values greater than 127),
         # we need to do more complicated checks using all our multi-byte and
@@ -216,7 +212,6 @@ class UniversalDetector(object):
                     self.result = {'encoding': prober.charset_name,
                                    'confidence': prober.get_confidence(),
                                    'language': prober.language}
-                    self.all_results = [self.result]
                     self.done = True
                     break
             if self.WIN_BYTE_DETECTOR.search(byte_str):
@@ -243,35 +238,32 @@ class UniversalDetector(object):
             self.result = {'encoding': 'ascii',
                            'confidence': 1.0,
                            'language': ''}
-            self.all_results = [self.result]
-            return self.result
 
         # If we have seen non-ASCII, return the best that met MINIMUM_THRESHOLD
-        if self._input_state == InputState.HIGH_BYTE:
-            results = []
+        elif self._input_state == InputState.HIGH_BYTE:
+            prober_confidence = None
+            max_prober_confidence = 0.0
+            max_prober = None
             for prober in self._charset_probers:
                 if not prober:
                     continue
-                confidence = prober.get_confidence()
-                if confidence > self.MINIMUM_THRESHOLD:
-                    charset_name = prober.charset_name
-                    lower_charset_name = prober.charset_name.lower()
-                    # Use Windows encoding name instead of ISO-8859 if we saw any
-                    # extra Windows-specific bytes
-                    if lower_charset_name.startswith('iso-8859'):
-                        if self._has_win_bytes:
-                            charset_name = self.ISO_WIN_MAP.get(lower_charset_name,
-                                                                charset_name)
-                    results.append({
-                        'encoding': charset_name,
-                        'confidence': confidence,
-                        'language': prober.language,
-                    })
-            results = sorted(results, key=lambda r: -r['confidence'])
-            if len(results) > 0:
-                self.all_results = results
-                self.result = results[0]
-                return self.result
+                prober_confidence = prober.get_confidence()
+                if prober_confidence > max_prober_confidence:
+                    max_prober_confidence = prober_confidence
+                    max_prober = prober
+            if max_prober and (max_prober_confidence > self.MINIMUM_THRESHOLD):
+                charset_name = max_prober.charset_name
+                lower_charset_name = max_prober.charset_name.lower()
+                confidence = max_prober.get_confidence()
+                # Use Windows encoding name instead of ISO-8859 if we saw any
+                # extra Windows-specific bytes
+                if lower_charset_name.startswith('iso-8859'):
+                    if self._has_win_bytes:
+                        charset_name = self.ISO_WIN_MAP.get(lower_charset_name,
+                                                            charset_name)
+                self.result = {'encoding': charset_name,
+                               'confidence': confidence,
+                               'language': max_prober.language}
 
         # Log all prober confidences if none met MINIMUM_THRESHOLD
         if self.logger.getEffectiveLevel() == logging.DEBUG:
