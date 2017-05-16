@@ -40,6 +40,7 @@ import codecs
 import logging
 import re
 
+from .charsetgroupprober import CharSetGroupProber
 from .enums import InputState, LanguageFilter, ProbingState
 from .escprober import EscCharSetProber
 from .latin1prober import Latin1Prober
@@ -268,11 +269,18 @@ class UniversalDetector(object):
         if self.logger.getEffectiveLevel() == logging.DEBUG:
             if self.result['encoding'] is None:
                 self.logger.debug('no probers hit minimum threshold')
-                for prober in self._charset_probers[0].probers:
-                    if not prober:
+                for group_prober in self._charset_probers:
+                    if not group_prober:
                         continue
-                    self.logger.debug('%s %s confidence = %s',
-                                      prober.charset_name,
-                                      prober.language,
-                                      prober.get_confidence())
+                    if isinstance(group_prober, CharSetGroupProber):
+                        for prober in group_prober.probers:
+                            self.logger.debug('%s %s confidence = %s',
+                                              prober.charset_name,
+                                              prober.language,
+                                              prober.get_confidence())
+                    else:
+                        self.logger.debug('%s %s confidence = %s',
+                                          prober.charset_name,
+                                          prober.language,
+                                          prober.get_confidence())
         return self.result
