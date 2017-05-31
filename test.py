@@ -53,6 +53,9 @@ def gen_test_params():
             continue
         # Test encoding detection for each file we have of encoding for
         for file_name in listdir(path):
+            ext = splitext(file_name)[1].lower()		
+            if ext not in ['.html', '.txt', '.xml', '.srt']:
+                continue
             full_path = join(path, file_name)
             test_case = full_path, encoding
             if full_path in EXPECTED_FAILURES:

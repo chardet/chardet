@@ -28,15 +28,16 @@ from chardet.enums import ProbingState
 from .charsetprober import CharSetProber
 
 
-# This class simply looks for occurrences of zero bytes, and infers
-# whether the file is UTF16 or UTF32 (low-endian or big-endian)
-# For instance, files looking like ( \0 \0 \0 [nonzero] )+
-# appear to be UTF32LE.  Files looking like ( \0 [notzero] )+ appear
-# may be guessed to be UTF16LE.
-
 class UTF1632Prober(CharSetProber):
+    """
+    This class simply looks for occurrences of zero bytes, and infers
+    whether the file is UTF16 or UTF32 (low-endian or big-endian)
+    For instance, files looking like ( \0 \0 \0 [nonzero] )+
+    appear to be UTF32LE.  Files looking like ( \0 [notzero] )+ appear
+    may be guessed to be UTF16LE.
+    """
 
-    # how many logical characters to scan before feeling confident in our prediction
+    # how many logical characters to scan before feeling confident of prediction
     MIN_CHARS_FOR_DETECTION = 20
     # a fixed constant ratio of expected zeros or non-zeros in modulo-position.
     EXPECTED_RATIO = 0.94
@@ -47,6 +48,13 @@ class UTF1632Prober(CharSetProber):
         self.zeros_at_mod = [0] * 4
         self.nonzeros_at_mod = [0] * 4
         self._state = ProbingState.DETECTING
+        self.quad = [0,0,0,0]
+        self.invalid_utf16be = False
+        self.invalid_utf16le = False
+        self.invalid_utf32be = False
+        self.invalid_utf32le = False
+        self.first_half_surrogate_pair_detected_16be = False
+        self.first_half_surrogate_pair_detected_16le = False
         self.reset()
 
     def reset(self):
@@ -55,6 +63,13 @@ class UTF1632Prober(CharSetProber):
         self.zeros_at_mod = [0] * 4
         self.nonzeros_at_mod = [0] * 4
         self._state = ProbingState.DETECTING
+        self.invalid_utf16be = False
+        self.invalid_utf16le = False
+        self.invalid_utf32be = False
+        self.invalid_utf32le = False
+        self.first_half_surrogate_pair_detected_16be = False
+        self.first_half_surrogate_pair_detected_16le = False
+        self.quad = [0,0,0,0]
 
     @property
     def charset_name(self):
@@ -85,7 +100,9 @@ class UTF1632Prober(CharSetProber):
             self.zeros_at_mod[0] / approx_chars > self.EXPECTED_RATIO and
             self.zeros_at_mod[1] / approx_chars > self.EXPECTED_RATIO and
             self.zeros_at_mod[2] / approx_chars > self.EXPECTED_RATIO and
-            self.nonzeros_at_mod[3] / approx_chars > self.EXPECTED_RATIO)
+            self.nonzeros_at_mod[3] / approx_chars > self.EXPECTED_RATIO and
+            not self.invalid_utf32be)
+
 
     def is_likely_utf32le(self):
         approx_chars = self.approx_32bit_chars()
@@ -93,26 +110,83 @@ class UTF1632Prober(CharSetProber):
             self.nonzeros_at_mod[0] / approx_chars > self.EXPECTED_RATIO and
             self.zeros_at_mod[1] / approx_chars > self.EXPECTED_RATIO and
             self.zeros_at_mod[2] / approx_chars > self.EXPECTED_RATIO and
-            self.zeros_at_mod[3] / approx_chars > self.EXPECTED_RATIO)
+            self.zeros_at_mod[3] / approx_chars > self.EXPECTED_RATIO and
+            not self.invalid_utf32le)
 
     def is_likely_utf16be(self):
         approx_chars = self.approx_16bit_chars()
         return approx_chars >= self.MIN_CHARS_FOR_DETECTION and (
             (self.nonzeros_at_mod[1] + self.nonzeros_at_mod[3]) / approx_chars > self.EXPECTED_RATIO and
-            (self.zeros_at_mod[0] + self.zeros_at_mod[2]) / approx_chars > self.EXPECTED_RATIO)
+            (self.zeros_at_mod[0] + self.zeros_at_mod[2]) / approx_chars > self.EXPECTED_RATIO and
+            not self.invalid_utf16be)
 
     def is_likely_utf16le(self):
         approx_chars = self.approx_16bit_chars()
         return approx_chars >= self.MIN_CHARS_FOR_DETECTION and (
             (self.nonzeros_at_mod[0] + self.nonzeros_at_mod[2]) / approx_chars > self.EXPECTED_RATIO and
-            (self.zeros_at_mod[1] + self.zeros_at_mod[3]) / approx_chars > self.EXPECTED_RATIO)
+            (self.zeros_at_mod[1] + self.zeros_at_mod[3]) / approx_chars > self.EXPECTED_RATIO and
+            not self.invalid_utf16le)
+
+    def validate_utf32_characters(self, quad):
+        """
+        Identify if the quad of bytes is not valid UTF-32.
+
+        UTF-32 is valid in the range 0x00000000 - 0x0010FFFF
+        excluding 0x0000D800 - 0x0000DFFF
+        
+        https://en.wikipedia.org/wiki/UTF-32
+        """
+        if quad[0] != 0 or quad[1] > 0x10 or (
+                quad[0] == 0 and quad[1] == 0 and 0xD8 <= quad[2] <= 0xDF):
+            self.invalid_utf32be = True
+        if quad[3] != 0 or quad[2] > 0x10 or (
+                quad[3] == 0 and quad[2] == 0 and 0xD8 <= quad[1] <= 0xDF):
+            self.invalid_utf32le = True
+
+    def validate_utf16_characters(self, pair):
+        """
+        Identify if the pair of bytes is not valid UTF-16.
+
+        UTF-16 is valid in the range 0x0000 - 0xFFFF excluding 0xD800 - 0xFFFF
+        with an exception for surrogate pairs, which must be in the range
+        0xD800-0xDBFF followed by 0xDC00-0xDFFF
+
+        https://en.wikipedia.org/wiki/UTF-16
+        """
+        if not self.first_half_surrogate_pair_detected_16be:
+            if 0xD8 <= pair[0] <= 0xDB:
+                self.first_half_surrogate_pair_detected_16be = True
+            elif 0xDC <= pair[0] <= 0xDF:
+                self.invalid_utf16be = True
+        else:
+            if 0xDC <= pair[0] <= 0xDF:
+                self.first_half_surrogate_pair_detected_16be = False
+            else:
+                self.invalid_utf16be = True
+
+        if not self.first_half_surrogate_pair_detected_16le:
+            if 0xD8 <= pair[1] <= 0xDB:
+                self.first_half_surrogate_pair_detected_16le = True
+            elif 0xDC <= pair[1] <= 0xDF:
+                self.invalid_utf16le = True
+        else:
+            if 0xDC <= pair[1] <= 0xDF:
+                self.first_half_surrogate_pair_detected_16le = False
+            else:
+                self.invalid_utf16le = True
 
     def feed(self, byte_str):
         for c in byte_str:
+            mod4 = self.position % 4
+            self.quad[mod4] = c
+            if mod4 == 3:
+                self.validate_utf32_characters(self.quad)
+                self.validate_utf16_characters(self.quad[0:2])
+                self.validate_utf16_characters(self.quad[2:4])
             if c == 0:
-                self.zeros_at_mod[self.position % 4] += 1
+                self.zeros_at_mod[mod4] += 1
             else:
-                self.nonzeros_at_mod[self.position % 4] += 1
+                self.nonzeros_at_mod[mod4] += 1
             self.position += 1
         return self.state()
 
@@ -120,7 +194,7 @@ class UTF1632Prober(CharSetProber):
         if self._state in [ProbingState.NOT_ME, ProbingState.FOUND_IT]:
             # terminal, decided states
             return self._state
-        elif self.get_confidence() > 0.95:
+        elif self.get_confidence() > 0.80:
             self._state = ProbingState.FOUND_IT
         elif self.position > 4 * 1024:
             # if we get to 4kb into the file, and we can't conclude it's UTF,
@@ -129,9 +203,9 @@ class UTF1632Prober(CharSetProber):
         return self._state
 
     def get_confidence(self):
-        confidence = 0.99
+        confidence = 0.85
 
         if self.is_likely_utf16le() or self.is_likely_utf16be() or self.is_likely_utf32le() or self.is_likely_utf32be():
             return confidence
         else:
-            return 0.01
+            return 0.00
