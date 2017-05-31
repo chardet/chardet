@@ -109,7 +109,7 @@ class UniversalDetector:
         self._last_char = b""
         if self._esc_charset_prober:
             self._esc_charset_prober.reset()
-        if  self._utf1632_prober:
+        if self._utf1632_prober:
             self._utf1632_prober.reset()
         for prober in self._charset_probers:
             prober.reset()
