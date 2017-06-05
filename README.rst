@@ -48,7 +48,7 @@ Install from `PyPI <https://pypi.python.org/pypi/chardet>`_::
 Documentation
 -------------
 
-For users, docs are now available at http://chardet.readthedocs.org.
+For users, docs are now available at https://chardet.readthedocs.io/.
 
 Command-line Tool
 -----------------
