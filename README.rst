@@ -36,7 +36,7 @@ Detects
    Our ISO-8859-2 and windows-1250 (Hungarian) probers have been temporarily
    disabled until we can retrain the models.
 
-Requires Python 2.6 or later
+Requires Python 2.6, 2.7, or 3.3+.
 
 Installation
 ------------
