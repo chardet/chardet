@@ -6,11 +6,11 @@ Chardet: The Universal Character Encoding Detector
    :target: https://travis-ci.org/chardet/chardet
 
 .. image:: https://img.shields.io/coveralls/chardet/chardet/stable.svg
-    :target: https://coveralls.io/r/chardet/chardet
+   :target: https://coveralls.io/r/chardet/chardet
 
-.. image:: https://img.shields.io/pypi/dm/chardet.svg
+.. image:: https://img.shields.io/pypi/v/chardet.svg
    :target: https://warehouse.python.org/project/chardet/
-   :alt: PyPI downloads
+   :alt: Latest version on PyPI
 
 .. image:: https://img.shields.io/pypi/l/chardet.svg
    :alt: License
