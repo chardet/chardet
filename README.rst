@@ -12,10 +12,6 @@ Chardet: The Universal Character Encoding Detector
    :target: https://warehouse.python.org/project/chardet/
    :alt: PyPI downloads
 
-.. image:: https://img.shields.io/pypi/v/chardet.svg
-   :target: https://warehouse.python.org/project/chardet/
-   :alt: Latest version on PyPI
-
 .. image:: https://img.shields.io/pypi/l/chardet.svg
    :alt: License
 
