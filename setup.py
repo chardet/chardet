@@ -1,7 +1,12 @@
 #!/usr/bin/env python
 import re
+import sys
 
 from setuptools import find_packages, setup
+
+
+needs_pytest = set(['pytest', 'test', 'ptr']).intersection(sys.argv)
+pytest_runner = ['pytest-runner'] if needs_pytest else []
 
 
 # Get version without importing, which avoids dependency issues
@@ -46,7 +51,7 @@ setup(name='chardet',
                     "Modules"),
                    "Topic :: Text Processing :: Linguistic"],
       packages=find_packages(),
-      setup_requires=['pytest-runner'],
+      setup_requires=pytest_runner,
       tests_require=['pytest', 'hypothesis'],
       entry_points={'console_scripts':
                     ['chardetect = chardet.cli.chardetect:main']})

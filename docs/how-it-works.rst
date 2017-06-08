@@ -4,7 +4,7 @@ How it works
 This is a brief guide to navigating the code itself.
 
 First, you should read `A composite approach to language/encoding
-detection <http://www.mozilla.org/projects/intl/UniversalCharsetDetection.html>`__,
+detection <https://www-archive.mozilla.org/projects/intl/UniversalCharsetDetection.html>`__,
 which explains the detection algorithm and how it was derived. This will
 help you later when you stumble across the huge character frequency
 distribution tables like ``big5freq.py`` and language models like
