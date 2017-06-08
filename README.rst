@@ -6,11 +6,7 @@ Chardet: The Universal Character Encoding Detector
    :target: https://travis-ci.org/chardet/chardet
 
 .. image:: https://img.shields.io/coveralls/chardet/chardet/stable.svg
-    :target: https://coveralls.io/r/chardet/chardet
-
-.. image:: https://img.shields.io/pypi/dm/chardet.svg
-   :target: https://warehouse.python.org/project/chardet/
-   :alt: PyPI downloads
+   :target: https://coveralls.io/r/chardet/chardet
 
 .. image:: https://img.shields.io/pypi/v/chardet.svg
    :target: https://warehouse.python.org/project/chardet/
@@ -36,7 +32,7 @@ Detects
    Our ISO-8859-2 and windows-1250 (Hungarian) probers have been temporarily
    disabled until we can retrain the models.
 
-Requires Python 2.6 or later
+Requires Python 2.6, 2.7, or 3.3+.
 
 Installation
 ------------
@@ -48,7 +44,7 @@ Install from `PyPI <https://pypi.python.org/pypi/chardet>`_::
 Documentation
 -------------
 
-For users, docs are now available at http://chardet.readthedocs.org.
+For users, docs are now available at https://chardet.readthedocs.io/.
 
 Command-line Tool
 -----------------
