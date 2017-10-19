@@ -33,6 +33,19 @@ EXPECTED_FAILURES = set(['tests/iso-8859-7-greek/disabled.gr.xml',
                          'tests/iso-8859-9-turkish/subtitle.srt',
                          'tests/iso-8859-9-turkish/wikitop_tr_ISO-8859-9.txt'])
 
+def get_py_impl():
+    """Return what kind of Python this is"""
+    if hasattr(sys, 'pypy_version_info'):
+        pyimpl = 'PyPy'
+    elif sys.platform.startswith('java'):
+        pyimpl = 'Jython'
+    elif sys.platform == 'cli':
+        pyimpl = 'IronPython'
+    else:
+        pyimpl = 'CPython'
+    return pyimpl
+
+
 def get_test_files():
     """Yields filenames to use for timing chardet.detect"""
     base_path = relpath(join(dirname(realpath(__file__)), 'tests'))
@@ -63,8 +76,10 @@ def get_test_files():
 
 
 def benchmark(chardet_mod=chardet, verbose=False, num_iters=10):
-    print('Benchmarking {} {}'.format(chardet_mod.__name__,
-                                      chardet_mod.__version__))
+    print('Benchmarking {} {} on {} {}'.format(chardet_mod.__name__,
+                                               chardet_mod.__version__,
+                                               get_py_impl(),
+                                               sys.version))
     print('-' * 80)
     glocals = dict(globals())
     total_time = 0
@@ -105,20 +120,27 @@ def main():
         description='Times how long it takes to process each file in test set '
             'multiple times.',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-v', '--verbose',
-                        help='Prints out the timing for each individual file.',
-                        action='store_true')
+    parser.add_argument('-c', '--cchardet',
+                        action='store_true',
+                        help='Run benchmarks for cChardet instead of chardet, '
+                             'if it is installed.')
     parser.add_argument('-i', '--iterations',
                         help='Number of times to process each file',
                         type=int,
                         default=10)
+    parser.add_argument('-v', '--verbose',
+                        help='Prints out the timing for each individual file.',
+                        action='store_true')
     args = parser.parse_args()
 
-    benchmark(verbose=args.verbose, num_iters=args.iterations)
+    if args.cchardet and not HAVE_CCHARDET:
+        print('You must pip install cchardet if you want to benchmark it.')
+        sys.exit(1)
 
-    if HAVE_CCHARDET:
-        print('\n')
-        benchmark(cchardet, verbose=args.verbose, num_iters=args.iterations)
+
+    benchmark(chardet_mod=cchardet if args.cchardet else chardet,
+              verbose=args.verbose,
+              num_iters=args.iterations)
 
 
 if __name__ == '__main__':
