@@ -107,8 +107,8 @@ def benchmark(chardet_mod=chardet, verbose=False, num_iters=10):
     print('\nCalls per second for each encoding:')
     for encoding in sorted(encoding_times.keys()):
         print('{}: {}'.format(encoding,
-                              num_iters * encoding_times[encoding] /
-                              encoding_num_files[encoding]))
+                              num_iters * encoding_num_files[encoding] /
+                              encoding_times[encoding]))
 
     print('\nTotal time: {}s ({} calls per second)'.format(total_time,
                                                            num_iters * num_files /
