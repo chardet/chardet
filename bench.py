@@ -9,7 +9,7 @@ from __future__ import print_function, with_statement
 
 import argparse
 import sys
-import timeit
+import time
 from collections import defaultdict
 from io import open
 from os import listdir
@@ -81,7 +81,6 @@ def benchmark(chardet_mod=chardet, verbose=False, num_iters=10):
                                                get_py_impl(),
                                                sys.version))
     print('-' * 80)
-    glocals = dict(globals())
     total_time = 0
     num_files = 0
     encoding_times = defaultdict(float)
@@ -90,10 +89,10 @@ def benchmark(chardet_mod=chardet, verbose=False, num_iters=10):
         num_files += 1
         with open(full_path, 'rb') as f:
             input_bytes = f.read()
-        glocals.update(locals())
-        bench_time = timeit.timeit('chardet_mod.detect(input_bytes)',
-                                   globals=glocals,
-                                   number=num_iters)
+        start = time.time()
+        for _ in range(num_iters):
+            chardet_mod.detect(input_bytes)
+        bench_time = time.time() - start
         if verbose:
             print('Average time for {}: {}s'.format(full_path,
                                                     bench_time / num_iters))
