@@ -1,9 +1,7 @@
 language: python
 sudo: false
 python:
-  - 2.6
   - 2.7
-  - 3.3
   - 3.4
   - 3.5
   - 3.6
@@ -20,8 +18,6 @@ env:
 install:
   - travis_retry pip install --upgrade pip
   - travis_retry pip install --upgrade --upgrade-strategy only-if-needed pytest pytest-catchlog
-  # Hypothesis doesn't work on 2.6
-  - if [ $TRAVIS_PYTHON_VERSION != "2.6" ]; then travis_retry pip install hypothesis; fi
   - pip install .
 
 # Run test
