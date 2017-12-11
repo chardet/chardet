@@ -26,12 +26,12 @@ except:
 
 # TODO: Restore Hungarian encodings (iso-8859-2 and windows-1250) after we
 #       retrain model.
-MISSING_ENCODINGS = set(['iso-8859-2', 'iso-8859-6', 'windows-1250',
-                         'windows-1254', 'windows-1256'])
-EXPECTED_FAILURES = set(['tests/iso-8859-7-greek/disabled.gr.xml',
-                         'tests/iso-8859-9-turkish/divxplanet.com.xml',
-                         'tests/iso-8859-9-turkish/subtitle.srt',
-                         'tests/iso-8859-9-turkish/wikitop_tr_ISO-8859-9.txt'])
+MISSING_ENCODINGS = {'iso-8859-2', 'iso-8859-6', 'windows-1250',
+                     'windows-1254', 'windows-1256'}
+EXPECTED_FAILURES = {'tests/iso-8859-7-greek/disabled.gr.xml',
+                     'tests/iso-8859-9-turkish/divxplanet.com.xml',
+                     'tests/iso-8859-9-turkish/subtitle.srt',
+                     'tests/iso-8859-9-turkish/wikitop_tr_ISO-8859-9.txt'}
 
 def get_py_impl():
     """Return what kind of Python this is"""
