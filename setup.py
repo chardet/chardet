@@ -32,7 +32,7 @@ setup(name='chardet',
       url='https://github.com/chardet/chardet',
       license="LGPL",
       keywords=['encoding', 'i18n', 'xml'],
-      classifiers=["Development Status :: 4 - Beta",
+      classifiers=["Development Status :: 5 - Production/Stable",
                    "Intended Audience :: Developers",
                    ("License :: OSI Approved :: GNU Library or Lesser General"
                     " Public License (LGPL)"),
