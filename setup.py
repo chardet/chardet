@@ -48,6 +48,7 @@ setup(name='chardet',
                     "Modules"),
                    "Topic :: Text Processing :: Linguistic"],
       packages=find_packages(),
+      python_requires=">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*",
       setup_requires=pytest_runner,
       tests_require=['pytest', 'hypothesis'],
       entry_points={'console_scripts':
