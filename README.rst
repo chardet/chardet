@@ -37,7 +37,7 @@ Requires Python 2.7 or 3.4+.
 Installation
 ------------
 
-Install from `PyPI <https://pypi.python.org/pypi/chardet>`_::
+Install from `PyPI <https://pypi.org/project/chardet/>`_::
 
     pip install chardet
 
