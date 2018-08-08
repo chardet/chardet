@@ -4374,7 +4374,7 @@ ISO_8859_5_BULGARIAN_CHAR_TO_ORDER = {
 }
 
 ISO_8859_5_BULGARIAN_MODEL = SingleByteCharSetModel(charset_name='ISO-8859-5',
-                                                    language='Bulgairan',
+                                                    language='Bulgarian',
                                                     char_to_order_map=ISO_8859_5_BULGARIAN_CHAR_TO_ORDER,
                                                     language_model=BULGARIAN_LANG_MODEL,
                                                     typical_positive_ratio=0.969392,
