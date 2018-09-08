@@ -18,6 +18,7 @@ env:
 install:
   - travis_retry pip install --upgrade pip
   - travis_retry pip install --upgrade --upgrade-strategy only-if-needed pytest pytest-catchlog
+  - travis_retry pip install hypothesis
   - pip install .
 
 # Run test
