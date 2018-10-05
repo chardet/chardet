@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import re
+
 import sys
 
 from setuptools import find_packages, setup
@@ -11,6 +11,7 @@ pytest_runner = ['pytest-runner'] if needs_pytest else []
 
 # Get version without importing, which avoids dependency issues
 def get_version():
+    import re
     with open('chardet/version.py') as version_file:
         return re.search(r"""__version__\s+=\s+(['"])(?P<version>.+?)\1""",
                          version_file.read()).group('version')
