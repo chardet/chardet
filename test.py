@@ -108,3 +108,20 @@ def test_detect_all_and_detect_one_always_agree(enc, txt):
     results = chardet.detect_all(data)
     assert result['encoding'] == results[0]['encoding'], \
         '%s != %s[0]' % (result, results)
+
+
+@pytest.mark.xfail
+@pytest.mark.parametrize('factory', [
+    chardet.utf8prober.UTF8Prober,
+])
+@given(txt=st.text(min_size=1))
+def test_probers_never_enter_error_state_for_own_encoding(factory, txt):
+    # Set up prober and encode text to bytes that it can read
+    prober = factory()
+    try:
+        data = txt.encode(prober.charset_name)
+    except UnicodeEncodeError:
+        reject()
+    # Feed in the bytes and check that it does not rule out the encoding.
+    result = prober.feed(data)
+    assert result != chardet.enums.ProbingState.NOT_ME
