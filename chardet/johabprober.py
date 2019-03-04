@@ -1,15 +1,13 @@
 ######################## BEGIN LICENSE BLOCK ########################
-# The Original Code is Mozilla Universal charset detector code.
+# The Original Code is mozilla.org code.
 #
 # The Initial Developer of the Original Code is
 # Netscape Communications Corporation.
-# Portions created by the Initial Developer are Copyright (C) 2001
+# Portions created by the Initial Developer are Copyright (C) 1998
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
 #   Mark Pilgrim - port to Python
-#   Shy Shalom - original C code
-#   Proofpoint, Inc.
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -27,30 +25,23 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-from .big5prober import Big5Prober
-from .charsetgroupprober import CharSetGroupProber
-from .cp949prober import CP949Prober
-from .eucjpprober import EUCJPProber
-from .euckrprober import EUCKRProber
-from .euctwprober import EUCTWProber
-from .gb2312prober import GB2312Prober
-from .johabprober import JOHABProber
-from .sjisprober import SJISProber
-from .utf8prober import UTF8Prober
+from .chardistribution import JOHABDistributionAnalysis
+from .codingstatemachine import CodingStateMachine
+from .mbcharsetprober import MultiByteCharSetProber
+from .mbcssm import JOHAB_SM_MODEL
 
 
-class MBCSGroupProber(CharSetGroupProber):
-    def __init__(self, lang_filter=None):
-        super().__init__(lang_filter=lang_filter)
-        self.probers = [
-            UTF8Prober(),
-            SJISProber(),
-            EUCJPProber(),
-            GB2312Prober(),
-            EUCKRProber(),
-            CP949Prober(),
-            Big5Prober(),
-            EUCTWProber(),
-            JOHABProber(),
-        ]
+class JOHABProber(MultiByteCharSetProber):
+    def __init__(self):
+        super().__init__()
+        self.coding_sm = CodingStateMachine(JOHAB_SM_MODEL)
+        self.distribution_analyzer = JOHABDistributionAnalysis()
         self.reset()
+
+    @property
+    def charset_name(self):
+        return "Johab"
+
+    @property
+    def language(self):
+        return "Korean"
