@@ -221,6 +221,60 @@ EUCKR_SM_MODEL = {'class_table': EUCKR_CLS,
                 'char_len_table': EUCKR_CHAR_LEN_TABLE,
                 'name': 'EUC-KR'}
 
+# JOHAB
+
+JOHAB_CLS = (
+    4,4,4,4,4,4,4,4,  # 00 - 07
+    4,4,4,4,4,4,0,0,  # 08 - 0f
+    4,4,4,4,4,4,4,4,  # 10 - 17
+    4,4,4,0,4,4,4,4,  # 18 - 1f
+    4,4,4,4,4,4,4,4,  # 20 - 27
+    4,4,4,4,4,4,4,4,  # 28 - 2f
+    4,3,3,3,3,3,3,3,  # 30 - 37
+    3,3,3,3,3,3,3,3,  # 38 - 3f
+    3,1,1,1,1,1,1,1,  # 40 - 47
+    1,1,1,1,1,1,1,1,  # 48 - 4f
+    1,1,1,1,1,1,1,1,  # 50 - 57
+    1,1,1,1,1,1,1,1,  # 58 - 5f
+    1,1,1,1,1,1,1,1,  # 60 - 67
+    1,1,1,1,1,1,1,1,  # 68 - 6f
+    1,1,1,1,1,1,1,1,  # 70 - 77
+    1,1,1,1,1,1,1,2,  # 78 - 7f
+    6,6,6,6,8,8,8,8,  # 80 - 87
+    8,8,8,8,8,8,8,8,  # 88 - 8f
+    8,7,7,7,7,7,7,7,  # 90 - 97
+    7,7,7,7,7,7,7,7,  # 98 - 9f
+    7,7,7,7,7,7,7,7,  # a0 - a7
+    7,7,7,7,7,7,7,7,  # a8 - af
+    7,7,7,7,7,7,7,7,  # b0 - b7
+    7,7,7,7,7,7,7,7,  # b8 - bf
+    7,7,7,7,7,7,7,7,  # c0 - c7
+    7,7,7,7,7,7,7,7,  # c8 - cf
+    7,7,7,7,5,5,5,5,  # d0 - d7
+    5,9,9,9,9,9,9,5,  # d8 - df
+    9,9,9,9,9,9,9,9,  # e0 - e7
+    9,9,9,9,9,9,9,9,  # e8 - ef
+    9,9,9,9,9,9,9,9,  # f0 - f7
+    9,9,5,5,5,5,5,0   # f8 - ff
+)
+
+JOHAB_ST = (
+# cls = 0                   1                   2                   3                   4                   5                   6                   7                   8                   9
+    MachineState.ERROR ,MachineState.START ,MachineState.START ,MachineState.START ,MachineState.START ,MachineState.ERROR ,MachineState.ERROR ,3                  ,3                  ,4                  ,  # MachineState.START
+    MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,  # MachineState.ITS_ME
+    MachineState.ERROR ,MachineState.ERROR ,MachineState.ERROR ,MachineState.ERROR ,MachineState.ERROR ,MachineState.ERROR ,MachineState.ERROR ,MachineState.ERROR ,MachineState.ERROR ,MachineState.ERROR ,  # MachineState.ERROR
+    MachineState.ERROR ,MachineState.START ,MachineState.START ,MachineState.ERROR ,MachineState.ERROR ,MachineState.START ,MachineState.START ,MachineState.START ,MachineState.START ,MachineState.START ,  # 3
+    MachineState.ERROR ,MachineState.START ,MachineState.ERROR ,MachineState.START ,MachineState.ERROR ,MachineState.START ,MachineState.ERROR ,MachineState.START ,MachineState.ERROR ,MachineState.START ,  # 4
+)
+
+JOHAB_CHAR_LEN_TABLE = (0, 1, 1, 1, 1, 0, 0, 2, 2, 2)
+
+JOHAB_SM_MODEL = {'class_table': JOHAB_CLS,
+                'class_factor': 10,
+                'state_table': JOHAB_ST,
+                'char_len_table': JOHAB_CHAR_LEN_TABLE,
+                'name': 'Johab'}
+
 # EUC-TW
 
 EUCTW_CLS = (
