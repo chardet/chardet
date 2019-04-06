@@ -59,7 +59,7 @@ def gen_test_params():
             full_path = join(path, file_name)
             test_case = full_path, encoding
             if full_path in EXPECTED_FAILURES:
-                test_case = pytest.mark.xfail(test_case)
+                test_case = pytest.param(*test_case, marks=pytest.mark.xfail)
             yield test_case
 
 
