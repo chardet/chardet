@@ -1,4 +1,5 @@
-*.pyc
+/chardet/version.py
+*.py[oc]
 *.egg-info
 *.swp
 PKG-INFO
