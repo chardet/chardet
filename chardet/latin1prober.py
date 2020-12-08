@@ -143,5 +143,5 @@ class Latin1Prober(CharSetProber):
             - self._seq_counters[SequenceLikelihood.NEGATIVE]
         ) / self._total_seqs
         # lower the confidence of latin1 so that other more accurate detector can take priority.
-        confidence = confidence * 0.805
+        confidence = confidence * 0.73
         return confidence
