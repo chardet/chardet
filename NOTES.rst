@@ -133,8 +133,8 @@ might be useful in the future:
 
 
 .. _BOM by Encoding:
-    https://en.wikipedia.org/wiki/Byte_order_mark#Representations_of_byte_order_marks_by_encoding
+    https://en.wikipedia.org/wiki/Byte_order_mark#Byte_order_marks_by_encoding
 .. _A Composite Approach to Language/Encoding Detection:
     http://www-archive.mozilla.org/projects/intl/UniversalCharsetDetection.html
 .. _What Every Programmer Absolutely...: http://kunststube.net/encoding/
-.. _source: https://mxr.mozilla.org/mozilla/source/intl/chardet/
+.. _source: https://dxr.mozilla.org/mozilla/source/intl/chardet/
