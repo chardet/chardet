@@ -34,7 +34,7 @@ def detect(byte_str):
     if not isinstance(byte_str, bytearray):
         if not isinstance(byte_str, bytes):
             raise TypeError('Expected object of type bytes or bytearray, got: '
-                            '{0}'.format(type(byte_str)))
+                            '{}'.format(type(byte_str)))
         else:
             byte_str = bytearray(byte_str)
     detector = UniversalDetector()
@@ -52,7 +52,7 @@ def detect_all(byte_str):
     if not isinstance(byte_str, bytearray):
         if not isinstance(byte_str, bytes):
             raise TypeError('Expected object of type bytes or bytearray, got: '
-                            '{0}'.format(type(byte_str)))
+                            '{}'.format(type(byte_str)))
         else:
             byte_str = bytearray(byte_str)
 
