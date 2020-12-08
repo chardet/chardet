@@ -280,7 +280,7 @@ class UniversalDetector(object):
                                               prober.get_confidence())
                     else:
                         self.logger.debug('%s %s confidence = %s',
-                                          prober.charset_name,
-                                          prober.language,
-                                          prober.get_confidence())
+                                          group_prober.charset_name,
+                                          group_prober.language,
+                                          group_prober.get_confidence())
         return self.result
