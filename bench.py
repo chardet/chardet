@@ -74,10 +74,8 @@ def get_test_files():
 
 
 def benchmark(chardet_mod=chardet, verbose=False, num_iters=10):
-    print('Benchmarking {} {} on {} {}'.format(chardet_mod.__name__,
-                                               chardet_mod.__version__,
-                                               get_py_impl(),
-                                               sys.version))
+    print(f'Benchmarking {chardet_mod.__name__} {chardet_mod.__version__} '
+          f'on {get_py_impl()} {sys.version}')
     print('-' * 80)
     total_time = 0
     num_files = 0
@@ -102,13 +100,10 @@ def benchmark(chardet_mod=chardet, verbose=False, num_iters=10):
 
     print('\nCalls per second for each encoding:')
     for encoding in sorted(encoding_times.keys()):
-        print('{}: {}'.format(encoding,
-                              num_iters * encoding_num_files[encoding] /
-                              encoding_times[encoding]))
-
-    print('\nTotal time: {}s ({} calls per second)'.format(total_time,
-                                                           num_iters * num_files /
-                                                           total_time))
+        calls_per_sec = num_iters * encoding_num_files[encoding] / encoding_times[encoding]
+        print(f'{encoding}: {calls_per_sec}')
+    calls_per_sec = num_iters * num_files / total_time
+    print(f'\nTotal time: {total_time}s ({calls_per_sec} calls per second)')
 
 
 def main():

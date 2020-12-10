@@ -40,8 +40,7 @@ def description_of(lines, name='stdin'):
     u.close()
     result = u.result
     if result['encoding']:
-        return '{}: {} with confidence {}'.format(name, result['encoding'],
-                                                     result['confidence'])
+        return f'{name}: {result["encoding"]} with confidence {result["confidence"]}'
     else:
         return f'{name}: no result'
 

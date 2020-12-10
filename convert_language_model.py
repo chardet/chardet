@@ -98,9 +98,8 @@ def print_language_model(var_name, language_model, output_file, char_ranks):
         for second_char, likelihood in sorted(sub_dict.items()):
             if second_char not in char_ranks:
                 continue
-            print('        {!r}: {!r},  # {!r}'.format(char_ranks[second_char],
-                                                       likelihood,
-                                                       second_char),
+            print(f'        {char_ranks[second_char]!r}: {likelihood!r},  # '
+                  f'{second_char!r}',
                   file=output_file)
         print('    },', file=output_file)
     print('}\n', file=output_file)
@@ -112,16 +111,15 @@ def convert_models_for_lang(language):
     language = language.title()
     lang_metadata = LANGUAGES.get(language)
     if not lang_metadata:
-        raise ValueError('Unknown language: {}. If you are adding a model for a'
+        raise ValueError(f'Unknown language: {language}. If you are adding a model for a'
                          ' new language, you must first update metadata/'
-                         'languages.py'.format(language))
+                         'languages.py')
     lang_mod_name = f'lang{language.lower()}model'
     if not os.path.exists(os.path.join('chardet', lang_mod_name + '.py')):
         print(f'Skipping {language} because it does not have an old model.')
         return
     lang_mod = getattr(chardet, lang_mod_name)
-    print('\n{}\n----------------------------------------------------------------'
-          .format(language))
+    print(f'\n{language}\n----------------------------------------------------------------')
     print(f'Keep ASCII Letters: {lang_metadata.use_ascii}')
     print(f'Alphabet: {lang_metadata.alphabet}')
 
