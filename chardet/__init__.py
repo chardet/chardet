@@ -24,12 +24,22 @@ from .version import __version__, VERSION
 __all__ = ['UniversalDetector', 'detect', 'detect_all', '__version__', 'VERSION']
 
 
-def detect(byte_str):
+def detect(byte_str, chunk_size=30000):
     """
     Detect the encoding of the given byte string.
 
     :param byte_str:     The byte sequence to examine.
     :type byte_str:      ``bytes`` or ``bytearray``
+    :param chunk_size:   Number of bytes to feed into underlying
+                         UniversalDetector at a time. This can vastly
+                         speed up processing, but there is an accuracy
+                         trade-off: if there is only one illegal
+                         character in the input string and it is not in
+                         the first chunk we process, the detector may
+                         incorrectly decide that some other encoding is
+                         definitely correct, and it will short-circuit
+                         the detection loop.
+    :type chunk_size:    ``int`` or ``None``
     """
     if not isinstance(byte_str, bytearray):
         if not isinstance(byte_str, bytes):
@@ -38,16 +48,29 @@ def detect(byte_str):
         else:
             byte_str = bytearray(byte_str)
     detector = UniversalDetector()
-    detector.feed(byte_str)
+    for i in range(len(byte_str) // chunk_size + 1):
+        detector.feed(byte_str[i * chunk_size: (i + 1) * chunk_size])
+        if detector.done:
+            break
     return detector.close()
 
 
-def detect_all(byte_str):
+def detect_all(byte_str, chunk_size=30000):
     """
     Detect all the possible encodings of the given byte string.
 
     :param byte_str:     The byte sequence to examine.
     :type byte_str:      ``bytes`` or ``bytearray``
+    :param chunk_size:   Number of bytes to feed into underlying
+                         UniversalDetector at a time. This can vastly
+                         speed up processing, but there is an accuracy
+                         trade-off: if there is only one illegal
+                         character in the input string and it is not in
+                         the first chunk we process, the detector may
+                         incorrectly decide that some other encoding is
+                         definitely correct, and it will short-circuit
+                         the detection loop.
+    :type chunk_size:    ``int`` or ``None``
     """
     if not isinstance(byte_str, bytearray):
         if not isinstance(byte_str, bytes):
@@ -57,7 +80,10 @@ def detect_all(byte_str):
             byte_str = bytearray(byte_str)
 
     detector = UniversalDetector()
-    detector.feed(byte_str)
+    for i in range(len(byte_str) // chunk_size + 1):
+        detector.feed(byte_str[i * chunk_size: (i + 1) * chunk_size])
+        if detector.done:
+            break
     detector.close()
 
     if detector._input_state == InputState.HIGH_BYTE:
