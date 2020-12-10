@@ -94,8 +94,7 @@ def benchmark(chardet_mod=chardet, verbose=False, num_iters=10):
             chardet_mod.detect(input_bytes)
         bench_time = time.time() - start
         if verbose:
-            print('Average time for {}: {}s'.format(full_path,
-                                                    bench_time / num_iters))
+            print(f'Average time for {full_path}: {bench_time / num_iters}s')
         else:
             print('.', end='')
             sys.stdout.flush()

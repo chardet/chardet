@@ -47,7 +47,7 @@ def description_of(lines, name='stdin'):
         return '{}: {} with confidence {}'.format(name, result['encoding'],
                                                      result['confidence'])
     else:
-        return '{}: no result'.format(name)
+        return f'{name}: no result'
 
 
 def main(argv=None):
@@ -68,7 +68,7 @@ def main(argv=None):
                         type=argparse.FileType('rb'), nargs='*',
                         default=[sys.stdin if PY2 else sys.stdin.buffer])
     parser.add_argument('--version', action='version',
-                        version='%(prog)s {}'.format(__version__))
+                        version=f'%(prog)s {__version__}')
     args = parser.parse_args(argv)
 
     for f in args.input:

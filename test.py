@@ -143,4 +143,4 @@ if HAVE_HYPOTHESIS:
             results = chardet.detect_all(data)
             assert result['encoding'] == results[0]['encoding']
         except Exception:
-            raise Exception('%s != %s' % (result, results))
+            raise Exception(f'{result} != {results}')
