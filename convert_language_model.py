@@ -33,7 +33,6 @@ from string import ascii_letters
 
 import chardet
 from chardet import __version__
-from chardet.compat import iteritems
 from chardet.metadata.languages import LANGUAGES
 from chardet.sbcharsetprober import SingleByteCharSetModel
 
@@ -72,7 +71,7 @@ def convert_sbcs_model(old_model, alphabet):
 
 def print_char_to_order(var_name, order_map, charset_name, output_file):
     print(f'{var_name} = {{', file=output_file)
-    for char, order in sorted(iteritems(order_map)):
+    for char, order in sorted(order_map.items()):
         char_bytes = bytes(bytearray((char,)))
         try:
             unicode_char = char_bytes.decode(charset_name)
@@ -90,13 +89,13 @@ def print_language_model(var_name, language_model, output_file, char_ranks):
           '# 0: Negative\n',
           file=output_file)
     print(f'{var_name} = {{', file=output_file)
-    for first_char, sub_dict in sorted(iteritems(language_model)):
+    for first_char, sub_dict in sorted(language_model.items()):
         # Skip empty sub_dicts
         if not sub_dict or first_char not in char_ranks:
             continue
         print(f'    {char_ranks[first_char]!r}: {{  # {first_char!r}',
               file=output_file)
-        for second_char, likelihood in sorted(iteritems(sub_dict)):
+        for second_char, likelihood in sorted(sub_dict.items()):
             if second_char not in char_ranks:
                 continue
             print('        {!r}: {!r},  # {!r}'.format(char_ranks[second_char],
@@ -143,7 +142,7 @@ def convert_models_for_lang(language):
         # Since we don't know which charsets have which characters, we have to
         # try to reconstruct char_ranks (for letters only, since that's all
         # the old language models contain)
-        for byte_hex, order in iteritems(charset_models[charset_name].char_to_order_map):
+        for byte_hex, order in charset_models[charset_name].char_to_order_map.items():
             # order 64 was basically ignored before because of the off by one
             # error, but it's hard to know if training took that into account
             if order > 64:
@@ -195,7 +194,7 @@ def convert_models_for_lang(language):
               '# 251: Control characters\n\n'
               '# Character Mapping Table(s):',
               file=output_file)
-        for charset_name, sbcs_model in iteritems(charset_models):
+        for charset_name, sbcs_model in charset_models.items():
             normal_name = normalize_name(charset_name)
             char_to_order_name = f'{normal_name}_{upper_lang}_CHAR_TO_ORDER'
             print_char_to_order(char_to_order_name, sbcs_model.char_to_order_map,

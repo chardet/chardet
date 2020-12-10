@@ -16,9 +16,8 @@ If no paths are provided, it takes its input from stdin.
 import argparse
 import sys
 
-from chardet import __version__
-from chardet.compat import PY2
-from chardet.universaldetector import UniversalDetector
+from .. import __version__
+from ..universaldetector import UniversalDetector
 
 
 def description_of(lines, name='stdin'):
@@ -40,8 +39,6 @@ def description_of(lines, name='stdin'):
             break
     u.close()
     result = u.result
-    if PY2:
-        name = name.decode(sys.getfilesystemencoding(), 'ignore')
     if result['encoding']:
         return '{}: {} with confidence {}'.format(name, result['encoding'],
                                                      result['confidence'])
@@ -65,7 +62,7 @@ def main(argv=None):
                         help='File whose encoding we would like to determine. \
                               (default: stdin)',
                         type=argparse.FileType('rb'), nargs='*',
-                        default=[sys.stdin if PY2 else sys.stdin.buffer])
+                        default=[sys.stdin.buffer])
     parser.add_argument('--version', action='version',
                         version=f'%(prog)s {__version__}')
     args = parser.parse_args(argv)
