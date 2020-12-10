@@ -2,7 +2,6 @@
 
 from chardet.sbcharsetprober import SingleByteCharSetModel
 
-
 # 3: Positive
 # 2: Likely
 # 1: Unlikely

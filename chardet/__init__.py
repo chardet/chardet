@@ -16,10 +16,9 @@
 ######################### END LICENSE BLOCK #########################
 
 
-from .universaldetector import UniversalDetector
 from .enums import InputState
-from .version import __version__, VERSION
-
+from .universaldetector import UniversalDetector
+from .version import VERSION, __version__
 
 __all__ = ["UniversalDetector", "detect", "detect_all", "__version__", "VERSION"]
 

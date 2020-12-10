@@ -25,25 +25,25 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-from .euctwfreq import (
-    EUCTW_CHAR_TO_FREQ_ORDER,
-    EUCTW_TABLE_SIZE,
-    EUCTW_TYPICAL_DISTRIBUTION_RATIO,
+from .big5freq import (
+    BIG5_CHAR_TO_FREQ_ORDER,
+    BIG5_TABLE_SIZE,
+    BIG5_TYPICAL_DISTRIBUTION_RATIO,
 )
 from .euckrfreq import (
     EUCKR_CHAR_TO_FREQ_ORDER,
     EUCKR_TABLE_SIZE,
     EUCKR_TYPICAL_DISTRIBUTION_RATIO,
 )
+from .euctwfreq import (
+    EUCTW_CHAR_TO_FREQ_ORDER,
+    EUCTW_TABLE_SIZE,
+    EUCTW_TYPICAL_DISTRIBUTION_RATIO,
+)
 from .gb2312freq import (
     GB2312_CHAR_TO_FREQ_ORDER,
     GB2312_TABLE_SIZE,
     GB2312_TYPICAL_DISTRIBUTION_RATIO,
-)
-from .big5freq import (
-    BIG5_CHAR_TO_FREQ_ORDER,
-    BIG5_TABLE_SIZE,
-    BIG5_TYPICAL_DISTRIBUTION_RATIO,
 )
 from .jisfreq import (
     JIS_CHAR_TO_FREQ_ORDER,

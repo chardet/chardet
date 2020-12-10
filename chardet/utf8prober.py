@@ -26,8 +26,8 @@
 ######################### END LICENSE BLOCK #########################
 
 from .charsetprober import CharSetProber
-from .enums import ProbingState, MachineState
 from .codingstatemachine import CodingStateMachine
+from .enums import MachineState, ProbingState
 from .mbcssm import UTF8_SM_MODEL
 
 

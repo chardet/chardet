@@ -25,11 +25,11 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-from .enums import ProbingState, MachineState
-from .mbcharsetprober import MultiByteCharSetProber
-from .codingstatemachine import CodingStateMachine
 from .chardistribution import EUCJPDistributionAnalysis
+from .codingstatemachine import CodingStateMachine
+from .enums import MachineState, ProbingState
 from .jpcntx import EUCJPContextAnalysis
+from .mbcharsetprober import MultiByteCharSetProber
 from .mbcssm import EUCJP_SM_MODEL
 
 

@@ -31,7 +31,6 @@ from collections import namedtuple
 from .charsetprober import CharSetProber
 from .enums import CharacterCategory, ProbingState, SequenceLikelihood
 
-
 SingleByteCharSetModel = namedtuple(
     "SingleByteCharSetModel",
     [

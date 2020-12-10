@@ -28,7 +28,7 @@
 ######################### END LICENSE BLOCK #########################
 
 from .charsetprober import CharSetProber
-from .enums import ProbingState, MachineState
+from .enums import MachineState, ProbingState
 
 
 class MultiByteCharSetProber(CharSetProber):

@@ -28,14 +28,13 @@ Convert old style SBCS model to new
 
 import os
 import sys
-from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
 from string import ascii_letters
 
 import chardet
 from chardet import __version__
 from chardet.metadata.languages import LANGUAGES
 from chardet.sbcharsetprober import SingleByteCharSetModel
-
 
 # Turn ascii_letters into a set to make other ops easier
 ascii_letters = set(ascii_letters)

@@ -8,7 +8,6 @@ This code is based on the language metadata from the uchardet project.
 
 from string import ascii_letters
 
-
 # TODO: Add Ukranian (KOI8-U)
 
 

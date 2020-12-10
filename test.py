@@ -13,7 +13,7 @@ from os.path import dirname, isdir, join, realpath, relpath, splitext
 
 try:
     import hypothesis.strategies as st
-    from hypothesis import given, assume, settings, Verbosity
+    from hypothesis import Verbosity, assume, given, settings
 
     HAVE_HYPOTHESIS = True
 except ImportError:
@@ -21,7 +21,6 @@ except ImportError:
 import pytest
 
 import chardet
-
 
 # TODO: Restore Hungarian encodings (iso-8859-2 and windows-1250) after we
 #       retrain model.

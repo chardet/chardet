@@ -25,12 +25,12 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-from .mbcharsetprober import MultiByteCharSetProber
-from .codingstatemachine import CodingStateMachine
 from .chardistribution import SJISDistributionAnalysis
+from .codingstatemachine import CodingStateMachine
+from .enums import MachineState, ProbingState
 from .jpcntx import SJISContextAnalysis
+from .mbcharsetprober import MultiByteCharSetProber
 from .mbcssm import SJIS_SM_MODEL
-from .enums import ProbingState, MachineState
 
 
 class SJISProber(MultiByteCharSetProber):
