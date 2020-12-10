@@ -20,7 +20,7 @@ from .. import __version__
 from ..universaldetector import UniversalDetector
 
 
-def description_of(lines, name='stdin'):
+def description_of(lines, name="stdin"):
     """
     Return a string describing the probable encoding of a file or
     list of strings.
@@ -39,10 +39,10 @@ def description_of(lines, name='stdin'):
             break
     u.close()
     result = u.result
-    if result['encoding']:
+    if result["encoding"]:
         return f'{name}: {result["encoding"]} with confidence {result["confidence"]}'
     else:
-        return f'{name}: no result'
+        return f"{name}: no result"
 
 
 def main(argv=None):
@@ -56,24 +56,32 @@ def main(argv=None):
     # Get command line arguments
     parser = argparse.ArgumentParser(
         description="Takes one or more file paths and reports their detected \
-                     encodings")
-    parser.add_argument('input',
-                        help='File whose encoding we would like to determine. \
-                              (default: stdin)',
-                        type=argparse.FileType('rb'), nargs='*',
-                        default=[sys.stdin.buffer])
-    parser.add_argument('--version', action='version',
-                        version=f'%(prog)s {__version__}')
+                     encodings"
+    )
+    parser.add_argument(
+        "input",
+        help="File whose encoding we would like to determine. \
+                              (default: stdin)",
+        type=argparse.FileType("rb"),
+        nargs="*",
+        default=[sys.stdin.buffer],
+    )
+    parser.add_argument(
+        "--version", action="version", version=f"%(prog)s {__version__}"
+    )
     args = parser.parse_args(argv)
 
     for f in args.input:
         if f.isatty():
-            print("You are running chardetect interactively. Press " +
-                  "CTRL-D twice at the start of a blank line to signal the " +
-                  "end of your input. If you want help, run chardetect " +
-                  "--help\n", file=sys.stderr)
+            print(
+                "You are running chardetect interactively. Press "
+                + "CTRL-D twice at the start of a blank line to signal the "
+                + "end of your input. If you want help, run chardetect "
+                + "--help\n",
+                file=sys.stderr,
+            )
         print(description_of(f, f.name))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
