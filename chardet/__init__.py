@@ -74,7 +74,8 @@ def detect_all(byte_str):
                                                             charset_name)
                 results.append({
                     'encoding': charset_name,
-                    'confidence': prober.get_confidence()
+                    'confidence': prober.get_confidence(),
+                    'language': prober.language,
                 })
         if len(results) > 0:
             return sorted(results, key=lambda result: -result['confidence'])
