@@ -40,7 +40,7 @@ class EscCharSetProber(CharSetProber):
     """
 
     def __init__(self, lang_filter=None):
-        super(EscCharSetProber, self).__init__(lang_filter=lang_filter)
+        super().__init__(lang_filter=lang_filter)
         self.coding_sm = []
         if self.lang_filter & LanguageFilter.CHINESE_SIMPLIFIED:
             self.coding_sm.append(CodingStateMachine(HZ_SM_MODEL))
@@ -56,7 +56,7 @@ class EscCharSetProber(CharSetProber):
         self.reset()
 
     def reset(self):
-        super(EscCharSetProber, self).reset()
+        super().reset()
         for coding_sm in self.coding_sm:
             if not coding_sm:
                 continue

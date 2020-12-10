@@ -30,7 +30,7 @@ import logging
 from .enums import MachineState
 
 
-class CodingStateMachine(object):
+class CodingStateMachine:
     """
     A state machine to verify a byte sequence for a particular encoding. For
     each byte the detector receives, it will feed that byte to every active

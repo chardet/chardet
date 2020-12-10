@@ -48,7 +48,7 @@ from .mbcsgroupprober import MBCSGroupProber
 from .sbcsgroupprober import SBCSGroupProber
 
 
-class UniversalDetector(object):
+class UniversalDetector:
     """
     The ``UniversalDetector`` class underlies the ``chardet.detect`` function
     and coordinates all of the different charset probers.

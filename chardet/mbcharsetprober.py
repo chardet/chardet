@@ -37,13 +37,13 @@ class MultiByteCharSetProber(CharSetProber):
     """
 
     def __init__(self, lang_filter=None):
-        super(MultiByteCharSetProber, self).__init__(lang_filter=lang_filter)
+        super().__init__(lang_filter=lang_filter)
         self.distribution_analyzer = None
         self.coding_sm = None
         self._last_char = [0, 0]
 
     def reset(self):
-        super(MultiByteCharSetProber, self).reset()
+        super().reset()
         if self.coding_sm:
             self.coding_sm.reset()
         if self.distribution_analyzer:

@@ -49,7 +49,7 @@ class SingleByteCharSetProber(CharSetProber):
     NEGATIVE_SHORTCUT_THRESHOLD = 0.05
 
     def __init__(self, model, reversed=False, name_prober=None):
-        super(SingleByteCharSetProber, self).__init__()
+        super().__init__()
         self._model = model
         # TRUE if we need to reverse every pair in the model lookup
         self._reversed = reversed
@@ -63,7 +63,7 @@ class SingleByteCharSetProber(CharSetProber):
         self.reset()
 
     def reset(self):
-        super(SingleByteCharSetProber, self).reset()
+        super().reset()
         # char order of last character
         self._last_order = 255
         self._seq_counters = [0] * SequenceLikelihood.get_num_categories()

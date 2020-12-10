@@ -31,13 +31,13 @@ from .charsetprober import CharSetProber
 
 class CharSetGroupProber(CharSetProber):
     def __init__(self, lang_filter=None):
-        super(CharSetGroupProber, self).__init__(lang_filter=lang_filter)
+        super().__init__(lang_filter=lang_filter)
         self._active_num = 0
         self.probers = []
         self._best_guess_prober = None
 
     def reset(self):
-        super(CharSetGroupProber, self).reset()
+        super().reset()
         self._active_num = 0
         for prober in self.probers:
             if prober:

@@ -35,14 +35,14 @@ from .enums import ProbingState, MachineState
 
 class SJISProber(MultiByteCharSetProber):
     def __init__(self):
-        super(SJISProber, self).__init__()
+        super().__init__()
         self.coding_sm = CodingStateMachine(SJIS_SM_MODEL)
         self.distribution_analyzer = SJISDistributionAnalysis()
         self.context_analyzer = SJISContextAnalysis()
         self.reset()
 
     def reset(self):
-        super(SJISProber, self).reset()
+        super().reset()
         self.context_analyzer.reset()
 
     @property

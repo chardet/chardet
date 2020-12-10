@@ -32,7 +32,7 @@ import re
 from .enums import ProbingState
 
 
-class CharSetProber(object):
+class CharSetProber:
 
     SHORTCUT_THRESHOLD = 0.95
 

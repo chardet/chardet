@@ -5,7 +5,7 @@ All of the Enums that are used throughout the chardet package.
 """
 
 
-class InputState(object):
+class InputState:
     """
     This enum represents the different states a universal detector can be in.
     """
@@ -14,7 +14,7 @@ class InputState(object):
     HIGH_BYTE = 2
 
 
-class LanguageFilter(object):
+class LanguageFilter:
     """
     This enum represents the different language filters we can apply to a
     ``UniversalDetector``.
@@ -29,7 +29,7 @@ class LanguageFilter(object):
     CJK = CHINESE | JAPANESE | KOREAN
 
 
-class ProbingState(object):
+class ProbingState:
     """
     This enum represents the different states a prober can be in.
     """
@@ -38,7 +38,7 @@ class ProbingState(object):
     NOT_ME = 2
 
 
-class MachineState(object):
+class MachineState:
     """
     This enum represents the different states a state machine can be in.
     """
@@ -47,7 +47,7 @@ class MachineState(object):
     ITS_ME = 2
 
 
-class SequenceLikelihood(object):
+class SequenceLikelihood:
     """
     This enum represents the likelihood of a character following the previous one.
     """
@@ -62,7 +62,7 @@ class SequenceLikelihood(object):
         return 4
 
 
-class CharacterCategory(object):
+class CharacterCategory:
     """
     This enum represents the different categories language models for
     ``SingleByteCharsetProber`` put characters into.

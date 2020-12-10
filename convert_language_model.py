@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 ######################## BEGIN LICENSE BLOCK ########################
 # Contributor(s):
@@ -26,12 +25,10 @@
 """
 Convert old style SBCS model to new
 """
-from __future__ import absolute_import, print_function
 
 import os
 import sys
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-from io import open
 from string import ascii_letters
 
 import chardet

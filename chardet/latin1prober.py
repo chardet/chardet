@@ -95,7 +95,7 @@ Latin1ClassModel = (
 
 class Latin1Prober(CharSetProber):
     def __init__(self):
-        super(Latin1Prober, self).__init__()
+        super().__init__()
         self._last_char_class = None
         self._freq_counter = None
         self.reset()
