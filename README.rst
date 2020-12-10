@@ -32,7 +32,7 @@ Detects
    Our ISO-8859-2 and windows-1250 (Hungarian) probers have been temporarily
    disabled until we can retrain the models.
 
-Requires Python 2.7 or 3.5+.
+Requires Python 3.6+.
 
 Installation
 ------------
