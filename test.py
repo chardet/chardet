@@ -26,12 +26,12 @@ import chardet
 
 # TODO: Restore Hungarian encodings (iso-8859-2 and windows-1250) after we
 #       retrain model.
-MISSING_ENCODINGS = set(['iso-8859-2', 'iso-8859-6', 'windows-1250',
-                         'windows-1254', 'windows-1256'])
-EXPECTED_FAILURES = set(['tests/iso-8859-7-greek/disabled.gr.xml',
-                         'tests/iso-8859-9-turkish/divxplanet.com.xml',
-                         'tests/iso-8859-9-turkish/subtitle.srt',
-                         'tests/iso-8859-9-turkish/wikitop_tr_ISO-8859-9.txt'])
+MISSING_ENCODINGS = {'iso-8859-2', 'iso-8859-6', 'windows-1250',
+                     'windows-1254', 'windows-1256'}
+EXPECTED_FAILURES = {'tests/iso-8859-7-greek/disabled.gr.xml',
+                     'tests/iso-8859-9-turkish/divxplanet.com.xml',
+                     'tests/iso-8859-9-turkish/subtitle.srt',
+                     'tests/iso-8859-9-turkish/wikitop_tr_ISO-8859-9.txt'}
 
 def gen_test_params():
     """Yields tuples of paths and encodings to use for test_encoding_detection"""
@@ -59,7 +59,7 @@ def gen_test_params():
             full_path = join(path, file_name)
             test_case = full_path, encoding
             if full_path in EXPECTED_FAILURES:
-                test_case = pytest.mark.xfail(test_case)
+                test_case = pytest.param(*test_case, marks=pytest.mark.xfail)
             yield test_case
 
 
@@ -126,3 +126,21 @@ if HAVE_HYPOTHESIS:
                     result = chardet.detect(extended)
                     if result and result['encoding'] is not None:
                         raise JustALengthIssue()
+
+
+    @given(st.text(min_size=1), st.sampled_from(['ascii', 'utf-8', 'utf-16',
+                                                 'utf-32', 'iso-8859-7',
+                                                 'iso-8859-8', 'windows-1255']),
+           st.randoms())
+    @settings(max_examples=200)
+    def test_detect_all_and_detect_one_should_agree(txt, enc, rnd):
+        try:
+            data = txt.encode(enc)
+        except UnicodeEncodeError:
+            assume(False)
+        try:
+            result = chardet.detect(data)
+            results = chardet.detect_all(data)
+            assert result['encoding'] == results[0]['encoding']
+        except Exception:
+            raise Exception('%s != %s' % (result, results))

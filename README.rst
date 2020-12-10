@@ -32,12 +32,12 @@ Detects
    Our ISO-8859-2 and windows-1250 (Hungarian) probers have been temporarily
    disabled until we can retrain the models.
 
-Requires Python 2.6, 2.7, or 3.3+.
+Requires Python 2.7 or 3.5+.
 
 Installation
 ------------
 
-Install from `PyPI <https://pypi.python.org/pypi/chardet>`_::
+Install from `PyPI <https://pypi.org/project/chardet/>`_::
 
     pip install chardet
 
@@ -63,6 +63,6 @@ This is a continuation of Mark Pilgrim's excellent chardet. Previously, two
 versions needed to be maintained: one that supported python 2.x and one that
 supported python 3.x.  We've recently merged with `Ian Cordasco <https://github.com/sigmavirus24>`_'s
 `charade <https://github.com/sigmavirus24/charade>`_ fork, so now we have one
-coherent version that works for Python 2.6+.
+coherent version that works for Python 2.7+ and 3.4+.
 
 :maintainer: Dan Blanchard
