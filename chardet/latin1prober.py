@@ -41,7 +41,7 @@ ASV = 6  # accent small vowel
 ASO = 7  # accent small other
 CLASS_NUM = 8  # total classes
 
-#fmt: off
+# fmt: off
 Latin1_CharToClass = (
     OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   # 00 - 07
     OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   # 08 - 0F
@@ -92,7 +92,8 @@ Latin1ClassModel = (
     0,  3,  1,  3,  1,  1,  1,  3,  # ASV
     0,  3,  1,  3,  1,  1,  3,  3,  # ASO
 )
-#fmt: on
+# fmt: on
+
 
 class Latin1Prober(CharSetProber):
     def __init__(self):
@@ -118,8 +119,7 @@ class Latin1Prober(CharSetProber):
         byte_str = self.filter_with_english_letters(byte_str)
         for c in byte_str:
             char_class = Latin1_CharToClass[c]
-            freq = Latin1ClassModel[(self._last_char_class * CLASS_NUM)
-                                    + char_class]
+            freq = Latin1ClassModel[(self._last_char_class * CLASS_NUM) + char_class]
             if freq == 0:
                 self._state = ProbingState.NOT_ME
                 break
@@ -136,8 +136,7 @@ class Latin1Prober(CharSetProber):
         if total < 0.01:
             confidence = 0.0
         else:
-            confidence = ((self._freq_counter[3] - self._freq_counter[1] * 20.0)
-                          / total)
+            confidence = (self._freq_counter[3] - self._freq_counter[1] * 20.0) / total
         if confidence < 0.0:
             confidence = 0.0
         # lower the confidence of latin1 so that other more accurate

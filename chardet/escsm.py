@@ -27,7 +27,7 @@
 
 from .enums import MachineState
 
-#fmt: off
+# fmt: off
 HZ_CLS = (
     1, 0, 0, 0, 0, 0, 0, 0,  # 00 - 07
     0, 0, 0, 0, 0, 0, 0, 0,  # 08 - 0f
@@ -62,7 +62,6 @@ HZ_CLS = (
     1, 1, 1, 1, 1, 1, 1, 1,  # f0 - f7
     1, 1, 1, 1, 1, 1, 1, 1,  # f8 - ff
 )
-#fmt: on
 
 HZ_ST = (
 MachineState.START, MachineState.ERROR,      3, MachineState.START, MachineState.START, MachineState.START, MachineState.ERROR, MachineState.ERROR, # 00-07
@@ -72,17 +71,20 @@ MachineState.ITS_ME, MachineState.ITS_ME, MachineState.ERROR, MachineState.ERROR
      4, MachineState.ERROR,      4,      4,      4, MachineState.ERROR,      4, MachineState.ERROR, # 20-27
      4, MachineState.ITS_ME, MachineState.START, MachineState.START, MachineState.START, MachineState.START, MachineState.START, MachineState.START, # 28-2f
 )
+# fmt: on
 
-HZ_CHAR_LEN_TABLE = (0,  0,  0,  0,  0,  0)
+HZ_CHAR_LEN_TABLE = (0, 0, 0, 0, 0, 0)
 
-HZ_SM_MODEL = {'class_table': HZ_CLS,
-               'class_factor': 6,
-               'state_table': HZ_ST,
-               'char_len_table': HZ_CHAR_LEN_TABLE,
-               'name': "HZ-GB-2312",
-               'language': 'Chinese'}
+HZ_SM_MODEL = {
+    "class_table": HZ_CLS,
+    "class_factor": 6,
+    "state_table": HZ_ST,
+    "char_len_table": HZ_CHAR_LEN_TABLE,
+    "name": "HZ-GB-2312",
+    "language": "Chinese",
+}
 
-#fmt: off
+# fmt: off
 ISO2022CN_CLS = (
     2, 0, 0, 0, 0, 0, 0, 0,  # 00 - 07
     0, 0, 0, 0, 0, 0, 0, 0,  # 08 - 0f
@@ -128,18 +130,20 @@ ISO2022CN_ST = (
     MachineState.ERROR, MachineState.ERROR, MachineState.ERROR, MachineState.ITS_ME, MachineState.ERROR, MachineState.ERROR, MachineState.ERROR, MachineState.ERROR, # 30-37
     MachineState.ERROR, MachineState.ERROR, MachineState.ERROR, MachineState.ERROR, MachineState.ERROR, MachineState.ITS_ME, MachineState.ERROR, MachineState.START, # 38-3f
 )
-#fmt: on
+# fmt: on
 
-ISO2022CN_CHAR_LEN_TABLE = (0,  0,  0,  0,  0,  0,  0,  0,  0)
+ISO2022CN_CHAR_LEN_TABLE = (0, 0, 0, 0, 0, 0, 0, 0, 0)
 
-ISO2022CN_SM_MODEL = {'class_table': ISO2022CN_CLS,
-                      'class_factor': 9,
-                      'state_table': ISO2022CN_ST,
-                      'char_len_table': ISO2022CN_CHAR_LEN_TABLE,
-                      'name': "ISO-2022-CN",
-                      'language': 'Chinese'}
+ISO2022CN_SM_MODEL = {
+    "class_table": ISO2022CN_CLS,
+    "class_factor": 9,
+    "state_table": ISO2022CN_ST,
+    "char_len_table": ISO2022CN_CHAR_LEN_TABLE,
+    "name": "ISO-2022-CN",
+    "language": "Chinese",
+}
 
-#fmt: off
+# fmt: off
 ISO2022JP_CLS = (
     2, 0, 0, 0, 0, 0, 0, 0,  # 00 - 07
     0, 0, 0, 0, 0, 0, 2, 2,  # 08 - 0f
@@ -186,18 +190,20 @@ ISO2022JP_ST = (
     MachineState.ERROR, MachineState.ERROR, MachineState.ERROR, MachineState.ITS_ME, MachineState.ERROR, MachineState.ERROR, MachineState.ERROR, MachineState.ERROR, # 38-3f
     MachineState.ERROR, MachineState.ERROR, MachineState.ERROR, MachineState.ERROR, MachineState.ITS_ME, MachineState.ERROR, MachineState.START, MachineState.START, # 40-47
 )
-#fmt: on
+# fmt: on
 
-ISO2022JP_CHAR_LEN_TABLE = (0,  0,  0,  0,  0,  0,  0,  0,  0,  0)
+ISO2022JP_CHAR_LEN_TABLE = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
-ISO2022JP_SM_MODEL = {'class_table': ISO2022JP_CLS,
-                      'class_factor': 10,
-                      'state_table': ISO2022JP_ST,
-                      'char_len_table': ISO2022JP_CHAR_LEN_TABLE,
-                      'name': "ISO-2022-JP",
-                      'language': 'Japanese'}
+ISO2022JP_SM_MODEL = {
+    "class_table": ISO2022JP_CLS,
+    "class_factor": 10,
+    "state_table": ISO2022JP_ST,
+    "char_len_table": ISO2022JP_CHAR_LEN_TABLE,
+    "name": "ISO-2022-JP",
+    "language": "Japanese",
+}
 
-#fmt: off
+# fmt: off
 ISO2022KR_CLS = (
     2, 0, 0, 0, 0, 0, 0, 0,  # 00 - 07
     0, 0, 0, 0, 0, 0, 0, 0,  # 08 - 0f
@@ -240,15 +246,15 @@ ISO2022KR_ST = (
     MachineState.ERROR, MachineState.ERROR, MachineState.ERROR, MachineState.ERROR,      5, MachineState.ERROR, MachineState.ERROR, MachineState.ERROR, # 18-1f
     MachineState.ERROR, MachineState.ERROR, MachineState.ERROR, MachineState.ITS_ME, MachineState.START, MachineState.START, MachineState.START, MachineState.START, # 20-27
 )
-#fmt: on
+# fmt: on
 
-ISO2022KR_CHAR_LEN_TABLE = (0,  0,  0,  0,  0,  0)
+ISO2022KR_CHAR_LEN_TABLE = (0, 0, 0, 0, 0, 0)
 
-ISO2022KR_SM_MODEL = {'class_table': ISO2022KR_CLS,
-                      'class_factor': 6,
-                      'state_table': ISO2022KR_ST,
-                      'char_len_table': ISO2022KR_CHAR_LEN_TABLE,
-                      'name': "ISO-2022-KR",
-                      'language': 'Korean'}
-
-
+ISO2022KR_SM_MODEL = {
+    "class_table": ISO2022KR_CLS,
+    "class_factor": 6,
+    "state_table": ISO2022KR_ST,
+    "char_len_table": ISO2022KR_CHAR_LEN_TABLE,
+    "name": "ISO-2022-KR",
+    "language": "Korean",
+}

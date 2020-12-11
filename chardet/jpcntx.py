@@ -27,7 +27,7 @@
 
 
 # This is hiragana 2-char sequence table, the number in each cell represents its frequency category
-#fmt: off
+# fmt: off
 jp2CharContext = (
     (0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1),
     (2, 4, 0, 4, 0, 3, 0, 4, 0, 3, 4, 4, 4, 2, 4, 3, 3, 4, 3, 2, 3, 3, 4, 2, 3, 3, 3, 2, 4, 1, 4, 3, 3, 1, 5, 4, 3, 4, 3, 4, 3, 5, 3, 0, 3, 5, 4, 2, 0, 3, 1, 0, 3, 3, 0, 3, 3, 0, 1, 1, 0, 4, 3, 0, 3, 3, 0, 4, 0, 2, 0, 3, 5, 5, 5, 5, 4, 0, 4, 1, 0, 3, 4),
@@ -113,7 +113,8 @@ jp2CharContext = (
     (0, 4, 0, 4, 0, 4, 0, 3, 0, 4, 4, 3, 4, 2, 4, 3, 2, 0, 4, 4, 4, 3, 5, 3, 5, 3, 3, 2, 4, 2, 4, 3, 4, 3, 1, 4, 0, 2, 3, 4, 4, 4, 3, 3, 3, 4, 4, 4, 3, 4, 1, 3, 4, 3, 2, 1, 2, 1, 3, 3, 3, 4, 4, 3, 3, 5, 0, 4, 0, 3, 0, 4, 3, 3, 3, 2, 1, 0, 3, 0, 0, 3, 3),
     (0, 4, 0, 3, 0, 3, 0, 3, 0, 3, 5, 5, 3, 3, 3, 3, 4, 3, 4, 3, 3, 3, 4, 4, 4, 3, 3, 3, 3, 4, 3, 5, 3, 3, 1, 3, 2, 4, 5, 5, 5, 5, 4, 3, 4, 5, 5, 3, 2, 2, 3, 3, 3, 3, 2, 3, 3, 1, 2, 3, 2, 4, 3, 3, 3, 4, 0, 4, 0, 2, 0, 4, 3, 2, 2, 1, 2, 0, 3, 0, 0, 4, 1),
 )
-#fmt: on
+# fmt: on
+
 
 class JapaneseContextAnalysis:
     NUM_OF_CATEGORY = 6
@@ -155,7 +156,7 @@ class JapaneseContextAnalysis:
         # this character will simply our logic and improve performance.
         i = self._need_to_skip_char_num
         while i < num_bytes:
-            order, char_len = self.get_order(byte_str[i:i + 2])
+            order, char_len = self.get_order(byte_str[i : i + 2])
             i += char_len
             if i > num_bytes:
                 self._need_to_skip_char_num = i - num_bytes
@@ -181,6 +182,7 @@ class JapaneseContextAnalysis:
 
     def get_order(self, byte_str):
         return -1, 1
+
 
 class SJISContextAnalysis(JapaneseContextAnalysis):
     def __init__(self):
@@ -211,6 +213,7 @@ class SJISContextAnalysis(JapaneseContextAnalysis):
 
         return -1, char_len
 
+
 class EUCJPContextAnalysis(JapaneseContextAnalysis):
     def get_order(self, byte_str):
         if not byte_str:
@@ -231,5 +234,3 @@ class EUCJPContextAnalysis(JapaneseContextAnalysis):
                 return second_char - 0xA1, char_len
 
         return -1, char_len
-
-
