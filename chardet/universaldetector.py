@@ -131,7 +131,7 @@ class UniversalDetector:
         if self.done:
             return
 
-        if not len(byte_str):
+        if not byte_str:
             return
 
         if not isinstance(byte_str, bytearray):
@@ -193,7 +193,7 @@ class UniversalDetector:
         if not self._utf1632_prober:
             self._utf1632_prober = UTF1632Prober()
 
-        if self._utf1632_prober.state() == ProbingState.DETECTING:
+        if self._utf1632_prober.state == ProbingState.DETECTING:
             if self._utf1632_prober.feed(byte_str) == ProbingState.FOUND_IT:
                 self.result = {
                     "encoding": self._utf1632_prober.charset_name,

@@ -1,10 +1,4 @@
 ######################## BEGIN LICENSE BLOCK ########################
-# The Original Code is mozilla.org code.
-#
-# The Initial Developer of the Original Code is
-# Netscape Communications Corporation.
-# Portions created by the Initial Developer are Copyright (C) 1998
-# the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
 #   Jason Zavaglia
@@ -24,9 +18,8 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
-from chardet.enums import ProbingState
-
 from .charsetprober import CharSetProber
+from .enums import ProbingState
 
 
 class UTF1632Prober(CharSetProber):
@@ -202,13 +195,14 @@ class UTF1632Prober(CharSetProber):
             else:
                 self.nonzeros_at_mod[mod4] += 1
             self.position += 1
-        return self.state()
+        return self.state
 
+    @property
     def state(self):
-        if self._state in [ProbingState.NOT_ME, ProbingState.FOUND_IT]:
+        if self._state in {ProbingState.NOT_ME, ProbingState.FOUND_IT}:
             # terminal, decided states
             return self._state
-        elif self.get_confidence() > 0.80:
+        if self.get_confidence() > 0.80:
             self._state = ProbingState.FOUND_IT
         elif self.position > 4 * 1024:
             # if we get to 4kb into the file, and we can't conclude it's UTF,
