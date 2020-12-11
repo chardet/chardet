@@ -25,6 +25,7 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 from chardet.enums import ProbingState
+
 from .charsetprober import CharSetProber
 
 
@@ -33,7 +34,7 @@ class UTF1632Prober(CharSetProber):
     This class simply looks for occurrences of zero bytes, and infers
     whether the file is UTF16 or UTF32 (low-endian or big-endian)
     For instance, files looking like ( \0 \0 \0 [nonzero] )+
-    have a good probability to be UTF32BE.  Files looking like ( \0 [nonzero] )+ 
+    have a good probability to be UTF32BE.  Files looking like ( \0 [nonzero] )+
     may be guessed to be UTF16BE, and inversely for little-endian varieties.
     """
 
@@ -43,12 +44,12 @@ class UTF1632Prober(CharSetProber):
     EXPECTED_RATIO = 0.94
 
     def __init__(self):
-        super(UTF1632Prober, self).__init__()
+        super().__init__()
         self.position = 0
         self.zeros_at_mod = [0] * 4
         self.nonzeros_at_mod = [0] * 4
         self._state = ProbingState.DETECTING
-        self.quad = [0,0,0,0]
+        self.quad = [0, 0, 0, 0]
         self.invalid_utf16be = False
         self.invalid_utf16le = False
         self.invalid_utf32be = False
@@ -58,7 +59,7 @@ class UTF1632Prober(CharSetProber):
         self.reset()
 
     def reset(self):
-        super(UTF1632Prober, self).reset()
+        super().reset()
         self.position = 0
         self.zeros_at_mod = [0] * 4
         self.nonzeros_at_mod = [0] * 4
@@ -69,7 +70,7 @@ class UTF1632Prober(CharSetProber):
         self.invalid_utf32le = False
         self.first_half_surrogate_pair_detected_16be = False
         self.first_half_surrogate_pair_detected_16le = False
-        self.quad = [0,0,0,0]
+        self.quad = [0, 0, 0, 0]
 
     @property
     def charset_name(self):
@@ -97,35 +98,42 @@ class UTF1632Prober(CharSetProber):
     def is_likely_utf32be(self):
         approx_chars = self.approx_32bit_chars()
         return approx_chars >= self.MIN_CHARS_FOR_DETECTION and (
-            self.zeros_at_mod[0] / approx_chars > self.EXPECTED_RATIO and
-            self.zeros_at_mod[1] / approx_chars > self.EXPECTED_RATIO and
-            self.zeros_at_mod[2] / approx_chars > self.EXPECTED_RATIO and
-            self.nonzeros_at_mod[3] / approx_chars > self.EXPECTED_RATIO and
-            not self.invalid_utf32be)
-
+            self.zeros_at_mod[0] / approx_chars > self.EXPECTED_RATIO
+            and self.zeros_at_mod[1] / approx_chars > self.EXPECTED_RATIO
+            and self.zeros_at_mod[2] / approx_chars > self.EXPECTED_RATIO
+            and self.nonzeros_at_mod[3] / approx_chars > self.EXPECTED_RATIO
+            and not self.invalid_utf32be
+        )
 
     def is_likely_utf32le(self):
         approx_chars = self.approx_32bit_chars()
         return approx_chars >= self.MIN_CHARS_FOR_DETECTION and (
-            self.nonzeros_at_mod[0] / approx_chars > self.EXPECTED_RATIO and
-            self.zeros_at_mod[1] / approx_chars > self.EXPECTED_RATIO and
-            self.zeros_at_mod[2] / approx_chars > self.EXPECTED_RATIO and
-            self.zeros_at_mod[3] / approx_chars > self.EXPECTED_RATIO and
-            not self.invalid_utf32le)
+            self.nonzeros_at_mod[0] / approx_chars > self.EXPECTED_RATIO
+            and self.zeros_at_mod[1] / approx_chars > self.EXPECTED_RATIO
+            and self.zeros_at_mod[2] / approx_chars > self.EXPECTED_RATIO
+            and self.zeros_at_mod[3] / approx_chars > self.EXPECTED_RATIO
+            and not self.invalid_utf32le
+        )
 
     def is_likely_utf16be(self):
         approx_chars = self.approx_16bit_chars()
         return approx_chars >= self.MIN_CHARS_FOR_DETECTION and (
-            (self.nonzeros_at_mod[1] + self.nonzeros_at_mod[3]) / approx_chars > self.EXPECTED_RATIO and
-            (self.zeros_at_mod[0] + self.zeros_at_mod[2]) / approx_chars > self.EXPECTED_RATIO and
-            not self.invalid_utf16be)
+            (self.nonzeros_at_mod[1] + self.nonzeros_at_mod[3]) / approx_chars
+            > self.EXPECTED_RATIO
+            and (self.zeros_at_mod[0] + self.zeros_at_mod[2]) / approx_chars
+            > self.EXPECTED_RATIO
+            and not self.invalid_utf16be
+        )
 
     def is_likely_utf16le(self):
         approx_chars = self.approx_16bit_chars()
         return approx_chars >= self.MIN_CHARS_FOR_DETECTION and (
-            (self.nonzeros_at_mod[0] + self.nonzeros_at_mod[2]) / approx_chars > self.EXPECTED_RATIO and
-            (self.zeros_at_mod[1] + self.zeros_at_mod[3]) / approx_chars > self.EXPECTED_RATIO and
-            not self.invalid_utf16le)
+            (self.nonzeros_at_mod[0] + self.nonzeros_at_mod[2]) / approx_chars
+            > self.EXPECTED_RATIO
+            and (self.zeros_at_mod[1] + self.zeros_at_mod[3]) / approx_chars
+            > self.EXPECTED_RATIO
+            and not self.invalid_utf16le
+        )
 
     def validate_utf32_characters(self, quad):
         """
@@ -133,14 +141,20 @@ class UTF1632Prober(CharSetProber):
 
         UTF-32 is valid in the range 0x00000000 - 0x0010FFFF
         excluding 0x0000D800 - 0x0000DFFF
-        
+
         https://en.wikipedia.org/wiki/UTF-32
         """
-        if quad[0] != 0 or quad[1] > 0x10 or (
-                quad[0] == 0 and quad[1] == 0 and 0xD8 <= quad[2] <= 0xDF):
+        if (
+            quad[0] != 0
+            or quad[1] > 0x10
+            or (quad[0] == 0 and quad[1] == 0 and 0xD8 <= quad[2] <= 0xDF)
+        ):
             self.invalid_utf32be = True
-        if quad[3] != 0 or quad[2] > 0x10 or (
-                quad[3] == 0 and quad[2] == 0 and 0xD8 <= quad[1] <= 0xDF):
+        if (
+            quad[3] != 0
+            or quad[2] > 0x10
+            or (quad[3] == 0 and quad[2] == 0 and 0xD8 <= quad[1] <= 0xDF)
+        ):
             self.invalid_utf32le = True
 
     def validate_utf16_characters(self, pair):
@@ -205,7 +219,12 @@ class UTF1632Prober(CharSetProber):
     def get_confidence(self):
         confidence = 0.85
 
-        if self.is_likely_utf16le() or self.is_likely_utf16be() or self.is_likely_utf32le() or self.is_likely_utf32be():
+        if (
+            self.is_likely_utf16le()
+            or self.is_likely_utf16be()
+            or self.is_likely_utf32le()
+            or self.is_likely_utf32be()
+        ):
             return confidence
         else:
             return 0.00

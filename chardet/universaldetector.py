@@ -195,9 +195,11 @@ class UniversalDetector:
 
         if self._utf1632_prober.state() == ProbingState.DETECTING:
             if self._utf1632_prober.feed(byte_str) == ProbingState.FOUND_IT:
-                self.result = {'encoding': self._utf1632_prober.charset_name,
-                               'confidence': self._utf1632_prober.get_confidence(),
-                               'language': ''}
+                self.result = {
+                    "encoding": self._utf1632_prober.charset_name,
+                    "confidence": self._utf1632_prober.get_confidence(),
+                    "language": "",
+                }
                 self.done = True
                 return
 
