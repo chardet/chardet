@@ -41,6 +41,7 @@ ASV = 6  # accent small vowel
 ASO = 7  # accent small other
 CLASS_NUM = 8  # total classes
 
+#fmt: off
 Latin1_CharToClass = (
     OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   # 00 - 07
     OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   # 08 - 0F
@@ -91,11 +92,11 @@ Latin1ClassModel = (
     0,  3,  1,  3,  1,  1,  1,  3,  # ASV
     0,  3,  1,  3,  1,  1,  3,  3,  # ASO
 )
-
+#fmt: on
 
 class Latin1Prober(CharSetProber):
     def __init__(self):
-        super(Latin1Prober, self).__init__()
+        super().__init__()
         self._last_char_class = None
         self._freq_counter = None
         self.reset()

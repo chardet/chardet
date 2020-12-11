@@ -6,11 +6,7 @@ Chardet: The Universal Character Encoding Detector
    :target: https://travis-ci.org/chardet/chardet
 
 .. image:: https://img.shields.io/coveralls/chardet/chardet/stable.svg
-    :target: https://coveralls.io/r/chardet/chardet
-
-.. image:: https://img.shields.io/pypi/dm/chardet.svg
-   :target: https://warehouse.python.org/project/chardet/
-   :alt: PyPI downloads
+   :target: https://coveralls.io/r/chardet/chardet
 
 .. image:: https://img.shields.io/pypi/v/chardet.svg
    :target: https://warehouse.python.org/project/chardet/
@@ -36,19 +32,19 @@ Detects
    Our ISO-8859-2 and windows-1250 (Hungarian) probers have been temporarily
    disabled until we can retrain the models.
 
-Requires Python 2.6 or later
+Requires Python 3.6+.
 
 Installation
 ------------
 
-Install from `PyPI <https://pypi.python.org/pypi/chardet>`_::
+Install from `PyPI <https://pypi.org/project/chardet/>`_::
 
     pip install chardet
 
 Documentation
 -------------
 
-For users, docs are now available at http://chardet.readthedocs.org.
+For users, docs are now available at https://chardet.readthedocs.io/.
 
 Command-line Tool
 -----------------
@@ -67,6 +63,6 @@ This is a continuation of Mark Pilgrim's excellent chardet. Previously, two
 versions needed to be maintained: one that supported python 2.x and one that
 supported python 3.x.  We've recently merged with `Ian Cordasco <https://github.com/sigmavirus24>`_'s
 `charade <https://github.com/sigmavirus24/charade>`_ fork, so now we have one
-coherent version that works for Python 2.6+.
+coherent version that works for Python 2.7+ and 3.4+.
 
 :maintainer: Dan Blanchard
