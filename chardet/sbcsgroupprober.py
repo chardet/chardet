@@ -28,8 +28,8 @@
 from .charsetgroupprober import CharSetGroupProber
 from .hebrewprober import HebrewProber
 from .langarabicmodel import (
-    CP864_ARABIC_MODEL,
     CP720_ARABIC_MODEL,
+    CP864_ARABIC_MODEL,
     ISO_8859_6_ARABIC_MODEL,
     WINDOWS_1256_ARABIC_MODEL,
 )
