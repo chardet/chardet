@@ -62,6 +62,7 @@ class SingleByteCharSetProber(CharSetProber):
         self._seq_counters = None
         self._total_seqs = None
         self._total_char = None
+        self._control_char = None
         self._freq_char = None
         self.reset()
 
@@ -72,6 +73,7 @@ class SingleByteCharSetProber(CharSetProber):
         self._seq_counters = [0] * SequenceLikelihood.get_num_categories()
         self._total_seqs = 0
         self._total_char = 0
+        self._control_char = 0
         # characters that fall in our sampling range
         self._freq_char = 0
 
@@ -108,9 +110,6 @@ class SingleByteCharSetProber(CharSetProber):
             #      _total_char purposes.
             if order < CharacterCategory.CONTROL:
                 self._total_char += 1
-            # TODO: Follow uchardet's lead and discount confidence for frequent
-            #       control characters.
-            #       See https://github.com/BYVoid/uchardet/commit/55b4f23971db61
             if order < self.SAMPLE_SIZE:
                 self._freq_char += 1
                 if self._last_order < self.SAMPLE_SIZE:
@@ -146,10 +145,17 @@ class SingleByteCharSetProber(CharSetProber):
         r = 0.01
         if self._total_seqs > 0:
             r = (
-                (1.0 * self._seq_counters[SequenceLikelihood.POSITIVE])
+                (
+                    self._seq_counters[SequenceLikelihood.POSITIVE]
+                    + 0.25 * self._seq_counters[SequenceLikelihood.LIKELY]
+                )
                 / self._total_seqs
                 / self._model.typical_positive_ratio
             )
+            # The more control characters (proportionnaly to the size
+            # of the text), the less confident we become in the current
+            # charset.
+            r = r * (self._total_char - self._control_char) / self._total_char
             r = r * self._freq_char / self._total_char
             if r >= 1.0:
                 r = 0.99
