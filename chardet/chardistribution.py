@@ -50,6 +50,7 @@ from .jisfreq import (
     JIS_TABLE_SIZE,
     JIS_TYPICAL_DISTRIBUTION_RATIO,
 )
+from .johabfreq import JOHAB_TO_EUCKR_ORDER_TABLE
 
 
 class CharDistributionAnalysis:
@@ -162,6 +163,21 @@ class EUCKRDistributionAnalysis(CharDistributionAnalysis):
             return 94 * (first_char - 0xB0) + byte_str[1] - 0xA1
         else:
             return -1
+
+
+class JOHABDistributionAnalysis(CharDistributionAnalysis):
+    def __init__(self):
+        super().__init__()
+        self._char_to_freq_order = EUCKR_CHAR_TO_FREQ_ORDER
+        self._table_size = EUCKR_TABLE_SIZE
+        self.typical_distribution_ratio = EUCKR_TYPICAL_DISTRIBUTION_RATIO
+
+    def get_order(self, byte_str):
+        first_char = byte_str[0]
+        if 0x88 <= first_char < 0xD4:
+            code = first_char * 256 + byte_str[1]
+            return JOHAB_TO_EUCKR_ORDER_TABLE.get(code, -1)
+        return -1
 
 
 class GB2312DistributionAnalysis(CharDistributionAnalysis):
