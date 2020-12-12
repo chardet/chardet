@@ -10,6 +10,7 @@ import textwrap
 from difflib import ndiff
 from os import listdir
 from os.path import dirname, isdir, join, realpath, relpath, splitext
+from pprint import pformat
 
 try:
     import hypothesis.strategies as st
@@ -101,12 +102,15 @@ def test_encoding_detection(file_name, encoding):
                 )
             )[:20]
         )
+        all_encodings = chardet.detect_all(input_bytes, ignore_threshold=True)
     else:
         diff = ""
         encoding_match = True
+        all_encodings = [result]
     assert encoding_match, (
         f"Expected {encoding}, but got {result} for {file_name}.  First 20 "
-        f"lines of character differences: \n{diff}"
+        f"lines of character differences: \n{diff}\n"
+        f"All encodings: {pformat(all_encodings)}"
     )
 
 
