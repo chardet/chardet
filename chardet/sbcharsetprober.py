@@ -103,13 +103,9 @@ class SingleByteCharSetProber(CharSetProber):
         language_model = self._model.language_model
         for char in byte_str:
             order = char_to_order_map.get(char, CharacterCategory.UNDEFINED)
-            # XXX: This was SYMBOL_CAT_ORDER before, with a value of 250, but
-            #      CharacterCategory.SYMBOL is actually 253, so we use CONTROL
-            #      to make it closer to the original intent. The only difference
-            #      is whether or not we count digits and control characters for
-            #      _total_char purposes.
-            if order < CharacterCategory.CONTROL:
+            if order < CharacterCategory.SYMBOL:
                 self._total_char += 1
+            if order < CharacterCategory.CONTROL:
                 # TODO: Follow uchardet's lead and discount confidence for frequent
                 #       control characters.
                 #       See https://github.com/BYVoid/uchardet/commit/55b4f23971db61
