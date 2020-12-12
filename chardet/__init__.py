@@ -15,7 +15,6 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-
 from .enums import InputState
 from .universaldetector import UniversalDetector
 from .version import VERSION, __version__
@@ -42,12 +41,16 @@ def detect(byte_str):
     return detector.close()
 
 
-def detect_all(byte_str):
+def detect_all(byte_str, ignore_threshold=False):
     """
     Detect all the possible encodings of the given byte string.
 
-    :param byte_str:     The byte sequence to examine.
-    :type byte_str:      ``bytes`` or ``bytearray``
+    :param byte_str:          The byte sequence to examine.
+    :type byte_str:           ``bytes`` or ``bytearray``
+    :param ignore_threshold:  Include encodings that are below
+                              ``UniversalDetector.MINIMUM_THRESHOLD``
+                              in results.
+    :type ignore_threshold:   ``bool``
     """
     if not isinstance(byte_str, bytearray):
         if not isinstance(byte_str, bytes):
@@ -63,17 +66,25 @@ def detect_all(byte_str):
 
     if detector._input_state == InputState.HIGH_BYTE:
         results = []
+        probers = []
         for prober in detector._charset_probers:
-            if prober.get_confidence() > detector.MINIMUM_THRESHOLD:
-                charset_name = prober.charset_name
-                lower_charset_name = prober.charset_name.lower()
+            if hasattr(prober, "probers"):
+                probers.extend(p for p in prober.probers)
+            else:
+                probers.append(prober)
+        for prober in probers:
+            if ignore_threshold or prober.get_confidence() > detector.MINIMUM_THRESHOLD:
+                charset_name = prober.charset_name or ""
+                lower_charset_name = charset_name.lower()
                 # Use Windows encoding name instead of ISO-8859 if we saw any
                 # extra Windows-specific bytes
-                if lower_charset_name.startswith("iso-8859"):
-                    if detector._has_win_bytes:
-                        charset_name = detector.ISO_WIN_MAP.get(
-                            lower_charset_name, charset_name
-                        )
+                if (
+                    lower_charset_name.startswith("iso-8859")
+                    and detector._has_win_bytes
+                ):
+                    charset_name = detector.ISO_WIN_MAP.get(
+                        lower_charset_name, charset_name
+                    )
                 results.append(
                     {
                         "encoding": charset_name,
