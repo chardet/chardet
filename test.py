@@ -21,6 +21,7 @@ except ImportError:
 import pytest
 
 import chardet
+from chardet.metadata.languages import LANGUAGES
 
 # TODO: Restore Hungarian encodings (iso-8859-2 and windows-1250) after we
 #       retrain model.
@@ -33,6 +34,8 @@ MISSING_ENCODINGS = {
 }
 EXPECTED_FAILURES = {
     "tests/iso-8859-7-greek/disabled.gr.xml",
+    "tests/iso-8859-9-turkish/_ude_1.txt",
+    "tests/iso-8859-9-turkish/_ude_2.txt",
     "tests/iso-8859-9-turkish/divxplanet.com.xml",
     "tests/iso-8859-9-turkish/subtitle.srt",
     "tests/iso-8859-9-turkish/wikitop_tr_ISO-8859-9.txt",
@@ -49,15 +52,8 @@ def gen_test_params():
             continue
         # Remove language suffixes from encoding if pressent
         encoding = encoding.lower()
-        for postfix in [
-            "-arabic",
-            "-bulgarian",
-            "-cyrillic",
-            "-greek",
-            "-hebrew",
-            "-hungarian",
-            "-turkish",
-        ]:
+        for language in sorted(LANGUAGES.keys()):
+            postfix = "-" + language.lower()
             if encoding.endswith(postfix):
                 encoding = encoding.rpartition(postfix)[0]
                 break
@@ -99,18 +95,18 @@ def test_encoding_detection(file_name, encoding):
         wrapped_expected = "\n".join(textwrap.wrap(expected_unicode, 100)) + "\n"
         wrapped_detected = "\n".join(textwrap.wrap(detected_unicode, 100)) + "\n"
         diff = "".join(
-            ndiff(wrapped_expected.splitlines(True), wrapped_detected.splitlines(True))
+            list(
+                ndiff(
+                    wrapped_expected.splitlines(True), wrapped_detected.splitlines(True)
+                )
+            )[:20]
         )
     else:
         diff = ""
         encoding_match = True
-    assert (
-        encoding_match
-    ), "Expected %s, but got %s for %s.  Character " "differences: \n%s" % (
-        encoding,
-        result,
-        file_name,
-        diff,
+    assert encoding_match, (
+        f"Expected {encoding}, but got {result} for {file_name}.  First 20 "
+        f"lines of character differences: \n{diff}"
     )
 
 
