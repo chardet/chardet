@@ -26,23 +26,22 @@
 ######################### END LICENSE BLOCK #########################
 
 from .charsetprober import CharSetProber
-from .enums import ProbingState, MachineState
 from .codingstatemachine import CodingStateMachine
+from .enums import MachineState, ProbingState
 from .mbcssm import UTF8_SM_MODEL
-
 
 
 class UTF8Prober(CharSetProber):
     ONE_CHAR_PROB = 0.5
 
     def __init__(self):
-        super(UTF8Prober, self).__init__()
+        super().__init__()
         self.coding_sm = CodingStateMachine(UTF8_SM_MODEL)
         self._num_mb_chars = None
         self.reset()
 
     def reset(self):
-        super(UTF8Prober, self).reset()
+        super().reset()
         self.coding_sm.reset()
         self._num_mb_chars = 0
 
