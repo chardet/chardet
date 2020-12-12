@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Metadata about languages used by our model training code for our
 SingleByteCharSetProbers.  Could be used for other things in the future.

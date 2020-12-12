@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-#
 # chardet documentation build configuration file, created by
 # sphinx-quickstart on Thu Mar 27 00:17:49 2015.
 #

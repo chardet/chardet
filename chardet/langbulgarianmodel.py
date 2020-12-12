@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from chardet.sbcharsetprober import SingleByteCharSetModel
 
 # 3: Positive

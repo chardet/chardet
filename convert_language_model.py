@@ -182,8 +182,6 @@ def convert_models_for_lang(language):
         upper_lang = language.upper()
         # print header to set encoding
         print(
-            "#!/usr/bin/env python\n"
-            "# -*- coding: utf-8 -*-\n\n"
             "from chardet.sbcharsetprober import SingleByteCharSetModel\n\n",
             file=output_file,
         )
