@@ -100,12 +100,10 @@ class CharSetProber:
         return filtered
 
     @staticmethod
-    def filter_with_english_letters(buf):
+    def remove_xml_tags(buf):
         """
         Returns a copy of ``buf`` that retains only the sequences of English
         alphabet and high byte characters that are not between <> characters.
-        Also retains English alphabet and high byte characters immediately
-        before occurrences of >.
 
         This filter can be applied to all scripts which contain both English
         characters and extended ASCII characters, but is currently only used by
@@ -118,22 +116,18 @@ class CharSetProber:
         for curr in range(len(buf)):
             # Slice here to get bytes instead of an int with Python 3
             buf_char = buf[curr : curr + 1]
-            # Check if we're coming out of or entering an HTML tag
+            # Check if we're coming out of or entering an XML tag
             if buf_char == b">":
+                prev = curr + 1
                 in_tag = False
             elif buf_char == b"<":
-                in_tag = True
-
-            # If current character is not extended-ASCII and not alphabetic...
-            if buf_char < b"\x80" and not buf_char.isalpha():
-                # ...and we're not in a tag
                 if curr > prev and not in_tag:
                     # Keep everything after last non-extended-ASCII,
                     # non-alphabetic character
                     filtered.extend(buf[prev:curr])
                     # Output a space to delimit stretch we kept
                     filtered.extend(b" ")
-                prev = curr + 1
+                in_tag = True
 
         # If we're not in a tag...
         if not in_tag:
