@@ -19,7 +19,7 @@ def readme():
 setup(
     name="chardet",
     version=get_version(),
-    description="Universal encoding detector for Python 2 and 3",
+    description="Universal encoding detector for Python 3",
     long_description=readme(),
     author="Mark Pilgrim",
     author_email="mark@diveintomark.org",
