@@ -19,7 +19,7 @@ try:
     import cchardet
 
     HAVE_CCHARDET = True
-except:
+except ImportError:
     HAVE_CCHARDET = False
 
 
