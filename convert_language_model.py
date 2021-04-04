@@ -37,7 +37,7 @@ from chardet.metadata.languages import LANGUAGES
 from chardet.sbcharsetprober import SingleByteCharSetModel
 
 # Turn ascii_letters into a set to make other ops easier
-ascii_letters = set(ascii_letters)
+ascii_letters = set(ascii_letters)  # type: ignore
 
 
 def normalize_name(charset_name):
