@@ -115,8 +115,8 @@ LANGUAGES = {
         name="German",
         iso_code="de",
         use_ascii=True,
-        charsets=["ISO-8859-1", "WINDOWS-1252"],
-        alphabet="äöüßÄÖÜ",
+        charsets=["ISO-8859-1", "ISO-8859-15", "WINDOWS-1252"],
+        alphabet="äöüßẞÄÖÜ",
         wiki_start_pages=["Wikipedia:Hauptseite"],
     ),
     "Greek": Language(
