@@ -17,8 +17,8 @@ a confidence level from ``0`` to ``1``.
 
 .. code:: python
 
-    >>> import urllib
-    >>> rawdata = urllib.urlopen('http://yahoo.co.jp/').read()
+    >>> import urllib.request
+    >>> rawdata = urllib.request.urlopen('http://yahoo.co.jp/').read()
     >>> import chardet
     >>> chardet.detect(rawdata)
     {'encoding': 'EUC-JP', 'confidence': 0.99}
@@ -47,17 +47,17 @@ Example: Detecting encoding incrementally
 
 .. code:: python
 
-    import urllib
+    import urllib.request
     from chardet.universaldetector import UniversalDetector
 
-    usock = urllib.urlopen('http://yahoo.co.jp/')
+    usock = urllib.request.urlopen('http://yahoo.co.jp/')
     detector = UniversalDetector()
     for line in usock.readlines():
         detector.feed(line)
         if detector.done: break
     detector.close()
     usock.close()
-    print detector.result
+    print(detector.result)
 
 .. code:: python
 
@@ -79,10 +79,10 @@ Example: Detecting encodings of multiple files
 
     detector = UniversalDetector()
     for filename in glob.glob('*.xml'):
-        print filename.ljust(60),
+        print(filename.ljust(60), end='')
         detector.reset()
-        for line in file(filename, 'rb'):
+        for line in open(filename, 'rb'):
             detector.feed(line)
             if detector.done: break
         detector.close()
-        print detector.result
+        print(detector.result)
