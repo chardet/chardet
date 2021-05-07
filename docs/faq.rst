@@ -51,7 +51,7 @@ Who wrote this detection algorithm?
 -----------------------------------
 
 This library is a port of `the auto-detection code in
-Mozilla <http://lxr.mozilla.org/seamonkey/source/extensions/universalchardet/src/base/>`__.
+Mozilla <https://www-archive.mozilla.org/projects/intl/chardet.html>`__.
 I have attempted to maintain as much of the original structure as
 possible (mostly for selfish reasons, to make it easier to maintain the
 port as the original code evolves). I have also retained the original
