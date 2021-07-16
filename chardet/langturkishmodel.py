@@ -1,4 +1,4 @@
-from chardet.sbcharsetprober import SingleByteCharSetModel
+from .sbcharsetprober import SingleByteCharSetModel
 
 # 3: Positive
 # 2: Likely
