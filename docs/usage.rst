@@ -27,18 +27,14 @@ Advanced usage
 --------------
 
 If you’re dealing with a large amount of text, you can call the
-Universal Encoding Detector library incrementally, and it will stop as
+``detect_incrementally`` function, and it will stop as
 soon as it is confident enough to report its results.
 
-Create a ``UniversalDetector`` object, then call its ``feed`` method
-repeatedly with each block of text. If the detector reaches a minimum
-threshold of confidence, it will set ``detector.done`` to ``True``.
-
-Once you’ve exhausted the source text, call ``detector.close()``, which
-will do some final calculations in case the detector didn’t hit its
-minimum confidence threshold earlier. Then ``detector.result`` will be a
+Use the ``with`` keyword to open a file object, then pass that file
+object to the ``detect_incrementally`` function. Once the detector
+reaches a minimum threshold of confidence, it will return a
 dictionary containing the auto-detected character encoding and
-confidence level (the same as the ``chardet.detect`` function 
+confidence level (the same as the ``chardet.detect`` function
 `returns <usage.html#example-using-the-detect-function>`__).
 
 
@@ -48,15 +44,11 @@ Example: Detecting encoding incrementally
 .. code:: python
 
     import urllib.request
-    from chardet.universaldetector import UniversalDetector
+    import chardet
 
-    usock = urllib.request.urlopen('http://yahoo.co.jp/')
-    detector = UniversalDetector()
-    for line in usock.readlines():
-        detector.feed(line)
-        if detector.done: break
-    detector.close()
-    usock.close()
+    with urllib.request.urlopen('http://yahoo.co.jp/') as usock:
+          result = chardet.detect_incrementally(usock)
+
     print(detector.result)
 
 .. code:: python

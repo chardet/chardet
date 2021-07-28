@@ -32,12 +32,31 @@ def detect(byte_str):
     if not isinstance(byte_str, bytearray):
         if not isinstance(byte_str, bytes):
             raise TypeError(
-                "Expected object of type bytes or bytearray, got: " f"{type(byte_str)}"
+                f"Expected object of type bytes or bytearray, got: {type(byte_str)}"
             )
         else:
             byte_str = bytearray(byte_str)
     detector = UniversalDetector()
     detector.feed(byte_str)
+    return detector.close()
+
+
+def detect_incrementally(file_object):
+    """
+    Detect the encoding of the given byte string.
+
+    :param file_object:     The file-like object to read from and examine.
+    :type byte_str:      ``file object``
+    """
+    detector = UniversalDetector()
+    try:
+        for line in file_object.readlines():
+            detector.feed(line)
+            if detector.done:
+                break
+    except AttributeError:
+        raise TypeError(f"Expected a file object, got: {type(file_object)}")
+
     return detector.close()
 
 
@@ -55,7 +74,7 @@ def detect_all(byte_str, ignore_threshold=False):
     if not isinstance(byte_str, bytearray):
         if not isinstance(byte_str, bytes):
             raise TypeError(
-                "Expected object of type bytes or bytearray, got: " f"{type(byte_str)}"
+                f"Expected object of type bytes or bytearray, got: {type(byte_str)}"
             )
         else:
             byte_str = bytearray(byte_str)
