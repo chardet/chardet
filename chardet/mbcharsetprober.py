@@ -27,7 +27,9 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
+from .chardistribution import CharDistributionAnalysis
 from .charsetprober import CharSetProber
+from .codingstatemachine import CodingStateMachine
 from .enums import MachineState, ProbingState
 
 
@@ -36,29 +38,28 @@ class MultiByteCharSetProber(CharSetProber):
     MultiByteCharSetProber
     """
 
-    def __init__(self, lang_filter=None):
+    coding_sm: CodingStateMachine
+    distribution_analyzer: CharDistributionAnalysis
+
+    def __init__(self, lang_filter: int = 0) -> None:
         super().__init__(lang_filter=lang_filter)
-        self.distribution_analyzer = None
-        self.coding_sm = None
         self._last_char = [0, 0]
 
-    def reset(self):
+    def reset(self) -> None:
         super().reset()
-        if self.coding_sm:
-            self.coding_sm.reset()
-        if self.distribution_analyzer:
-            self.distribution_analyzer.reset()
+        self.coding_sm.reset()
+        self.distribution_analyzer.reset()
         self._last_char = [0, 0]
 
     @property
-    def charset_name(self):
+    def charset_name(self) -> str:
         raise NotImplementedError
 
     @property
-    def language(self):
+    def language(self) -> str:
         raise NotImplementedError
 
-    def feed(self, byte_str):
+    def feed(self, byte_str: bytes) -> int:
         for i in range(len(byte_str)):
             coding_state = self.coding_sm.next_state(byte_str[i])
             if coding_state == MachineState.ERROR:
@@ -91,5 +92,5 @@ class MultiByteCharSetProber(CharSetProber):
 
         return self.state
 
-    def get_confidence(self):
+    def get_confidence(self) -> float:
         return self.distribution_analyzer.get_confidence()

@@ -34,26 +34,26 @@ from .mbcssm import SJIS_SM_MODEL
 
 
 class SJISProber(MultiByteCharSetProber):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.coding_sm = CodingStateMachine(SJIS_SM_MODEL)
         self.distribution_analyzer = SJISDistributionAnalysis()
         self.context_analyzer = SJISContextAnalysis()
         self.reset()
 
-    def reset(self):
+    def reset(self) -> None:
         super().reset()
         self.context_analyzer.reset()
 
     @property
-    def charset_name(self):
+    def charset_name(self) -> str:
         return self.context_analyzer.charset_name
 
     @property
-    def language(self):
+    def language(self) -> str:
         return "Japanese"
 
-    def feed(self, byte_str):
+    def feed(self, byte_str: bytes) -> int:
         for i in range(len(byte_str)):
             coding_state = self.coding_sm.next_state(byte_str[i])
             if coding_state == MachineState.ERROR:
@@ -92,7 +92,7 @@ class SJISProber(MultiByteCharSetProber):
 
         return self.state
 
-    def get_confidence(self):
+    def get_confidence(self) -> float:
         context_conf = self.context_analyzer.get_confidence()
         distrib_conf = self.distribution_analyzer.get_confidence()
         return max(context_conf, distrib_conf)

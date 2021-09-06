@@ -39,12 +39,15 @@ class a user of ``chardet`` should use.
 import codecs
 import logging
 import re
+from typing import List, Optional, Sequence
 
 from .charsetgroupprober import CharSetGroupProber
+from .charsetprober import CharSetProber
 from .enums import InputState, LanguageFilter, ProbingState
 from .escprober import EscCharSetProber
 from .latin1prober import Latin1Prober
 from .mbcsgroupprober import MBCSGroupProber
+from .resultdict import ResultDict
 from .sbcsgroupprober import SBCSGroupProber
 
 
@@ -80,20 +83,21 @@ class UniversalDetector:
         "iso-8859-13": "Windows-1257",
     }
 
-    def __init__(self, lang_filter=LanguageFilter.ALL):
-        self._esc_charset_prober = None
-        self._charset_probers = []
-        self.result = None
-        self.done = None
-        self._got_data = None
-        self._input_state = None
-        self._last_char = None
+    result: ResultDict
+    done: bool
+    _got_data: bool
+    _has_win_bytes: bool
+    _input_state: int
+    _last_char: bytes
+
+    def __init__(self, lang_filter: int = LanguageFilter.ALL) -> None:
+        self._esc_charset_prober: Optional[EscCharSetProber] = None
+        self._charset_probers: List[CharSetProber] = []
         self.lang_filter = lang_filter
         self.logger = logging.getLogger(__name__)
-        self._has_win_bytes = None
         self.reset()
 
-    def reset(self):
+    def reset(self) -> None:
         """
         Reset the UniversalDetector and all of its probers back to their
         initial states.  This is called by ``__init__``, so you only need to
@@ -110,7 +114,7 @@ class UniversalDetector:
         for prober in self._charset_probers:
             prober.reset()
 
-    def feed(self, byte_str):
+    def feed(self, byte_str: Sequence[int]) -> None:
         """
         Takes a chunk of a document and feeds it through all of the relevant
         charset probers.
@@ -223,7 +227,7 @@ class UniversalDetector:
             if self.WIN_BYTE_DETECTOR.search(byte_str):
                 self._has_win_bytes = True
 
-    def close(self):
+    def close(self) -> ResultDict:
         """
         Stop analyzing the current document and come up with a final
         prediction.
@@ -257,7 +261,8 @@ class UniversalDetector:
                     max_prober = prober
             if max_prober and (max_prober_confidence > self.MINIMUM_THRESHOLD):
                 charset_name = max_prober.charset_name
-                lower_charset_name = max_prober.charset_name.lower()
+                assert charset_name is not None
+                lower_charset_name = charset_name.lower()
                 confidence = max_prober.get_confidence()
                 # Use Windows encoding name instead of ISO-8859 if we saw any
                 # extra Windows-specific bytes

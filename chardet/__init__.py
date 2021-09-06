@@ -15,14 +15,19 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
+from typing import List, Union
+
+from .charsetgroupprober import CharSetGroupProber
+from .charsetprober import CharSetProber
 from .enums import InputState
+from .resultdict import ResultDict
 from .universaldetector import UniversalDetector
 from .version import VERSION, __version__
 
 __all__ = ["UniversalDetector", "detect", "detect_all", "__version__", "VERSION"]
 
 
-def detect(byte_str):
+def detect(byte_str: str) -> ResultDict:
     """
     Detect the encoding of the given byte string.
 
@@ -41,7 +46,9 @@ def detect(byte_str):
     return detector.close()
 
 
-def detect_all(byte_str, ignore_threshold=False):
+def detect_all(
+    byte_str: Union[bytearray, bytes], ignore_threshold: bool = False
+) -> List[ResultDict]:
     """
     Detect all the possible encodings of the given byte string.
 
@@ -65,10 +72,10 @@ def detect_all(byte_str, ignore_threshold=False):
     detector.close()
 
     if detector._input_state == InputState.HIGH_BYTE:
-        results = []
-        probers = []
+        results: List[ResultDict] = []
+        probers: List[CharSetProber] = []
         for prober in detector._charset_probers:
-            if hasattr(prober, "probers"):
+            if isinstance(prober, CharSetGroupProber):
                 probers.extend(p for p in prober.probers)
             else:
                 probers.append(prober)

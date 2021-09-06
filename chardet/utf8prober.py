@@ -34,26 +34,27 @@ from .mbcssm import UTF8_SM_MODEL
 class UTF8Prober(CharSetProber):
     ONE_CHAR_PROB = 0.5
 
-    def __init__(self):
+    _num_mb_chars: int
+
+    def __init__(self) -> None:
         super().__init__()
         self.coding_sm = CodingStateMachine(UTF8_SM_MODEL)
-        self._num_mb_chars = None
         self.reset()
 
-    def reset(self):
+    def reset(self) -> None:
         super().reset()
         self.coding_sm.reset()
         self._num_mb_chars = 0
 
     @property
-    def charset_name(self):
+    def charset_name(self) -> str:
         return "utf-8"
 
     @property
-    def language(self):
+    def language(self) -> str:
         return ""
 
-    def feed(self, byte_str):
+    def feed(self, byte_str: bytes) -> int:
         for c in byte_str:
             coding_state = self.coding_sm.next_state(c)
             if coding_state == MachineState.ERROR:
@@ -72,7 +73,7 @@ class UTF8Prober(CharSetProber):
 
         return self.state
 
-    def get_confidence(self):
+    def get_confidence(self) -> float:
         unlike = 0.99
         if self._num_mb_chars < 6:
             unlike *= self.ONE_CHAR_PROB ** self._num_mb_chars
