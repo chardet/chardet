@@ -29,10 +29,10 @@ setup(
     license="LGPL",
     keywords=["encoding", "i18n", "xml"],
     project_urls={
-        'Documentation': 'https://chardet.readthedocs.io/',
-        'GitHub Project': 'https://github.com/chardet/chardet',
-        'Issue Tracker': 'https://github.com/chardet/chardet/issues'
-    },    
+        "Documentation": "https://chardet.readthedocs.io/",
+        "GitHub Project": "https://github.com/chardet/chardet",
+        "Issue Tracker": "https://github.com/chardet/chardet/issues",
+    },
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
