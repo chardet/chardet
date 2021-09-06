@@ -83,7 +83,7 @@ def print_char_to_order(var_name, order_map, charset_name, output_file):
 
 def print_language_model(var_name, language_model, output_file, char_ranks):
     print(
-        "# 3: Positive\n" "# 2: Likely\n" "# 1: Unlikely\n" "# 0: Negative\n",
+        "# 3: Positive\n# 2: Likely\n# 1: Unlikely\n# 0: Negative\n",
         file=output_file,
     )
     print(f"{var_name} = {{", file=output_file)
