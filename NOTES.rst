@@ -21,7 +21,27 @@ contains the same SingleByteCharSetProbers.
 SingleByteCharSetProber
 -----------------------
 A CharSetProber that is used for detecting single-byte encodings by using
-a "precedence matrix" (i.e., a character bigram model).
+a "precedence matrix" (i.e., a character bigram model).  The weird thing about
+this precedence matrix is that it's not actually based on all sequences of
+characters, but rather just the 64 most frequent letters, numbers, and control
+characters.  (We should probably have control characters not count here like in
+https://github.com/BYVoid/uchardet/commit/55b4f23971db61c9ed93be6630c79a50bda9b.)
+To look things up in the language model, we actually look up by "frequency order"
+(as in CharDistributionAnalysis), so that we can use one language model for multiple encodings.
+
+Furthermore, when calculating the confidence what we actually are counting is
+the number of sequences we've seen of different likelihoods:
+
+-  positive = in the 512 most frequent sequences
+-  likely = in the 1024 most frequent sequences
+-  unlikely = occurred at least 3 times in training data
+-  negative = did not occur at least 3 times in training data
+
+We should probably allow tweaking these thresholds when training models, as 64
+is completely arbitrary.  Also, there's no real reason we're storing things by
+"frequency order" here, since we could just store things by Unicode code points.
+This is leftover from the original C++ code.
+
 
 MBCSGroupProber
 ---------------
@@ -42,16 +62,17 @@ byte sequences or sequences that only occur for that particular encoding.
 
 CharDistributionAnalysis
 ------------------------
-Used for character unigram distribution encoding detection.  Takes a mapping
-from characters to a "frequency order" (i.e., what frequency rank that byte has
-in the given encoding) and a "typical distribution ratio", which is the number
-of occurrences of the 512 most frequently used characters divided by the number
-of occurrences of the rest of the characters for a typical document.
-The "characters" in this case are 2-byte sequences and they are first converted
-to an "order" (name comes from ord() function, I believe). This "order" is used
-to index into the frequency order table to determine the frequency rank of that
-byte sequence.  The reason this extra step is necessary is that the frequency
-rank table is language-specific (and not encoding-specific).
+Used for 2-byte character unigram distribution encoding detection.  Takes a
+mapping from characters to a "frequency order" (i.e., what frequency rank that
+2-byte sequence has in the given encoding) and a "typical distribution ratio",
+which is the number of occurrences of the 512 most frequently used characters
+divided by the number of occurrences of the rest of the characters for a typical
+document. The "characters" in this case are 2-byte sequences and they are first
+converted to an "order" (name comes from ord() function, I believe). This
+"order" is used to index into the frequency order table to determine the
+frequency rank of that byte sequence.  The reason this extra step is necessary
+is that the frequency rank table is language-specific (and not encoding-
+specific).
 
 
 What's where
@@ -64,11 +85,19 @@ Bigram files
 - ``hebrewprober.py``
 - ``jpcntxprober.py``
 - ``langbulgarianmodel.py``
+- ``langcroatianmodel.py``
 - ``langcyrillicmodel.py``
+- ``langczechmodel.py``
+- ``langgermanmodel.py``
 - ``langgreekmodel.py``
 - ``langhebrewmodel.py``
 - ``langhungarianmodel.py``
+- ``langpolishmodel.py``
+- ``langromanianmodel.py``
+- ``langslovakmodel.py``
+- ``langslovenemodel.py``
 - ``langthaimodel.py``
+- ``langturkishmodel.py``
 - ``latin1prober.py``
 - ``sbcharsetprober.py``
 - ``sbcsgroupprober.py``

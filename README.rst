@@ -17,20 +17,51 @@ Chardet: The Universal Character Encoding Detector
 
 
 Detects
- - ASCII, UTF-8, UTF-16 (2 variants), UTF-32 (4 variants)
- - Big5, GB2312, EUC-TW, HZ-GB-2312, ISO-2022-CN (Traditional and Simplified Chinese)
- - EUC-JP, SHIFT_JIS, CP932, ISO-2022-JP (Japanese)
- - EUC-KR, ISO-2022-KR, Johab (Korean)
- - KOI8-R, MacCyrillic, IBM855, IBM866, ISO-8859-5, windows-1251 (Cyrillic)
- - ISO-8859-5, windows-1251 (Bulgarian)
- - ISO-8859-1, windows-1252 (Western European languages)
- - ISO-8859-7, windows-1253 (Greek)
- - ISO-8859-8, windows-1255 (Visual and Logical Hebrew)
- - TIS-620 (Thai)
 
-.. note::
-   Our ISO-8859-2 and windows-1250 (Hungarian) probers have been temporarily
-   disabled until we can retrain the models.
+ - ``ASCII``
+ - ``Big5`` (Traditional Chinese)
+ - ``CP720`` (Arabic)
+ - ``CP855``/``IBM855`` (Bulgarian, Macedonian, Russian, Serbian)
+ - ``CP864`` (Arabic)
+ - ``CP866``/``IBM866`` (Belarusian, Russian)
+ - ``CP874`` (Thai)
+ - ``CP932`` (Japanese)
+ - ``EUC-JP`` (Japanese)
+ - ``EUC-KR`` (Korean)
+ - ``EUC-TW`` (Traditional Chinese)
+ - ``GB2312`` (Simplified Chinese)
+ - ``HZ-GB-2312`` (Simplified Chinese)
+ - ``ISO-2022-CN`` (Traditional and Simplified Chinese)
+ - ``ISO-2022-JP`` (Japanese)
+ - ``ISO-2022-KR`` (Korean)
+ - ``ISO-8859-1`` (Dutch, English, Finnish, French, German, Italian, Portuguese, Spanish)
+ - ``ISO-8859-2`` (Croatian, Czech, Hungarian, Polish, Romanian, Slovak, Slovene)
+ - ``ISO-8859-3`` (Esperanto)
+ - ``ISO-8859-4`` (Estonian, Latvian, Lithuanian)
+ - ``ISO-8859-5`` (Belarusian, Bulgarian, Macedonian, Russian, Serbian)
+ - ``ISO-8859-6`` (Arabic)
+ - ``ISO-8859-7`` (Greek)
+ - ``ISO-8859-8`` (Visual and Logical Hebrew)
+ - ``ISO-8859-9`` (Turkish)
+ - ``ISO-8859-11`` (Thai)
+ - ``ISO-8859-13`` (Estonian, Latvian, Lithuanian)
+ - ``ISO-8859-15`` (Danish, Finnish, French, Italian, Portuguese, Spanish)
+ - ``Johab`` (Korean)
+ - ``MacCyrillic`` (Belarusian, Macedonian, Russian, Serbian)
+ - ``SHIFT_JIS`` (Japanese)
+ - ``TIS-620`` (Thai)
+ - ``UTF-8``
+ - ``UTF-16`` (2 variants)
+ - ``UTF-32`` (4 variants)
+ - ``Windows-1250`` (Croatian, Czech, Hungarian, Polish, Romanian, Slovak, Slovene)
+ - ``Windows-1251`` (Belarusian, Bulgarian, Macedonian, Russian, Serbian)
+ - ``Windows-1252`` (Dutch, English, Finnish, French, German, Italian, Portuguese, Spanish)
+ - ``Windows-1253`` (Greek)
+ - ``Windows-1254`` (Turkish)
+ - ``Windows-1255`` (Visual and Logical Hebrew)
+ - ``Windows-1256`` (Arabic)
+ - ``Windows-1257`` (Estonian, Latvian, Lithuanian)
+
 
 Requires Python 3.6+.
 

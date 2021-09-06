@@ -119,11 +119,35 @@ Single-byte encodings
 The single-byte encoding prober, ``SBCSGroupProber`` (defined in
 ``sbcsgroupprober.py``), is also just a shell that manages a group of
 other probers, one for each combination of single-byte encoding and
-language: ``windows-1251``, ``KOI8-R``, ``ISO-8859-5``, ``MacCyrillic``,
-``IBM855``, and ``IBM866`` (Russian); ``ISO-8859-7`` and
-``windows-1253`` (Greek); ``ISO-8859-5`` and ``windows-1251``
-(Bulgarian); ``ISO-8859-2`` and ``windows-1250`` (Hungarian);
-``TIS-620`` (Thai); ``windows-1255`` and ``ISO-8859-8`` (Hebrew).
+language:
+ - ``ASCII``
+ - ``CP720`` (Arabic)
+ - ``CP855``/IBM855 (Bulgarian, Macedonian, Russian, Serbian)
+ - ``CP864`` (Arabic)
+ - ``CP866``/``IBM866`` (Belarusian, Russian)
+ - ``CP874`` (Thai)
+ - ``ISO-8859-1`` (Dutch, English, Finnish, French, German, Italian, Portuguese, Spanish)
+ - ``ISO-8859-2`` (Croatian, Czech, Hungarian, Polish, Romanian, Slovak, Slovene)
+ - ``ISO-8859-3`` (Esperanto)
+ - ``ISO-8859-4`` (Estonian, Latvian, Lithuanian)
+ - ``ISO-8859-5`` (Belarusian, Bulgarian, Macedonian, Russian, Serbian)
+ - ``ISO-8859-6`` (Arabic)
+ - ``ISO-8859-7`` (Greek)
+ - ``ISO-8859-8`` (Visual and Logical Hebrew)
+ - ``ISO-8859-9`` (Turkish)
+ - ``ISO-8859-11`` (Thai)
+ - ``ISO-8859-13`` (Estonian, Latvian, Lithuanian)
+ - ``ISO-8859-15`` (Danish, Finnish, French, Italian, Portuguese, Spanish)
+ - ``MacCyrillic`` (Belarusian, Macedonian, Russian, Serbian)
+ - ``TIS-620`` (Thai)
+ - ``Windows-1250`` (Croatian, Czech, Hungarian, Polish, Romanian, Slovak, Slovene)
+ - ``Windows-1251`` (Belarusian, Bulgarian, Macedonian, Russian, Serbian)
+ - ``Windows-1252`` (Dutch, English, Finnish, French, German, Italian, Portuguese, Spanish)
+ - ``Windows-1253`` (Greek)
+ - ``Windows-1254`` (Turkish)
+ - ``Windows-1255`` (Visual and Logical Hebrew)
+ - ``Windows-1256`` (Arabic)
+ - ``Windows-1257`` (Estonian, Latvian, Lithuanian)
 
 ``SBCSGroupProber`` feeds the text to each of these
 encoding+language-specific probers and checks the results. These probers

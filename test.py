@@ -24,15 +24,8 @@ import pytest
 import chardet
 from chardet.metadata.languages import LANGUAGES
 
-# TODO: Restore Hungarian encodings (iso-8859-2 and windows-1250) after we
-#       retrain model.
-MISSING_ENCODINGS = {
-    "iso-8859-2",
-    "iso-8859-6",
-    "windows-1250",
-    "windows-1254",
-    "windows-1256",
-}
+
+MISSING_ENCODINGS = set()
 EXPECTED_FAILURES = {
     "tests/iso-8859-7-greek/disabled.gr.xml",
     "tests/iso-8859-9-turkish/_ude_1.txt",

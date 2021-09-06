@@ -26,6 +26,7 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
+import logging
 from collections import namedtuple
 
 from .charsetprober import CharSetProber
@@ -46,7 +47,6 @@ SingleByteCharSetModel = namedtuple(
 
 
 class SingleByteCharSetProber(CharSetProber):
-    SAMPLE_SIZE = 64
     SB_ENOUGH_REL_THRESHOLD = 1024  #  0.25 * SAMPLE_SIZE^2
     POSITIVE_SHORTCUT_THRESHOLD = 0.95
     NEGATIVE_SHORTCUT_THRESHOLD = 0.05
@@ -64,6 +64,7 @@ class SingleByteCharSetProber(CharSetProber):
         self._total_char = None
         self._control_char = None
         self._freq_char = None
+        self.logger = logging.getLogger(__name__)
         self.reset()
 
     def reset(self):
@@ -103,16 +104,11 @@ class SingleByteCharSetProber(CharSetProber):
         language_model = self._model.language_model
         for char in byte_str:
             order = char_to_order_map.get(char, CharacterCategory.UNDEFINED)
-            # XXX: This was SYMBOL_CAT_ORDER before, with a value of 250, but
-            #      CharacterCategory.SYMBOL is actually 253, so we use CONTROL
-            #      to make it closer to the original intent. The only difference
-            #      is whether or not we count digits and control characters for
-            #      _total_char purposes.
-            if order < CharacterCategory.CONTROL:
+            if order < CharacterCategory.SYMBOL:
                 self._total_char += 1
-            if order < self.SAMPLE_SIZE:
+            if order < CharacterCategory.CONTROL:
                 self._freq_char += 1
-                if self._last_order < self.SAMPLE_SIZE:
+                if self._last_order < CharacterCategory.CONTROL:
                     self._total_seqs += 1
                     if not self._reversed:
                         lm_cat = language_model[self._last_order][order]
