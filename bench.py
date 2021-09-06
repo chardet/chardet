@@ -61,7 +61,7 @@ def get_test_files():
         # Skip files in tests directory
         if not isdir(path):
             continue
-        # Remove language suffixes from encoding if pressent
+        # Remove language suffixes from encoding if present
         encoding = encoding.lower()
         for postfix in [
             "-arabic",

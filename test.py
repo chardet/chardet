@@ -51,7 +51,7 @@ def gen_test_params():
         # Skip files in tests directory
         if not isdir(path):
             continue
-        # Remove language suffixes from encoding if pressent
+        # Remove language suffixes from encoding if present
         encoding = encoding.lower()
         for language in sorted(LANGUAGES.keys()):
             postfix = "-" + language.lower()
