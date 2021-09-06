@@ -82,9 +82,7 @@ LANGUAGES = {
         iso_code="be",
         use_ascii=False,
         charsets=["ISO-8859-5", "WINDOWS-1251", "IBM866", "MacCyrillic"],
-        alphabet=(
-            "АБВГДЕЁЖЗІЙКЛМНОПРСТУЎФХЦЧШЫЬЭЮЯ" "абвгдеёжзійклмнопрстуўфхцчшыьэюяʼ"
-        ),
+        alphabet="АБВГДЕЁЖЗІЙКЛМНОПРСТУЎФХЦЧШЫЬЭЮЯабвгдеёжзійклмнопрстуўфхцчшыьэюяʼ",
         wiki_start_pages=["Галоўная_старонка"],
     ),
     "Bulgarian": Language(
@@ -92,7 +90,7 @@ LANGUAGES = {
         iso_code="bg",
         use_ascii=False,
         charsets=["ISO-8859-5", "WINDOWS-1251", "IBM855"],
-        alphabet=("АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЬЮЯ" "абвгдежзийклмнопрстуфхцчшщъьюя"),
+        alphabet="АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЬЮЯабвгдежзийклмнопрстуфхцчшщъьюя",
         wiki_start_pages=["Начална_страница"],
     ),
     "Czech": Language(
@@ -124,9 +122,7 @@ LANGUAGES = {
         iso_code="el",
         use_ascii=False,
         charsets=["ISO-8859-7", "WINDOWS-1253"],
-        alphabet=(
-            "αβγδεζηθικλμνξοπρσςτυφχψωάέήίόύώ" "ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΣΤΥΦΧΨΩΆΈΉΊΌΎΏ"
-        ),
+        alphabet="αβγδεζηθικλμνξοπρσςτυφχψωάέήίόύώΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΣΤΥΦΧΨΩΆΈΉΊΌΎΏ",
         wiki_start_pages=["Πύλη:Κύρια"],
     ),
     "English": Language(
@@ -142,7 +138,7 @@ LANGUAGES = {
         # Q, W, X, and Y not used at all
         use_ascii=False,
         charsets=["ISO-8859-3"],
-        alphabet=("abcĉdefgĝhĥijĵklmnoprsŝtuŭvz" "ABCĈDEFGĜHĤIJĴKLMNOPRSŜTUŬVZ"),
+        alphabet="abcĉdefgĝhĥijĵklmnoprsŝtuŭvzABCĈDEFGĜHĤIJĴKLMNOPRSŜTUŬVZ",
         wiki_start_pages=["Vikipedio:Ĉefpaĝo"],
     ),
     "Spanish": Language(
@@ -160,7 +156,7 @@ LANGUAGES = {
         charsets=["ISO-8859-4", "ISO-8859-13", "WINDOWS-1257"],
         # C, F, Š, Q, W, X, Y, Z, Ž are only for
         # loanwords
-        alphabet=("ABDEGHIJKLMNOPRSTUVÕÄÖÜ" "abdeghijklmnoprstuvõäöü"),
+        alphabet="ABDEGHIJKLMNOPRSTUVÕÄÖÜabdeghijklmnoprstuvõäöü",
         wiki_start_pages=["Esileht"],
     ),
     "Finnish": Language(
@@ -193,7 +189,7 @@ LANGUAGES = {
         # Q, W, X, Y are only used for foreign words.
         use_ascii=False,
         charsets=["ISO-8859-2", "WINDOWS-1250"],
-        alphabet=("abcčćdđefghijklmnoprsštuvzž" "ABCČĆDĐEFGHIJKLMNOPRSŠTUVZŽ"),
+        alphabet="abcčćdđefghijklmnoprsštuvzžABCČĆDĐEFGHIJKLMNOPRSŠTUVZŽ",
         wiki_start_pages=["Glavna_stranica"],
     ),
     "Hungarian": Language(
@@ -202,7 +198,7 @@ LANGUAGES = {
         # Q, W, X, Y are only used for foreign words.
         use_ascii=False,
         charsets=["ISO-8859-2", "WINDOWS-1250"],
-        alphabet=("abcdefghijklmnoprstuvzáéíóöőúüű" "ABCDEFGHIJKLMNOPRSTUVZÁÉÍÓÖŐÚÜŰ"),
+        alphabet="abcdefghijklmnoprstuvzáéíóöőúüűABCDEFGHIJKLMNOPRSTUVZÁÉÍÓÖŐÚÜŰ",
         wiki_start_pages=["Kezdőlap"],
     ),
     "Italian": Language(
@@ -219,9 +215,7 @@ LANGUAGES = {
         use_ascii=False,
         charsets=["ISO-8859-13", "WINDOWS-1257", "ISO-8859-4"],
         # Q, W, and X not used at all
-        alphabet=(
-            "AĄBCČDEĘĖFGHIĮYJKLMNOPRSŠTUŲŪVZŽ" "aąbcčdeęėfghiįyjklmnoprsštuųūvzž"
-        ),
+        alphabet="AĄBCČDEĘĖFGHIĮYJKLMNOPRSŠTUŲŪVZŽaąbcčdeęėfghiįyjklmnoprsštuųūvzž",
         wiki_start_pages=["Pagrindinis_puslapis"],
     ),
     "Latvian": Language(
@@ -230,9 +224,7 @@ LANGUAGES = {
         use_ascii=False,
         charsets=["ISO-8859-13", "WINDOWS-1257", "ISO-8859-4"],
         # Q, W, X, Y are only for loanwords
-        alphabet=(
-            "AĀBCČDEĒFGĢHIĪJKĶLĻMNŅOPRSŠTUŪVZŽ" "aābcčdeēfgģhiījkķlļmnņoprsštuūvzž"
-        ),
+        alphabet="AĀBCČDEĒFGĢHIĪJKĶLĻMNŅOPRSŠTUŪVZŽaābcčdeēfgģhiījkķlļmnņoprsštuūvzž",
         wiki_start_pages=["Sākumlapa"],
     ),
     "Macedonian": Language(
@@ -240,7 +232,7 @@ LANGUAGES = {
         iso_code="mk",
         use_ascii=False,
         charsets=["ISO-8859-5", "WINDOWS-1251", "MacCyrillic", "IBM855"],
-        alphabet=("АБВГДЃЕЖЗЅИЈКЛЉМНЊОПРСТЌУФХЦЧЏШ" "абвгдѓежзѕијклљмнњопрстќуфхцчџш"),
+        alphabet="АБВГДЃЕЖЗЅИЈКЛЉМНЊОПРСТЌУФХЦЧЏШабвгдѓежзѕијклљмнњопрстќуфхцчџш",
         wiki_start_pages=["Главна_страница"],
     ),
     "Dutch": Language(
@@ -256,9 +248,7 @@ LANGUAGES = {
         # Q and X are only used for foreign words.
         use_ascii=False,
         charsets=["ISO-8859-2", "WINDOWS-1250"],
-        alphabet=(
-            "AĄBCĆDEĘFGHIJKLŁMNŃOÓPRSŚTUWYZŹŻ" "aąbcćdeęfghijklłmnńoóprsśtuwyzźż"
-        ),
+        alphabet="AĄBCĆDEĘFGHIJKLŁMNŃOÓPRSŚTUWYZŹŻaąbcćdeęfghijklłmnńoóprsśtuwyzźż",
         wiki_start_pages=["Wikipedia:Strona_główna"],
     ),
     "Portuguese": Language(
@@ -289,9 +279,7 @@ LANGUAGES = {
             "IBM866",
             "IBM855",
         ],
-        alphabet=(
-            "абвгдеёжзийклмнопрстуфхцчшщъыьэюя" "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
-        ),
+        alphabet="абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ",
         wiki_start_pages=["Заглавная_страница"],
     ),
     "Slovak": Language(
@@ -308,7 +296,7 @@ LANGUAGES = {
         # Q, W, X, Y are only used for foreign words.
         use_ascii=False,
         charsets=["ISO-8859-2", "WINDOWS-1250"],
-        alphabet=("abcčdefghijklmnoprsštuvzž" "ABCČDEFGHIJKLMNOPRSŠTUVZŽ"),
+        alphabet="abcčdefghijklmnoprsštuvzžABCČDEFGHIJKLMNOPRSŠTUVZŽ",
         wiki_start_pages=["Glavna_stran"],
     ),
     # Serbian can be written in both Latin and Cyrillic, but there's no
@@ -317,7 +305,7 @@ LANGUAGES = {
     "Serbian": Language(
         name="Serbian",
         iso_code="sr",
-        alphabet=("АБВГДЂЕЖЗИЈКЛЉМНЊОПРСТЋУФХЦЧЏШ" "абвгдђежзијклљмнњопрстћуфхцчџш"),
+        alphabet="АБВГДЂЕЖЗИЈКЛЉМНЊОПРСТЋУФХЦЧЏШабвгдђежзијклљмнњопрстћуфхцчџш",
         charsets=["ISO-8859-5", "WINDOWS-1251", "MacCyrillic", "IBM855"],
         wiki_start_pages=["Главна_страна"],
     ),
@@ -335,9 +323,7 @@ LANGUAGES = {
         # Q, W, and X are not used by Turkish
         use_ascii=False,
         charsets=["ISO-8859-3", "ISO-8859-9", "WINDOWS-1254"],
-        alphabet=(
-            "abcçdefgğhıijklmnoöprsştuüvyzâîû" "ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZÂÎÛ"
-        ),
+        alphabet="abcçdefgğhıijklmnoöprsştuüvyzâîûABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZÂÎÛ",
         wiki_start_pages=["Ana_Sayfa"],
     ),
     "Vietnamese": Language(
@@ -361,7 +347,7 @@ LANGUAGES = {
         # the adoption of Unicode on the World Wide
         # Web.
         charsets=["WINDOWS-1258"],
-        alphabet=("aăâbcdđeêghiklmnoôơpqrstuưvxy" "AĂÂBCDĐEÊGHIKLMNOÔƠPQRSTUƯVXY"),
+        alphabet="aăâbcdđeêghiklmnoôơpqrstuưvxyAĂÂBCDĐEÊGHIKLMNOÔƠPQRSTUƯVXY",
         wiki_start_pages=["Chữ_Quốc_ngữ"],
     ),
 }

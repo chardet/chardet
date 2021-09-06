@@ -32,7 +32,7 @@ def detect(byte_str):
     if not isinstance(byte_str, bytearray):
         if not isinstance(byte_str, bytes):
             raise TypeError(
-                "Expected object of type bytes or bytearray, got: " f"{type(byte_str)}"
+                f"Expected object of type bytes or bytearray, got: {type(byte_str)}"
             )
         else:
             byte_str = bytearray(byte_str)
@@ -55,7 +55,7 @@ def detect_all(byte_str, ignore_threshold=False):
     if not isinstance(byte_str, bytearray):
         if not isinstance(byte_str, bytes):
             raise TypeError(
-                "Expected object of type bytes or bytearray, got: " f"{type(byte_str)}"
+                f"Expected object of type bytes or bytearray, got: {type(byte_str)}"
             )
         else:
             byte_str = bytearray(byte_str)

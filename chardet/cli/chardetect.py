@@ -75,9 +75,9 @@ def main(argv=None):
         if f.isatty():
             print(
                 "You are running chardetect interactively. Press "
-                + "CTRL-D twice at the start of a blank line to signal the "
-                + "end of your input. If you want help, run chardetect "
-                + "--help\n",
+                "CTRL-D twice at the start of a blank line to signal the "
+                "end of your input. If you want help, run chardetect "
+                "--help\n",
                 file=sys.stderr,
             )
         print(description_of(f, f.name))

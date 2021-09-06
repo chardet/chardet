@@ -136,7 +136,7 @@ def main():
         "-c",
         "--cchardet",
         action="store_true",
-        help="Run benchmarks for cChardet instead of chardet, " "if it is installed.",
+        help="Run benchmarks for cChardet instead of chardet, if it is installed.",
     )
     parser.add_argument(
         "-i",
