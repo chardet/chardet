@@ -105,7 +105,7 @@ class Latin1Prober(CharSetProber):
     def reset(self):
         self._last_char_class = OTH
         self._freq_counter = [0] * FREQ_CAT_NUM
-        CharSetProber.reset(self)
+        super().reset()
 
     @property
     def charset_name(self):
