@@ -74,7 +74,11 @@ class UTF8Prober(CharSetProber):
 
     def get_confidence(self):
         unlike = 0.99
-        if self._num_mb_chars < 6:
+        if self._num_mb_chars == 1:
+            # guaranteed to be preferred over ISO-8859-1, evaluates to 0.731
+            unlike *= self.ONE_CHAR_PROB * (1-0.731)/0.99/0.5
+            return 1.0 - unlike
+        elif self._num_mb_chars < 6:
             unlike *= self.ONE_CHAR_PROB ** self._num_mb_chars
             return 1.0 - unlike
         else:
