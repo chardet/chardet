@@ -20,7 +20,7 @@ from .. import __version__
 from ..universaldetector import UniversalDetector
 
 
-def description_of(lines, name="stdin"):
+def description_of(lines, name="stdin", minimal=False):
     """
     Return a string describing the probable encoding of a file or
     list of strings.
@@ -29,6 +29,8 @@ def description_of(lines, name="stdin"):
     :type lines: Iterable of bytes
     :param name: Name of file or collection of lines
     :type name: str
+    :param minimal: Simplify the output
+    :type minimal: bool
     """
     u = UniversalDetector()
     for line in lines:
@@ -39,7 +41,9 @@ def description_of(lines, name="stdin"):
             break
     u.close()
     result = u.result
-    if result["encoding"]:
+    if minimal:
+        return result["encoding"]
+    elif result["encoding"]:
         return f'{name}: {result["encoding"]} with confidence {result["confidence"]}'
     else:
         return f"{name}: no result"
@@ -69,6 +73,12 @@ def main(argv=None):
     parser.add_argument(
         "--version", action="version", version=f"%(prog)s {__version__}"
     )
+    parser.add_argument(
+        "--minimal",
+        help="Print only the encoder in the output",
+        action="store_true"
+    )
+
     args = parser.parse_args(argv)
 
     for f in args.input:
@@ -80,7 +90,7 @@ def main(argv=None):
                 "--help\n",
                 file=sys.stderr,
             )
-        print(description_of(f, f.name))
+        print(description_of(f, f.name, minimal=args.minimal))
 
 
 if __name__ == "__main__":
