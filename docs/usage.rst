@@ -38,8 +38,7 @@ Once you’ve exhausted the source text, call ``detector.close()``, which
 will do some final calculations in case the detector didn’t hit its
 minimum confidence threshold earlier. Then ``detector.result`` will be a
 dictionary containing the auto-detected character encoding and
-confidence level (the same as the ``chardet.detect`` function 
-`returns <usage.html#example-using-the-detect-function>`__).
+confidence level (the same as the ``chardet.detect`` function returns).
 
 
 Example: Detecting encoding incrementally
