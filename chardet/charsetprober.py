@@ -31,6 +31,8 @@ import re
 
 from .enums import ProbingState
 
+INTERNATIONAL_WORDS_PATTERN = re.compile(b"[a-zA-Z]*[\x80-\xFF]+[a-zA-Z]*[^a-zA-Z\x80-\xFF]?")
+
 
 class CharSetProber:
 
@@ -83,7 +85,7 @@ class CharSetProber:
         # This regex expression filters out only words that have at-least one
         # international character. The word may include one marker character at
         # the end.
-        words = re.findall(b"[a-zA-Z]*[\x80-\xFF]+[a-zA-Z]*[^a-zA-Z\x80-\xFF]?", buf)
+        words = INTERNATIONAL_WORDS_PATTERN.findall(buf)
 
         for word in words:
             filtered.extend(word[:-1])
@@ -112,10 +114,9 @@ class CharSetProber:
         filtered = bytearray()
         in_tag = False
         prev = 0
-
-        for curr in range(len(buf)):
-            # Slice here to get bytes instead of an int with Python 3
-            buf_char = buf[curr : curr + 1]
+        buf = memoryview(buf).cast('c')
+        
+        for curr, buf_char in enumerate(buf):
             # Check if we're coming out of or entering an XML tag
             if buf_char == b">":
                 prev = curr + 1
@@ -134,5 +135,5 @@ class CharSetProber:
             # Keep everything after last non-extended-ASCII, non-alphabetic
             # character
             filtered.extend(buf[prev:])
-
+        
         return filtered
