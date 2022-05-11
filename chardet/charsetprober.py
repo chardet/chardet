@@ -31,6 +31,8 @@ import re
 
 from .enums import ProbingState
 
+INTERNATIONAL_WORDS_PATTERN = re.compile(b"[a-zA-Z]*[\x80-\xFF]+[a-zA-Z]*[^a-zA-Z\x80-\xFF]?")
+
 
 class CharSetProber:
 
@@ -70,12 +72,10 @@ class CharSetProber:
         alphabet: english alphabets [a-zA-Z]
         international: international characters [\x80-\xFF]
         marker: everything else [^a-zA-Z\x80-\xFF]
-
         The input buffer can be thought to contain a series of words delimited
         by markers. This function works to filter all words that contain at
         least one international character. All contiguous sequences of markers
         are replaced by a single space ascii character.
-
         This filter applies to all scripts which do not use English characters.
         """
         filtered = bytearray()
@@ -83,7 +83,7 @@ class CharSetProber:
         # This regex expression filters out only words that have at-least one
         # international character. The word may include one marker character at
         # the end.
-        words = re.findall(b"[a-zA-Z]*[\x80-\xFF]+[a-zA-Z]*[^a-zA-Z\x80-\xFF]?", buf)
+        words = INTERNATIONAL_WORDS_PATTERN.findall(buf)
 
         for word in words:
             filtered.extend(word[:-1])
@@ -104,7 +104,6 @@ class CharSetProber:
         """
         Returns a copy of ``buf`` that retains only the sequences of English
         alphabet and high byte characters that are not between <> characters.
-
         This filter can be applied to all scripts which contain both English
         characters and extended ASCII characters, but is currently only used by
         ``Latin1Prober``.
@@ -112,10 +111,9 @@ class CharSetProber:
         filtered = bytearray()
         in_tag = False
         prev = 0
-
-        for curr in range(len(buf)):
-            # Slice here to get bytes instead of an int with Python 3
-            buf_char = buf[curr : curr + 1]
+        buf = memoryview(buf).cast('c')
+        
+        for curr, buf_char in enumerate(buf):
             # Check if we're coming out of or entering an XML tag
             if buf_char == b">":
                 prev = curr + 1
@@ -134,5 +132,5 @@ class CharSetProber:
             # Keep everything after last non-extended-ASCII, non-alphabetic
             # character
             filtered.extend(buf[prev:])
-
+        
         return filtered
