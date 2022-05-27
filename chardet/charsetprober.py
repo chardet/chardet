@@ -113,8 +113,8 @@ class CharSetProber:
         filtered = bytearray()
         in_tag = False
         prev = 0
-        buf = memoryview(buf).cast('c')
-        
+        buf = memoryview(buf).cast("c")
+
         for curr, buf_char in enumerate(buf):
             # Check if we're coming out of or entering an XML tag
             if buf_char == b">":
@@ -134,5 +134,5 @@ class CharSetProber:
             # Keep everything after last non-extended-ASCII, non-alphabetic
             # character
             filtered.extend(buf[prev:])
-        
+
         return filtered
