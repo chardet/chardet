@@ -31,7 +31,9 @@ import re
 
 from .enums import ProbingState
 
-INTERNATIONAL_WORDS_PATTERN = re.compile(b"[a-zA-Z]*[\x80-\xFF]+[a-zA-Z]*[^a-zA-Z\x80-\xFF]?")
+INTERNATIONAL_WORDS_PATTERN = re.compile(
+    b"[a-zA-Z]*[\x80-\xFF]+[a-zA-Z]*[^a-zA-Z\x80-\xFF]?"
+)
 
 
 class CharSetProber:
