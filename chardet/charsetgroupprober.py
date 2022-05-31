@@ -25,29 +25,32 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
+from typing import Dict, List, Optional
+
 from .charsetprober import CharSetProber
 from .enums import ProbingState
 
 
 class CharSetGroupProber(CharSetProber):
-    def __init__(self, lang_filter=None):
+    def __init__(self, lang_filter: int = 0) -> None:
         super().__init__(lang_filter=lang_filter)
         self._active_num = 0
-        self.probers = []
-        self._best_guess_prober = None
+        self.probers: List[CharSetProber] = []
+        self.active: Dict[CharSetProber, bool] = {}
+        self._best_guess_prober: Optional[CharSetProber] = None
 
-    def reset(self):
+    def reset(self) -> None:
         super().reset()
         self._active_num = 0
         for prober in self.probers:
             if prober:
                 prober.reset()
-                prober.active = True
+                self.active[prober] = True
                 self._active_num += 1
         self._best_guess_prober = None
 
     @property
-    def charset_name(self):
+    def charset_name(self) -> Optional[str]:
         if not self._best_guess_prober:
             self.get_confidence()
             if not self._best_guess_prober:
@@ -55,18 +58,18 @@ class CharSetGroupProber(CharSetProber):
         return self._best_guess_prober.charset_name
 
     @property
-    def language(self):
+    def language(self) -> Optional[str]:
         if not self._best_guess_prober:
             self.get_confidence()
             if not self._best_guess_prober:
                 return None
         return self._best_guess_prober.language
 
-    def feed(self, byte_str):
+    def feed(self, byte_str: bytes) -> int:
         for prober in self.probers:
             if not prober:
                 continue
-            if not prober.active:
+            if not self.active[prober]:
                 continue
             state = prober.feed(byte_str)
             if not state:
@@ -76,14 +79,14 @@ class CharSetGroupProber(CharSetProber):
                 self._state = ProbingState.FOUND_IT
                 return self.state
             elif state == ProbingState.NOT_ME:
-                prober.active = False
+                self.active[prober] = False
                 self._active_num -= 1
                 if self._active_num <= 0:
                     self._state = ProbingState.NOT_ME
                     return self.state
         return self.state
 
-    def get_confidence(self):
+    def get_confidence(self) -> float:
         state = self.state
         if state == ProbingState.FOUND_IT:
             return 0.99
@@ -94,7 +97,7 @@ class CharSetGroupProber(CharSetProber):
         for prober in self.probers:
             if not prober:
                 continue
-            if not prober.active:
+            if not self.active[prober]:
                 self.logger.debug("%s not active", prober.charset_name)
                 continue
             conf = prober.get_confidence()

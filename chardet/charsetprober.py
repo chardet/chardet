@@ -28,6 +28,7 @@
 
 import logging
 import re
+from typing import Optional, Sequence
 
 from .enums import ProbingState
 
@@ -40,35 +41,40 @@ class CharSetProber:
 
     SHORTCUT_THRESHOLD = 0.95
 
-    def __init__(self, lang_filter=None):
-        self._state = None
+    _state: int
+
+    def __init__(self, lang_filter: int = 0) -> None:
         self.lang_filter = lang_filter
         self.logger = logging.getLogger(__name__)
 
-    def reset(self):
+    def reset(self) -> None:
         self._state = ProbingState.DETECTING
 
     @property
-    def charset_name(self):
+    def charset_name(self) -> Optional[str]:
         return None
 
-    def feed(self, buf):
-        pass
-
     @property
-    def state(self):
+    def language(self) -> Optional[str]:
+        raise NotImplementedError
+
+    def feed(self, byte_str: bytes) -> int:
         return self._state
 
-    def get_confidence(self):
+    @property
+    def state(self) -> int:
+        return self._state
+
+    def get_confidence(self) -> float:
         return 0.0
 
     @staticmethod
-    def filter_high_byte_only(buf):
+    def filter_high_byte_only(buf: bytes) -> bytes:
         buf = re.sub(b"([\x00-\x7F])+", b" ", buf)
         return buf
 
     @staticmethod
-    def filter_international_words(buf):
+    def filter_international_words(buf: bytes) -> bytearray:
         """
         We define three types of bytes:
         alphabet: english alphabets [a-zA-Z]
@@ -102,7 +108,7 @@ class CharSetProber:
         return filtered
 
     @staticmethod
-    def remove_xml_tags(buf):
+    def remove_xml_tags(buf: Sequence[int]) -> bytes:
         """
         Returns a copy of ``buf`` that retains only the sequences of English
         alphabet and high byte characters that are not between <> characters.

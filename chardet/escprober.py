@@ -25,6 +25,8 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
+from typing import Dict, Optional
+
 from .charsetprober import CharSetProber
 from .codingstatemachine import CodingStateMachine
 from .enums import LanguageFilter, MachineState, ProbingState
@@ -43,9 +45,14 @@ class EscCharSetProber(CharSetProber):
     identify these encodings.
     """
 
-    def __init__(self, lang_filter=None):
+    active_sm_count: int
+    _detected_charset: Optional[str]
+    _detected_language: Optional[str]
+
+    def __init__(self, lang_filter: int = 0) -> None:
         super().__init__(lang_filter=lang_filter)
         self.coding_sm = []
+        self.active: Dict[CodingStateMachine, bool] = {}
         if self.lang_filter & LanguageFilter.CHINESE_SIMPLIFIED:
             self.coding_sm.append(CodingStateMachine(HZ_SM_MODEL))
             self.coding_sm.append(CodingStateMachine(ISO2022CN_SM_MODEL))
@@ -53,45 +60,41 @@ class EscCharSetProber(CharSetProber):
             self.coding_sm.append(CodingStateMachine(ISO2022JP_SM_MODEL))
         if self.lang_filter & LanguageFilter.KOREAN:
             self.coding_sm.append(CodingStateMachine(ISO2022KR_SM_MODEL))
-        self.active_sm_count = None
-        self._detected_charset = None
-        self._detected_language = None
-        self._state = None
         self.reset()
 
-    def reset(self):
+    def reset(self) -> None:
         super().reset()
         for coding_sm in self.coding_sm:
             if not coding_sm:
                 continue
-            coding_sm.active = True
+            self.active[coding_sm] = True
             coding_sm.reset()
         self.active_sm_count = len(self.coding_sm)
         self._detected_charset = None
         self._detected_language = None
 
     @property
-    def charset_name(self):
+    def charset_name(self) -> Optional[str]:
         return self._detected_charset
 
     @property
-    def language(self):
+    def language(self) -> Optional[str]:
         return self._detected_language
 
-    def get_confidence(self):
+    def get_confidence(self) -> float:
         if self._detected_charset:
             return 0.99
         else:
             return 0.00
 
-    def feed(self, byte_str):
+    def feed(self, byte_str: bytes) -> int:
         for c in byte_str:
             for coding_sm in self.coding_sm:
-                if not coding_sm or not coding_sm.active:
+                if not coding_sm or not self.active[coding_sm]:
                     continue
                 coding_state = coding_sm.next_state(c)
                 if coding_state == MachineState.ERROR:
-                    coding_sm.active = False
+                    self.active[coding_sm] = False
                     self.active_sm_count -= 1
                     if self.active_sm_count <= 0:
                         self._state = ProbingState.NOT_ME

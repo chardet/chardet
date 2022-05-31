@@ -62,7 +62,7 @@ class SequenceLikelihood:
     POSITIVE = 3
 
     @classmethod
-    def get_num_categories(cls):
+    def get_num_categories(cls) -> int:
         """:returns: The number of likelihood categories in the enum."""
         return 4
 

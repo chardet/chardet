@@ -15,12 +15,13 @@ If no paths are provided, it takes its input from stdin.
 
 import argparse
 import sys
+from typing import Iterable, List, Optional
 
 from .. import __version__
 from ..universaldetector import UniversalDetector
 
 
-def description_of(lines, name="stdin"):
+def description_of(lines: Iterable[bytes], name: str = "stdin") -> str:
     """
     Return a string describing the probable encoding of a file or
     list of strings.
@@ -45,7 +46,7 @@ def description_of(lines, name="stdin"):
         return f"{name}: no result"
 
 
-def main(argv=None):
+def main(argv: Optional[List[str]] = None) -> None:
     """
     Handles command line arguments and gets things started.
 
