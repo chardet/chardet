@@ -62,8 +62,6 @@ class EscCharSetProber(CharSetProber):
     def reset(self):
         super().reset()
         for coding_sm in self.coding_sm:
-            if not coding_sm:
-                continue
             coding_sm.active = True
             coding_sm.reset()
         self.active_sm_count = len(self.coding_sm)
@@ -87,7 +85,7 @@ class EscCharSetProber(CharSetProber):
     def feed(self, byte_str):
         for c in byte_str:
             for coding_sm in self.coding_sm:
-                if not coding_sm or not coding_sm.active:
+                if not coding_sm.active:
                     continue
                 coding_state = coding_sm.next_state(c)
                 if coding_state == MachineState.ERROR:
