@@ -46,6 +46,7 @@ from .escprober import EscCharSetProber
 from .latin1prober import Latin1Prober
 from .mbcsgroupprober import MBCSGroupProber
 from .sbcsgroupprober import SBCSGroupProber
+from .utf1632prober import UTF1632Prober
 
 
 class UniversalDetector:
@@ -82,6 +83,7 @@ class UniversalDetector:
 
     def __init__(self, lang_filter=LanguageFilter.ALL):
         self._esc_charset_prober = None
+        self._utf1632_prober = None
         self._charset_probers = []
         self.result = None
         self.done = None
@@ -107,6 +109,8 @@ class UniversalDetector:
         self._last_char = b""
         if self._esc_charset_prober:
             self._esc_charset_prober.reset()
+        if self._utf1632_prober:
+            self._utf1632_prober.reset()
         for prober in self._charset_probers:
             prober.reset()
 
@@ -127,7 +131,7 @@ class UniversalDetector:
         if self.done:
             return
 
-        if not len(byte_str):
+        if not byte_str:
             return
 
         if not isinstance(byte_str, bytearray):
@@ -183,6 +187,21 @@ class UniversalDetector:
                 self._input_state = InputState.ESC_ASCII
 
         self._last_char = byte_str[-1:]
+
+        # next we will look to see if it is appears to be either a UTF-16 or
+        # UTF-32 encoding
+        if not self._utf1632_prober:
+            self._utf1632_prober = UTF1632Prober()
+
+        if self._utf1632_prober.state == ProbingState.DETECTING:
+            if self._utf1632_prober.feed(byte_str) == ProbingState.FOUND_IT:
+                self.result = {
+                    "encoding": self._utf1632_prober.charset_name,
+                    "confidence": self._utf1632_prober.get_confidence(),
+                    "language": "",
+                }
+                self.done = True
+                return
 
         # If we've seen escape sequences, use the EscCharSetProber, which
         # uses a simple state machine to check for known escape sequences in
