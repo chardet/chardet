@@ -7,3 +7,4 @@ PKG-INFO
 .hypothesis
 .cache
 .eggs
+wiki_*.txt
