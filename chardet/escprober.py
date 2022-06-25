@@ -79,10 +79,7 @@ class EscCharSetProber(CharSetProber):
         return self._detected_language
 
     def get_confidence(self):
-        if self._detected_charset:
-            return 0.99
-        else:
-            return 0.00
+        return 0.99 if self._detected_charset else 0.00
 
     def feed(self, byte_str):
         for c in byte_str:

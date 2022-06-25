@@ -16,10 +16,10 @@ from os.path import dirname, isdir, join, realpath, relpath, splitext
 import chardet
 
 try:
-    import cchardet
+    import cchardet  # pylint: disable=import-error
 
     HAVE_CCHARDET = True
-except:
+except Exception:
     HAVE_CCHARDET = False
 
 

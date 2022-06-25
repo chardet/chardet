@@ -59,8 +59,8 @@ class MultiByteCharSetProber(CharSetProber):
         raise NotImplementedError
 
     def feed(self, byte_str):
-        for i in range(len(byte_str)):
-            coding_state = self.coding_sm.next_state(byte_str[i])
+        for i, byte in enumerate(byte_str):
+            coding_state = self.coding_sm.next_state(byte)
             if coding_state == MachineState.ERROR:
                 self.logger.debug(
                     "%s %s prober hit error at byte %s",
@@ -70,13 +70,13 @@ class MultiByteCharSetProber(CharSetProber):
                 )
                 self._state = ProbingState.NOT_ME
                 break
-            elif coding_state == MachineState.ITS_ME:
+            if coding_state == MachineState.ITS_ME:
                 self._state = ProbingState.FOUND_IT
                 break
-            elif coding_state == MachineState.START:
+            if coding_state == MachineState.START:
                 char_len = self.coding_sm.get_current_charlen()
                 if i == 0:
-                    self._last_char[1] = byte_str[0]
+                    self._last_char[1] = byte
                     self.distribution_analyzer.feed(self._last_char, char_len)
                 else:
                     self.distribution_analyzer.feed(byte_str[i - 1 : i + 1], char_len)

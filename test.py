@@ -19,7 +19,7 @@ try:
     HAVE_HYPOTHESIS = True
 except ImportError:
     HAVE_HYPOTHESIS = False
-import pytest
+import pytest  # pylint: disable=import-error
 
 import chardet
 from chardet.metadata.languages import LANGUAGES
@@ -172,7 +172,7 @@ if HAVE_HYPOTHESIS:
         st.randoms(),
     )
     @settings(max_examples=200)
-    def test_detect_all_and_detect_one_should_agree(txt, enc, rnd):
+    def test_detect_all_and_detect_one_should_agree(txt, enc, _):
         try:
             data = txt.encode(enc)
         except UnicodeEncodeError:
@@ -181,5 +181,5 @@ if HAVE_HYPOTHESIS:
             result = chardet.detect(data)
             results = chardet.detect_all(data)
             assert result["encoding"] == results[0]["encoding"]
-        except Exception:
-            raise Exception(f"{result} != {results}")
+        except Exception as exc:
+            raise RuntimeError(f"{result} != {results}") from exc

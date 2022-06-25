@@ -47,15 +47,15 @@ SingleByteCharSetModel = namedtuple(
 
 class SingleByteCharSetProber(CharSetProber):
     SAMPLE_SIZE = 64
-    SB_ENOUGH_REL_THRESHOLD = 1024  #  0.25 * SAMPLE_SIZE^2
+    SB_ENOUGH_REL_THRESHOLD = 1024  # 0.25 * SAMPLE_SIZE^2
     POSITIVE_SHORTCUT_THRESHOLD = 0.95
     NEGATIVE_SHORTCUT_THRESHOLD = 0.05
 
-    def __init__(self, model, reversed=False, name_prober=None):
+    def __init__(self, model, is_reversed=False, name_prober=None):
         super().__init__()
         self._model = model
         # TRUE if we need to reverse every pair in the model lookup
-        self._reversed = reversed
+        self._reversed = is_reversed
         # Optional auxiliary prober for name decision
         self._name_prober = name_prober
         self._last_order = None
@@ -81,15 +81,13 @@ class SingleByteCharSetProber(CharSetProber):
     def charset_name(self):
         if self._name_prober:
             return self._name_prober.charset_name
-        else:
-            return self._model.charset_name
+        return self._model.charset_name
 
     @property
     def language(self):
         if self._name_prober:
             return self._name_prober.language
-        else:
-            return self._model.language
+        return self._model.language
 
     def feed(self, byte_str):
         # TODO: Make filter_international_words keep things in self.alphabet

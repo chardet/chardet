@@ -52,7 +52,7 @@ def normalize_name(charset_name):
 def convert_sbcs_model(old_model, alphabet):
     """Create a SingleByteCharSetModel object representing the charset."""
     # Setup tables necessary for computing transition frequencies for model
-    char_to_order = {i: order for i, order in enumerate(old_model["char_to_order_map"])}
+    char_to_order = dict(enumerate(old_model["char_to_order_map"]))
     pos_ratio = old_model["typical_positive_ratio"]
     keep_ascii_letters = old_model["keep_english_letter"]
 
@@ -178,7 +178,7 @@ def convert_models_for_lang(language):
     # Write output files
     print(f"Writing output file for {language}\n\n")
     sys.stdout.flush()
-    with open(f"lang{language.lower()}model.py", "w") as output_file:
+    with open(f"lang{language.lower()}model.py", "w", encoding="utf-8") as output_file:
         upper_lang = language.upper()
         # print header to set encoding
         print(

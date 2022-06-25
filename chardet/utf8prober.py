@@ -59,10 +59,10 @@ class UTF8Prober(CharSetProber):
             if coding_state == MachineState.ERROR:
                 self._state = ProbingState.NOT_ME
                 break
-            elif coding_state == MachineState.ITS_ME:
+            if coding_state == MachineState.ITS_ME:
                 self._state = ProbingState.FOUND_IT
                 break
-            elif coding_state == MachineState.START:
+            if coding_state == MachineState.START:
                 if self.coding_sm.get_current_charlen() >= 2:
                     self._num_mb_chars += 1
 
@@ -77,5 +77,4 @@ class UTF8Prober(CharSetProber):
         if self._num_mb_chars < 6:
             unlike *= self.ONE_CHAR_PROB**self._num_mb_chars
             return 1.0 - unlike
-        else:
-            return unlike
+        return unlike
