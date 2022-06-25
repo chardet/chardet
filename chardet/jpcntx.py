@@ -28,7 +28,7 @@
 
 # This is hiragana 2-char sequence table, the number in each cell represents its frequency category
 # fmt: off
-jp2CharContext = (
+jp2_char_context = (
     (0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1),
     (2, 4, 0, 4, 0, 3, 0, 4, 0, 3, 4, 4, 4, 2, 4, 3, 3, 4, 3, 2, 3, 3, 4, 2, 3, 3, 3, 2, 4, 1, 4, 3, 3, 1, 5, 4, 3, 4, 3, 4, 3, 5, 3, 0, 3, 5, 4, 2, 0, 3, 1, 0, 3, 3, 0, 3, 3, 0, 1, 1, 0, 4, 3, 0, 3, 3, 0, 4, 0, 2, 0, 3, 5, 5, 5, 5, 4, 0, 4, 1, 0, 3, 4),
     (0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2),
@@ -167,7 +167,9 @@ class JapaneseContextAnalysis:
                     if self._total_rel > self.MAX_REL_THRESHOLD:
                         self._done = True
                         break
-                    self._rel_sample[jp2CharContext[self._last_char_order][order]] += 1
+                    self._rel_sample[
+                        jp2_char_context[self._last_char_order][order]
+                    ] += 1
                 self._last_char_order = order
 
     def got_enough_data(self):
@@ -177,10 +179,9 @@ class JapaneseContextAnalysis:
         # This is just one way to calculate confidence. It works well for me.
         if self._total_rel > self.MINIMUM_DATA_THRESHOLD:
             return (self._total_rel - self._rel_sample[0]) / self._total_rel
-        else:
-            return self.DONT_KNOW
+        return self.DONT_KNOW
 
-    def get_order(self, byte_str):
+    def get_order(self, _):
         return -1, 1
 
 

@@ -34,8 +34,7 @@ def detect(byte_str):
             raise TypeError(
                 f"Expected object of type bytes or bytearray, got: {type(byte_str)}"
             )
-        else:
-            byte_str = bytearray(byte_str)
+        byte_str = bytearray(byte_str)
     detector = UniversalDetector()
     detector.feed(byte_str)
     return detector.close()
@@ -57,17 +56,16 @@ def detect_all(byte_str, ignore_threshold=False):
             raise TypeError(
                 f"Expected object of type bytes or bytearray, got: {type(byte_str)}"
             )
-        else:
-            byte_str = bytearray(byte_str)
+        byte_str = bytearray(byte_str)
 
     detector = UniversalDetector()
     detector.feed(byte_str)
     detector.close()
 
-    if detector._input_state == InputState.HIGH_BYTE:
+    if detector.input_state == InputState.HIGH_BYTE:
         results = []
         probers = []
-        for prober in detector._charset_probers:
+        for prober in detector.charset_probers:
             if hasattr(prober, "probers"):
                 probers.extend(p for p in prober.probers)
             else:
@@ -78,10 +76,7 @@ def detect_all(byte_str, ignore_threshold=False):
                 lower_charset_name = charset_name.lower()
                 # Use Windows encoding name instead of ISO-8859 if we saw any
                 # extra Windows-specific bytes
-                if (
-                    lower_charset_name.startswith("iso-8859")
-                    and detector._has_win_bytes
-                ):
+                if lower_charset_name.startswith("iso-8859") and detector.has_win_bytes:
                     charset_name = detector.ISO_WIN_MAP.get(
                         lower_charset_name, charset_name
                     )

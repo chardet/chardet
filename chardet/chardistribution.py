@@ -62,7 +62,7 @@ class CharDistributionAnalysis:
     def __init__(self):
         # Mapping table to get frequency order from char order (get from
         # GetOrder())
-        self._char_to_freq_order = None
+        self._char_to_freq_order = tuple()
         self._table_size = None  # Size of above table
         # This is a constant value which varies from language to language,
         # used in calculating confidence.  See
@@ -119,7 +119,7 @@ class CharDistributionAnalysis:
         # For charset detection, certain amount of data is enough
         return self._total_chars > self.ENOUGH_DATA_THRESHOLD
 
-    def get_order(self, byte_str):
+    def get_order(self, _):
         # We do not handle characters based on the original encoding string,
         # but convert this encoding string to a number, here called order.
         # This allows multiple encodings of a language to share one frequency
@@ -142,8 +142,7 @@ class EUCTWDistributionAnalysis(CharDistributionAnalysis):
         first_char = byte_str[0]
         if first_char >= 0xC4:
             return 94 * (first_char - 0xC4) + byte_str[1] - 0xA1
-        else:
-            return -1
+        return -1
 
 
 class EUCKRDistributionAnalysis(CharDistributionAnalysis):
@@ -161,8 +160,7 @@ class EUCKRDistributionAnalysis(CharDistributionAnalysis):
         first_char = byte_str[0]
         if first_char >= 0xB0:
             return 94 * (first_char - 0xB0) + byte_str[1] - 0xA1
-        else:
-            return -1
+        return -1
 
 
 class JOHABDistributionAnalysis(CharDistributionAnalysis):
@@ -195,8 +193,7 @@ class GB2312DistributionAnalysis(CharDistributionAnalysis):
         first_char, second_char = byte_str[0], byte_str[1]
         if (first_char >= 0xB0) and (second_char >= 0xA1):
             return 94 * (first_char - 0xB0) + second_char - 0xA1
-        else:
-            return -1
+        return -1
 
 
 class Big5DistributionAnalysis(CharDistributionAnalysis):
@@ -215,10 +212,8 @@ class Big5DistributionAnalysis(CharDistributionAnalysis):
         if first_char >= 0xA4:
             if second_char >= 0xA1:
                 return 157 * (first_char - 0xA4) + second_char - 0xA1 + 63
-            else:
-                return 157 * (first_char - 0xA4) + second_char - 0x40
-        else:
-            return -1
+            return 157 * (first_char - 0xA4) + second_char - 0x40
+        return -1
 
 
 class SJISDistributionAnalysis(CharDistributionAnalysis):
@@ -234,9 +229,9 @@ class SJISDistributionAnalysis(CharDistributionAnalysis):
         #   second byte range: 0x40 -- 0x7e,  0x81 -- oxfe
         # no validation needed here. State machine has done that
         first_char, second_char = byte_str[0], byte_str[1]
-        if (first_char >= 0x81) and (first_char <= 0x9F):
+        if 0x81 <= first_char <= 0x9F:
             order = 188 * (first_char - 0x81)
-        elif (first_char >= 0xE0) and (first_char <= 0xEF):
+        elif 0xE0 <= first_char <= 0xEF:
             order = 188 * (first_char - 0xE0 + 31)
         else:
             return -1
@@ -261,5 +256,4 @@ class EUCJPDistributionAnalysis(CharDistributionAnalysis):
         char = byte_str[0]
         if char >= 0xA0:
             return 94 * (char - 0xA1) + byte_str[1] - 0xA1
-        else:
-            return -1
+        return -1

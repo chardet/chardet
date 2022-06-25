@@ -41,8 +41,7 @@ def description_of(lines, name="stdin"):
     result = u.result
     if result["encoding"]:
         return f'{name}: {result["encoding"]} with confidence {result["confidence"]}'
-    else:
-        return f"{name}: no result"
+    return f"{name}: no result"
 
 
 def main(argv=None):

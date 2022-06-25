@@ -75,7 +75,7 @@ class CharSetGroupProber(CharSetProber):
                 self._best_guess_prober = prober
                 self._state = ProbingState.FOUND_IT
                 return self.state
-            elif state == ProbingState.NOT_ME:
+            if state == ProbingState.NOT_ME:
                 prober.active = False
                 self._active_num -= 1
                 if self._active_num <= 0:
@@ -87,7 +87,7 @@ class CharSetGroupProber(CharSetProber):
         state = self.state
         if state == ProbingState.FOUND_IT:
             return 0.99
-        elif state == ProbingState.NOT_ME:
+        if state == ProbingState.NOT_ME:
             return 0.01
         best_conf = 0.0
         self._best_guess_prober = None

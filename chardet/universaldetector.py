@@ -95,6 +95,18 @@ class UniversalDetector:
         self._has_win_bytes = None
         self.reset()
 
+    @property
+    def input_state(self):
+        return self._input_state
+
+    @property
+    def has_win_bytes(self):
+        return self._has_win_bytes
+
+    @property
+    def charset_probers(self):
+        return self._charset_probers
+
     def reset(self):
         """
         Reset the UniversalDetector and all of its probers back to their

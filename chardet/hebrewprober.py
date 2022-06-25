@@ -172,9 +172,9 @@ class HebrewProber(CharSetProber):
         self._before_prev = " "
         # These probers are owned by the group prober.
 
-    def set_model_probers(self, logicalProber, visualProber):
-        self._logical_prober = logicalProber
-        self._visual_prober = visualProber
+    def set_model_probers(self, logical_prober, visual_prober):
+        self._logical_prober = logical_prober
+        self._visual_prober = visual_prober
 
     def is_final(self, c):
         return c in [

@@ -43,7 +43,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "chardet"
-copyright = "2015, Mark Pilgrim, Dan Blanchard, Ian Cordasco"
+copyright = "2015, Mark Pilgrim, Dan Blanchard, Ian Cordasco"  #  pylint: disable=redefined-builtin
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -99,7 +99,7 @@ pygments_style = "sphinx"
 # a list of builtin themes.
 on_rtd = os.environ.get("READTHEDOCS", None) == "True"
 if not on_rtd:
-    import sphinx_rtd_theme
+    import sphinx_rtd_theme  # pylint: disable=import-error
 
     html_theme = "sphinx_rtd_theme"
     html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]

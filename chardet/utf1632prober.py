@@ -211,14 +211,13 @@ class UTF1632Prober(CharSetProber):
         return self._state
 
     def get_confidence(self):
-        confidence = 0.85
-
-        if (
-            self.is_likely_utf16le()
-            or self.is_likely_utf16be()
-            or self.is_likely_utf32le()
-            or self.is_likely_utf32be()
-        ):
-            return confidence
-        else:
-            return 0.00
+        return (
+            0.85
+            if (
+                self.is_likely_utf16le()
+                or self.is_likely_utf16be()
+                or self.is_likely_utf32le()
+                or self.is_likely_utf32be()
+            )
+            else 0.00
+        )
