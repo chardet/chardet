@@ -40,10 +40,9 @@ class CharSetGroupProber(CharSetProber):
         super().reset()
         self._active_num = 0
         for prober in self.probers:
-            if prober:
-                prober.reset()
-                prober.active = True
-                self._active_num += 1
+            prober.reset()
+            prober.active = True
+            self._active_num += 1
         self._best_guess_prober = None
 
     @property
@@ -64,8 +63,6 @@ class CharSetGroupProber(CharSetProber):
 
     def feed(self, byte_str):
         for prober in self.probers:
-            if not prober:
-                continue
             if not prober.active:
                 continue
             state = prober.feed(byte_str)
@@ -92,8 +89,6 @@ class CharSetGroupProber(CharSetProber):
         best_conf = 0.0
         self._best_guess_prober = None
         for prober in self.probers:
-            if not prober:
-                continue
             if not prober.active:
                 self.logger.debug("%s not active", prober.charset_name)
                 continue
