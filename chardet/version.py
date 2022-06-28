@@ -1,6 +1,6 @@
 """
 This module exists only to simplify retrieving the version number of chardet
-from within setup.py and from chardet subpackages.
+from within setuptools and from chardet subpackages.
 
 :author: Dan Blanchard (dan.blanchard@gmail.com)
 """
