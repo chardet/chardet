@@ -39,13 +39,16 @@ class a user of ``chardet`` should use.
 import codecs
 import logging
 import re
+from typing import List, Optional, Union
 
 from .charsetgroupprober import CharSetGroupProber
+from .charsetprober import CharSetProber
 from .enums import InputState, LanguageFilter, ProbingState
 from .escprober import EscCharSetProber
 from .latin1prober import Latin1Prober
 from .macromanprober import MacRomanProber
 from .mbcsgroupprober import MBCSGroupProber
+from .resultdict import ResultDict
 from .sbcsgroupprober import SBCSGroupProber
 from .utf1632prober import UTF1632Prober
 
@@ -82,33 +85,37 @@ class UniversalDetector:
         "iso-8859-13": "Windows-1257",
     }
 
-    def __init__(self, lang_filter=LanguageFilter.ALL):
-        self._esc_charset_prober = None
-        self._utf1632_prober = None
-        self._charset_probers = []
-        self.result = None
-        self.done = None
-        self._got_data = None
-        self._input_state = None
-        self._last_char = None
+    def __init__(self, lang_filter: LanguageFilter = LanguageFilter.ALL) -> None:
+        self._esc_charset_prober: Optional[EscCharSetProber] = None
+        self._utf1632_prober: Optional[UTF1632Prober] = None
+        self._charset_probers: List[CharSetProber] = []
+        self.result: ResultDict = {
+            "encoding": None,
+            "confidence": 0.0,
+            "language": None,
+        }
+        self.done = False
+        self._got_data = False
+        self._input_state = InputState.PURE_ASCII
+        self._last_char = b""
         self.lang_filter = lang_filter
         self.logger = logging.getLogger(__name__)
-        self._has_win_bytes = None
+        self._has_win_bytes = False
         self.reset()
 
     @property
-    def input_state(self):
+    def input_state(self) -> int:
         return self._input_state
 
     @property
-    def has_win_bytes(self):
+    def has_win_bytes(self) -> bool:
         return self._has_win_bytes
 
     @property
-    def charset_probers(self):
+    def charset_probers(self) -> List[CharSetProber]:
         return self._charset_probers
 
-    def reset(self):
+    def reset(self) -> None:
         """
         Reset the UniversalDetector and all of its probers back to their
         initial states.  This is called by ``__init__``, so you only need to
@@ -127,7 +134,7 @@ class UniversalDetector:
         for prober in self._charset_probers:
             prober.reset()
 
-    def feed(self, byte_str):
+    def feed(self, byte_str: Union[bytes, bytearray]) -> None:
         """
         Takes a chunk of a document and feeds it through all of the relevant
         charset probers.
@@ -256,7 +263,7 @@ class UniversalDetector:
             if self.WIN_BYTE_DETECTOR.search(byte_str):
                 self._has_win_bytes = True
 
-    def close(self):
+    def close(self) -> ResultDict:
         """
         Stop analyzing the current document and come up with a final
         prediction.
@@ -290,7 +297,8 @@ class UniversalDetector:
                     max_prober = prober
             if max_prober and (max_prober_confidence > self.MINIMUM_THRESHOLD):
                 charset_name = max_prober.charset_name
-                lower_charset_name = max_prober.charset_name.lower()
+                assert charset_name is not None
+                lower_charset_name = charset_name.lower()
                 confidence = max_prober.get_confidence()
                 # Use Windows encoding name instead of ISO-8859 if we saw any
                 # extra Windows-specific bytes
