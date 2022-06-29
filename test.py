@@ -11,6 +11,7 @@ from difflib import ndiff
 from os import listdir
 from os.path import dirname, isdir, join, realpath, relpath, splitext
 from pprint import pformat
+from unicodedata import normalize
 
 try:
     import hypothesis.strategies as st
@@ -19,7 +20,7 @@ try:
     HAVE_HYPOTHESIS = True
 except ImportError:
     HAVE_HYPOTHESIS = False
-import pytest  # pylint: disable=import-error
+import pytest
 
 import chardet
 from chardet.metadata.languages import LANGUAGES
@@ -34,7 +35,6 @@ MISSING_ENCODINGS = {
     "windows-1256",
 }
 EXPECTED_FAILURES = {
-    "tests/iso-8859-7-greek/disabled.gr.xml",
     "tests/iso-8859-9-turkish/_ude_1.txt",
     "tests/iso-8859-9-turkish/_ude_2.txt",
     "tests/iso-8859-9-turkish/divxplanet.com.xml",
@@ -92,17 +92,68 @@ def test_encoding_detection(file_name, encoding):
         encoding_match = False
     # Only care about mismatches that would actually result in different
     # behavior when decoding
+    expected_unicode = normalize("NFKC", expected_unicode)
+    detected_unicode = normalize("NFKC", detected_unicode)
     if not encoding_match and expected_unicode != detected_unicode:
         wrapped_expected = "\n".join(textwrap.wrap(expected_unicode, 100)) + "\n"
         wrapped_detected = "\n".join(textwrap.wrap(detected_unicode, 100)) + "\n"
         diff = "".join(
-            list(
-                ndiff(
+            [
+                line
+                for line in ndiff(
                     wrapped_expected.splitlines(True), wrapped_detected.splitlines(True)
                 )
-            )[:20]
+                if not line.startswith(" ")
+            ][:20]
         )
         all_encodings = chardet.detect_all(input_bytes, ignore_threshold=True)
+    else:
+        diff = ""
+        encoding_match = True
+        all_encodings = [result]
+    assert encoding_match, (
+        f"Expected {encoding}, but got {result} for {file_name}.  First 20 "
+        f"lines with character differences: \n{diff}\n"
+        f"All encodings: {pformat(all_encodings)}"
+    )
+
+
+@pytest.mark.parametrize("file_name, encoding", gen_test_params())
+def test_encoding_detection_rename_legacy(file_name, encoding):
+    with open(file_name, "rb") as f:
+        input_bytes = f.read()
+        result = chardet.detect(input_bytes, should_rename_legacy=True)
+        try:
+            expected_unicode = input_bytes.decode(encoding)
+        except LookupError:
+            expected_unicode = ""
+        try:
+            detected_unicode = input_bytes.decode(result["encoding"])
+        except (LookupError, UnicodeDecodeError, TypeError):
+            detected_unicode = ""
+    if result:
+        encoding_match = (result["encoding"] or "").lower() == encoding
+    else:
+        encoding_match = False
+    # Only care about mismatches that would actually result in different
+    # behavior when decoding
+    expected_unicode = normalize("NFKD", expected_unicode)
+    detected_unicode = normalize("NFKD", detected_unicode)
+    if not encoding_match and expected_unicode != detected_unicode:
+        wrapped_expected = "\n".join(textwrap.wrap(expected_unicode, 100)) + "\n"
+        wrapped_detected = "\n".join(textwrap.wrap(detected_unicode, 100)) + "\n"
+        diff = "".join(
+            [
+                line
+                for line in ndiff(
+                    wrapped_expected.splitlines(True), wrapped_detected.splitlines(True)
+                )
+                if not line.startswith(" ")
+            ][:20]
+        )
+        all_encodings = chardet.detect_all(
+            input_bytes, ignore_threshold=True, should_rename_legacy=True
+        )
     else:
         diff = ""
         encoding_match = True
@@ -146,7 +197,7 @@ if HAVE_HYPOTHESIS:
             with pytest.raises(JustALengthIssue):
 
                 @given(st.text(), random=rnd)
-                @settings(verbosity=Verbosity.quiet, max_shrinks=0, max_examples=50)
+                @settings(verbosity=Verbosity.quiet, max_examples=50)
                 def string_poisons_following_text(suffix):
                     try:
                         extended = (txt + suffix).encode(enc)

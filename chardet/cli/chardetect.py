@@ -22,7 +22,10 @@ from ..universaldetector import UniversalDetector
 
 
 def description_of(
-    lines: Iterable[bytes], name: str = "stdin", minimal: bool = False
+    lines: Iterable[bytes],
+    name: str = "stdin",
+    minimal: bool = False,
+    should_rename_legacy: bool = False,
 ) -> Optional[str]:
     """
     Return a string describing the probable encoding of a file or
@@ -32,8 +35,11 @@ def description_of(
     :type lines: Iterable of bytes
     :param name: Name of file or collection of lines
     :type name: str
+    :param should_rename_legacy:  Should we rename legacy encodings to
+                                  their more modern equivalents?
+    :type should_rename_legacy:   ``bool``
     """
-    u = UniversalDetector()
+    u = UniversalDetector(should_rename_legacy=should_rename_legacy)
     for line in lines:
         line = bytearray(line)
         u.feed(line)
@@ -76,6 +82,12 @@ def main(argv: Optional[List[str]] = None) -> None:
         action="store_true",
     )
     parser.add_argument(
+        "-l",
+        "--legacy",
+        help="Rename legacy encodings to more modern ones.",
+        action="store_true",
+    )
+    parser.add_argument(
         "--version", action="version", version=f"%(prog)s {__version__}"
     )
     args = parser.parse_args(argv)
@@ -89,7 +101,11 @@ def main(argv: Optional[List[str]] = None) -> None:
                 "--help\n",
                 file=sys.stderr,
             )
-        print(description_of(f, f.name, minimal=args.minimal))
+        print(
+            description_of(
+                f, f.name, minimal=args.minimal, should_rename_legacy=args.legacy
+            )
+        )
 
 
 if __name__ == "__main__":

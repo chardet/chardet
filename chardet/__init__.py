@@ -27,12 +27,17 @@ from .version import VERSION, __version__
 __all__ = ["UniversalDetector", "detect", "detect_all", "__version__", "VERSION"]
 
 
-def detect(byte_str: Union[bytes, bytearray]) -> FinalResultDict:
+def detect(
+    byte_str: Union[bytes, bytearray], should_rename_legacy: bool = False
+) -> FinalResultDict:
     """
     Detect the encoding of the given byte string.
 
     :param byte_str:     The byte sequence to examine.
     :type byte_str:      ``bytes`` or ``bytearray``
+    :param should_rename_legacy:  Should we rename legacy encodings
+                                  to their more modern equivalents?
+    :type should_rename_legacy:   ``bool``
     """
     if not isinstance(byte_str, bytearray):
         if not isinstance(byte_str, bytes):
@@ -40,13 +45,15 @@ def detect(byte_str: Union[bytes, bytearray]) -> FinalResultDict:
                 f"Expected object of type bytes or bytearray, got: {type(byte_str)}"
             )
         byte_str = bytearray(byte_str)
-    detector = UniversalDetector()
+    detector = UniversalDetector(should_rename_legacy=should_rename_legacy)
     detector.feed(byte_str)
     return detector.close()
 
 
 def detect_all(
-    byte_str: Union[bytes, bytearray], ignore_threshold: bool = False
+    byte_str: Union[bytes, bytearray],
+    ignore_threshold: bool = False,
+    should_rename_legacy: bool = False,
 ) -> List[IntermediateResultDict]:
     """
     Detect all the possible encodings of the given byte string.
@@ -57,6 +64,9 @@ def detect_all(
                               ``UniversalDetector.MINIMUM_THRESHOLD``
                               in results.
     :type ignore_threshold:   ``bool``
+    :param should_rename_legacy:  Should we rename legacy encodings
+                                  to their more modern equivalents?
+    :type should_rename_legacy:   ``bool``
     """
     if not isinstance(byte_str, bytearray):
         if not isinstance(byte_str, bytes):
@@ -65,7 +75,7 @@ def detect_all(
             )
         byte_str = bytearray(byte_str)
 
-    detector = UniversalDetector()
+    detector = UniversalDetector(should_rename_legacy=should_rename_legacy)
     detector.feed(byte_str)
     detector.close()
 
@@ -86,6 +96,11 @@ def detect_all(
                 if lower_charset_name.startswith("iso-8859") and detector.has_win_bytes:
                     charset_name = detector.ISO_WIN_MAP.get(
                         lower_charset_name, charset_name
+                    )
+                # Rename legacy encodings with superset encodings if asked
+                if should_rename_legacy:
+                    charset_name = detector.LEGACY_MAP.get(
+                        charset_name.lower(), charset_name
                     )
                 results.append(
                     {
