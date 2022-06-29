@@ -84,8 +84,24 @@ class UniversalDetector:
         "iso-8859-9": "Windows-1254",
         "iso-8859-13": "Windows-1257",
     }
+    # Based on https://encoding.spec.whatwg.org/#names-and-labels
+    # but altered to match Python names for encodings and remove mappings
+    # that break tests.
+    LEGACY_MAP = {
+        "ascii": "Windows-1252",
+        "iso-8859-1": "Windows-1252",
+        "tis-620": "ISO-8859-11",
+        "iso-8859-9": "Windows-1254",
+        "gb2312": "GB18030",
+        "euc-kr": "CP949",
+        "utf-16le": "UTF-16",
+    }
 
-    def __init__(self, lang_filter: LanguageFilter = LanguageFilter.ALL) -> None:
+    def __init__(
+        self,
+        lang_filter: LanguageFilter = LanguageFilter.ALL,
+        should_rename_legacy: bool = False,
+    ) -> None:
         self._esc_charset_prober: Optional[EscCharSetProber] = None
         self._utf1632_prober: Optional[UTF1632Prober] = None
         self._charset_probers: List[CharSetProber] = []
@@ -101,6 +117,7 @@ class UniversalDetector:
         self.lang_filter = lang_filter
         self.logger = logging.getLogger(__name__)
         self._has_win_bytes = False
+        self.should_rename_legacy = should_rename_legacy
         self.reset()
 
     @property
@@ -174,6 +191,7 @@ class UniversalDetector:
             elif byte_str.startswith(b"\xFE\xFF\x00\x00"):
                 # FE FF 00 00  UCS-4, unusual octet order BOM (3412)
                 self.result = {
+                    # TODO: This encoding is not supported by Python. Should remove?
                     "encoding": "X-ISO-10646-UCS-4-3412",
                     "confidence": 1.0,
                     "language": "",
@@ -181,6 +199,7 @@ class UniversalDetector:
             elif byte_str.startswith(b"\x00\x00\xFF\xFE"):
                 # 00 00 FF FE  UCS-4, unusual octet order BOM (2143)
                 self.result = {
+                    # TODO: This encoding is not supported by Python. Should remove?
                     "encoding": "X-ISO-10646-UCS-4-2143",
                     "confidence": 1.0,
                     "language": "",
@@ -307,6 +326,11 @@ class UniversalDetector:
                         charset_name = self.ISO_WIN_MAP.get(
                             lower_charset_name, charset_name
                         )
+                # Rename legacy encodings with superset encodings if asked
+                if self.should_rename_legacy:
+                    charset_name = self.LEGACY_MAP.get(
+                        charset_name.lower(), charset_name
+                    )
                 self.result = {
                     "encoding": charset_name,
                     "confidence": confidence,
