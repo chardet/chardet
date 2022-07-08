@@ -20,14 +20,14 @@ from typing import List, Union
 from .charsetgroupprober import CharSetGroupProber
 from .charsetprober import CharSetProber
 from .enums import InputState
-from .resultdict import ResultDict
+from .resultdict import FinalResultDict, IntermediateResultDict
 from .universaldetector import UniversalDetector
 from .version import VERSION, __version__
 
 __all__ = ["UniversalDetector", "detect", "detect_all", "__version__", "VERSION"]
 
 
-def detect(byte_str: Union[bytes, bytearray]) -> ResultDict:
+def detect(byte_str: Union[bytes, bytearray]) -> FinalResultDict:
     """
     Detect the encoding of the given byte string.
 
@@ -47,7 +47,7 @@ def detect(byte_str: Union[bytes, bytearray]) -> ResultDict:
 
 def detect_all(
     byte_str: Union[bytes, bytearray], ignore_threshold: bool = False
-) -> List[ResultDict]:
+) -> List[IntermediateResultDict]:
     """
     Detect all the possible encodings of the given byte string.
 
@@ -70,7 +70,7 @@ def detect_all(
     detector.close()
 
     if detector.input_state == InputState.HIGH_BYTE:
-        results: List[ResultDict] = []
+        results: List[IntermediateResultDict] = []
         probers: List[CharSetProber] = []
         for prober in detector.charset_probers:
             if isinstance(prober, CharSetGroupProber):
