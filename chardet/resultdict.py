@@ -7,10 +7,16 @@ if TYPE_CHECKING:
     # for Python 3.7.
     from typing import TypedDict
 
-    class ResultDict(TypedDict):
+    class FinalResultDict(TypedDict):
+        encoding: str
+        confidence: float
+        language: str
+
+    class IntermediateResultDict(TypedDict):
         encoding: Optional[str]
         confidence: float
         language: Optional[str]
 
 else:
-    ResultDict = dict
+    FinalResultDict = dict
+    IntermediateResultDict = dict
