@@ -20,7 +20,7 @@ try:
     HAVE_HYPOTHESIS = True
 except ImportError:
     HAVE_HYPOTHESIS = False
-import pytest
+import pytest  # pylint: disable=import-error
 
 import chardet
 from chardet.metadata.languages import LANGUAGES
