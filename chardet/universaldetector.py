@@ -329,7 +329,7 @@ class UniversalDetector:
                 # Rename legacy encodings with superset encodings if asked
                 if self.should_rename_legacy:
                     charset_name = self.LEGACY_MAP.get(
-                        charset_name.lower(), charset_name
+                        (charset_name or "").lower(), charset_name
                     )
                 self.result = {
                     "encoding": charset_name,
