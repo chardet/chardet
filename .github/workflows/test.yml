@@ -13,7 +13,7 @@ jobs:
         with:
           python-version: 3.x
       - name: Install dependencies
-        run: python -m pip install pre-commit
+        run: python -m pip install pre-commit pytest hypothesis
       - name: Run pre-commit
         run: pre-commit run --all-files
 
