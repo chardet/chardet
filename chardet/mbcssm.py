@@ -85,13 +85,42 @@ BIG5_SM_MODEL: CodingStateMachineDict = {
 
 # CP949
 # fmt: off
+
+"""
+# Classes
+0: Unused
+1: 00-40, 5B-60, 7B-7F : Ascii
+2: C7-FD
+3: C9,FE : User-Defined Area
+4: 41-52
+5: 53-5A, 61-7A
+6: 81-A0
+7: A1-AC, B0-C5
+8: AD-AF
+9: C6
+
+# Byte 1
+Ascii:   00-7F           : 1 + 4 + 5
+State 3: 81-AC, B0-C5    : 6 + 7
+State 4: AD-AF           : 8
+State 5: C6              : 9
+State 6: C7-FE           : 2 (+ 3)
+
+
+# Byte 2
+State 3: 41-5A, 61-7A, 81-FE        : 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9
+State 4: 41-5A, 61-7A, 81-A0        : 4 + 5 + 6
+State 5: 41-52, A1-FE               : 2 + 3 + 4 + 7 + 8 + 9
+State 6: A1-FE                      : 2 + 3 + 7 + 8 + 9
+"""
+
 CP949_CLS  = (
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0,  # 00 - 0f
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1,  # 10 - 1f
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  # 20 - 2f
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  # 30 - 3f
     1, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,  # 40 - 4f
-    4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 1, 1, 1, 1, 1,  # 50 - 5f
+    4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 1, 1, 1, 1, 1,  # 50 - 5f
     1, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,  # 60 - 6f
     5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 1, 1, 1, 1, 1,  # 70 - 7f
     0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,  # 80 - 8f
@@ -101,18 +130,18 @@ CP949_CLS  = (
     7, 7, 7, 7, 7, 7, 9, 2, 2, 3, 2, 2, 2, 2, 2, 2,  # c0 - cf
     2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,  # d0 - df
     2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,  # e0 - ef
-    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0,  # f0 - ff
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 0,  # f0 - ff
 )
 
 CP949_ST = (
-#cls=    0      1      2      3      4      5      6      7      8      9  # previous state =
-    MachineState.ERROR,MachineState.START,     3,MachineState.ERROR,MachineState.START,MachineState.START,     4,     5,MachineState.ERROR,     6, # MachineState.START
-    MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR, # MachineState.ERROR
-    MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME, # MachineState.ITS_ME
-    MachineState.ERROR,MachineState.ERROR,MachineState.START,MachineState.START,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.START,MachineState.START,MachineState.START, # 3
-    MachineState.ERROR,MachineState.ERROR,MachineState.START,MachineState.START,MachineState.START,MachineState.START,MachineState.START,MachineState.START,MachineState.START,MachineState.START, # 4
-    MachineState.ERROR,MachineState.START,MachineState.START,MachineState.START,MachineState.START,MachineState.START,MachineState.START,MachineState.START,MachineState.START,MachineState.START, # 5
-    MachineState.ERROR,MachineState.START,MachineState.START,MachineState.START,MachineState.START,MachineState.ERROR,MachineState.ERROR,MachineState.START,MachineState.START,MachineState.START, # 6
+    #         0                  1                   2                   3                   4                   5                   6                   7                   8                   9
+    MachineState.ERROR, MachineState.START, 6,                  MachineState.ERROR, MachineState.START, MachineState.START, 3,                  3,                  4,                  5,                   # START
+    MachineState.ERROR, MachineState.ERROR, MachineState.ERROR, MachineState.ERROR, MachineState.ERROR, MachineState.ERROR, MachineState.ERROR, MachineState.ERROR, MachineState.ERROR, MachineState.ERROR,  # ERROR
+    MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME, # ITSME
+    MachineState.ERROR, MachineState.ERROR, MachineState.START, MachineState.START, MachineState.START, MachineState.START, MachineState.START, MachineState.START, MachineState.START, MachineState.START,  # 3
+    MachineState.ERROR, MachineState.ERROR, MachineState.ERROR, MachineState.ERROR, MachineState.START, MachineState.START, MachineState.START, MachineState.ERROR, MachineState.ERROR, MachineState.ERROR,  # 4
+    MachineState.ERROR, MachineState.ERROR, MachineState.START, MachineState.START, MachineState.START, MachineState.ERROR, MachineState.ERROR, MachineState.START, MachineState.START, MachineState.START,  # 5
+    MachineState.ERROR, MachineState.ERROR, MachineState.START, MachineState.START, MachineState.ERROR, MachineState.ERROR, MachineState.ERROR, MachineState.START, MachineState.START, MachineState.START,  # 6
 )
 # fmt: on
 
