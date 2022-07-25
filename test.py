@@ -6,12 +6,14 @@ Run chardet on a bunch of documents and see that we get the correct encodings.
 """
 
 
+import codecs
+import sys
 import textwrap
 from difflib import ndiff
 from os import listdir
 from os.path import dirname, isdir, join, realpath, relpath, splitext
 from pprint import pformat
-from unicodedata import normalize
+from unicodedata import category, normalize
 
 try:
     import hypothesis.strategies as st
@@ -23,6 +25,9 @@ except ImportError:
 import pytest  # pylint: disable=import-error
 
 import chardet
+from chardet import escsm, mbcssm
+from chardet.codingstatemachine import CodingStateMachine
+from chardet.enums import MachineState
 from chardet.metadata.languages import LANGUAGES
 
 # TODO: Restore Hungarian encodings (iso-8859-2 and windows-1250) after we
@@ -163,6 +168,56 @@ def test_encoding_detection_rename_legacy(file_name, encoding):
         f"lines of character differences: \n{diff}\n"
         f"All encodings: {pformat(all_encodings)}"
     )
+
+
+# TODO add fixtures for non-supported encodings
+STATE_MACHINE_MODELS = [
+    mbcssm.BIG5_SM_MODEL,
+    mbcssm.CP949_SM_MODEL,
+    mbcssm.EUCJP_SM_MODEL,
+    mbcssm.EUCKR_SM_MODEL,
+    # mbcssm.EUCTW_SM_MODEL,
+    mbcssm.JOHAB_SM_MODEL,
+    mbcssm.GB2312_SM_MODEL,
+    mbcssm.SJIS_SM_MODEL,
+    mbcssm.UCS2BE_SM_MODEL,
+    mbcssm.UCS2LE_SM_MODEL,
+    mbcssm.UTF8_SM_MODEL,
+    escsm.HZ_SM_MODEL,
+    # escsm.ISO2022CN_SM_MODEL,
+    escsm.ISO2022JP_SM_MODEL,
+    escsm.ISO2022KR_SM_MODEL,
+]
+
+
+def gen_all_chars_unicode():
+    """Returns all chars in unicode, except control chars"""
+    all_chars = [chr(i) for i in range(0, sys.maxunicode)]
+    excluded_categories = set(("Cc", "Cf", "Cn", "Co", "Cs"))
+
+    return [char for char in all_chars if category(char) not in excluded_categories]
+
+
+@pytest.mark.parametrize(
+    "state_machine_model", STATE_MACHINE_MODELS, ids=lambda model: model["name"]
+)
+def test_coding_state_machine(state_machine_model):
+    state_machine = CodingStateMachine(state_machine_model)
+    encoding_name = state_machine_model["name"]
+    unicode_all_chars = gen_all_chars_unicode()
+
+    for char in unicode_all_chars:
+        encoded_chars = codecs.encode(char, encoding_name, errors="ignore")
+
+        for encoded_char in encoded_chars:
+            state = state_machine.next_state(encoded_char)
+
+            if state == MachineState.ERROR:
+                error_message = "Failed to encode Unicode %s, Encoding: %s" % (
+                    hex(ord(char)),
+                    ",".join([hex(encoded_char) for encoded_char in encoded_chars]),
+                )
+                raise Exception(error_message)
 
 
 if HAVE_HYPOTHESIS:
