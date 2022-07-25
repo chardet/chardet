@@ -145,7 +145,7 @@ CP949_ST = (
 )
 # fmt: on
 
-CP949_CHAR_LEN_TABLE = (0, 1, 2, 0, 1, 1, 2, 2, 0, 2)
+CP949_CHAR_LEN_TABLE = (0, 1, 2, 0, 1, 1, 2, 2, 2, 2)
 
 CP949_SM_MODEL: CodingStateMachineDict = {
     "class_table": CP949_CLS,
