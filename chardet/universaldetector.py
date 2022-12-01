@@ -39,7 +39,7 @@ class a user of ``chardet`` should use.
 import codecs
 import logging
 import re
-from typing import List, Optional, Union, cast
+from typing import List, Optional, Union
 
 from .charsetgroupprober import CharSetGroupProber
 from .charsetprober import CharSetProber
@@ -48,7 +48,7 @@ from .escprober import EscCharSetProber
 from .latin1prober import Latin1Prober
 from .macromanprober import MacRomanProber
 from .mbcsgroupprober import MBCSGroupProber
-from .resultdict import FinalResultDict, IntermediateResultDict
+from .resultdict import ResultDict
 from .sbcsgroupprober import SBCSGroupProber
 from .utf1632prober import UTF1632Prober
 
@@ -105,7 +105,7 @@ class UniversalDetector:
         self._esc_charset_prober: Optional[EscCharSetProber] = None
         self._utf1632_prober: Optional[UTF1632Prober] = None
         self._charset_probers: List[CharSetProber] = []
-        self.result: IntermediateResultDict = {
+        self.result: ResultDict = {
             "encoding": None,
             "confidence": 0.0,
             "language": None,
@@ -282,7 +282,7 @@ class UniversalDetector:
             if self.WIN_BYTE_DETECTOR.search(byte_str):
                 self._has_win_bytes = True
 
-    def close(self) -> FinalResultDict:
+    def close(self) -> ResultDict:
         """
         Stop analyzing the current document and come up with a final
         prediction.
@@ -292,7 +292,7 @@ class UniversalDetector:
         """
         # Don't bother with checks if we're already done
         if self.done:
-            return cast(FinalResultDict, self.result)
+            return self.result
         self.done = True
 
         if not self._got_data:
@@ -359,4 +359,4 @@ class UniversalDetector:
                             group_prober.language,
                             group_prober.get_confidence(),
                         )
-        return cast(FinalResultDict, self.result)
+        return self.result
