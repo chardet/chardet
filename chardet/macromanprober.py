@@ -7,11 +7,6 @@
 # Portions created by the Initial Developer are Copyright (C) 2001
 # the Initial Developer. All Rights Reserved.
 #
-# Contributor(s):
-#   Rob Speer - adapt to MacRoman encoding
-#   Mark Pilgrim - port to Python
-#   Shy Shalom - original C code
-#
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
 # License as published by the Free Software Foundation; either
@@ -28,6 +23,9 @@
 # 02110-1301  USA
 #
 # SPDX-License-Identifier: LGPL-2.1-or-later
+# SPDX-FileContributor: Mark Pilgim (port to Python)
+# SPDX-FileContributor: Shy Shalom (original C code)
+# SPDX-FileContributor: Rob Speer (adapt to MacRoman encoding)
 ######################### END LICENSE BLOCK #########################
 
 from typing import List, Union

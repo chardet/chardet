@@ -19,6 +19,7 @@
 # 02110-1301  USA
 #
 # SPDX-License-Identifier: LGPL-2.1-or-later
+# SPDX-FileContributor: Jason Zavaglia
 ######################### END LICENSE BLOCK #########################
 from typing import List, Union
 

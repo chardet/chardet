@@ -6,11 +6,6 @@
 # Portions created by the Initial Developer are Copyright (C) 2001
 # the Initial Developer. All Rights Reserved.
 #
-# Contributor(s):
-#   Mark Pilgrim - port to Python
-#   Shy Shalom - original C code
-#   Proofpoint, Inc.
-#
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
 # License as published by the Free Software Foundation; either
@@ -27,6 +22,9 @@
 # 02110-1301  USA
 #
 # SPDX-License-Identifier: LGPL-2.1-or-later
+# SPDX-FileContributor: Mark Pilgim (port to Python)
+# SPDX-FileContributor: Shy Shalom (original C code)
+# SPDX-FileContributor: Proofpoint, Inc.
 ######################### END LICENSE BLOCK #########################
 
 from .big5prober import Big5Prober
