@@ -15,6 +15,7 @@
 # 02110-1301  USA
 #
 # SPDX-License-Identifier: LGPL-2.1-or-later
+# SPDX-FileCopyrightText: 2011 - 2023 The chardet developers, see AUTHORS.rst
 ######################### END LICENSE BLOCK #########################
 
 from typing import List, Union

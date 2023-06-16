@@ -17,6 +17,7 @@
 # 02110-1301  USA
 #
 # SPDX-License-Identifier: LGPL-2.1-or-later
+# SPDX-FileCopyrightText: 2011 - 2023 The chardet developers, see AUTHORS.rst
 # SPDX-FileCopyrightText: 2001 Netscape Communications Corporation
 # SPDX-FileContributor: Mark Pilgim (port to Python)
 # SPDX-FileContributor: Shy Shalom (original C code)
