@@ -1,11 +1,6 @@
 ######################## BEGIN LICENSE BLOCK ########################
 # The Original Code is mozilla.org code.
 #
-# The Initial Developer of the Original Code is
-# Netscape Communications Corporation.
-# Portions created by the Initial Developer are Copyright (C) 1998
-# the Initial Developer. All Rights Reserved.
-#
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
 # License as published by the Free Software Foundation; either
@@ -22,6 +17,7 @@
 # 02110-1301  USA
 #
 # SPDX-License-Identifier: LGPL-2.1-or-later
+# SPDX-FileCopyrightText: 1998 Netscape Communications Corporation
 # SPDX-FileContributor: Mark Pilgim (port to Python)
 ######################### END LICENSE BLOCK #########################
 
