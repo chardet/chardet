@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 
 ######################## BEGIN LICENSE BLOCK ########################
-# Contributor(s):
-#   10.02.2015 - helour - first attempt
-#   08.08.2016 - Dan Blanchard - first usable release
-#
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
 # License as published by the Free Software Foundation; either
@@ -20,6 +16,10 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301  USA
 #
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# SPDX-FileCopyrightText: 2011 - 2023 The chardet developers, see AUTHORS.rst
+# SPDX-FileContributor: helour (first attempt)
+# SPDX-FileContributor: Dan Blanchard (first usable release)
 ######################### END LICENSE BLOCK #########################
 
 """

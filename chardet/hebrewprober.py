@@ -6,9 +6,6 @@
 # Portions created by the Initial Developer are Copyright (C) 2005
 # the Initial Developer. All Rights Reserved.
 #
-# Contributor(s):
-#   Mark Pilgrim - port to Python
-#
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
 # License as published by the Free Software Foundation; either
@@ -23,6 +20,10 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301  USA
+#
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# SPDX-FileCopyrightText: 2011 - 2023 The chardet developers, see AUTHORS.rst
+# SPDX-FileContributor: Mark Pilgim (port to Python)
 ######################### END LICENSE BLOCK #########################
 
 from typing import Optional, Union
