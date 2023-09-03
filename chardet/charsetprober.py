@@ -38,7 +38,6 @@ INTERNATIONAL_WORDS_PATTERN = re.compile(
 
 
 class CharSetProber:
-
     SHORTCUT_THRESHOLD = 0.95
 
     def __init__(self, lang_filter: LanguageFilter = LanguageFilter.NONE) -> None:
