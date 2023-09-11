@@ -100,7 +100,7 @@ class CharSetProber:
             # similarly across all languages and may thus have similar
             # frequencies).
             last_char = word[-1:]
-            if not last_char.isalpha() and last_char < b"\x80":
+            if last_char < b"\x80" and not last_char.isalpha():
                 last_char = b" "
             filtered.extend(last_char)
 
