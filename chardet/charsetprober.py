@@ -33,12 +33,11 @@ from typing import Optional, Union
 from .enums import LanguageFilter, ProbingState
 
 INTERNATIONAL_WORDS_PATTERN = re.compile(
-    b"[a-zA-Z]*[\x80-\xFF]+[a-zA-Z]*[^a-zA-Z\x80-\xFF]?"
+    b"(?:[a-zA-Z]*)(?:[\x80-\xFF]+)(?:[a-zA-Z]*)(?:[^a-zA-Z\x80-\xFF]?)"
 )
 
 
 class CharSetProber:
-
     SHORTCUT_THRESHOLD = 0.95
 
     def __init__(self, lang_filter: LanguageFilter = LanguageFilter.NONE) -> None:
