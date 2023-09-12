@@ -27,6 +27,7 @@ def description_of(
     minimal: bool = False,
     should_rename_legacy: bool = False,
     chunk_size: int = 16384,
+    chunk_steps: int = 5,
 ) -> Optional[str]:
     """
     Return a string describing the probable encoding of a file or
@@ -44,6 +45,9 @@ def description_of(
                         If 0, the lines is checked by line.
                         Default is 16384.
     :type chunk_size:   ``int``
+    ::param chunk_steps: If chunk_size is set, the number of times to iterate over
+                         the byte_str. Default is 5.
+    :type chunk_steps:  ``int``
     """
     u = UniversalDetector(should_rename_legacy=should_rename_legacy)
 
@@ -55,9 +59,10 @@ def description_of(
             # If the chunk size is reached, feed it to the detector and reset the chunk
             if len(chunk) >= chunk_size:
                 u.feed(chunk)
-                chunk = bytearray()
-            if u.done:
-                break
+                chunk.clear()
+                chunk_steps -= 1
+                if chunk_steps <= 0 or u.done:
+                    break
     else:
         # Process the lines one by one
         for line in lines:
@@ -116,6 +121,14 @@ def main(argv: Optional[List[str]] = None) -> None:
         default=16384,
     )
     parser.add_argument(
+        "-cs",
+        "--chunk-steps",
+        help="""If chunk_size is set, the number of times to iterate over the byte_str. 
+                Default is 5.""",
+        type=int,
+        default=5,
+    )
+    parser.add_argument(
         "--version", action="version", version=f"%(prog)s {__version__}"
     )
     args = parser.parse_args(argv)
@@ -136,6 +149,7 @@ def main(argv: Optional[List[str]] = None) -> None:
                 minimal=args.minimal,
                 should_rename_legacy=args.legacy,
                 chunk_size=args.chunk_size,
+                chunk_steps=args.chunk_steps,
             )
         )
 
