@@ -31,20 +31,24 @@ def detect(
     byte_str: Union[bytes, bytearray],
     should_rename_legacy: bool = False,
     chunk_size: int = 16384,
+    chunk_steps: int = 5,
 ) -> ResultDict:
     """
     Detect the encoding of the given byte string.
 
-    :param byte_str:    The byte sequence to examine.
-    :type byte_str:     ``bytes`` or ``bytearray``
-    :param should_rename_legacy:    Should we rename legacy encodings
-                                    to their more modern equivalents?
+    :param byte_str: The byte sequence to examine.
+    :type byte_str: ``bytes`` or ``bytearray``
+    :param should_rename_legacy: Should we rename legacy encodings
+                                to their more modern equivalents?
     :type should_rename_legacy: ``bool``
     ::param chunk_size: The number of bytes to be examined at one time.
                         After each chunk the detector checks if it is finished.
                         If 0, the whole byte_str is checked at once.
                         Default is 16384.
-    :type chunk_size:   ``int``
+    :type chunk_size: ``int``
+    ::param chunk_steps: If chunk_size is set, the number of times to iterate over
+                         the byte_str. Default is 5.
+    :type chunk_steps:  ``int``
     """
     if not isinstance(byte_str, bytearray):
         if not isinstance(byte_str, bytes):
@@ -57,12 +61,11 @@ def detect(
 
     if chunk_size > 0:
         # Split byte_str into chunks, iterate over each chunk and feed it to the detector
-        indices = list(range(chunk_size, len(byte_str), chunk_size))
-        for i in [0] + indices:
+        for step, i in enumerate(range(0, len(byte_str), chunk_size), start=1):
             chunk = byte_str[i : i + chunk_size]
             detector.feed(chunk)
 
-            if detector.done:
+            if detector.done or step == chunk_steps:
                 break
     else:
         # Feed byte_str to the detector
