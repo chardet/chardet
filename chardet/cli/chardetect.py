@@ -55,7 +55,7 @@ def description_of(
     if chunk_size > 0:
         chunk = bytearray()
         for line in lines:
-            chunk += line
+            chunk.extend(line)
             # If the chunk size is reached, feed it to the detector and reset the chunk
             if len(chunk) >= chunk_size:
                 u.feed(chunk)
