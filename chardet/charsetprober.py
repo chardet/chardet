@@ -33,12 +33,11 @@ from typing import Optional, Union
 from .enums import LanguageFilter, ProbingState
 
 INTERNATIONAL_WORDS_PATTERN = re.compile(
-    b"[a-zA-Z]*[\x80-\xFF]+[a-zA-Z]*[^a-zA-Z\x80-\xFF]?"
+    b"(?:[a-zA-Z]*)(?:[\x80-\xFF]+)(?:[a-zA-Z]*)(?:[^a-zA-Z\x80-\xFF]?)"
 )
 
 
 class CharSetProber:
-
     SHORTCUT_THRESHOLD = 0.95
 
     def __init__(self, lang_filter: LanguageFilter = LanguageFilter.NONE) -> None:
@@ -101,7 +100,7 @@ class CharSetProber:
             # similarly across all languages and may thus have similar
             # frequencies).
             last_char = word[-1:]
-            if not last_char.isalpha() and last_char < b"\x80":
+            if last_char < b"\x80" and not last_char.isalpha():
                 last_char = b" "
             filtered.extend(last_char)
 

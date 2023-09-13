@@ -26,6 +26,8 @@ def description_of(
     name: str = "stdin",
     minimal: bool = False,
     should_rename_legacy: bool = False,
+    chunk_size: int = 16384,
+    chunk_steps: int = 5,
 ) -> Optional[str]:
     """
     Return a string describing the probable encoding of a file or
@@ -38,14 +40,37 @@ def description_of(
     :param should_rename_legacy:  Should we rename legacy encodings to
                                   their more modern equivalents?
     :type should_rename_legacy:   ``bool``
+    ::param chunk_size: The number of bytes to be examined at one time.
+                        After each chunk the detector checks if it is finished.
+                        If 0, the lines is checked by line.
+                        Default is 16384.
+    :type chunk_size:   ``int``
+    ::param chunk_steps: If chunk_size is set, the number of times to iterate over
+                         the byte_str. Default is 5.
+    :type chunk_steps:  ``int``
     """
     u = UniversalDetector(should_rename_legacy=should_rename_legacy)
-    for line in lines:
-        line = bytearray(line)
-        u.feed(line)
-        # shortcut out of the loop to save reading further - particularly useful if we read a BOM.
-        if u.done:
-            break
+
+    # If the chunk size is greater than 0, process the lines in chunks
+    if chunk_size > 0:
+        chunk = bytearray()
+        for line in lines:
+            chunk.extend(line)
+            # If the chunk size is reached, feed it to the detector and reset the chunk
+            if len(chunk) >= chunk_size:
+                u.feed(chunk)
+                chunk.clear()
+                chunk_steps -= 1
+                if chunk_steps <= 0 or u.done:
+                    break
+    else:
+        # Process the lines one by one
+        for line in lines:
+            u.feed(bytearray(line))
+            # shortcut out of the loop to save reading further - particularly useful if we read a BOM.
+            if u.done:
+                break
+
     u.close()
     result = u.result
     if minimal:
@@ -88,6 +113,22 @@ def main(argv: Optional[List[str]] = None) -> None:
         action="store_true",
     )
     parser.add_argument(
+        "-c",
+        "--chunk-size",
+        help="""The number of bytes to be examined at one time. 
+                If 0, the lines are checked by line. Default is 16384.""",
+        type=int,
+        default=16384,
+    )
+    parser.add_argument(
+        "-cs",
+        "--chunk-steps",
+        help="""If chunk_size is set, the number of times to iterate over the byte_str. 
+                Default is 5.""",
+        type=int,
+        default=5,
+    )
+    parser.add_argument(
         "--version", action="version", version=f"%(prog)s {__version__}"
     )
     args = parser.parse_args(argv)
@@ -103,7 +144,12 @@ def main(argv: Optional[List[str]] = None) -> None:
             )
         print(
             description_of(
-                f, f.name, minimal=args.minimal, should_rename_legacy=args.legacy
+                f,
+                f.name,
+                minimal=args.minimal,
+                should_rename_legacy=args.legacy,
+                chunk_size=args.chunk_size,
+                chunk_steps=args.chunk_steps,
             )
         )
 
