@@ -5,7 +5,6 @@ Run chardet on a bunch of documents and see that we get the correct encodings.
 :author: Ian Cordasco
 """
 
-
 import argparse
 import sys
 import time
@@ -16,7 +15,7 @@ from os.path import dirname, isdir, join, realpath, relpath, splitext
 import chardet
 
 try:
-    import cchardet  # pylint: disable=import-error
+    import cchardet  # type: ignore[reportMissingImports]
 
     HAVE_CCHARDET = True
 except Exception:
@@ -158,7 +157,7 @@ def main():
         sys.exit(1)
 
     benchmark(
-        chardet_mod=cchardet if args.cchardet else chardet,
+        chardet_mod=cchardet if args.cchardet else chardet,  # type: ignore
         verbose=args.verbose,
         num_iters=args.iterations,
     )
