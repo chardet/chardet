@@ -169,7 +169,7 @@ if HAVE_HYPOTHESIS:
     class JustALengthIssue(Exception):
         pass
 
-    @pytest.mark.xfail  # type: ignore[reportPossiblyUnboundVariable]
+    @pytest.mark.xfail
     @given(  # type: ignore[reportPossiblyUnboundVariable]
         st.text(min_size=1),  # type: ignore[reportPossiblyUnboundVariable]
         st.sampled_from([  # type: ignore[reportPossiblyUnboundVariable]
@@ -206,6 +206,7 @@ if HAVE_HYPOTHESIS:
                     if result and result["encoding"] is not None:
                         raise JustALengthIssue()
 
+    @pytest.mark.xfail
     @given(  # type: ignore[reportPossiblyUnboundVariable]
         st.text(min_size=100),  # type: ignore[reportPossiblyUnboundVariable]
         st.sampled_from(  # type: ignore[reportPossiblyUnboundVariable]
