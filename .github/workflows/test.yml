@@ -21,7 +21,7 @@ jobs:
       - name: Install dependencies
         run: poetry install
       - name: Run pre-commit
-        run: poetry run pre-commit run --all-files
+        run: poetry run pre-commit run --all-files --show-diff-on-failure --color=always
 
   build:
     runs-on: ubuntu-latest
