@@ -1,14 +1,6 @@
 ######################## BEGIN LICENSE BLOCK ########################
 # The Original Code is Mozilla Communicator client code.
 #
-# The Initial Developer of the Original Code is
-# Netscape Communications Corporation.
-# Portions created by the Initial Developer are Copyright (C) 1998
-# the Initial Developer. All Rights Reserved.
-#
-# Contributor(s):
-#   Mark Pilgrim - port to Python
-#
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
 # License as published by the Free Software Foundation; either
@@ -23,6 +15,11 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301  USA
+#
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# SPDX-FileCopyrightText: 2011 - 2023 The chardet developers, see AUTHORS.rst
+# SPDX-FileCopyrightText: 1998 Netscape Communications Corporation
+# SPDX-FileContributor: Mark Pilgim (port to Python)
 ######################### END LICENSE BLOCK #########################
 
 # Sampling from about 20M text materials include literature and computer technology

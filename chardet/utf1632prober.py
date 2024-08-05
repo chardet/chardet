@@ -17,6 +17,10 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301  USA
+#
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# SPDX-FileCopyrightText: 2011 - 2023 The chardet developers, see AUTHORS.rst
+# SPDX-FileContributor: Jason Zavaglia
 ######################### END LICENSE BLOCK #########################
 from typing import List, Union
 
