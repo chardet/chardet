@@ -56,6 +56,7 @@ python = ">=3.8"
 
 [tool.poetry.group.dev.dependencies]
 hypothesis = "^6.0.0"
+pre-commit = "^3.5"
 pytest = "^8.3.2"
 ruff = "^0.5.5"
 sphinx_rtd_theme = "^1.0.0"
