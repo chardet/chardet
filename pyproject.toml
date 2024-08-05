@@ -104,8 +104,7 @@ known-first-party = ["chardet"]
 [tool.pyright]
 reportTypedDictNotRequiredAccess = "none"
 
-[tool.pytest]
+[tool.pytest.ini_options]
 addopts = "-v"
 norecursedirs = "*"
 python_files = "test.py"
-
