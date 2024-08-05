@@ -5,24 +5,29 @@ repos:
       - id: check-case-conflict
       - id: check-executables-have-shebangs
       - id: check-merge-conflict
-  - repo: https://github.com/pycqa/isort
-    rev: 5.12.0
+  - repo: local
     hooks:
-      - id: isort
-        args: ["--profile", "black"]
-        name: isort (python)
-  - repo: https://github.com/psf/black
-    rev: 23.7.0
+      - id: ruff-format
+        args: []
+        name: ruff-format
+        language: python
+        entry: poetry run ruff format --force-exclude --preview
+        "types_or": [python, pyi]
+        require_serial: true
+  - repo: local
     hooks:
-      - id: black
-        args: ["--target-version", "py38"]
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.5.1
+      - id: ruff
+        name: ruff
+        language: python
+        entry: poetry run ruff check --force-exclude --fix --show-fixes
+        "types_or": [python, pyi]
+        require_serial: true
+  - repo: local
     hooks:
-      - id: mypy
-        files: ^chardet/
-        args: ["--strict", "--pretty", "--show-error-codes"]
-  - repo: https://github.com/PyCQA/prospector
-    rev: 1.10.2 # The version of Prospector to use, if not 'master' for latest
-    hooks:
-      - id: prospector
+      - id: pyright
+        name: pyright
+        entry: poetry run pyright
+        language: node
+        types: [python]
+        pass_filenames: false
+        additional_dependencies: ["pyright@1.1.362"]
