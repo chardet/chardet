@@ -136,7 +136,7 @@ class EUCTWDistributionAnalysis(CharDistributionAnalysis):
         self._table_size = EUCTW_TABLE_SIZE
         self.typical_distribution_ratio = EUCTW_TYPICAL_DISTRIBUTION_RATIO
 
-    def get_order(self, byte_str: Union[bytes, bytearray]) -> int:
+    def get_order(self, byte_str: Union[bytes, bytearray]) -> int:  # type: ignore[reportIncompatibleMethodOverride]
         # for euc-TW encoding, we are interested
         #   first  byte range: 0xc4 -- 0xfe
         #   second byte range: 0xa1 -- 0xfe
@@ -154,7 +154,7 @@ class EUCKRDistributionAnalysis(CharDistributionAnalysis):
         self._table_size = EUCKR_TABLE_SIZE
         self.typical_distribution_ratio = EUCKR_TYPICAL_DISTRIBUTION_RATIO
 
-    def get_order(self, byte_str: Union[bytes, bytearray]) -> int:
+    def get_order(self, byte_str: Union[bytes, bytearray]) -> int:  # type: ignore[reportIncompatibleMethodOverride]
         # for euc-KR encoding, we are interested
         #   first  byte range: 0xb0 -- 0xfe
         #   second byte range: 0xa1 -- 0xfe
@@ -172,7 +172,7 @@ class JOHABDistributionAnalysis(CharDistributionAnalysis):
         self._table_size = EUCKR_TABLE_SIZE
         self.typical_distribution_ratio = EUCKR_TYPICAL_DISTRIBUTION_RATIO
 
-    def get_order(self, byte_str: Union[bytes, bytearray]) -> int:
+    def get_order(self, byte_str: Union[bytes, bytearray]) -> int:  # type: ignore[reportIncompatibleMethodOverride]
         first_char = byte_str[0]
         if 0x88 <= first_char < 0xD4:
             code = first_char * 256 + byte_str[1]
@@ -187,7 +187,7 @@ class GB2312DistributionAnalysis(CharDistributionAnalysis):
         self._table_size = GB2312_TABLE_SIZE
         self.typical_distribution_ratio = GB2312_TYPICAL_DISTRIBUTION_RATIO
 
-    def get_order(self, byte_str: Union[bytes, bytearray]) -> int:
+    def get_order(self, byte_str: Union[bytes, bytearray]) -> int:  # type: ignore[reportIncompatibleMethodOverride]
         # for GB2312 encoding, we are interested
         #  first  byte range: 0xb0 -- 0xfe
         #  second byte range: 0xa1 -- 0xfe
@@ -205,7 +205,7 @@ class Big5DistributionAnalysis(CharDistributionAnalysis):
         self._table_size = BIG5_TABLE_SIZE
         self.typical_distribution_ratio = BIG5_TYPICAL_DISTRIBUTION_RATIO
 
-    def get_order(self, byte_str: Union[bytes, bytearray]) -> int:
+    def get_order(self, byte_str: Union[bytes, bytearray]) -> int:  # type: ignore[reportIncompatibleMethodOverride]
         # for big5 encoding, we are interested
         #   first  byte range: 0xa4 -- 0xfe
         #   second byte range: 0x40 -- 0x7e , 0xa1 -- 0xfe
@@ -225,7 +225,7 @@ class SJISDistributionAnalysis(CharDistributionAnalysis):
         self._table_size = JIS_TABLE_SIZE
         self.typical_distribution_ratio = JIS_TYPICAL_DISTRIBUTION_RATIO
 
-    def get_order(self, byte_str: Union[bytes, bytearray]) -> int:
+    def get_order(self, byte_str: Union[bytes, bytearray]) -> int:  # type: ignore[reportIncompatibleMethodOverride]
         # for sjis encoding, we are interested
         #   first  byte range: 0x81 -- 0x9f , 0xe0 -- 0xfe
         #   second byte range: 0x40 -- 0x7e,  0x81 -- oxfe
@@ -250,7 +250,7 @@ class EUCJPDistributionAnalysis(CharDistributionAnalysis):
         self._table_size = JIS_TABLE_SIZE
         self.typical_distribution_ratio = JIS_TYPICAL_DISTRIBUTION_RATIO
 
-    def get_order(self, byte_str: Union[bytes, bytearray]) -> int:
+    def get_order(self, byte_str: Union[bytes, bytearray]) -> int:  # type: ignore[reportIncompatibleMethodOverride]
         # for euc-JP encoding, we are interested
         #   first  byte range: 0xa0 -- 0xfe
         #   second byte range: 0xa1 -- 0xfe
