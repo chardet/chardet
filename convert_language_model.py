@@ -61,7 +61,7 @@ def convert_sbcs_model(old_model, alphabet):
         language=old_model["language"],
         char_to_order_map=char_to_order,
         # language_model is filled in later
-        language_model=None,
+        language_model={},
         typical_positive_ratio=pos_ratio,
         keep_ascii_letters=keep_ascii_letters,
         alphabet=alphabet,

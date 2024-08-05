@@ -195,7 +195,7 @@ class SJISContextAnalysis(JapaneseContextAnalysis):
     def charset_name(self) -> str:
         return self._charset_name
 
-    def get_order(self, byte_str: Union[bytes, bytearray]) -> Tuple[int, int]:
+    def get_order(self, byte_str: Union[bytes, bytearray]) -> Tuple[int, int]:  # type: ignore[reportIncompatibleMethodOverride]
         if not byte_str:
             return -1, 1
         # find out current char's byte length
@@ -217,7 +217,7 @@ class SJISContextAnalysis(JapaneseContextAnalysis):
 
 
 class EUCJPContextAnalysis(JapaneseContextAnalysis):
-    def get_order(self, byte_str: Union[bytes, bytearray]) -> Tuple[int, int]:
+    def get_order(self, byte_str: Union[bytes, bytearray]) -> Tuple[int, int]:  # type: ignore[reportIncompatibleMethodOverride]
         if not byte_str:
             return -1, 1
         # find out current char's byte length

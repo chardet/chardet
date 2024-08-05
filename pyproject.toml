@@ -1,3 +1,103 @@
 [build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+build-backend = "hatchling.build"
+requires = ["hatch-vcs", "hatchling"]
+
+[project]
+authors = [{ name = "Mark Pilgrim", email = "mark@diveintomark.org" }]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU Lesser General Public License v2 or later (LGPLv2+)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Programming Language :: Python",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Text Processing :: Linguistic",
+]
+dependencies = []
+description = "Universal encoding detector for Python 3"
+dynamic = ["version"]
+keywords = ["encoding", "i18n", "xml"]
+license = { text = "LGPL" }
+maintainers = [
+    { name = "Dan Blanchard", email = "dan.blanchard@gmail.com" },
+    { name = "Ian Cordasco" },
+]
+name = "chardet"
+readme = "README.rst"
+requires-python = ">=3.8"
+
+
+[project.scripts]
+chardetect = "chardet.cli.chardetect:main"
+
+[project.urls]
+Documentation = "https://chardet.readthedocs.io/"
+Homepage = "http://chardet.github.io"
+Issues = "https://github.com/chardet/chardet/issues"
+Repository = "https://github.com/chardet/chardet"
+
+
+[tool.poetry]
+authors = ["Dan Blanchard <dan.blanchard@gmail.com>"]
+description = "Universal encoding detector for Python 3"
+name = "chardet"
+version = "5.3.0.dev0"
+
+[tool.poetry.dependencies]
+python = ">=3.8"
+
+[tool.poetry.group.dev.dependencies]
+hypothesis = "^6.0.0"
+pytest = "^8.3.2"
+ruff = "^0.5.5"
+sphinx_rtd_theme = "^1.0.0"
+
+[tool.hatch.version]
+raw-options = { local_scheme = "no-local-version" }
+source = "vcs"
+
+[tool.ruff]
+target-version = "py38"
+
+[tool.ruff.lint]
+fixable = ["ALL"]
+ignore = ["E501"]
+select = [
+    # pycodestyle
+    "E",
+    "W",
+    # Pyflakes
+    "F",
+    # flake8-bugbear
+    "B",
+    # isort
+    "I",
+]
+
+
+[tool.ruff.format]
+# Like Black, use double quotes for strings.
+quote-style = "double"
+
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+
+# Like Black, automatically detect the appropriate line ending.
+line-ending = "auto"
+
+preview = true
+
+
+[tool.ruff.lint.isort]
+known-first-party = ["chardet"]
+
+[tool.pyright]
+reportTypedDictNotRequiredAccess = "none"
