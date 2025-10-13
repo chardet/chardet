@@ -26,6 +26,7 @@
 Create a language model for single byte character encoding detection based on
 the given file(s).
 """
+
 import os
 import re
 import sys
@@ -41,7 +42,7 @@ try:
     from mediawiki import MediaWiki
 
     HAVE_WIKIPEDIA = True
-except:
+except Exception:
     HAVE_WIKIPEDIA = False
 
 from chardet import __version__
@@ -63,7 +64,7 @@ def normalize_name(charset_name):
 
 
 def unicode_to_category(
-    unicode_char, char_ranks, keep_ascii_letters=False, alphabet=None
+    *, unicode_char, char_ranks, keep_ascii_letters=False, alphabet=None
 ):
     """Convert a Unicode character to categories used by SingleByteCharSetProber"""
     if alphabet is None:
@@ -89,7 +90,7 @@ def unicode_to_category(
 
 
 def get_charset_mappings(
-    charset_name, char_ranks, keep_ascii_letters=False, alphabet=None
+    *, charset_name, char_ranks, keep_ascii_letters=False, alphabet=None
 ):
     """Returns `charset_categories` & `charset_code_points` mappings for charset
 
@@ -113,8 +114,8 @@ def get_charset_mappings(
         try:
             unicode_char = char.decode(charset_name)
             char_cat = unicode_to_category(
-                unicode_char,
-                char_ranks,
+                unicode_char=unicode_char,
+                char_ranks=char_ranks,
                 keep_ascii_letters=keep_ascii_letters,
                 alphabet=alphabet,
             )
@@ -133,6 +134,7 @@ def gen_input_lines(input_paths, input_encoding):
 
 
 def gen_wiki_lines(
+    *,
     titles,
     language,
     max_depth,
@@ -181,7 +183,7 @@ def gen_wiki_lines(
             content = re.sub(r"(=+) *([^=]+) *\1", r"\2", page.content)
             # Clean up repeated whitespace, since that could skew model
             content = re.sub(r"(\s)\1+", r"\1", content)
-        except:
+        except Exception:
             if depth > 0:
                 skipped_pages.add(title)
                 continue
@@ -196,18 +198,18 @@ def gen_wiki_lines(
         # Sometimes things go wrong when extracting the links
         try:
             next_titles.update(page.links)
-        except:
+        except Exception:
             continue
 
     # Recursive generators are fun
     yield from gen_wiki_lines(
-        next_titles,
-        language,
-        max_depth,
+        titles=next_titles,
+        language=language,
+        max_depth=max_depth,
+        max_pages=max_pages,
         depth=depth + 1,
         visited_pages=visited_pages,
         skipped_pages=skipped_pages,
-        max_pages=max_pages,
         wikipedia=wikipedia,
     )
 
@@ -244,6 +246,8 @@ def calc_ngram_freqs(
         for unicode_char in line:
             # Skip ASCII letters if we're supposed to
             if not keep_ascii_letters and unicode_char in ascii_letters:
+                # Reset prev_char to avoid creating false bigrams
+                prev_char = None
                 continue
             char_freqs[unicode_char] += 1
             if prev_char is not None:
@@ -260,7 +264,9 @@ def calc_ngram_freqs(
             "Number of character tokens in training data: {:,}\n"
             "Size of training data in bytes: {:,}"
         ).format(
-            len(char_freqs), num_tokens, size_in_bytes,
+            len(char_freqs),
+            num_tokens,
+            size_in_bytes,
         )
     )
     min_alpha_freq = min(
@@ -318,6 +324,7 @@ def flatten_language_model(language_model):
 
 
 def generate_sbcs_model(
+    *,
     charset_name,
     language,
     language_model,
@@ -329,7 +336,10 @@ def generate_sbcs_model(
     """Create a SingleByteCharSetModel object representing the charset."""
     # Setup tables necessary for computing transition frequencies for model
     char_to_order, charset_code_points = get_charset_mappings(
-        charset_name, char_ranks, keep_ascii_letters
+        charset_name=charset_name,
+        char_ranks=char_ranks,
+        keep_ascii_letters=keep_ascii_letters,
+        alphabet=alphabet,
     )
 
     # Calculate positive ratio for charset by counting positive likelihood
@@ -367,14 +377,15 @@ def print_char_to_order(var_name, order_map, charset_name, output_file):
         except UnicodeError:
             unicode_char = None
         print(
-            f"     {char!r}: {order!r},  # {unicode_char!r}", file=output_file,
+            f"     {char!r}: {order!r},  # {unicode_char!r}",
+            file=output_file,
         )
     print("}\n", file=output_file)
 
 
 def print_language_model(var_name, language_model, output_file, char_ranks):
     print(
-        "# 3: Positive\n" "# 2: Likely\n" "# 1: Unlikely\n" "# 0: Negative\n",
+        "# 3: Positive\n# 2: Likely\n# 1: Unlikely\n# 0: Negative\n",
         file=output_file,
     )
     print(f"{var_name} = {{", file=output_file)
@@ -458,9 +469,9 @@ def train_model_for_lang(
             )
         wikipedia = MediaWiki(lang=lang_metadata.iso_code)
         input_gen = gen_wiki_lines(
-            lang_metadata.wiki_start_pages,
-            lang_metadata.iso_code,
-            depth,
+            titles=lang_metadata.wiki_start_pages,
+            language=lang_metadata.iso_code,
+            max_depth=depth,
             max_pages=max_pages,
             wikipedia=wikipedia,
         )
@@ -486,13 +497,13 @@ def train_model_for_lang(
         print(f"Creating charset model for {charset_name}")
         sys.stdout.flush()
         charset_models[charset_name] = generate_sbcs_model(
-            charset_name,
-            language,
-            language_model,
-            num_bigrams,
-            char_ranks,
-            lang_metadata.use_ascii,
-            lang_metadata.alphabet,
+            charset_name=charset_name,
+            language=language,
+            language_model=language_model,
+            num_bigrams=num_bigrams,
+            char_ranks=char_ranks,
+            keep_ascii_letters=lang_metadata.use_ascii,
+            alphabet=lang_metadata.alphabet,
         )
 
     # Collapse language model freqs to SequenceLikelihood values after
@@ -560,14 +571,14 @@ def main():
     parser.add_argument(
         "-d",
         "--depth",
-        help="Maximum depth to crawl Wikipedia articles for " "training data.",
+        help="Maximum depth to crawl Wikipedia articles for training data.",
         type=int,
         default=2,
     )
     parser.add_argument(
         "-e",
         "--input_encoding",
-        help="Encoding the input files are in. Does not need to" " match CHARSET_NAME.",
+        help="Encoding the input files are in. Does not need to match CHARSET_NAME.",
         default="UTF-8",
     )
     parser.add_argument(
@@ -582,7 +593,7 @@ def main():
     parser.add_argument(
         "-m",
         "--max_pages",
-        help="Maximum number of Wikipedia pages to crawl per " "language.",
+        help="Maximum number of Wikipedia pages to crawl per language.",
         type=int,
         default=20000,
     )
