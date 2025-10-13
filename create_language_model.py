@@ -244,6 +244,8 @@ def calc_ngram_freqs(
         for unicode_char in line:
             # Skip ASCII letters if we're supposed to
             if not keep_ascii_letters and unicode_char in ascii_letters:
+                # Reset prev_char to avoid creating false bigrams
+                prev_char = None
                 continue
             char_freqs[unicode_char] += 1
             if prev_char is not None:
@@ -260,7 +262,9 @@ def calc_ngram_freqs(
             "Number of character tokens in training data: {:,}\n"
             "Size of training data in bytes: {:,}"
         ).format(
-            len(char_freqs), num_tokens, size_in_bytes,
+            len(char_freqs),
+            num_tokens,
+            size_in_bytes,
         )
     )
     min_alpha_freq = min(
@@ -329,7 +333,7 @@ def generate_sbcs_model(
     """Create a SingleByteCharSetModel object representing the charset."""
     # Setup tables necessary for computing transition frequencies for model
     char_to_order, charset_code_points = get_charset_mappings(
-        charset_name, char_ranks, keep_ascii_letters
+        charset_name, char_ranks, keep_ascii_letters, alphabet
     )
 
     # Calculate positive ratio for charset by counting positive likelihood
@@ -367,7 +371,8 @@ def print_char_to_order(var_name, order_map, charset_name, output_file):
         except UnicodeError:
             unicode_char = None
         print(
-            f"     {char!r}: {order!r},  # {unicode_char!r}", file=output_file,
+            f"     {char!r}: {order!r},  # {unicode_char!r}",
+            file=output_file,
         )
     print("}\n", file=output_file)
 
