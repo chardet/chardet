@@ -419,6 +419,7 @@ def train_model_for_lang(
     input_paths=None,
     sequence_count_threshold=None,
     max_pages=None,
+    wiki_folder=None,
 ):
     """Train a SingleByteCharSetModel for the given language and settings"""
     # Validate language
@@ -430,6 +431,14 @@ def train_model_for_lang(
             " new language, you must first update metadata/"
             "languages.py".format(language)
         )
+
+    if wiki_folder and not input_paths:
+        wiki_path = os.path.join(wiki_folder, f"wiki_{language}.txt")
+        if not os.path.isfile(wiki_path):
+            raise ValueError(
+                f"Could not find Wikipedia training file for {language} at {wiki_path}"
+            )
+        input_paths = [wiki_path]
 
     print(
         "\n{}\n----------------------------------------------------------------\n"
@@ -458,12 +467,12 @@ def train_model_for_lang(
         if data_size < 10000000:
             raise ValueError(
                 "Input files must be at least 10MB to train a "
-                "decent model. You only provided {} bytes.".format(data_size)
+                f"decent model. You only provided {data_size:,} bytes."
             )
 
         input_gen = gen_input_lines(input_paths, input_encoding)
 
-        data_size_str = f"{data_size} bytes of"
+        data_size_str = f"{data_size:,} bytes of"
     else:
         if not HAVE_WIKIPEDIA:
             raise ValueError(
@@ -581,13 +590,13 @@ def main():
     )
     parser.add_argument(
         "-e",
-        "--input_encoding",
+        "--input-encoding",
         help="Encoding the input files are in. Does not need to match CHARSET_NAME.",
         default="UTF-8",
     )
     parser.add_argument(
         "-i",
-        "--input_files",
+        "--input-files",
         help="File to use to train language model. If no files "
         "are specified, will crawl Wikipedia for training "
         "data.",
@@ -596,27 +605,41 @@ def main():
     )
     parser.add_argument(
         "-m",
-        "--max_pages",
+        "--max-pages",
         help="Maximum number of Wikipedia pages to crawl per language.",
         type=int,
         default=20000,
     )
     parser.add_argument(
         "-p",
-        "--parallel_langs",
+        "--parallel-langs",
         help="Number of languages models to train at once.",
         type=int,
         default=8,
     )
     parser.add_argument(
         "-t",
-        "--sequence_count_threshold",
-        help="Minimum number of times a particular two-"
-        "character sequence must have occurred in the "
-        "input files in order to be considered unlikely "
-        "(instead of illegal).",
+        "--sequence-count-threshold",
+        help=(
+            "Minimum number of times a particular two-"
+            "character sequence must have occurred in the "
+            "input files in order to be considered unlikely "
+            "(instead of illegal)."
+        ),
         type=int,
         default=3,
+    )
+    parser.add_argument(
+        "-w",
+        "--wiki-folder",
+        help=(
+            "Path to folder containing crawled Wikipedia named "
+            "'wiki_<language>.txt' files to use for training instead "
+            "of crawling Wikipedia. "
+            "If this is set, --input-files and --depth are ignored."
+        ),
+        type=str,
+        default=".",
     )
     parser.add_argument("--version", action="version", version=__version__)
     args = parser.parse_args()
@@ -630,7 +653,7 @@ def main():
                 " This only works for Wikipedia training."
             )
 
-    if not HAVE_WIKIPEDIA and not args.input_paths:
+    if not HAVE_WIKIPEDIA and not args.input_paths and not args.wiki_folder:
         raise ValueError(
             "The pymediawiki Python package could not be "
             "imported, so you must either specify input files "
@@ -649,6 +672,7 @@ def main():
                 input_paths=args.input_paths,
                 sequence_count_threshold=args.sequence_count_threshold,
                 max_pages=args.max_pages,
+                wiki_folder=args.wiki_folder,
             ),
             args.language,
         )
