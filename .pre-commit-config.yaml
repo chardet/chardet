@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v6.0.0
     hooks:
       - id: check-case-conflict
       - id: check-executables-have-shebangs
@@ -11,7 +11,7 @@ repos:
         args: []
         name: ruff-format
         language: python
-        entry: poetry run ruff format --force-exclude --preview
+        entry: uv run ruff format --force-exclude --preview
         "types_or": [python, pyi]
         require_serial: true
   - repo: local
@@ -19,15 +19,15 @@ repos:
       - id: ruff
         name: ruff
         language: python
-        entry: poetry run ruff check --force-exclude --fix --show-fixes
+        entry: uv run ruff check --force-exclude --fix --show-fixes
         "types_or": [python, pyi]
         require_serial: true
   - repo: local
     hooks:
       - id: pyright
         name: pyright
-        entry: poetry run pyright
+        entry: uv run pyright
         language: node
         types: [python]
         pass_filenames: false
-        additional_dependencies: ["pyright@1.1.362"]
+        additional_dependencies: ["pyright@1.1.406"]
