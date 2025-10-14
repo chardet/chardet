@@ -6,7 +6,7 @@ This code is based on the language metadata from the uchardet project.
 """
 
 from string import ascii_letters
-from typing import List, Optional
+from typing import Optional
 
 # TODO: Add Ukrainian (KOI8-U)
 
@@ -37,9 +37,9 @@ class Language:
         name: Optional[str] = None,
         iso_code: Optional[str] = None,
         use_ascii: bool = True,
-        charsets: Optional[List[str]] = None,
+        charsets: Optional[list[str]] = None,
         alphabet: Optional[str] = None,
-        wiki_start_pages: Optional[List[str]] = None,
+        wiki_start_pages: Optional[list[str]] = None,
     ) -> None:
         super().__init__()
         self.name = name

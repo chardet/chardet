@@ -30,7 +30,7 @@
 # <https://www.gnu.org/licenses/>.
 ######################### END LICENSE BLOCK #########################
 
-from typing import List, Union
+from typing import Union
 
 from .charsetprober import CharSetProber
 from .enums import CharacterCategory, ProbingState, SequenceLikelihood
@@ -99,7 +99,7 @@ class Latin1Prober(CharSetProber):
     def __init__(self) -> None:
         super().__init__()
         self._last_char_class = CTR  # or SYM
-        self._seq_counters: List[SequenceLikelihood] = []
+        self._seq_counters: list[SequenceLikelihood] = []
         self._total_seqs = 0
         self.reset()
 

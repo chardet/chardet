@@ -45,7 +45,6 @@ from .langbulgarianmodel import (
     WINDOWS_1251_BULGARIAN_MODEL,
 )
 from .langcroatianmodel import ISO_8859_2_CROATIAN_MODEL, WINDOWS_1250_CROATIAN_MODEL
-from .langczechmodel import ISO_8859_2_CZECH_MODEL, WINDOWS_1250_CZECH_MODEL
 from .langdanishmodel import (
     ISO_8859_1_DANISH_MODEL,
     ISO_8859_15_DANISH_MODEL,
@@ -71,7 +70,7 @@ from .langfrenchmodel import (
 )
 from .langgermanmodel import ISO_8859_1_GERMAN_MODEL, WINDOWS_1252_GERMAN_MODEL
 from .langgreekmodel import ISO_8859_7_GREEK_MODEL, WINDOWS_1253_GREEK_MODEL
-from .langhebrewmodel import ISO_8859_8_HEBREW_MODEL, WINDOWS_1255_HEBREW_MODEL
+from .langhebrewmodel import WINDOWS_1255_HEBREW_MODEL
 from .langhungarianmodel import ISO_8859_2_HUNGARIAN_MODEL, WINDOWS_1250_HUNGARIAN_MODEL
 from .langitalianmodel import (
     ISO_8859_1_ITALIAN_MODEL,

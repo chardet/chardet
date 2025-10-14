@@ -37,7 +37,7 @@ class a user of ``chardet`` should use.
 import codecs
 import logging
 import re
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 from .charsetgroupprober import CharSetGroupProber
 from .charsetprober import CharSetProber
@@ -102,7 +102,7 @@ class UniversalDetector:
     ) -> None:
         self._esc_charset_prober: Optional[EscCharSetProber] = None
         self._utf1632_prober: Optional[UTF1632Prober] = None
-        self._charset_probers: List[CharSetProber] = []
+        self._charset_probers: list[CharSetProber] = []
         self.result: ResultDict = {
             "encoding": None,
             "confidence": 0.0,
@@ -127,7 +127,7 @@ class UniversalDetector:
         return self._has_win_bytes
 
     @property
-    def charset_probers(self) -> List[CharSetProber]:
+    def charset_probers(self) -> list[CharSetProber]:
         return self._charset_probers
 
     def reset(self) -> None:

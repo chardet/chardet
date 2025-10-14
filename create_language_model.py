@@ -398,7 +398,7 @@ def print_language_model(var_name, language_model, output_file, char_ranks):
         if not sub_dict:
             continue
         print(
-            "    {!r}: {{  # {!r}".format(char_ranks[first_char], first_char),
+            f"    {char_ranks[first_char]!r}: {{  # {first_char!r}",
             file=output_file,
         )
         for second_char, likelihood in sorted(sub_dict.items()):

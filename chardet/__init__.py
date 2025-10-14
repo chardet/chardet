@@ -14,7 +14,7 @@
 # <https://www.gnu.org/licenses/>.
 ######################### END LICENSE BLOCK #########################
 
-from typing import List, Union
+from typing import Union
 
 from .charsetgroupprober import CharSetGroupProber
 from .charsetprober import CharSetProber
@@ -53,7 +53,7 @@ def detect_all(
     byte_str: Union[bytes, bytearray],
     ignore_threshold: bool = False,
     should_rename_legacy: bool = False,
-) -> List[ResultDict]:
+) -> list[ResultDict]:
     """
     Detect all the possible encodings of the given byte string.
 
@@ -79,8 +79,8 @@ def detect_all(
     detector.close()
 
     if detector.input_state == InputState.HIGH_BYTE:
-        results: List[ResultDict] = []
-        probers: List[CharSetProber] = []
+        results: list[ResultDict] = []
+        probers: list[CharSetProber] = []
         for prober in detector.charset_probers:
             if isinstance(prober, CharSetGroupProber):
                 probers.extend(p for p in prober.probers)

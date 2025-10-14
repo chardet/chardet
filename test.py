@@ -30,7 +30,6 @@ from chardet.codingstatemachine import CodingStateMachine
 from chardet.enums import MachineState
 from chardet.metadata.languages import LANGUAGES
 
-
 MISSING_ENCODINGS = set()
 EXPECTED_FAILURES = {
     "tests/iso-8859-9-turkish/_ude_1.txt",

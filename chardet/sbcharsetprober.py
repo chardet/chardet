@@ -26,7 +26,7 @@
 ######################### END LICENSE BLOCK #########################
 
 import logging
-from typing import Dict, List, NamedTuple, Optional, Union
+from typing import NamedTuple, Optional, Union
 
 from .charsetprober import CharSetProber
 from .enums import CharacterCategory, ProbingState, SequenceLikelihood
@@ -35,8 +35,8 @@ from .enums import CharacterCategory, ProbingState, SequenceLikelihood
 class SingleByteCharSetModel(NamedTuple):
     charset_name: str
     language: str
-    char_to_order_map: Dict[int, int]
-    language_model: Dict[int, Dict[int, int]]
+    char_to_order_map: dict[int, int]
+    language_model: dict[int, dict[int, int]]
     typical_positive_ratio: float
     keep_ascii_letters: bool
     alphabet: str
@@ -60,7 +60,7 @@ class SingleByteCharSetProber(CharSetProber):
         # Optional auxiliary prober for name decision
         self._name_prober = name_prober
         self._last_order = 255
-        self._seq_counters: List[int] = []
+        self._seq_counters: list[int] = []
         self._total_seqs = 0
         self._total_char = 0
         self._control_char = 0

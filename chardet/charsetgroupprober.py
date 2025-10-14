@@ -24,7 +24,7 @@
 # <https://www.gnu.org/licenses/>.
 ######################### END LICENSE BLOCK #########################
 
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 from .charsetprober import CharSetProber
 from .enums import LanguageFilter, ProbingState
@@ -34,7 +34,7 @@ class CharSetGroupProber(CharSetProber):
     def __init__(self, lang_filter: LanguageFilter = LanguageFilter.NONE) -> None:
         super().__init__(lang_filter=lang_filter)
         self._active_num = 0
-        self.probers: List[CharSetProber] = []
+        self.probers: list[CharSetProber] = []
         self._best_guess_prober: Optional[CharSetProber] = None
 
     def reset(self) -> None:

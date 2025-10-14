@@ -28,7 +28,7 @@
 # 02110-1301  USA
 ######################### END LICENSE BLOCK #########################
 
-from typing import List, Union
+from typing import Union
 
 from .charsetprober import CharSetProber
 from .enums import ProbingState
@@ -110,7 +110,7 @@ class MacRomanProber(CharSetProber):
     def __init__(self) -> None:
         super().__init__()
         self._last_char_class = OTH
-        self._freq_counter: List[int] = []
+        self._freq_counter: list[int] = []
         self.reset()
 
     def reset(self) -> None:

@@ -24,7 +24,7 @@
 # <https://www.gnu.org/licenses/>.
 ######################### END LICENSE BLOCK #########################
 
-from typing import Tuple, Union
+from typing import Union
 
 from .big5freq import (
     BIG5_CHAR_TO_FREQ_ORDER,
@@ -63,7 +63,7 @@ class CharDistributionAnalysis:
     def __init__(self) -> None:
         # Mapping table to get frequency order from char order (get from
         # GetOrder())
-        self._char_to_freq_order: Tuple[int, ...] = tuple()
+        self._char_to_freq_order: tuple[int, ...] = tuple()
         self._table_size = 0  # Size of above table
         # This is a constant value which varies from language to language,
         # used in calculating confidence.  See

@@ -14,7 +14,8 @@ If no paths are provided, it takes its input from stdin.
 
 import argparse
 import sys
-from typing import Iterable, List, Optional
+from collections.abc import Iterable
+from typing import Optional
 
 from .. import __version__
 from ..universaldetector import UniversalDetector
@@ -54,7 +55,7 @@ def description_of(
     return f"{name}: no result"
 
 
-def main(argv: Optional[List[str]] = None) -> None:
+def main(argv: Optional[list[str]] = None) -> None:
     """
     Handles command line arguments and gets things started.
 
