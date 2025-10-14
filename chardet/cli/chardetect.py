@@ -50,7 +50,7 @@ def description_of(
     if minimal:
         return result["encoding"]
     if result["encoding"]:
-        return f'{name}: {result["encoding"]} with confidence {result["confidence"]}'
+        return f"{name}: {result['encoding']} with confidence {result['confidence']}"
     return f"{name}: no result"
 
 

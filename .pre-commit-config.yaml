@@ -11,7 +11,7 @@ repos:
         args: []
         name: ruff-format
         language: python
-        entry: uv run ruff format --force-exclude --preview
+        entry: uv run --active ruff format --force-exclude --preview
         "types_or": [python, pyi]
         require_serial: true
   - repo: local
@@ -19,14 +19,14 @@ repos:
       - id: ruff
         name: ruff
         language: python
-        entry: uv run ruff check --force-exclude --fix --show-fixes
+        entry: uv run --active ruff check --force-exclude --fix --show-fixes
         "types_or": [python, pyi]
         require_serial: true
   - repo: local
     hooks:
       - id: pyright
         name: pyright
-        entry: uv run pyright
+        entry: uv run --active pyright
         language: node
         types: [python]
         pass_filenames: false
