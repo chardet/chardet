@@ -9,6 +9,7 @@ import textwrap
 from difflib import ndiff
 from os import listdir
 from os.path import dirname, isdir, join, realpath, relpath, splitext
+from pathlib import Path
 from pprint import pformat
 from unicodedata import normalize
 
@@ -67,7 +68,9 @@ def gen_test_params():
                 continue
             full_path = join(path, file_name)
             test_case = full_path, encoding
-            if full_path in EXPECTED_FAILURES:
+            # Normalize path to use forward slashes for comparison with EXPECTED_FAILURES
+            # (which uses forward slashes) to ensure it works on Windows
+            if Path(full_path).as_posix() in EXPECTED_FAILURES:
                 test_case = pytest.param(*test_case, marks=pytest.mark.xfail)
             yield test_case
 

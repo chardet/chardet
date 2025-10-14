@@ -27,8 +27,7 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "pypy3.9"]
-        # Temporarily disable macOS and Windows due to tests failing there
-        os: [ubuntu-latest] #, macOS-latest, windows-latest]
+        os: [ubuntu-latest, macOS-latest, windows-latest]
 
     steps:
       - uses: actions/checkout@v5
