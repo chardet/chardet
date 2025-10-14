@@ -298,11 +298,15 @@ def calc_ngram_freqs(
 def collapse_language_model_freqs(language_model, sequence_count_threshold):
     """Collapse bigram frequencies to SequenceLikelihood categories"""
     num_unigram_types = len(language_model)
-    pos_threshold = num_unigram_types * 8  # Used to be 64 * 8 = 512
-    likely_threshold = num_unigram_types * 16  # Used to be 64 * 16 = 1024
+    pos_threshold = min(num_unigram_types * 8, 512)  # Used to be 64 * 8 = 512
+    likely_threshold = min(num_unigram_types * 16, 1024)  # Used to be 64 * 16 = 1024
+
+    # # Use fixed thresholds that match the original design
+    # pos_threshold = 512  # Top 512 bigrams are "positive"
+    # likely_threshold = 1024  # Top 1024 bigrams are "positive" or "likely"
+
     sorted_lm = sorted(flatten_language_model(language_model), reverse=True)
 
-    # TODO: Re-evaluate these numbers because positive happens really often now
     # Collapse bigram frequencies to SequenceLikelihood categories
     for rank, (count, first_char, second_char) in enumerate(sorted_lm, 1):
         if rank <= pos_threshold:
@@ -346,10 +350,10 @@ def generate_sbcs_model(
     # bigrams where both characters are in charset
     pos_count = 0
     sorted_lm = sorted(flatten_language_model(language_model), reverse=True)
-
+    pos_threshold = len(sorted_lm) * 8  # Used to be 64 * 8 = 512
     # Collapse bigram frequencies to SequenceLikelihood categories
     for rank, (count, first_char, second_char) in enumerate(sorted_lm, 1):
-        if rank <= 512 and (
+        if rank <= pos_threshold and (
             first_char in charset_code_points and second_char in charset_code_points
         ):
             pos_count += count
