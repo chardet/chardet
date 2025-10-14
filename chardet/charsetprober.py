@@ -107,7 +107,7 @@ class CharSetProber:
         return filtered
 
     @staticmethod
-    def remove_xml_tags(buf: Union[bytes, bytearray]) -> bytes:
+    def remove_xml_tags(buf: Union[bytes, bytearray]) -> bytearray:
         """
         Returns a copy of ``buf`` that retains only the sequences of English
         alphabet and high byte characters that are not between <> characters.
@@ -118,9 +118,9 @@ class CharSetProber:
         filtered = bytearray()
         in_tag = False
         prev = 0
-        buf = memoryview(buf).cast("c")
+        buf_view = memoryview(buf).cast("c")
 
-        for curr, buf_char in enumerate(buf):
+        for curr, buf_char in enumerate(buf_view):
             # Check if we're coming out of or entering an XML tag
 
             # https://github.com/python/typeshed/issues/8182
