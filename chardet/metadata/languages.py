@@ -8,7 +8,7 @@ This code is based on the language metadata from the uchardet project.
 from dataclasses import dataclass
 from string import ascii_letters
 
-# TODO: Add Ukrainian (KOI8-U)
+# TODO: Add more languages (like Tajik)
 
 
 @dataclass(frozen=True)
@@ -55,7 +55,8 @@ LANGUAGES = {
         # We only support encodings that use isolated
         # forms, because the current recommendation is
         # that the rendering system handles presentation
-        # forms. This means we purposefully skip IBM864.
+        # forms. This means we purposefully skip CP864.
+        # TODO: Figure out if the above comment should be true, since it is not
         charsets=["ISO-8859-6", "WINDOWS-1256", "CP720", "CP864"],
         alphabet="ءآأؤإئابةتثجحخدذرزسشصضطظعغػؼؽؾؿـفقكلمنهوىيًٌٍَُِّ",
         wiki_start_pages=["الصفحة_الرئيسية"],
@@ -64,7 +65,7 @@ LANGUAGES = {
         name="Belarusian",
         iso_code="be",
         use_ascii=False,
-        charsets=["ISO-8859-5", "WINDOWS-1251", "IBM866", "MacCyrillic"],
+        charsets=["ISO-8859-5", "WINDOWS-1251", "CP866", "MacCyrillic"],
         alphabet="АБВГДЕЁЖЗІЙКЛМНОПРСТУЎФХЦЧШЫЬЭЮЯабвгдеёжзійклмнопрстуўфхцчшыьэюяʼ",
         wiki_start_pages=["Галоўная_старонка"],
     ),
@@ -72,7 +73,7 @@ LANGUAGES = {
         name="Bulgarian",
         iso_code="bg",
         use_ascii=False,
-        charsets=["ISO-8859-5", "WINDOWS-1251", "IBM855"],
+        charsets=["ISO-8859-5", "WINDOWS-1251", "CP855"],
         alphabet="АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЬЮЯабвгдежзийклмнопрстуфхцчшщъьюя",
         wiki_start_pages=["Начална_страница"],
     ),
@@ -215,7 +216,7 @@ LANGUAGES = {
         name="Macedonian",
         iso_code="mk",
         use_ascii=False,
-        charsets=["ISO-8859-5", "WINDOWS-1251", "MacCyrillic", "IBM855"],
+        charsets=["ISO-8859-5", "WINDOWS-1251", "MacCyrillic", "CP855"],
         alphabet="АБВГДЃЕЖЗЅИЈКЛЉМНЊОПРСТЌУФХЦЧЏШабвгдѓежзѕијклљмнњопрстќуфхцчџш",
         wiki_start_pages=["Главна_страница"],
     ),
@@ -262,8 +263,8 @@ LANGUAGES = {
             "WINDOWS-1251",
             "KOI8-R",
             "MacCyrillic",
-            "IBM866",
-            "IBM855",
+            "CP866",
+            "CP855",
         ],
         alphabet="абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ",
         wiki_start_pages=["Заглавная_страница"],
@@ -295,7 +296,7 @@ LANGUAGES = {
         iso_code="sr",
         use_ascii=False,
         alphabet="АБВГДЂЕЖЗИЈКЛЉМНЊОПРСТЋУФХЦЧЏШабвгдђежзијклљмнњопрстћуфхцчџш",
-        charsets=["ISO-8859-5", "WINDOWS-1251", "MacCyrillic", "IBM855"],
+        charsets=["ISO-8859-5", "WINDOWS-1251", "MacCyrillic", "CP855"],
         wiki_start_pages=["Главна_страна"],
     ),
     "Thai": Language(
@@ -314,6 +315,14 @@ LANGUAGES = {
         charsets=["ISO-8859-3", "ISO-8859-9", "WINDOWS-1254"],
         alphabet="abcçdefgğhıijklmnoöprsştuüvyzâîûABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZÂÎÛ",
         wiki_start_pages=["Ana_Sayfa"],
+    ),
+    "Ukrainian": Language(
+        name="Ukrainian",
+        iso_code="uk",
+        use_ascii=False,
+        charsets=["ISO-8859-5", "WINDOWS-1251", "KOI8-U", "MacCyrillic", "CP1125"],
+        alphabet="АБВГҐДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯабвгґдеєжзиіїйклмнопрстуфхцчшщьюяʼ",
+        wiki_start_pages=["Головна_сторінка"],
     ),
     "Vietnamese": Language(
         name="Vietnamese",
