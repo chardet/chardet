@@ -355,16 +355,25 @@ def generate_sbcs_model(
 
     # Calculate positive ratio for charset by counting positive likelihood
     # bigrams where both characters are in charset
+    # IMPORTANT: We only count bigrams that can be encoded in this charset
+    # in both the numerator AND denominator, because at detection time
+    # filter_international_words() removes characters that can't be encoded.
     pos_count = 0
+    charset_bigram_count = 0
     sorted_lm = sorted(flatten_language_model(language_model), reverse=True)
-    pos_threshold = len(sorted_lm) * 8  # Used to be 64 * 8 = 512
-    # Collapse bigram frequencies to SequenceLikelihood categories
+    pos_threshold = len(sorted_lm) * 8
+
+    # Count bigrams encodable in this charset and mark top ones as POSITIVE
     for rank, (count, first_char, second_char) in enumerate(sorted_lm, 1):
-        if rank <= pos_threshold and (
-            first_char in charset_code_points and second_char in charset_code_points
-        ):
-            pos_count += count
-    pos_ratio = (pos_count / num_bigrams) if num_bigrams else 0
+        # Only consider bigrams where both chars can be encoded in this charset
+        if first_char in charset_code_points and second_char in charset_code_points:
+            charset_bigram_count += count
+            if rank <= pos_threshold:
+                pos_count += count
+
+    # Ratio is: "Of bigrams this charset can encode, what % are POSITIVE?"
+    # Not: "Of all UTF-8 bigrams (including un-encodable), what % are POSITIVE?"
+    pos_ratio = (pos_count / charset_bigram_count) if charset_bigram_count else 0
 
     curr_model = SingleByteCharSetModel(
         charset_name=charset_name,
