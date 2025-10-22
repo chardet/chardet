@@ -277,16 +277,15 @@ def calc_ngram_freqs(
             prev_char = unicode_char
 
         line_count += 1
-
         # Check for stability once we have minimum data and at regular intervals
         if size_in_bytes >= min_data_size and line_count % check_interval == 0:
             # Calculate current bigram relative frequencies for top bigrams
             current_bigram_freqs = {}
             if num_bigrams > 0:
-                # Only check top 100 most frequent bigrams for efficiency
+                # Only check top 512 most frequent bigrams for efficiency
                 top_bigrams = sorted(
                     flatten_language_model(language_model), reverse=True
-                )[:100]
+                )[:512]
                 for count, first_char, second_char in top_bigrams:
                     bigram_key = (first_char, second_char)
                     current_bigram_freqs[bigram_key] = count / num_bigrams
@@ -351,10 +350,6 @@ def collapse_language_model_freqs(language_model, sequence_count_threshold):
     num_unigram_types = len(language_model)
     pos_threshold = min(num_unigram_types * 8, 512)  # Used to be 64 * 8 = 512
     likely_threshold = min(num_unigram_types * 16, 1024)  # Used to be 64 * 16 = 1024
-
-    # # Use fixed thresholds that match the original design
-    # pos_threshold = 512  # Top 512 bigrams are "positive"
-    # likely_threshold = 1024  # Top 1024 bigrams are "positive" or "likely"
 
     sorted_lm = sorted(flatten_language_model(language_model), reverse=True)
 
