@@ -99,13 +99,13 @@ class Latin1Prober(CharSetProber):
     def __init__(self) -> None:
         super().__init__()
         self._last_char_class = CTR  # or SYM
-        self._seq_counters: list[SequenceLikelihood] = []
+        self._seq_counters: list[int] = []
         self._total_seqs = 0
         self.reset()
 
     def reset(self):
         self._last_char_class = CTR  # or SYM
-        self._seq_counters = [0] * SequenceLikelihood.get_num_categories()
+        self._seq_counters = [0] * len(SequenceLikelihood)
         self._total_seqs = 0
         CharSetProber.reset(self)
 

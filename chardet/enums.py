@@ -4,10 +4,10 @@ All of the Enums that are used throughout the chardet package.
 :author: Dan Blanchard (dan.blanchard@gmail.com)
 """
 
-from enum import Enum, Flag
+from enum import Flag, IntEnum
 
 
-class InputState:
+class InputState(IntEnum):
     """
     This enum represents the different states a universal detector can be in.
     """
@@ -34,7 +34,7 @@ class LanguageFilter(Flag):
     CJK = CHINESE | JAPANESE | KOREAN
 
 
-class ProbingState(Enum):
+class ProbingState(IntEnum):
     """
     This enum represents the different states a prober can be in.
     """
@@ -44,7 +44,7 @@ class ProbingState(Enum):
     NOT_ME = 2
 
 
-class MachineState:
+class MachineState(IntEnum):
     """
     This enum represents the different states a state machine can be in.
     """
@@ -54,7 +54,7 @@ class MachineState:
     ITS_ME = 2
 
 
-class SequenceLikelihood:
+class SequenceLikelihood(IntEnum):
     """
     This enum represents the likelihood of a character following the previous one.
     """
@@ -64,13 +64,8 @@ class SequenceLikelihood:
     LIKELY = 2
     POSITIVE = 3
 
-    @classmethod
-    def get_num_categories(cls) -> int:
-        """:returns: The number of likelihood categories in the enum."""
-        return 4
 
-
-class CharacterCategory:
+class CharacterCategory(IntEnum):
     """
     This enum represents the different categories language models for
     ``SingleByteCharsetProber`` put characters into.

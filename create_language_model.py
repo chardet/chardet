@@ -37,6 +37,7 @@ from functools import partial
 from multiprocessing import Pool
 from operator import itemgetter
 from string import ascii_letters
+from typing import Iterable
 
 try:
     from mediawiki import MediaWiki
@@ -50,8 +51,8 @@ from chardet.enums import CharacterCategory, SequenceLikelihood
 from chardet.metadata.languages import LANGUAGES
 from chardet.sbcharsetprober import SingleByteCharSetModel
 
-# Turn ascii_letters into a set to make other ops easier
-ascii_letters = set(ascii_letters)
+# Convert ascii_letters into a set to make other ops easier
+ascii_letters_set = set(ascii_letters)
 
 
 def normalize_name(charset_name):
@@ -64,12 +65,16 @@ def normalize_name(charset_name):
 
 
 def unicode_to_category(
-    *, unicode_char, char_ranks, keep_ascii_letters=False, alphabet=None
-):
+    *,
+    unicode_char: str,
+    char_ranks: dict,
+    keep_ascii_letters: bool = False,
+    alphabet: set[str] | None = None,
+) -> CharacterCategory:
     """Convert a Unicode character to categories used by SingleByteCharSetProber"""
     if alphabet is None:
         alphabet = set()
-    valid_letters = (alphabet | ascii_letters) if keep_ascii_letters else alphabet
+    valid_letters = (alphabet | ascii_letters_set) if keep_ascii_letters else alphabet
     unicode_cat = unicodedata.category(unicode_char)
     if unicode_cat.startswith("N"):
         ret_val = CharacterCategory.DIGIT
@@ -135,14 +140,14 @@ def gen_input_lines(input_paths, input_encoding):
 
 def gen_wiki_lines(
     *,
-    titles,
-    language,
-    max_depth,
-    max_pages=None,
-    depth=0,
-    visited_pages=None,
-    skipped_pages=None,
-    wikipedia=None,
+    titles: Iterable[str],
+    language: str,
+    max_depth: int,
+    max_pages: int | None = None,
+    depth: int = 0,
+    visited_pages: set[str] | None = None,
+    skipped_pages: set[str] | None = None,
+    wikipedia: "MediaWiki | None" = None,  # type: ignore
 ):
     """Generate lines from Wikipedia articles, starting with titles.
 
@@ -154,11 +159,13 @@ def gen_wiki_lines(
     if skipped_pages is None:
         skipped_pages = set()
 
-    if not titles or depth > max_depth or len(visited_pages) > max_pages:
+    if (
+        not titles
+        or depth > max_depth
+        or (max_pages is not None and len(visited_pages) > max_pages)
+    ):
         print(
-            "Visited {} pages: {} ({} skipped)".format(
-                language, len(visited_pages), len(skipped_pages)
-            )
+            f"Visited {language} pages: {len(visited_pages)} ({len(skipped_pages)} skipped)"
         )
         return
 
@@ -168,15 +175,15 @@ def gen_wiki_lines(
         if title in visited_pages or title in skipped_pages:
             continue
         print(
-            "Visited {} pages: {} ({} skipped)".format(
-                language, len(visited_pages), len(skipped_pages)
-            ),
+            f"Visited {language} pages: {len(visited_pages)} ({len(skipped_pages)} skipped)",
             end="\r",
         )
         sys.stdout.flush()
-        if len(visited_pages) == max_pages:
+        if max_pages is not None and len(visited_pages) == max_pages:
             break
         try:
+            if wikipedia is None:
+                raise ValueError("Wikipedia instance is required")
             page = wikipedia.page(title, auto_suggest=False)
             # Remove Wikipedia markup (this is inside of try block because it
             # does an implicit request to Wikipedia to get the content)
@@ -231,6 +238,12 @@ def calc_ngram_freqs(
     language_model = defaultdict(Counter)
     num_bigrams = 0
     size_in_bytes = 0
+    if os.path.exists(training_path):
+        print(
+            f"\nTraining data file {training_path} already exists. Keeping existing file."
+        )
+        save_training_data = False
+    training_output_file = None
     if save_training_data:
         training_output_file = open(training_path, "w", encoding="utf-8")
     # Calculate unfiltered frequencies
@@ -245,7 +258,7 @@ def calc_ngram_freqs(
         size_in_bytes += len(line.encode("utf-8"))
         for unicode_char in line:
             # Skip ASCII letters if we're supposed to
-            if not keep_ascii_letters and unicode_char in ascii_letters:
+            if not keep_ascii_letters and unicode_char in ascii_letters_set:
                 # Reset prev_char to avoid creating false bigrams
                 prev_char = None
                 continue
@@ -254,20 +267,14 @@ def calc_ngram_freqs(
                 language_model[prev_char][unicode_char] += 1
                 num_bigrams += 1
             prev_char = unicode_char
-    if save_training_data:
+    if training_output_file is not None:
         training_output_file.close()
 
     num_tokens = sum(char_freqs.values())
     print(
-        (
-            "\nUnique character types in training data: {:,}\n"
-            "Number of character tokens in training data: {:,}\n"
-            "Size of training data in bytes: {:,}"
-        ).format(
-            len(char_freqs),
-            num_tokens,
-            size_in_bytes,
-        )
+        f"\nUnique character types in training data: {len(char_freqs):,}\n"
+        f"Number of character tokens in training data: {num_tokens:,}\n"
+        f"Size of training data in bytes: {size_in_bytes:,}"
     )
     min_alpha_freq = min(
         freq for unicode_char, freq in char_freqs.items() if unicode_char in alphabet
@@ -364,7 +371,7 @@ def generate_sbcs_model(
         language=language,
         char_to_order_map=char_to_order,
         # language_model is filled in later
-        language_model=None,
+        language_model=None,  # type: ignore
         typical_positive_ratio=pos_ratio,
         keep_ascii_letters=keep_ascii_letters,
         alphabet=alphabet,
@@ -403,9 +410,7 @@ def print_language_model(var_name, language_model, output_file, char_ranks):
         )
         for second_char, likelihood in sorted(sub_dict.items()):
             print(
-                "        {!r}: {!r},  # {!r}".format(
-                    char_ranks[second_char], likelihood, second_char
-                ),
+                f"        {char_ranks[second_char]!r}: {likelihood!r},  # {second_char!r}",
                 file=output_file,
             )
         print("    },", file=output_file)
@@ -414,7 +419,7 @@ def print_language_model(var_name, language_model, output_file, char_ranks):
 
 def train_model_for_lang(
     language,
-    depth=None,
+    depth: int,
     input_encoding=None,
     input_paths=None,
     sequence_count_threshold=None,
@@ -427,9 +432,9 @@ def train_model_for_lang(
     lang_metadata = LANGUAGES.get(language)
     if not lang_metadata:
         raise ValueError(
-            "Unknown language: {}. If you are adding a model for a"
+            f"Unknown language: {language}. If you are adding a model for a"
             " new language, you must first update metadata/"
-            "languages.py".format(language)
+            "languages.py"
         )
 
     if wiki_folder and not input_paths:
@@ -441,19 +446,11 @@ def train_model_for_lang(
         input_paths = [wiki_path]
 
     print(
-        "\n{}\n----------------------------------------------------------------\n"
-        "Keep ASCII Letters: {}\n"
-        "Alphabet: {}\n"
-        "Unlikely Sequence Count Threshold: {}\n".format(
-            language,
-            lang_metadata.use_ascii,
-            lang_metadata.alphabet,
-            sequence_count_threshold,
-        )
-        +
-        # Do this before other branch to increase chance that this header gets
-        # spit out together when using multiprocessing
-        (
+        f"\n{language}\n----------------------------------------------------------------\n"
+        f"Keep ASCII Letters: {lang_metadata.use_ascii}\n"
+        f"Alphabet: {lang_metadata.alphabet}\n"
+        f"Unlikely Sequence Count Threshold: {sequence_count_threshold}\n"  # spit out together when using multiprocessing  # Do this before other branch to increase chance that this header gets
+        + (
             f"Input Encoding: {input_encoding}"
             if input_paths
             else f"Wikipedia Depth: {depth}"
@@ -480,7 +477,9 @@ def train_model_for_lang(
                 "imported, so you must either specify input files "
                 "to use for training, or install it with pip."
             )
-        wikipedia = MediaWiki(lang=lang_metadata.iso_code)
+        # At this point we know HAVE_WIKIPEDIA is True, so MediaWiki is available
+        assert HAVE_WIKIPEDIA
+        wikipedia = MediaWiki(lang=lang_metadata.iso_code)  # type: ignore
         input_gen = gen_wiki_lines(
             titles=lang_metadata.wiki_start_pages,
             language=lang_metadata.iso_code,
@@ -491,9 +490,7 @@ def train_model_for_lang(
         data_size_str = "Wikipedia"
 
     print(
-        "\nCreating character frequency tables for {} from {} training data".format(
-            language, data_size_str
-        )
+        f"\nCreating character frequency tables for {language} from {data_size_str} training data"
     )
     sys.stdout.flush()
     char_ranks, language_model, num_bigrams = calc_ngram_freqs(
@@ -639,7 +636,7 @@ def main():
             "If this is set, --input-files and --depth are ignored."
         ),
         type=str,
-        default=".",
+        default="",
     )
     parser.add_argument("--version", action="version", version=__version__)
     args = parser.parse_args()
@@ -687,6 +684,7 @@ def main():
                 input_paths=args.input_paths,
                 sequence_count_threshold=args.sequence_count_threshold,
                 max_pages=args.max_pages,
+                wiki_folder=args.wiki_folder,
             )
 
 

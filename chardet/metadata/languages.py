@@ -5,12 +5,13 @@ SingleByteCharSetProbers.  Could be used for other things in the future.
 This code is based on the language metadata from the uchardet project.
 """
 
+from dataclasses import dataclass
 from string import ascii_letters
-from typing import Optional
 
 # TODO: Add Ukrainian (KOI8-U)
 
 
+@dataclass(frozen=True)
 class Language:
     """Metadata about a language useful for training models
 
@@ -32,29 +33,12 @@ class Language:
     :type wiki_start_pages: list of str
     """
 
-    def __init__(
-        self,
-        name: Optional[str] = None,
-        iso_code: Optional[str] = None,
-        use_ascii: bool = True,
-        charsets: Optional[list[str]] = None,
-        alphabet: Optional[str] = None,
-        wiki_start_pages: Optional[list[str]] = None,
-    ) -> None:
-        super().__init__()
-        self.name = name
-        self.iso_code = iso_code
-        self.use_ascii = use_ascii
-        self.charsets = charsets
-        if self.use_ascii:
-            if alphabet:
-                alphabet += ascii_letters
-            else:
-                alphabet = ascii_letters
-        elif not alphabet:
-            raise ValueError("Must supply alphabet if use_ascii is False")
-        self.alphabet = "".join(sorted(set(alphabet))) if alphabet else None
-        self.wiki_start_pages = wiki_start_pages
+    name: str
+    iso_code: str
+    use_ascii: bool
+    charsets: list[str]
+    alphabet: str
+    wiki_start_pages: list[str]
 
     def __repr__(self) -> str:
         param_str = ", ".join(
@@ -97,7 +81,7 @@ LANGUAGES = {
         iso_code="cz",
         use_ascii=True,
         charsets=["ISO-8859-2", "WINDOWS-1250"],
-        alphabet="áčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ",
+        alphabet="".join(sorted(set(ascii_letters + "áčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ"))),
         wiki_start_pages=["Hlavní_strana"],
     ),
     "Danish": Language(
@@ -105,7 +89,7 @@ LANGUAGES = {
         iso_code="da",
         use_ascii=True,
         charsets=["ISO-8859-1", "ISO-8859-15", "WINDOWS-1252", "MacRoman"],
-        alphabet="æøåÆØÅ",
+        alphabet="".join(sorted(set(ascii_letters + "æøåÆØÅ"))),
         wiki_start_pages=["Forside"],
     ),
     "German": Language(
@@ -113,7 +97,7 @@ LANGUAGES = {
         iso_code="de",
         use_ascii=True,
         charsets=["ISO-8859-1", "ISO-8859-15", "WINDOWS-1252", "MacRoman"],
-        alphabet="äöüßẞÄÖÜ",
+        alphabet="".join(sorted(set(ascii_letters + "äöüßẞÄÖÜ"))),
         wiki_start_pages=["Wikipedia:Hauptseite"],
     ),
     "Greek": Language(
@@ -127,6 +111,7 @@ LANGUAGES = {
     "English": Language(
         name="English",
         iso_code="en",
+        alphabet=ascii_letters,
         use_ascii=True,
         charsets=["ISO-8859-1", "WINDOWS-1252", "MacRoman"],
         wiki_start_pages=["Main_Page"],
@@ -145,7 +130,7 @@ LANGUAGES = {
         iso_code="es",
         use_ascii=True,
         charsets=["ISO-8859-1", "ISO-8859-15", "WINDOWS-1252", "MacRoman"],
-        alphabet="ñáéíóúüÑÁÉÍÓÚÜ",
+        alphabet="".join(sorted(set(ascii_letters + "ñáéíóúüÑÁÉÍÓÚÜ"))),
         wiki_start_pages=["Wikipedia:Portada"],
     ),
     "Estonian": Language(
@@ -163,7 +148,7 @@ LANGUAGES = {
         iso_code="fi",
         use_ascii=True,
         charsets=["ISO-8859-1", "ISO-8859-15", "WINDOWS-1252", "MacRoman"],
-        alphabet="ÅÄÖŠŽåäöšž",
+        alphabet="".join(sorted(set(ascii_letters + "ÅÄÖŠŽåäöšž"))),
         wiki_start_pages=["Wikipedia:Etusivu"],
     ),
     "French": Language(
@@ -171,7 +156,7 @@ LANGUAGES = {
         iso_code="fr",
         use_ascii=True,
         charsets=["ISO-8859-1", "ISO-8859-15", "WINDOWS-1252", "MacRoman"],
-        alphabet="œàâçèéîïùûêŒÀÂÇÈÉÎÏÙÛÊ",
+        alphabet="".join(sorted(set(ascii_letters + "œàâçèéîïùûêŒÀÂÇÈÉÎÏÙÛÊ"))),
         wiki_start_pages=["Wikipédia:Accueil_principal", "Bœuf (animal)"],
     ),
     "Hebrew": Language(
@@ -205,7 +190,7 @@ LANGUAGES = {
         iso_code="it",
         use_ascii=True,
         charsets=["ISO-8859-1", "ISO-8859-15", "WINDOWS-1252", "MacRoman"],
-        alphabet="ÀÈÉÌÒÓÙàèéìòóù",
+        alphabet="".join(sorted(set(ascii_letters + "ÀÈÉÌÒÓÙàèéìòóù"))),
         wiki_start_pages=["Pagina_principale"],
     ),
     "Lithuanian": Language(
@@ -237,6 +222,8 @@ LANGUAGES = {
     "Dutch": Language(
         name="Dutch",
         iso_code="nl",
+        # àâçèéîïñôùûêŒÀÂÇÈÉÊÎÏÔÑÙÛ are all used for loanwords
+        alphabet=ascii_letters,
         use_ascii=True,
         charsets=["ISO-8859-1", "WINDOWS-1252", "MacRoman"],
         wiki_start_pages=["Hoofdpagina"],
@@ -255,7 +242,7 @@ LANGUAGES = {
         iso_code="pt",
         use_ascii=True,
         charsets=["ISO-8859-1", "ISO-8859-15", "WINDOWS-1252", "MacRoman"],
-        alphabet="ÁÂÃÀÇÉÊÍÓÔÕÚáâãàçéêíóôõú",
+        alphabet="".join(sorted(set(ascii_letters + "ÁÂÃÀÇÉÊÍÓÔÕÚáâãàçéêíóôõú"))),
         wiki_start_pages=["Wikipédia:Página_principal"],
     ),
     "Romanian": Language(
@@ -263,7 +250,7 @@ LANGUAGES = {
         iso_code="ro",
         use_ascii=True,
         charsets=["ISO-8859-2", "WINDOWS-1250"],
-        alphabet="ăâîșțĂÂÎȘȚ",
+        alphabet="".join(sorted(set(ascii_letters + "ăâîșțĂÂÎȘȚ"))),
         wiki_start_pages=["Pagina_principală"],
     ),
     "Russian": Language(
@@ -286,7 +273,9 @@ LANGUAGES = {
         iso_code="sk",
         use_ascii=True,
         charsets=["ISO-8859-2", "WINDOWS-1250"],
-        alphabet="áäčďéíĺľňóôŕšťúýžÁÄČĎÉÍĹĽŇÓÔŔŠŤÚÝŽ",
+        alphabet="".join(
+            sorted(set(ascii_letters + "áäčďéíĺľňóôŕšťúýžÁÄČĎÉÍĹĽŇÓÔŔŠŤÚÝŽ"))
+        ),
         wiki_start_pages=["Hlavná_stránka"],
     ),
     "Slovene": Language(
@@ -304,6 +293,7 @@ LANGUAGES = {
     "Serbian": Language(
         name="Serbian",
         iso_code="sr",
+        use_ascii=False,
         alphabet="АБВГДЂЕЖЗИЈКЛЉМНЊОПРСТЋУФХЦЧЏШабвгдђежзијклљмнњопрстћуфхцчџш",
         charsets=["ISO-8859-5", "WINDOWS-1251", "MacCyrillic", "IBM855"],
         wiki_start_pages=["Главна_страна"],

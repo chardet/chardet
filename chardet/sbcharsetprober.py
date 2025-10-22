@@ -72,7 +72,7 @@ class SingleByteCharSetProber(CharSetProber):
         super().reset()
         # char order of last character
         self._last_order = 255
-        self._seq_counters = [0] * SequenceLikelihood.get_num_categories()
+        self._seq_counters = [0] * len(SequenceLikelihood)
         self._total_seqs = 0
         self._total_char = 0
         self._control_char = 0
