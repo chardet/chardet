@@ -246,6 +246,14 @@ def calc_ngram_freqs(
     training_output_file = None
     if save_training_data:
         training_output_file = open(training_path, "w", encoding="utf-8")
+
+    # For stability checking
+    min_data_size = 10 * 1024 * 1024  # 10MB
+    prev_bigram_freqs = {}
+    check_interval = 1000  # Check every 1000 lines
+    line_count = 0
+    stability_threshold = 0.001  # Consider stable if max change < 0.1%
+
     # Calculate unfiltered frequencies
     for line in input_generator:
         prev_char = None
@@ -267,6 +275,42 @@ def calc_ngram_freqs(
                 language_model[prev_char][unicode_char] += 1
                 num_bigrams += 1
             prev_char = unicode_char
+
+        line_count += 1
+
+        # Check for stability once we have minimum data and at regular intervals
+        if size_in_bytes >= min_data_size and line_count % check_interval == 0:
+            # Calculate current bigram relative frequencies for top bigrams
+            current_bigram_freqs = {}
+            if num_bigrams > 0:
+                # Only check top 100 most frequent bigrams for efficiency
+                top_bigrams = sorted(
+                    flatten_language_model(language_model), reverse=True
+                )[:100]
+                for count, first_char, second_char in top_bigrams:
+                    bigram_key = (first_char, second_char)
+                    current_bigram_freqs[bigram_key] = count / num_bigrams
+
+            # If we have previous frequencies, check stability
+            if prev_bigram_freqs:
+                max_change = 0.0
+                for bigram_key, curr_freq in current_bigram_freqs.items():
+                    if bigram_key in prev_bigram_freqs:
+                        prev_freq = prev_bigram_freqs[bigram_key]
+                        if prev_freq > 0:
+                            change = abs(curr_freq - prev_freq) / prev_freq
+                            max_change = max(max_change, change)
+
+                # If frequencies have stabilized, stop processing
+                if max_change < stability_threshold:
+                    print(
+                        f"\nBigram frequencies stabilized (max change: {max_change:.4%}) "
+                        f"after processing {size_in_bytes:,} bytes. Stopping early."
+                    )
+                    break
+
+            prev_bigram_freqs = current_bigram_freqs
+
     if training_output_file is not None:
         training_output_file.close()
 
