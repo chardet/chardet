@@ -34,6 +34,19 @@ wheels = [
 ]
 
 [[package]]
+name = "beautifulsoup4"
+version = "4.14.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "soupsieve" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/77/e9/df2358efd7659577435e2177bfa69cba6c33216681af51a707193dec162a/beautifulsoup4-4.14.2.tar.gz", hash = "sha256:2a98ab9f944a11acee9cc848508ec28d9228abfd522ef0fad6a02a72e0ded69e", size = 625822, upload-time = "2025-09-29T10:05:42.613Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/94/fe/3aed5d0be4d404d12d36ab97e2f1791424d9ca39c2f754a6285d59a3b01d/beautifulsoup4-4.14.2-py3-none-any.whl", hash = "sha256:5ef6fa3a8cbece8488d66985560f97ed091e22bbc4e9c2338508a9d5de6d4515", size = 106392, upload-time = "2025-09-29T10:05:43.771Z" },
+]
+
+[[package]]
 name = "certifi"
 version = "2025.10.5"
 source = { registry = "https://pypi.org/simple" }
@@ -59,6 +72,7 @@ source = { editable = "." }
 dev = [
     { name = "hypothesis" },
     { name = "pre-commit" },
+    { name = "pymediawiki" },
     { name = "pytest" },
     { name = "ruff" },
     { name = "sphinx-rtd-theme" },
@@ -70,6 +84,7 @@ dev = [
 dev = [
     { name = "hypothesis", specifier = ">=6.0.0,<7" },
     { name = "pre-commit", specifier = "~=3.5" },
+    { name = "pymediawiki", specifier = ">=0.7,<1" },
     { name = "pytest", specifier = ">=8.3.2,<9" },
     { name = "ruff", specifier = ">=0.13,<1.0" },
     { name = "sphinx-rtd-theme", specifier = ">=1.0.0,<2" },
@@ -460,6 +475,19 @@ wheels = [
 ]
 
 [[package]]
+name = "pymediawiki"
+version = "0.7.5"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "beautifulsoup4" },
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/fc/4e/eec5f39d2ed22d10c6580be5ed54b99e867a20057815d62a0f3809a6ca4a/pymediawiki-0.7.5.tar.gz", hash = "sha256:6d17c1bf9750110c2dc2203f82cdda209f3e84ed32443356942f3eb5c8a0ec25", size = 1673832, upload-time = "2024-12-20T14:36:07.272Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/12/8f/9d3637ee30759a19908b81b6123161d16f637daab7dc4e3a8f791ea56232/pymediawiki-0.7.5-py3-none-any.whl", hash = "sha256:78642bd95c470246ed48598958a1eb30c5c51245f5767f4cad1bf4dcfde75511", size = 27385, upload-time = "2024-12-20T14:36:04.325Z" },
+]
+
+[[package]]
 name = "pytest"
 version = "8.4.2"
 source = { registry = "https://pypi.org/simple" }
@@ -607,6 +635,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/e8/c4/ba2f8066cceb6f23394729afe52f3bf7adec04bf9ed2c820b39e19299111/sortedcontainers-2.4.0.tar.gz", hash = "sha256:25caa5a06cc30b6b83d11423433f65d1f9d76c4c6a0c90e3379eaa43b9bfdb88", size = 30594, upload-time = "2021-05-16T22:03:42.897Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/32/46/9cb0e58b2deb7f82b84065f37f3bffeb12413f947f9388e4cac22c4621ce/sortedcontainers-2.4.0-py2.py3-none-any.whl", hash = "sha256:a163dcaede0f1c021485e957a39245190e74249897e2ae4b2aa38595db237ee0", size = 29575, upload-time = "2021-05-16T22:03:41.177Z" },
+]
+
+[[package]]
+name = "soupsieve"
+version = "2.8"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/6d/e6/21ccce3262dd4889aa3332e5a119a3491a95e8f60939870a3a035aabac0d/soupsieve-2.8.tar.gz", hash = "sha256:e2dd4a40a628cb5f28f6d4b0db8800b8f581b65bb380b97de22ba5ca8d72572f", size = 103472, upload-time = "2025-08-27T15:39:51.78Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/14/a0/bb38d3b76b8cae341dad93a2dd83ab7462e6dbcdd84d43f54ee60a8dc167/soupsieve-2.8-py3-none-any.whl", hash = "sha256:0cc76456a30e20f5d7f2e14a98a4ae2ee4e5abdc7c5ea0aafe795f344bc7984c", size = 36679, upload-time = "2025-08-27T15:39:50.179Z" },
 ]
 
 [[package]]
