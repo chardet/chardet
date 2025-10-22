@@ -316,14 +316,14 @@ LANGUAGES = {
         alphabet="abcçdefgğhıijklmnoöprsştuüvyzâîûABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZÂÎÛ",
         wiki_start_pages=["Ana_Sayfa"],
     ),
-    "Ukrainian": Language(
-        name="Ukrainian",
-        iso_code="uk",
-        use_ascii=False,
-        charsets=["ISO-8859-5", "WINDOWS-1251", "KOI8-U", "MacCyrillic", "CP1125"],
-        alphabet="АБВГҐДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯабвгґдеєжзиіїйклмнопрстуфхцчшщьюяʼ",
-        wiki_start_pages=["Головна_сторінка"],
-    ),
+    # "Ukrainian": Language(
+    #     name="Ukrainian",
+    #     iso_code="uk",
+    #     use_ascii=False,
+    #     charsets=["ISO-8859-5", "WINDOWS-1251", "KOI8-U", "MacCyrillic", "CP1125"],
+    #     alphabet="АБВГҐДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯабвгґдеєжзиіїйклмнопрстуфхцчшщьюяʼ",
+    #     wiki_start_pages=["Головна_сторінка"],
+    # ),
     "Vietnamese": Language(
         name="Vietnamese",
         iso_code="vi",

@@ -4059,9 +4059,9 @@ ISO_8859_2_CROATIAN_MODEL = SingleByteCharSetModel(
     language="Croatian",
     char_to_order_map=ISO_8859_2_CROATIAN_CHAR_TO_ORDER,
     language_model=CROATIAN_LANG_MODEL,
-    typical_positive_ratio=0.9466888374783111,
+    typical_positive_ratio=1.0,
     keep_ascii_letters=False,
-    alphabet="ABCDEFGHIJKLMNOPRSTUVZabcdefghijklmnoprstuvzĆćČčĐđŠšŽž",
+    alphabet="abcčćdđefghijklmnoprsštuvzžABCČĆDĐEFGHIJKLMNOPRSŠTUVZŽ",
 )
 
 WINDOWS_1250_CROATIAN_CHAR_TO_ORDER = {
@@ -4328,7 +4328,7 @@ WINDOWS_1250_CROATIAN_MODEL = SingleByteCharSetModel(
     language="Croatian",
     char_to_order_map=WINDOWS_1250_CROATIAN_CHAR_TO_ORDER,
     language_model=CROATIAN_LANG_MODEL,
-    typical_positive_ratio=0.9839049546944284,
+    typical_positive_ratio=1.0,
     keep_ascii_letters=False,
-    alphabet="ABCDEFGHIJKLMNOPRSTUVZabcdefghijklmnoprstuvzĆćČčĐđŠšŽž",
+    alphabet="abcčćdđefghijklmnoprsštuvzžABCČĆDĐEFGHIJKLMNOPRSŠTUVZŽ",
 )

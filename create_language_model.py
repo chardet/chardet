@@ -441,7 +441,7 @@ def print_char_to_order(var_name, order_map, charset_name, output_file):
         except UnicodeError:
             unicode_char = None
         print(
-            f"     {char!r}: {order!r},  # {unicode_char!r}",
+            f"     {char!r}: {int(order)},  # {unicode_char!r}",
             file=output_file,
         )
     print("}\n", file=output_file)
@@ -463,7 +463,7 @@ def print_language_model(var_name, language_model, output_file, char_ranks):
         )
         for second_char, likelihood in sorted(sub_dict.items()):
             print(
-                f"        {char_ranks[second_char]!r}: {likelihood!r},  # {second_char!r}",
+                f"        {char_ranks[second_char]!r}: {int(likelihood)},  # {second_char!r}",
                 file=output_file,
             )
         print("    },", file=output_file)
