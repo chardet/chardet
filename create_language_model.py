@@ -37,7 +37,7 @@ from functools import partial
 from multiprocessing import Pool
 from operator import itemgetter
 from string import ascii_letters
-from typing import Iterable
+from typing import Iterable, Optional
 
 try:
     from mediawiki import MediaWiki
@@ -55,7 +55,11 @@ from chardet.sbcharsetprober import SingleByteCharSetModel
 ascii_letters_set = set(ascii_letters)
 
 
-def normalize_name(charset_name):
+POSITIVE_RANK_THRESOLD = 512
+LIKELY_RANK_THRESOLD = 1024
+
+
+def normalize_name(charset_name: str):
     """Convert name to proper Python constant format"""
     # Title case to start
     charset_name = charset_name.upper()
@@ -67,14 +71,14 @@ def normalize_name(charset_name):
 def unicode_to_category(
     *,
     unicode_char: str,
-    char_ranks: dict,
+    char_ranks: dict[str, int],
     keep_ascii_letters: bool = False,
-    alphabet: set[str] | None = None,
-) -> CharacterCategory:
+    alphabet_set: set[str],
+) -> int:
     """Convert a Unicode character to categories used by SingleByteCharSetProber"""
-    if alphabet is None:
-        alphabet = set()
-    valid_letters = (alphabet | ascii_letters_set) if keep_ascii_letters else alphabet
+    valid_letters = (
+        (alphabet_set | ascii_letters_set) if keep_ascii_letters else alphabet_set
+    )
     unicode_cat = unicodedata.category(unicode_char)
     if unicode_cat.startswith("N"):
         ret_val = CharacterCategory.DIGIT
@@ -95,8 +99,12 @@ def unicode_to_category(
 
 
 def get_charset_mappings(
-    *, charset_name, char_ranks, keep_ascii_letters=False, alphabet=None
-):
+    *,
+    charset_name: str,
+    char_ranks: dict[str, int],
+    alphabet_set: set[str],
+    keep_ascii_letters=False,
+) -> tuple[dict[int, int], dict[str, bytes]]:
     """Returns `charset_categories` & `charset_code_points` mappings for charset
 
     `charset_categories` maps from bytes in charset/encoding to categories
@@ -115,14 +123,14 @@ def get_charset_mappings(
     # 0 - 256 = all possible values for a single byte
     for byte_hex in range(0x0, 0x100):
         # Convert to bytes in Python 2 and 3
-        char = bytes(bytearray((byte_hex,)))
+        char = bytes((byte_hex,))
         try:
             unicode_char = char.decode(charset_name)
             char_cat = unicode_to_category(
                 unicode_char=unicode_char,
                 char_ranks=char_ranks,
                 keep_ascii_letters=keep_ascii_letters,
-                alphabet=alphabet,
+                alphabet_set=alphabet_set,
             )
             charset_code_points[unicode_char] = char
         except UnicodeDecodeError:
@@ -131,7 +139,7 @@ def get_charset_mappings(
     return char_to_order, charset_code_points
 
 
-def gen_input_lines(input_paths, input_encoding):
+def gen_input_lines(input_paths: list[str], input_encoding: str):
     """Yield decoded lines from files in input_paths"""
     for input_path in input_paths:
         with open(input_path, encoding=input_encoding) as input_file:
@@ -222,7 +230,11 @@ def gen_wiki_lines(
 
 
 def calc_ngram_freqs(
-    input_generator, alphabet, keep_ascii_letters, save_training_data, training_path
+    *,
+    input_generator,
+    alphabet_set: set[str],
+    save_training_data: bool,
+    training_path: str,
 ):
     """Create a language model with the likelihoods of all bigrams in input.
 
@@ -236,7 +248,6 @@ def calc_ngram_freqs(
     char_freqs = Counter()
     char_ranks = {}
     language_model = defaultdict(Counter)
-    num_bigrams = 0
     size_in_bytes = 0
     if os.path.exists(training_path):
         print(
@@ -246,13 +257,6 @@ def calc_ngram_freqs(
     training_output_file = None
     if save_training_data:
         training_output_file = open(training_path, "w", encoding="utf-8")
-
-    # For stability checking
-    min_data_size = 10 * 1024 * 1024  # 10MB
-    prev_bigram_freqs = {}
-    check_interval = 1000  # Check every 1000 lines
-    line_count = 0
-    stability_threshold = 0.001  # Consider stable if max change < 0.1%
 
     # Calculate unfiltered frequencies
     for line in input_generator:
@@ -265,105 +269,63 @@ def calc_ngram_freqs(
             print(line, file=training_output_file)
         size_in_bytes += len(line.encode("utf-8"))
         for unicode_char in line:
-            # Skip ASCII letters if we're supposed to
-            if not keep_ascii_letters and unicode_char in ascii_letters_set:
-                # Reset prev_char to avoid creating false bigrams
+            # Only consider alphabet characters for this language
+            if unicode_char not in alphabet_set:
                 prev_char = None
                 continue
             char_freqs[unicode_char] += 1
             if prev_char is not None:
                 language_model[prev_char][unicode_char] += 1
-                num_bigrams += 1
             prev_char = unicode_char
-
-        line_count += 1
-        # Check for stability once we have minimum data and at regular intervals
-        if size_in_bytes >= min_data_size and line_count % check_interval == 0:
-            # Calculate current bigram relative frequencies for top bigrams
-            current_bigram_freqs = {}
-            if num_bigrams > 0:
-                # Only check top 512 most frequent bigrams for efficiency
-                top_bigrams = sorted(
-                    flatten_language_model(language_model), reverse=True
-                )[:512]
-                for count, first_char, second_char in top_bigrams:
-                    bigram_key = (first_char, second_char)
-                    current_bigram_freqs[bigram_key] = count / num_bigrams
-
-            # If we have previous frequencies, check stability
-            if prev_bigram_freqs:
-                max_change = 0.0
-                for bigram_key, curr_freq in current_bigram_freqs.items():
-                    if bigram_key in prev_bigram_freqs:
-                        prev_freq = prev_bigram_freqs[bigram_key]
-                        if prev_freq > 0:
-                            change = abs(curr_freq - prev_freq) / prev_freq
-                            max_change = max(max_change, change)
-
-                # If frequencies have stabilized, stop processing
-                if max_change < stability_threshold:
-                    print(
-                        f"\nBigram frequencies stabilized (max change: {max_change:.4%}) "
-                        f"after processing {size_in_bytes:,} bytes. Stopping early."
-                    )
-                    break
-
-            prev_bigram_freqs = current_bigram_freqs
 
     if training_output_file is not None:
         training_output_file.close()
 
     num_tokens = sum(char_freqs.values())
     print(
-        f"\nUnique character types in training data: {len(char_freqs):,}\n"
-        f"Number of character tokens in training data: {num_tokens:,}\n"
+        f"\nUnique letter types in training data: {len(char_freqs):,}\n"
+        f"Number of letter tokens in training data: {num_tokens:,}\n"
         f"Size of training data in bytes: {size_in_bytes:,}"
     )
-    min_alpha_freq = min(
-        freq for unicode_char, freq in char_freqs.items() if unicode_char in alphabet
-    )
-
+    missing_letters = alphabet_set - set(char_freqs.keys())
+    if missing_letters:
+        raise ValueError(
+            f"Training data is missing the following letters: "
+            f"{', '.join(sorted(missing_letters))}"
+        )
     # Filter language model down to only those within sample size
-    for rank, (unicode_char, freq) in enumerate(
+    for rank, (unicode_char, _) in enumerate(
         sorted(list(char_freqs.items()), key=itemgetter(1), reverse=True), 1
     ):
-        if rank >= CharacterCategory.CONTROL or freq < min_alpha_freq:
-            del char_freqs[unicode_char]
-            language_model.pop(unicode_char, None)
-            for sub_dict in language_model.values():
-                sub_dict.pop(unicode_char, None)
-        # TODO: Consider changing this next part to only work for letters in
-        #       alphabet
-        else:
-            char_ranks[unicode_char] = rank
-            # Set all unseen combos involving this character to NEGATIVE
-            # Note: We do this here instead of in SingleByteCharSetProber
-            # because this is much faster than doing .get(char, 0) in there.
-            for sub_dict in language_model.values():
-                if unicode_char not in sub_dict:
-                    sub_dict[unicode_char] = SequenceLikelihood.NEGATIVE
-    return char_ranks, language_model, num_bigrams
+        char_ranks[unicode_char] = rank
+
+    return char_ranks, language_model
 
 
-def collapse_language_model_freqs(language_model, sequence_count_threshold):
+def collapse_language_model_freqs(
+    *,
+    language_model: dict[str, Counter[str]],
+    alphabet_set: set[str],
+):
     """Collapse bigram frequencies to SequenceLikelihood categories"""
-    num_unigram_types = len(language_model)
-    pos_threshold = min(num_unigram_types * 8, 512)  # Used to be 64 * 8 = 512
-    likely_threshold = min(num_unigram_types * 16, 1024)  # Used to be 64 * 16 = 1024
-
     sorted_lm = sorted(flatten_language_model(language_model), reverse=True)
 
     # Collapse bigram frequencies to SequenceLikelihood categories
-    for rank, (count, first_char, second_char) in enumerate(sorted_lm, 1):
-        if rank <= pos_threshold:
+    for rank, (_, first_char, second_char) in enumerate(sorted_lm, 1):
+        if rank <= POSITIVE_RANK_THRESOLD:
             language_model[first_char][second_char] = SequenceLikelihood.POSITIVE
-        elif rank <= likely_threshold:
+        elif rank <= LIKELY_RANK_THRESOLD:
             language_model[first_char][second_char] = SequenceLikelihood.LIKELY
-        # Really infrequent bigrams are considered illegal
-        elif count <= sequence_count_threshold:
-            language_model[first_char][second_char] = SequenceLikelihood.NEGATIVE
         else:
             language_model[first_char][second_char] = SequenceLikelihood.UNLIKELY
+
+    # Make sure all possible bigrams are represented in the model
+    for unicode_char1 in alphabet_set:
+        for unicode_char2 in alphabet_set:
+            if unicode_char2 not in language_model[unicode_char1]:
+                language_model[unicode_char1][unicode_char2] = (
+                    SequenceLikelihood.NEGATIVE
+                )
 
 
 def flatten_language_model(language_model):
@@ -375,13 +337,12 @@ def flatten_language_model(language_model):
 
 def generate_sbcs_model(
     *,
-    charset_name,
-    language,
-    language_model,
-    num_bigrams,
-    char_ranks,
-    keep_ascii_letters,
-    alphabet,
+    charset_name: str,
+    language: str,
+    language_model: dict[str, dict[str, int]],
+    char_ranks: dict[str, int],
+    keep_ascii_letters: bool,
+    alphabet_set: set[str],
 ):
     """Create a SingleByteCharSetModel object representing the charset."""
     # Setup tables necessary for computing transition frequencies for model
@@ -389,7 +350,7 @@ def generate_sbcs_model(
         charset_name=charset_name,
         char_ranks=char_ranks,
         keep_ascii_letters=keep_ascii_letters,
-        alphabet=alphabet,
+        alphabet_set=alphabet_set,
     )
 
     # Calculate positive ratio for charset by counting positive likelihood
@@ -398,21 +359,27 @@ def generate_sbcs_model(
     # in both the numerator AND denominator, because at detection time
     # filter_international_words() removes characters that can't be encoded.
     pos_count = 0
+    likely_count = 0
     charset_bigram_count = 0
     sorted_lm = sorted(flatten_language_model(language_model), reverse=True)
-    pos_threshold = len(sorted_lm) * 8
 
     # Count bigrams encodable in this charset and mark top ones as POSITIVE
     for rank, (count, first_char, second_char) in enumerate(sorted_lm, 1):
         # Only consider bigrams where both chars can be encoded in this charset
         if first_char in charset_code_points and second_char in charset_code_points:
             charset_bigram_count += count
-            if rank <= pos_threshold:
+            if rank <= POSITIVE_RANK_THRESOLD:
                 pos_count += count
+            elif rank <= LIKELY_RANK_THRESOLD:
+                likely_count += count
 
     # Ratio is: "Of bigrams this charset can encode, what % are POSITIVE?"
     # Not: "Of all UTF-8 bigrams (including un-encodable), what % are POSITIVE?"
-    pos_ratio = (pos_count / charset_bigram_count) if charset_bigram_count else 0
+    pos_ratio = (
+        ((pos_count + 0.25 * likely_count) / charset_bigram_count)
+        if charset_bigram_count
+        else 0
+    )
 
     curr_model = SingleByteCharSetModel(
         charset_name=charset_name,
@@ -422,7 +389,7 @@ def generate_sbcs_model(
         language_model=None,  # type: ignore
         typical_positive_ratio=pos_ratio,
         keep_ascii_letters=keep_ascii_letters,
-        alphabet=alphabet,
+        alphabet="".join(sorted(alphabet_set)),
     )
     return curr_model
 
@@ -436,7 +403,11 @@ def print_char_to_order(var_name, order_map, charset_name, output_file):
         except UnicodeError:
             unicode_char = None
         print(
-            f"     {char!r}: {int(order)},  # {unicode_char!r}",
+            (
+                f"     {char!r}: "
+                f"{f'CharacterCategory.{order.name}' if isinstance(order, CharacterCategory) else order}"
+                f",  # {unicode_char!r}"
+            ),
             file=output_file,
         )
     print("}\n", file=output_file)
@@ -444,7 +415,7 @@ def print_char_to_order(var_name, order_map, charset_name, output_file):
 
 def print_language_model(var_name, language_model, output_file, char_ranks):
     print(
-        "# 3: Positive\n# 2: Likely\n# 1: Unlikely\n# 0: Negative\n",
+        "from chardet.enums import CharacterCategory, SequenceLikelihood\n",
         file=output_file,
     )
     print(f"{var_name} = {{", file=output_file)
@@ -458,7 +429,7 @@ def print_language_model(var_name, language_model, output_file, char_ranks):
         )
         for second_char, likelihood in sorted(sub_dict.items()):
             print(
-                f"        {char_ranks[second_char]!r}: {int(likelihood)},  # {second_char!r}",
+                f"        {char_ranks[second_char]!r}: SequenceLikelihood.{likelihood.name},  # {second_char!r}",
                 file=output_file,
             )
         print("    },", file=output_file)
@@ -466,13 +437,13 @@ def print_language_model(var_name, language_model, output_file, char_ranks):
 
 
 def train_model_for_lang(
-    language,
+    language: str,
+    *,
     depth: int,
-    input_encoding=None,
-    input_paths=None,
-    sequence_count_threshold=None,
-    max_pages=None,
-    wiki_folder=None,
+    input_encoding: Optional[str],
+    input_paths: list[str],
+    max_pages: int,
+    wiki_folder: str,
 ):
     """Train a SingleByteCharSetModel for the given language and settings"""
     # Validate language
@@ -497,7 +468,6 @@ def train_model_for_lang(
         f"\n{language}\n----------------------------------------------------------------\n"
         f"Keep ASCII Letters: {lang_metadata.use_ascii}\n"
         f"Alphabet: {lang_metadata.alphabet}\n"
-        f"Unlikely Sequence Count Threshold: {sequence_count_threshold}\n"  # spit out together when using multiprocessing  # Do this before other branch to increase chance that this header gets
         + (
             f"Input Encoding: {input_encoding}"
             if input_paths
@@ -541,16 +511,17 @@ def train_model_for_lang(
         f"\nCreating character frequency tables for {language} from {data_size_str} training data"
     )
     sys.stdout.flush()
-    char_ranks, language_model, num_bigrams = calc_ngram_freqs(
-        input_gen,
-        lang_metadata.alphabet,
-        lang_metadata.use_ascii,
-        not input_paths,
-        f"wiki_{language}.txt",
+    alphabet_set = set(lang_metadata.alphabet)
+    char_ranks, language_model = calc_ngram_freqs(
+        input_generator=input_gen,
+        alphabet_set=alphabet_set,
+        save_training_data=not input_paths,
+        training_path=f"wiki_{language}.txt",
     )
 
     # Create char-to-order maps (aka char-to-rank dicts)
     charset_models = {}
+    alphabet_set = alphabet_set
     for charset_name in lang_metadata.charsets:
         print(f"Creating charset model for {charset_name}")
         sys.stdout.flush()
@@ -558,15 +529,17 @@ def train_model_for_lang(
             charset_name=charset_name,
             language=language,
             language_model=language_model,
-            num_bigrams=num_bigrams,
             char_ranks=char_ranks,
             keep_ascii_letters=lang_metadata.use_ascii,
-            alphabet=lang_metadata.alphabet,
+            alphabet_set=alphabet_set,
         )
 
     # Collapse language model freqs to SequenceLikelihood values after
     # calculating positive ratio for each charset
-    collapse_language_model_freqs(language_model, sequence_count_threshold)
+    collapse_language_model_freqs(
+        language_model=language_model,
+        alphabet_set=alphabet_set,
+    )
 
     # Write output files
     print(f"Writing output file for {language}\n\n")
@@ -583,11 +556,6 @@ def train_model_for_lang(
         print_language_model(lm_name, language_model, output_file, char_ranks)
 
         print(
-            "# 255: Undefined characters that did not exist in training text\n"
-            "# 254: Carriage/Return\n"
-            "# 253: symbol (punctuation) that does not belong to word\n"
-            "# 252: 0 - 9\n"
-            "# 251: Control characters\n\n"
             "# Character Mapping Table(s):",
             file=output_file,
         )
@@ -663,18 +631,6 @@ def main():
         default=8,
     )
     parser.add_argument(
-        "-t",
-        "--sequence-count-threshold",
-        help=(
-            "Minimum number of times a particular two-"
-            "character sequence must have occurred in the "
-            "input files in order to be considered unlikely "
-            "(instead of illegal)."
-        ),
-        type=int,
-        default=3,
-    )
-    parser.add_argument(
         "-w",
         "--wiki-folder",
         help=(
@@ -715,7 +671,6 @@ def main():
                 depth=args.depth,
                 input_encoding=args.input_encoding,
                 input_paths=args.input_paths,
-                sequence_count_threshold=args.sequence_count_threshold,
                 max_pages=args.max_pages,
                 wiki_folder=args.wiki_folder,
             ),
@@ -730,7 +685,6 @@ def main():
                 depth=args.depth,
                 input_encoding=args.input_encoding,
                 input_paths=args.input_paths,
-                sequence_count_threshold=args.sequence_count_threshold,
                 max_pages=args.max_pages,
                 wiki_folder=args.wiki_folder,
             )

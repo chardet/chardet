@@ -45,13 +45,18 @@ from .langbulgarianmodel import (
     WINDOWS_1251_BULGARIAN_MODEL,
 )
 from .langcroatianmodel import ISO_8859_2_CROATIAN_MODEL, WINDOWS_1250_CROATIAN_MODEL
+from .langczechmodel import ISO_8859_2_CZECH_MODEL, WINDOWS_1250_CZECH_MODEL
 from .langdanishmodel import (
     ISO_8859_1_DANISH_MODEL,
     ISO_8859_15_DANISH_MODEL,
     WINDOWS_1252_DANISH_MODEL,
 )
 from .langdutchmodel import ISO_8859_1_DUTCH_MODEL, WINDOWS_1252_DUTCH_MODEL
-from .langenglishmodel import ISO_8859_1_ENGLISH_MODEL, WINDOWS_1252_ENGLISH_MODEL
+from .langenglishmodel import (
+    ISO_8859_1_ENGLISH_MODEL,
+    MACROMAN_ENGLISH_MODEL,
+    WINDOWS_1252_ENGLISH_MODEL,
+)
 from .langesperantomodel import ISO_8859_3_ESPERANTO_MODEL
 from .langestonianmodel import (
     ISO_8859_4_ESTONIAN_MODEL,
@@ -70,7 +75,7 @@ from .langfrenchmodel import (
 )
 from .langgermanmodel import ISO_8859_1_GERMAN_MODEL, WINDOWS_1252_GERMAN_MODEL
 from .langgreekmodel import ISO_8859_7_GREEK_MODEL, WINDOWS_1253_GREEK_MODEL
-from .langhebrewmodel import WINDOWS_1255_HEBREW_MODEL
+from .langhebrewmodel import ISO_8859_8_HEBREW_MODEL, WINDOWS_1255_HEBREW_MODEL
 from .langhungarianmodel import ISO_8859_2_HUNGARIAN_MODEL, WINDOWS_1250_HUNGARIAN_MODEL
 from .langitalianmodel import (
     ISO_8859_1_ITALIAN_MODEL,
@@ -144,10 +149,8 @@ class SBCSGroupProber(CharSetGroupProber):
         logical_hebrew_prober = SingleByteCharSetProber(
             WINDOWS_1255_HEBREW_MODEL, is_reversed=False, name_prober=hebrew_prober
         )
-        # TODO: See if using ISO-8859-8 Hebrew model works better here, since
-        #       it's actually the visual one
         visual_hebrew_prober = SingleByteCharSetProber(
-            WINDOWS_1255_HEBREW_MODEL, is_reversed=True, name_prober=hebrew_prober
+            ISO_8859_8_HEBREW_MODEL, is_reversed=True, name_prober=hebrew_prober
         )
         hebrew_prober.set_model_probers(logical_hebrew_prober, visual_hebrew_prober)
         # TODO: ORDER MATTERS HERE. I changed the order vs what was in master
@@ -168,14 +171,15 @@ class SBCSGroupProber(CharSetGroupProber):
             SingleByteCharSetProber(WINDOWS_1251_BULGARIAN_MODEL),
             SingleByteCharSetProber(ISO_8859_2_CROATIAN_MODEL),
             SingleByteCharSetProber(WINDOWS_1250_CROATIAN_MODEL),
-            # SingleByteCharSetProber(ISO_8859_2_CZECH_MODEL),
-            # SingleByteCharSetProber(WINDOWS_1250_CZECH_MODEL),
+            SingleByteCharSetProber(ISO_8859_2_CZECH_MODEL),
+            SingleByteCharSetProber(WINDOWS_1250_CZECH_MODEL),
             SingleByteCharSetProber(ISO_8859_1_DANISH_MODEL),
             SingleByteCharSetProber(ISO_8859_15_DANISH_MODEL),
             SingleByteCharSetProber(WINDOWS_1252_DANISH_MODEL),
             SingleByteCharSetProber(ISO_8859_1_DUTCH_MODEL),
             SingleByteCharSetProber(WINDOWS_1252_DUTCH_MODEL),
             SingleByteCharSetProber(ISO_8859_1_ENGLISH_MODEL),
+            SingleByteCharSetProber(MACROMAN_ENGLISH_MODEL),
             SingleByteCharSetProber(WINDOWS_1252_ENGLISH_MODEL),
             SingleByteCharSetProber(ISO_8859_3_ESPERANTO_MODEL),
             SingleByteCharSetProber(ISO_8859_4_ESTONIAN_MODEL),

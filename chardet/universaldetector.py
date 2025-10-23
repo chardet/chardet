@@ -43,8 +43,6 @@ from .charsetgroupprober import CharSetGroupProber
 from .charsetprober import CharSetProber
 from .enums import InputState, LanguageFilter, ProbingState
 from .escprober import EscCharSetProber
-from .latin1prober import Latin1Prober
-from .macromanprober import MacRomanProber
 from .mbcsgroupprober import MBCSGroupProber
 from .resultdict import ResultDict
 from .sbcsgroupprober import SBCSGroupProber
@@ -266,8 +264,6 @@ class UniversalDetector:
                 # If we're checking non-CJK encodings, use single-byte prober
                 if self.lang_filter & LanguageFilter.NON_CJK:
                     self._charset_probers.append(SBCSGroupProber())
-                self._charset_probers.append(Latin1Prober())
-                self._charset_probers.append(MacRomanProber())
             for prober in self._charset_probers:
                 if prober.feed(byte_str) == ProbingState.FOUND_IT:
                     self.result = {

@@ -59,7 +59,7 @@ class SingleByteCharSetProber(CharSetProber):
         self._reversed = is_reversed
         # Optional auxiliary prober for name decision
         self._name_prober = name_prober
-        self._last_order = 255
+        self._last_order = CharacterCategory.UNDEFINED
         self._seq_counters: list[int] = []
         self._total_seqs = 0
         self._total_char = 0
@@ -71,7 +71,7 @@ class SingleByteCharSetProber(CharSetProber):
     def reset(self) -> None:
         super().reset()
         # char order of last character
-        self._last_order = 255
+        self._last_order = CharacterCategory.UNDEFINED
         self._seq_counters = [0] * len(SequenceLikelihood)
         self._total_seqs = 0
         self._total_char = 0
@@ -92,7 +92,6 @@ class SingleByteCharSetProber(CharSetProber):
         return self._model.language
 
     def feed(self, byte_str: Union[bytes, bytearray]) -> ProbingState:
-        # TODO: Make filter_international_words keep things in self.alphabet
         if not self._model.keep_ascii_letters:
             byte_str = self.filter_international_words(byte_str)
         else:
@@ -102,15 +101,23 @@ class SingleByteCharSetProber(CharSetProber):
         char_to_order_map = self._model.char_to_order_map
         language_model = self._model.language_model
         for char in byte_str:
-            order = char_to_order_map.get(char, CharacterCategory.UNDEFINED)
-            if order < CharacterCategory.SYMBOL:
+            order = char_to_order_map[char]
+            if order < CharacterCategory.DIGIT:
                 self._total_char += 1
-            if order < CharacterCategory.CONTROL:
-                # TODO: Follow uchardet's lead and discount confidence for frequent
-                #       control characters.
-                #       See https://github.com/BYVoid/uchardet/commit/55b4f23971db61
+            elif order == CharacterCategory.UNDEFINED:
+                # If we find a character that is undefined in the mapping,
+                # this cannot be the right charset
+                self._state = ProbingState.NOT_ME
+                self._last_order = order
+                break
+            # TODO: Follow uchardet's lead and discount confidence for frequent
+            #       control characters.
+            #       See https://github.com/BYVoid/uchardet/commit/55b4f23971db61
+            elif order == CharacterCategory.CONTROL:
+                self._control_char += 1
+            if order < CharacterCategory.DIGIT:
                 self._freq_char += 1
-                if self._last_order < CharacterCategory.CONTROL:
+                if self._last_order < CharacterCategory.DIGIT:
                     self._total_seqs += 1
                     if not self._reversed:
                         lm_cat = language_model[self._last_order][order]
