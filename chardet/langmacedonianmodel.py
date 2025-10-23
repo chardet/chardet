@@ -13702,7 +13702,7 @@ MACCYRILLIC_MACEDONIAN_MODEL = SingleByteCharSetModel(
     alphabet="АБВГДЃЕЖЗЅИЈКЛЉМНЊОПРСТЌУФХЦЧЏШабвгдѓежзѕијклљмнњопрстќуфхцчџш",
 )
 
-IBM855_MACEDONIAN_CHAR_TO_ORDER = {
+CP855_MACEDONIAN_CHAR_TO_ORDER = {
     0: 251,  # '\x00'
     1: 251,  # '\x01'
     2: 251,  # '\x02'
@@ -13961,10 +13961,10 @@ IBM855_MACEDONIAN_CHAR_TO_ORDER = {
     255: 251,  # '\xa0'
 }
 
-IBM855_MACEDONIAN_MODEL = SingleByteCharSetModel(
-    charset_name="IBM855",
+CP855_MACEDONIAN_MODEL = SingleByteCharSetModel(
+    charset_name="CP855",
     language="Macedonian",
-    char_to_order_map=IBM855_MACEDONIAN_CHAR_TO_ORDER,
+    char_to_order_map=CP855_MACEDONIAN_CHAR_TO_ORDER,
     language_model=MACEDONIAN_LANG_MODEL,
     typical_positive_ratio=1.0,
     keep_ascii_letters=False,

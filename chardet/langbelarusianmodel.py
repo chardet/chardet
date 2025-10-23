@@ -63301,7 +63301,7 @@ WINDOWS_1251_BELARUSIAN_MODEL = SingleByteCharSetModel(
     alphabet="АБВГДЕЁЖЗІЙКЛМНОПРСТУЎФХЦЧШЫЬЭЮЯабвгдеёжзійклмнопрстуўфхцчшыьэюяʼ",
 )
 
-IBM866_BELARUSIAN_CHAR_TO_ORDER = {
+CP866_BELARUSIAN_CHAR_TO_ORDER = {
     0: 251,  # '\x00'
     1: 251,  # '\x01'
     2: 251,  # '\x02'
@@ -63560,10 +63560,10 @@ IBM866_BELARUSIAN_CHAR_TO_ORDER = {
     255: 251,  # '\xa0'
 }
 
-IBM866_BELARUSIAN_MODEL = SingleByteCharSetModel(
-    charset_name="IBM866",
+CP866_BELARUSIAN_MODEL = SingleByteCharSetModel(
+    charset_name="CP866",
     language="Belarusian",
-    char_to_order_map=IBM866_BELARUSIAN_CHAR_TO_ORDER,
+    char_to_order_map=CP866_BELARUSIAN_CHAR_TO_ORDER,
     language_model=BELARUSIAN_LANG_MODEL,
     typical_positive_ratio=1.0,
     keep_ascii_letters=False,

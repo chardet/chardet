@@ -34,13 +34,13 @@ from .langarabicmodel import (
     WINDOWS_1256_ARABIC_MODEL,
 )
 from .langbelarusianmodel import (
-    IBM866_BELARUSIAN_MODEL,
+    CP866_BELARUSIAN_MODEL,
     ISO_8859_5_BELARUSIAN_MODEL,
     MACCYRILLIC_BELARUSIAN_MODEL,
     WINDOWS_1251_BELARUSIAN_MODEL,
 )
 from .langbulgarianmodel import (
-    IBM855_BULGARIAN_MODEL,
+    CP855_BULGARIAN_MODEL,
     ISO_8859_5_BULGARIAN_MODEL,
     WINDOWS_1251_BULGARIAN_MODEL,
 )
@@ -88,7 +88,7 @@ from .langlithuanianmodel import (
     WINDOWS_1257_LITHUANIAN_MODEL,
 )
 from .langmacedonianmodel import (
-    IBM855_MACEDONIAN_MODEL,
+    CP855_MACEDONIAN_MODEL,
     ISO_8859_5_MACEDONIAN_MODEL,
     MACCYRILLIC_MACEDONIAN_MODEL,
     WINDOWS_1251_MACEDONIAN_MODEL,
@@ -101,15 +101,15 @@ from .langportuguesemodel import (
 )
 from .langromanianmodel import ISO_8859_2_ROMANIAN_MODEL, WINDOWS_1250_ROMANIAN_MODEL
 from .langrussianmodel import (
-    IBM855_RUSSIAN_MODEL,
-    IBM866_RUSSIAN_MODEL,
+    CP855_RUSSIAN_MODEL,
+    CP866_RUSSIAN_MODEL,
     ISO_8859_5_RUSSIAN_MODEL,
     KOI8_R_RUSSIAN_MODEL,
     MACCYRILLIC_RUSSIAN_MODEL,
     WINDOWS_1251_RUSSIAN_MODEL,
 )
 from .langserbianmodel import (
-    IBM855_SERBIAN_MODEL,
+    CP855_SERBIAN_MODEL,
     ISO_8859_5_SERBIAN_MODEL,
     MACCYRILLIC_SERBIAN_MODEL,
     WINDOWS_1251_SERBIAN_MODEL,
@@ -126,6 +126,12 @@ from .langturkishmodel import (
     ISO_8859_3_TURKISH_MODEL,
     ISO_8859_9_TURKISH_MODEL,
     WINDOWS_1254_TURKISH_MODEL,
+)
+from .langukrainianmodel import (
+    ISO_8859_5_UKRAINIAN_MODEL,
+    KOI8_U_UKRAINIAN_MODEL,
+    MACCYRILLIC_UKRAINIAN_MODEL,
+    WINDOWS_1251_UKRAINIAN_MODEL,
 )
 from .langvietnamesemodel import WINDOWS_1258_VIETNAMESE_MODEL
 from .sbcharsetprober import SingleByteCharSetProber
@@ -153,11 +159,11 @@ class SBCSGroupProber(CharSetGroupProber):
             SingleByteCharSetProber(ISO_8859_6_ARABIC_MODEL),
             SingleByteCharSetProber(CP864_ARABIC_MODEL),
             SingleByteCharSetProber(WINDOWS_1256_ARABIC_MODEL),
-            SingleByteCharSetProber(IBM866_BELARUSIAN_MODEL),
+            SingleByteCharSetProber(CP866_BELARUSIAN_MODEL),
             SingleByteCharSetProber(ISO_8859_5_BELARUSIAN_MODEL),
             SingleByteCharSetProber(MACCYRILLIC_BELARUSIAN_MODEL),
             SingleByteCharSetProber(WINDOWS_1251_BELARUSIAN_MODEL),
-            SingleByteCharSetProber(IBM855_BULGARIAN_MODEL),
+            SingleByteCharSetProber(CP855_BULGARIAN_MODEL),
             SingleByteCharSetProber(ISO_8859_5_BULGARIAN_MODEL),
             SingleByteCharSetProber(WINDOWS_1251_BULGARIAN_MODEL),
             SingleByteCharSetProber(ISO_8859_2_CROATIAN_MODEL),
@@ -199,7 +205,7 @@ class SBCSGroupProber(CharSetGroupProber):
             SingleByteCharSetProber(ISO_8859_4_LITHUANIAN_MODEL),
             SingleByteCharSetProber(ISO_8859_13_LITHUANIAN_MODEL),
             SingleByteCharSetProber(WINDOWS_1257_LITHUANIAN_MODEL),
-            SingleByteCharSetProber(IBM855_MACEDONIAN_MODEL),
+            SingleByteCharSetProber(CP855_MACEDONIAN_MODEL),
             SingleByteCharSetProber(ISO_8859_5_MACEDONIAN_MODEL),
             SingleByteCharSetProber(MACCYRILLIC_MACEDONIAN_MODEL),
             SingleByteCharSetProber(WINDOWS_1251_MACEDONIAN_MODEL),
@@ -210,13 +216,13 @@ class SBCSGroupProber(CharSetGroupProber):
             SingleByteCharSetProber(WINDOWS_1252_PORTUGUESE_MODEL),
             SingleByteCharSetProber(ISO_8859_2_ROMANIAN_MODEL),
             SingleByteCharSetProber(WINDOWS_1250_ROMANIAN_MODEL),
-            SingleByteCharSetProber(IBM855_RUSSIAN_MODEL),
-            SingleByteCharSetProber(IBM866_RUSSIAN_MODEL),
+            SingleByteCharSetProber(CP855_RUSSIAN_MODEL),
+            SingleByteCharSetProber(CP866_RUSSIAN_MODEL),
             SingleByteCharSetProber(ISO_8859_5_RUSSIAN_MODEL),
             SingleByteCharSetProber(KOI8_R_RUSSIAN_MODEL),
             SingleByteCharSetProber(MACCYRILLIC_RUSSIAN_MODEL),
             SingleByteCharSetProber(WINDOWS_1251_RUSSIAN_MODEL),
-            SingleByteCharSetProber(IBM855_SERBIAN_MODEL),
+            SingleByteCharSetProber(CP855_SERBIAN_MODEL),
             SingleByteCharSetProber(ISO_8859_5_SERBIAN_MODEL),
             SingleByteCharSetProber(MACCYRILLIC_SERBIAN_MODEL),
             SingleByteCharSetProber(WINDOWS_1251_SERBIAN_MODEL),
@@ -233,6 +239,10 @@ class SBCSGroupProber(CharSetGroupProber):
             SingleByteCharSetProber(ISO_8859_3_TURKISH_MODEL),
             SingleByteCharSetProber(ISO_8859_9_TURKISH_MODEL),
             SingleByteCharSetProber(WINDOWS_1254_TURKISH_MODEL),
+            SingleByteCharSetProber(ISO_8859_5_UKRAINIAN_MODEL),
+            SingleByteCharSetProber(KOI8_U_UKRAINIAN_MODEL),
+            SingleByteCharSetProber(MACCYRILLIC_UKRAINIAN_MODEL),
+            SingleByteCharSetProber(WINDOWS_1251_UKRAINIAN_MODEL),
             SingleByteCharSetProber(WINDOWS_1258_VIETNAMESE_MODEL),
         ]
         self.reset()
