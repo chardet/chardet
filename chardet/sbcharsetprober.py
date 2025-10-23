@@ -115,9 +115,9 @@ class SingleByteCharSetProber(CharSetProber):
             #       See https://github.com/BYVoid/uchardet/commit/55b4f23971db61
             elif order == CharacterCategory.CONTROL:
                 self._control_char += 1
-            if order < CharacterCategory.DIGIT:
+            if 0 < order < CharacterCategory.DIGIT:
                 self._freq_char += 1
-                if self._last_order < CharacterCategory.DIGIT:
+                if 0 < self._last_order < CharacterCategory.DIGIT:
                     self._total_seqs += 1
                     if not self._reversed:
                         lm_cat = language_model[self._last_order][order]

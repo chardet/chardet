@@ -31,13 +31,7 @@ from chardet.enums import MachineState
 from chardet.metadata.languages import LANGUAGES
 
 MISSING_ENCODINGS = set()
-EXPECTED_FAILURES = {
-    "tests/iso-8859-9-turkish/_ude_1.txt",
-    "tests/iso-8859-9-turkish/_ude_2.txt",
-    "tests/iso-8859-9-turkish/divxplanet.com.xml",
-    "tests/iso-8859-9-turkish/subtitle.srt",
-    "tests/iso-8859-9-turkish/wikitop_tr_ISO-8859-9.txt",
-}
+EXPECTED_FAILURES = {}
 
 
 def gen_test_params():

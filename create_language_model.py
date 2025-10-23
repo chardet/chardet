@@ -72,22 +72,14 @@ def unicode_to_category(
     *,
     unicode_char: str,
     char_ranks: dict[str, int],
-    keep_ascii_letters: bool = False,
-    alphabet_set: set[str],
 ) -> int:
     """Convert a Unicode character to categories used by SingleByteCharSetProber"""
-    valid_letters = (
-        (alphabet_set | ascii_letters_set) if keep_ascii_letters else alphabet_set
-    )
     unicode_cat = unicodedata.category(unicode_char)
     if unicode_cat.startswith("N"):
         ret_val = CharacterCategory.DIGIT
     # Valid letters have their category set to their order/rank
     elif unicode_cat.startswith("L"):
-        if unicode_char in valid_letters:
-            ret_val = char_ranks.get(unicode_char, CharacterCategory.UNDEFINED)
-        else:
-            ret_val = CharacterCategory.UNDEFINED
+        ret_val = char_ranks.get(unicode_char, 0)
     elif unicode_char in ("\r", "\n"):
         ret_val = CharacterCategory.LINE_BREAK
     # Punctuation, Symbols, and Marks are all symbols as far as we care
@@ -129,8 +121,6 @@ def get_charset_mappings(
             char_cat = unicode_to_category(
                 unicode_char=unicode_char,
                 char_ranks=char_ranks,
-                keep_ascii_letters=keep_ascii_letters,
-                alphabet_set=alphabet_set,
             )
             charset_code_points[unicode_char] = char
         except UnicodeDecodeError:
