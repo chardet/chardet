@@ -148,20 +148,31 @@ class SingleByteCharSetProber(CharSetProber):
 
     def get_confidence(self) -> float:
         r = 0.01
-        if self._total_seqs > 0:
+        if self._total_seqs > 0 and self._total_char > 0:
             r = (
-                (
-                    self._seq_counters[SequenceLikelihood.POSITIVE]
-                    + 0.25 * self._seq_counters[SequenceLikelihood.LIKELY]
-                )
+                self._seq_counters[SequenceLikelihood.POSITIVE]
                 / self._total_seqs
                 / self._model.typical_positive_ratio
             )
+            # Multiply by ratio of positive sequences per character.
+            # This helps distinguish close winners by penalizing models
+            # that have very few positive sequences relative to the
+            # number of characters. If you add a letter, you'd expect
+            # the positive sequence count to increase proportionally.
+            # If it doesn't, this new character may not have been a letter
+            # but a symbol, making the model less confident.
+            r *= (
+                self._seq_counters[SequenceLikelihood.POSITIVE]
+                + self._seq_counters[SequenceLikelihood.LIKELY] / 4
+            ) / self._total_char
             # The more control characters (proportionnaly to the size
             # of the text), the less confident we become in the current
             # charset.
-            r = r * (self._total_char - self._control_char) / self._total_char
-            r = r * self._freq_char / self._total_char
+            r *= (self._total_char - self._control_char) / self._total_char
+            # The more frequent characters (proportionnaly to the size
+            # of the text), the more confident we become in the current
+            # charset.
+            r *= self._freq_char / self._total_char
             if r >= 1.0:
                 r = 0.99
         return r
