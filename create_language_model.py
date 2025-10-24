@@ -24,27 +24,27 @@
 
 """
 Create a language model for single byte character encoding detection based on
-the given file(s).
+training data from the CulturaX dataset.
 """
 
-import os
 import re
 import sys
 import unicodedata
 from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
 from collections import Counter, defaultdict
-from collections.abc import Iterable, Mapping
+from collections.abc import Mapping
 from functools import partial
 from multiprocessing import Pool
 from operator import itemgetter
 from string import ascii_letters
 
 try:
-    from mediawiki import MediaWiki
+    from datasets import load_dataset
 
-    HAVE_WIKIPEDIA = True
+    HAVE_DATASETS = True
 except Exception:
-    HAVE_WIKIPEDIA = False
+    HAVE_DATASETS = False
+    load_dataset = None  # type: ignore
 
 from chardet import __version__
 from chardet.enums import CharacterCategory, SequenceLikelihood
@@ -130,101 +130,59 @@ def get_charset_mappings(
 
 
 def gen_input_lines(input_paths: list[str], input_encoding: str):
-    """Yield decoded lines from files in input_paths"""
+    """Yield decoded lines from files in input_paths (for backward compatibility)"""
     for input_path in input_paths:
         with open(input_path, encoding=input_encoding) as input_file:
             yield from input_file
 
 
-def gen_wiki_lines(
+def gen_culturax_lines(
     *,
-    titles: Iterable[str],
     language: str,
-    max_depth: int,
-    max_pages: int | None = None,
-    depth: int = 0,
-    visited_pages: set[str] | None = None,
-    skipped_pages: set[str] | None = None,
-    wikipedia: "MediaWiki | None" = None,  # type: ignore
+    max_chars: int,
 ):
-    """Generate lines from Wikipedia articles, starting with titles.
+    """Generate lines from CulturaX dataset for the given language.
 
-    Will crawl at most `max_depth` deep in the page hierarchy.
+    Args:
+        language: ISO language code (e.g., 'en', 'fr', 'de')
+        max_chars: Maximum number of characters to yield
     """
-    if visited_pages is None:
-        visited_pages = set()
-
-    if skipped_pages is None:
-        skipped_pages = set()
-
-    if (
-        not titles
-        or depth > max_depth
-        or (max_pages is not None and len(visited_pages) > max_pages)
-    ):
-        print(
-            f"Visited {language} pages: {len(visited_pages)} ({len(skipped_pages)} skipped)"
+    if not HAVE_DATASETS:
+        raise ValueError(
+            "The datasets package is required. Install with: pip install datasets"
         )
-        return
 
-    # Visit all pages in titles and add their links to next_titles
-    next_titles = set()
-    for title in titles:
-        if title in visited_pages or title in skipped_pages:
-            continue
-        print(
-            f"Visited {language} pages: {len(visited_pages)} ({len(skipped_pages)} skipped)",
-            end="\r",
-        )
-        sys.stdout.flush()
-        if max_pages is not None and len(visited_pages) == max_pages:
-            break
-        try:
-            if wikipedia is None:
-                raise ValueError("Wikipedia instance is required")
-            page = wikipedia.page(title, auto_suggest=False)
-            # Remove Wikipedia markup (this is inside of try block because it
-            # does an implicit request to Wikipedia to get the content)
-            content = re.sub(r"(=+) *([^=]+) *\1", r"\2", page.content)
-            # Clean up repeated whitespace, since that could skew model
-            content = re.sub(r"(\s)\1+", r"\1", content)
-        except Exception:
-            if depth > 0:
-                skipped_pages.add(title)
-                continue
-            else:
-                print("Failed to visit start page:")
-                raise
-
-        visited_pages.add(title)
-
-        yield from content.splitlines(True)
-
-        # Sometimes things go wrong when extracting the links
-        try:
-            next_titles.update(page.links)
-        except Exception:
-            continue
-
-    # Recursive generators are fun
-    yield from gen_wiki_lines(
-        titles=next_titles,
-        language=language,
-        max_depth=max_depth,
-        max_pages=max_pages,
-        depth=depth + 1,
-        visited_pages=visited_pages,
-        skipped_pages=skipped_pages,
-        wikipedia=wikipedia,
+    print(f"Loading CulturaX dataset for language: {language}")
+    print("(This may take a few moments on first run while downloading/caching)")
+    assert load_dataset is not None
+    dataset = load_dataset(
+        "uonlp/CulturaX",
+        language,
+        split="train",
+        streaming=True,
     )
+
+    char_count = 0
+    for item in dataset:
+        text = item.get("text", "")  # type: ignore
+        if not text:
+            continue
+
+        # Clean up repeated whitespace
+        text = re.sub(r"(\s)\1+", r"\1", text)
+
+        for line in text.splitlines(True):
+            yield line
+            char_count += len(line)
+            if char_count >= max_chars:
+                print(f"\nReached {char_count:,} characters from CulturaX")
+                return
 
 
 def calc_ngram_freqs(
     *,
     input_generator,
     alphabet_set: set[str],
-    save_training_data: bool,
-    training_path: str,
 ):
     """Create a language model with the likelihoods of all bigrams in input.
 
@@ -239,14 +197,6 @@ def calc_ngram_freqs(
     char_ranks = {}
     language_model = defaultdict(Counter)
     size_in_bytes = 0
-    if os.path.exists(training_path):
-        print(
-            f"\nTraining data file {training_path} already exists. Keeping existing file."
-        )
-        save_training_data = False
-    training_output_file = None
-    if save_training_data:
-        training_output_file = open(training_path, "w", encoding="utf-8")
 
     # Calculate unfiltered frequencies
     for line in input_generator:
@@ -255,8 +205,6 @@ def calc_ngram_freqs(
         # counted as the same, and because this is meant for single-byte
         # encodings, which don't support combining forms
         line = unicodedata.normalize("NFC", line)
-        if save_training_data:
-            print(line, file=training_output_file)
         size_in_bytes += len(line.encode("utf-8"))
         for unicode_char in line:
             # Only consider alphabet characters for this language
@@ -267,9 +215,6 @@ def calc_ngram_freqs(
             if prev_char is not None:
                 language_model[prev_char][unicode_char] += 1
             prev_char = unicode_char
-
-    if training_output_file is not None:
-        training_output_file.close()
 
     num_tokens = sum(char_freqs.values())
     print(
@@ -421,13 +366,11 @@ def print_language_model(var_name, language_model, output_file, char_ranks):
 def train_model_for_lang(
     language: str,
     *,
-    depth: int,
     input_encoding: str,
     input_paths: list[str],
-    max_pages: int,
-    wiki_folder: str,
+    max_chars: int,
 ):
-    """Train a SingleByteCharSetModel for the given language and settings"""
+    """Train a SingleByteCharSetModel for the given language"""
     # Validate language
     language = language.title()
     lang_metadata = LANGUAGES.get(language)
@@ -438,56 +381,28 @@ def train_model_for_lang(
             "languages.py"
         )
 
-    if wiki_folder and not input_paths:
-        wiki_path = os.path.join(wiki_folder, f"wiki_{language}.txt")
-        if not os.path.isfile(wiki_path):
-            raise ValueError(
-                f"Could not find Wikipedia training file for {language} at {wiki_path}"
-            )
-        input_paths = [wiki_path]
-
     print(
         f"\n{language}\n----------------------------------------------------------------\n"
         f"Keep ASCII Letters: {lang_metadata.use_ascii}\n"
         f"Alphabet: {lang_metadata.alphabet}\n"
-        + (
-            f"Input Encoding: {input_encoding}"
-            if input_paths
-            else f"Wikipedia Depth: {depth}"
-        )
+        f"Data Source: {'Custom files' if input_paths else f'CulturaX (max {max_chars:,} chars)'}"
     )
 
-    # See if we're doing file-based or wiki-based training
+    # Setup input generator
     if input_paths:
-        # Check that files are big enough before doing anything else
-        data_size = sum(os.path.getsize(input_path) for input_path in input_paths)
-        if data_size < 10000000:
-            raise ValueError(
-                "Input files must be at least 10MB to train a "
-                f"decent model. You only provided {data_size:,} bytes."
-            )
-
+        # Use custom input files if provided
         input_gen = gen_input_lines(input_paths, input_encoding)
-
-        data_size_str = f"{data_size:,} bytes of"
+        data_size_str = "custom files"
     else:
-        if not HAVE_WIKIPEDIA:
+        # Use CulturaX dataset
+        if not HAVE_DATASETS:
             raise ValueError(
-                "The pymediawiki Python package could not be "
-                "imported, so you must either specify input files "
-                "to use for training, or install it with pip."
+                "The datasets package is required. Install with: pip install datasets"
             )
-        # At this point we know HAVE_WIKIPEDIA is True, so MediaWiki is available
-        assert HAVE_WIKIPEDIA
-        wikipedia = MediaWiki(lang=lang_metadata.iso_code)  # type: ignore
-        input_gen = gen_wiki_lines(
-            titles=lang_metadata.wiki_start_pages,
-            language=lang_metadata.iso_code,
-            max_depth=depth,
-            max_pages=max_pages,
-            wikipedia=wikipedia,
+        input_gen = gen_culturax_lines(
+            language=lang_metadata.iso_code, max_chars=max_chars
         )
-        data_size_str = "Wikipedia"
+        data_size_str = "CulturaX"
 
     print(
         f"\nCreating character frequency tables for {language} from {data_size_str} training data"
@@ -497,13 +412,10 @@ def train_model_for_lang(
     char_ranks, language_model = calc_ngram_freqs(
         input_generator=input_gen,
         alphabet_set=alphabet_set,
-        save_training_data=not input_paths,
-        training_path=f"wiki_{language}.txt",
     )
 
     # Create char-to-order maps (aka char-to-rank dicts)
     charset_models = {}
-    alphabet_set = alphabet_set
     for charset_name in lang_metadata.charsets:
         print(f"Creating charset model for {charset_name}")
         sys.stdout.flush()
@@ -580,70 +492,49 @@ def main():
         default=list(sorted(LANGUAGES.keys())),
     )
     parser.add_argument(
-        "-d",
-        "--depth",
-        help="Maximum depth to crawl Wikipedia articles for training data.",
-        type=int,
-        default=2,
-    )
-    parser.add_argument(
         "-e",
         "--input-encoding",
-        help="Encoding the input files are in. Does not need to match CHARSET_NAME.",
+        help="Encoding the input files are in (only used with --input-files).",
         default="UTF-8",
     )
     parser.add_argument(
         "-i",
         "--input-files",
-        help="File to use to train language model. If no files "
-        "are specified, will crawl Wikipedia for training "
-        "data.",
+        help="Custom training files to use instead of CulturaX. "
+        "If not specified, will use CulturaX dataset.",
         nargs="*",
         dest="input_paths",
     )
     parser.add_argument(
-        "-m",
-        "--max-pages",
-        help="Maximum number of Wikipedia pages to crawl per language.",
+        "-c",
+        "--max-chars",
+        help="Maximum number of characters to read from CulturaX dataset.",
         type=int,
-        default=20000,
+        default=300_000_000,
     )
     parser.add_argument(
         "-p",
         "--parallel-langs",
-        help="Number of languages models to train at once.",
+        help="Number of language models to train at once.",
         type=int,
         default=8,
-    )
-    parser.add_argument(
-        "-w",
-        "--wiki-folder",
-        help=(
-            "Path to folder containing crawled Wikipedia named "
-            "'wiki_<language>.txt' files to use for training instead "
-            "of crawling Wikipedia. "
-            "If this is set, --input-files and --depth are ignored."
-        ),
-        type=str,
-        default="",
     )
     parser.add_argument("--version", action="version", version=__version__)
     args = parser.parse_args()
 
-    # Make sure we aren't trying to do anything weird
-    if len(args.language) > 1:
-        if args.input_paths:
-            raise ValueError(
-                "Specifying input paths is not valid when training"
-                " models for multiple languages at the same time. "
-                " This only works for Wikipedia training."
-            )
-
-    if not HAVE_WIKIPEDIA and not args.input_paths and not args.wiki_folder:
+    # Validate requirements
+    if not args.input_paths and not HAVE_DATASETS:
         raise ValueError(
-            "The pymediawiki Python package could not be "
-            "imported, so you must either specify input files "
-            "to use for training, or install it with pip."
+            "The datasets package is required to use CulturaX. "
+            "Install with: pip install datasets\n"
+            "Or provide custom training files with --input-files"
+        )
+
+    # Make sure we aren't trying to do anything weird
+    if len(args.language) > 1 and args.input_paths:
+        raise ValueError(
+            "Specifying input paths is not valid when training"
+            " models for multiple languages at the same time."
         )
 
     # Only create multiprocessing pool if doing things in parallel, otherwise
@@ -653,11 +544,9 @@ def main():
         pool.map_async(
             partial(
                 train_model_for_lang,
-                depth=args.depth,
                 input_encoding=args.input_encoding,
                 input_paths=args.input_paths,
-                max_pages=args.max_pages,
-                wiki_folder=args.wiki_folder,
+                max_chars=args.max_chars,
             ),
             args.language,
         )
@@ -667,11 +556,9 @@ def main():
         for language in args.language:
             train_model_for_lang(
                 language,
-                depth=args.depth,
                 input_encoding=args.input_encoding,
                 input_paths=args.input_paths,
-                max_pages=args.max_pages,
-                wiki_folder=args.wiki_folder,
+                max_chars=args.max_chars,
             )
 
 
