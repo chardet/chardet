@@ -128,6 +128,17 @@ class UniversalDetector:
     def charset_probers(self) -> list[CharSetProber]:
         return self._charset_probers
 
+    def _get_utf8_prober(self) -> Optional[CharSetProber]:
+        """
+        Get the UTF-8 prober from the charset probers.
+        Returns None if not found.
+        """
+        for group_prober in self._charset_probers:
+            for prober in getattr(group_prober, "probers", []):
+                if prober.charset_name and "utf-8" in prober.charset_name.lower():
+                    return prober
+        return None
+
     def reset(self) -> None:
         """
         Reset the UniversalDetector and all of its probers back to their
@@ -296,6 +307,25 @@ class UniversalDetector:
         elif self._input_state == InputState.PURE_ASCII:
             self.result = {"encoding": "ascii", "confidence": 1.0, "language": ""}
 
+        # Check if escape prober found anything
+        elif self._input_state == InputState.ESC_ASCII:
+            if self._esc_charset_prober:
+                charset_name = self._esc_charset_prober.charset_name
+                if charset_name:
+                    self.result = {
+                        "encoding": charset_name,
+                        "confidence": self._esc_charset_prober.get_confidence(),
+                        "language": self._esc_charset_prober.language,
+                    }
+                else:
+                    # ESC prober didn't identify a specific encoding
+                    # Since input is pure ASCII + ESC, default to UTF-8
+                    self.result = {
+                        "encoding": "utf-8",
+                        "confidence": 1.0,
+                        "language": "",
+                    }
+
         # If we have seen non-ASCII, return the best that met MINIMUM_THRESHOLD
         elif self._input_state == InputState.HIGH_BYTE:
             prober_confidence = None
@@ -330,6 +360,25 @@ class UniversalDetector:
                     "confidence": confidence,
                     "language": max_prober.language,
                 }
+            else:
+                # Default to UTF-8 if no encoding met threshold AND UTF-8 prober
+                # hasn't determined this is NOT UTF-8
+                # UTF-8 is now the most common encoding on the web and a superset of ASCII
+                utf8_prober = self._get_utf8_prober()
+                if utf8_prober and utf8_prober.active:
+                    # UTF-8 prober didn't rule it out, so default to UTF-8
+                    self.result = {
+                        "encoding": utf8_prober.charset_name,
+                        "confidence": utf8_prober.get_confidence(),
+                        "language": utf8_prober.language,
+                    }
+                else:
+                    # UTF-8 was ruled out, return None
+                    self.result = {
+                        "encoding": None,
+                        "confidence": 0.0,
+                        "language": None,
+                    }
 
         # Log all prober confidences if none met MINIMUM_THRESHOLD
         if self.logger.getEffectiveLevel() <= logging.DEBUG:

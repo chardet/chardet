@@ -78,7 +78,7 @@ def detect_all(
     detector.feed(byte_str)
     detector.close()
 
-    if detector.input_state == InputState.HIGH_BYTE:
+    if detector.input_state in (InputState.HIGH_BYTE, InputState.ESC_ASCII):
         results: list[ResultDict] = []
         probers: list[CharSetProber] = []
         for prober in detector.charset_probers:
