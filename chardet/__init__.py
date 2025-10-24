@@ -87,6 +87,9 @@ def detect_all(
             else:
                 probers.append(prober)
         for prober in probers:
+            # Skip probers that determined this is NOT their encoding
+            if not prober.active:
+                continue
             if ignore_threshold or prober.get_confidence() > detector.MINIMUM_THRESHOLD:
                 charset_name = prober.charset_name or ""
                 lower_charset_name = charset_name.lower()
