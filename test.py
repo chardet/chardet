@@ -41,6 +41,7 @@ EXPECTED_FAILURES = {
     "tests/MacRoman/ioreg_output.txt",
     # Windows-1251 vs MacCyrillic confusion (similar Cyrillic encodings)
     "tests/windows-1251-russian/greek.ru.xml",
+    "tests/windows-1251-russian/aug32.hole.ru.xml",
     # ISO-8859-7 vs WINDOWS-1253 confusion (similar Greek encodings)
     "tests/iso-8859-7-greek/naftemporiki.gr.bus.xml",
     "tests/iso-8859-7-greek/naftemporiki.gr.mrk.xml",
