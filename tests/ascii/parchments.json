@@ -1,0 +1,7 @@
+{
+  "@context": "/contexts/Parchment",
+  "@id": "/parchments",
+  "@type": "hydra:Collection",
+  "hydra:member": [],
+  "hydra:totalItems": 0
+}
