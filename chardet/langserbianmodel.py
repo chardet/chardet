@@ -3989,7 +3989,7 @@ ISO_8859_5_SERBIAN_MODEL = SingleByteCharSetModel(
     language="Serbian",
     char_to_order_map=ISO_8859_5_SERBIAN_CHAR_TO_ORDER,
     language_model=SERBIAN_LANG_MODEL,
-    typical_positive_ratio=0.9899254180056669,
+    typical_positive_ratio=0.9868196234890055,
     keep_ascii_letters=False,
     alphabet="ЂЈЉЊЋЏАБВГДЕЖЗИКЛМНОПРСТУФХЦЧШабвгдежзиклмнопрстуфхцчшђјљњћџ",
 )
@@ -4258,7 +4258,7 @@ WINDOWS_1251_SERBIAN_MODEL = SingleByteCharSetModel(
     language="Serbian",
     char_to_order_map=WINDOWS_1251_SERBIAN_CHAR_TO_ORDER,
     language_model=SERBIAN_LANG_MODEL,
-    typical_positive_ratio=0.9899254180056669,
+    typical_positive_ratio=0.9868196234890055,
     keep_ascii_letters=False,
     alphabet="ЂЈЉЊЋЏАБВГДЕЖЗИКЛМНОПРСТУФХЦЧШабвгдежзиклмнопрстуфхцчшђјљњћџ",
 )
@@ -4527,7 +4527,7 @@ MACCYRILLIC_SERBIAN_MODEL = SingleByteCharSetModel(
     language="Serbian",
     char_to_order_map=MACCYRILLIC_SERBIAN_CHAR_TO_ORDER,
     language_model=SERBIAN_LANG_MODEL,
-    typical_positive_ratio=0.9899254180056669,
+    typical_positive_ratio=0.9868196234890055,
     keep_ascii_letters=False,
     alphabet="ЂЈЉЊЋЏАБВГДЕЖЗИКЛМНОПРСТУФХЦЧШабвгдежзиклмнопрстуфхцчшђјљњћџ",
 )
@@ -4796,7 +4796,7 @@ CP855_SERBIAN_MODEL = SingleByteCharSetModel(
     language="Serbian",
     char_to_order_map=CP855_SERBIAN_CHAR_TO_ORDER,
     language_model=SERBIAN_LANG_MODEL,
-    typical_positive_ratio=0.9899254180056669,
+    typical_positive_ratio=0.9868196234890055,
     keep_ascii_letters=False,
     alphabet="ЂЈЉЊЋЏАБВГДЕЖЗИКЛМНОПРСТУФХЦЧШабвгдежзиклмнопрстуфхцчшђјљњћџ",
 )

@@ -3077,7 +3077,7 @@ ISO_8859_1_ENGLISH_MODEL = SingleByteCharSetModel(
     language="English",
     char_to_order_map=ISO_8859_1_ENGLISH_CHAR_TO_ORDER,
     language_model=ENGLISH_LANG_MODEL,
-    typical_positive_ratio=0.9905896455165885,
+    typical_positive_ratio=0.9879004951327317,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
 )
@@ -3346,7 +3346,7 @@ WINDOWS_1252_ENGLISH_MODEL = SingleByteCharSetModel(
     language="English",
     char_to_order_map=WINDOWS_1252_ENGLISH_CHAR_TO_ORDER,
     language_model=ENGLISH_LANG_MODEL,
-    typical_positive_ratio=0.9905896455165885,
+    typical_positive_ratio=0.9879004951327317,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
 )
@@ -3615,7 +3615,7 @@ MACROMAN_ENGLISH_MODEL = SingleByteCharSetModel(
     language="English",
     char_to_order_map=MACROMAN_ENGLISH_CHAR_TO_ORDER,
     language_model=ENGLISH_LANG_MODEL,
-    typical_positive_ratio=0.9905896455165885,
+    typical_positive_ratio=0.9879004951327317,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
 )

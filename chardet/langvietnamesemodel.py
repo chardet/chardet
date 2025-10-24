@@ -3749,7 +3749,7 @@ WINDOWS_1258_VIETNAMESE_MODEL = SingleByteCharSetModel(
     language="Vietnamese",
     char_to_order_map=WINDOWS_1258_VIETNAMESE_CHAR_TO_ORDER,
     language_model=VIETNAMESE_LANG_MODEL,
-    typical_positive_ratio=0.986724747914494,
+    typical_positive_ratio=0.982924440640517,
     keep_ascii_letters=False,
     alphabet="ABCDEGHIKLMNOPQRSTUVXYabcdeghiklmnopqrstuvxyÂÊÔâêôĂăĐđƠơƯư",
 )

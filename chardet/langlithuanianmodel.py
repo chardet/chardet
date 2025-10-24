@@ -4493,7 +4493,7 @@ ISO_8859_13_LITHUANIAN_MODEL = SingleByteCharSetModel(
     language="Lithuanian",
     char_to_order_map=ISO_8859_13_LITHUANIAN_CHAR_TO_ORDER,
     language_model=LITHUANIAN_LANG_MODEL,
-    typical_positive_ratio=0.9808595211834013,
+    typical_positive_ratio=0.9751238723329246,
     keep_ascii_letters=False,
     alphabet="ABCDEFGHIJKLMNOPRSTUVYZabcdefghijklmnoprstuvyzĄąČčĖėĘęĮįŠšŪūŲųŽž",
 )
@@ -4762,7 +4762,7 @@ WINDOWS_1257_LITHUANIAN_MODEL = SingleByteCharSetModel(
     language="Lithuanian",
     char_to_order_map=WINDOWS_1257_LITHUANIAN_CHAR_TO_ORDER,
     language_model=LITHUANIAN_LANG_MODEL,
-    typical_positive_ratio=0.9808595211834013,
+    typical_positive_ratio=0.9751238723329246,
     keep_ascii_letters=False,
     alphabet="ABCDEFGHIJKLMNOPRSTUVYZabcdefghijklmnoprstuvyzĄąČčĖėĘęĮįŠšŪūŲųŽž",
 )
@@ -5031,7 +5031,7 @@ ISO_8859_4_LITHUANIAN_MODEL = SingleByteCharSetModel(
     language="Lithuanian",
     char_to_order_map=ISO_8859_4_LITHUANIAN_CHAR_TO_ORDER,
     language_model=LITHUANIAN_LANG_MODEL,
-    typical_positive_ratio=0.9808595211834013,
+    typical_positive_ratio=0.9751238723329246,
     keep_ascii_letters=False,
     alphabet="ABCDEFGHIJKLMNOPRSTUVYZabcdefghijklmnoprstuvyzĄąČčĖėĘęĮįŠšŪūŲųŽž",
 )

@@ -7157,7 +7157,7 @@ ISO_8859_2_CZECH_MODEL = SingleByteCharSetModel(
     language="Czech",
     char_to_order_map=ISO_8859_2_CZECH_CHAR_TO_ORDER,
     language_model=CZECH_LANG_MODEL,
-    typical_positive_ratio=0.9448726989508102,
+    typical_positive_ratio=0.929990660924682,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÁÉÍÓÚÝáéíóúýČčĎďĚěŇňŘřŠšŤťŮůŽž",
 )
@@ -7426,7 +7426,7 @@ WINDOWS_1250_CZECH_MODEL = SingleByteCharSetModel(
     language="Czech",
     char_to_order_map=WINDOWS_1250_CZECH_CHAR_TO_ORDER,
     language_model=CZECH_LANG_MODEL,
-    typical_positive_ratio=0.9448726989508102,
+    typical_positive_ratio=0.929990660924682,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÁÉÍÓÚÝáéíóúýČčĎďĚěŇňŘřŠšŤťŮůŽž",
 )

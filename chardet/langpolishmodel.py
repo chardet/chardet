@@ -4493,7 +4493,7 @@ ISO_8859_2_POLISH_MODEL = SingleByteCharSetModel(
     language="Polish",
     char_to_order_map=ISO_8859_2_POLISH_CHAR_TO_ORDER,
     language_model=POLISH_LANG_MODEL,
-    typical_positive_ratio=0.97235241870341,
+    typical_positive_ratio=0.9640827083101791,
     keep_ascii_letters=False,
     alphabet="ABCDEFGHIJKLMNOPRSTUWYZabcdefghijklmnoprstuwyzÓóĄąĆćĘęŁłŃńŚśŹźŻż",
 )
@@ -4762,7 +4762,7 @@ WINDOWS_1250_POLISH_MODEL = SingleByteCharSetModel(
     language="Polish",
     char_to_order_map=WINDOWS_1250_POLISH_CHAR_TO_ORDER,
     language_model=POLISH_LANG_MODEL,
-    typical_positive_ratio=0.97235241870341,
+    typical_positive_ratio=0.9640827083101791,
     keep_ascii_letters=False,
     alphabet="ABCDEFGHIJKLMNOPRSTUWYZabcdefghijklmnoprstuwyzÓóĄąĆćĘęŁłŃńŚśŹźŻż",
 )

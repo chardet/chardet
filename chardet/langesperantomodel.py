@@ -3517,7 +3517,7 @@ ISO_8859_3_ESPERANTO_MODEL = SingleByteCharSetModel(
     language="Esperanto",
     char_to_order_map=ISO_8859_3_ESPERANTO_CHAR_TO_ORDER,
     language_model=ESPERANTO_LANG_MODEL,
-    typical_positive_ratio=0.9910726134044392,
+    typical_positive_ratio=0.9884991907931365,
     keep_ascii_letters=False,
     alphabet="ABCDEFGHIJKLMNOPRSTUVZabcdefghijklmnoprstuvzĈĉĜĝĤĥĴĵŜŝŬŭ",
 )

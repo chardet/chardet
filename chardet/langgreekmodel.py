@@ -4364,7 +4364,7 @@ ISO_8859_7_GREEK_MODEL = SingleByteCharSetModel(
     language="Greek",
     char_to_order_map=ISO_8859_7_GREEK_CHAR_TO_ORDER,
     language_model=GREEK_LANG_MODEL,
-    typical_positive_ratio=0.9675801704814612,
+    typical_positive_ratio=0.957545226835213,
     keep_ascii_letters=False,
     alphabet="ΆΈΉΊΌΎΏΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩάέήίαβγδεζηθικλμνξοπρςστυφχψωόύώ",
 )
@@ -4633,7 +4633,7 @@ WINDOWS_1253_GREEK_MODEL = SingleByteCharSetModel(
     language="Greek",
     char_to_order_map=WINDOWS_1253_GREEK_CHAR_TO_ORDER,
     language_model=GREEK_LANG_MODEL,
-    typical_positive_ratio=0.9675801704814612,
+    typical_positive_ratio=0.957545226835213,
     keep_ascii_letters=False,
     alphabet="ΆΈΉΊΌΎΏΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩάέήίαβγδεζηθικλμνξοπρςστυφχψωόύώ",
 )

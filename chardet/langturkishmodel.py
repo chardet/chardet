@@ -4493,7 +4493,7 @@ ISO_8859_3_TURKISH_MODEL = SingleByteCharSetModel(
     language="Turkish",
     char_to_order_map=ISO_8859_3_TURKISH_CHAR_TO_ORDER,
     language_model=TURKISH_LANG_MODEL,
-    typical_positive_ratio=0.9761680510160204,
+    typical_positive_ratio=0.9691003258834514,
     keep_ascii_letters=False,
     alphabet="ABCDEFGHIJKLMNOPRSTUVYZabcdefghijklmnoprstuvyzÂÇÎÖÛÜâçîöûüĞğİıŞş",
 )
@@ -4762,7 +4762,7 @@ ISO_8859_9_TURKISH_MODEL = SingleByteCharSetModel(
     language="Turkish",
     char_to_order_map=ISO_8859_9_TURKISH_CHAR_TO_ORDER,
     language_model=TURKISH_LANG_MODEL,
-    typical_positive_ratio=0.9761680510160204,
+    typical_positive_ratio=0.9691003258834514,
     keep_ascii_letters=False,
     alphabet="ABCDEFGHIJKLMNOPRSTUVYZabcdefghijklmnoprstuvyzÂÇÎÖÛÜâçîöûüĞğİıŞş",
 )
@@ -5031,7 +5031,7 @@ WINDOWS_1254_TURKISH_MODEL = SingleByteCharSetModel(
     language="Turkish",
     char_to_order_map=WINDOWS_1254_TURKISH_CHAR_TO_ORDER,
     language_model=TURKISH_LANG_MODEL,
-    typical_positive_ratio=0.9761680510160204,
+    typical_positive_ratio=0.9691003258834514,
     keep_ascii_letters=False,
     alphabet="ABCDEFGHIJKLMNOPRSTUVYZabcdefghijklmnoprstuvyzÂÇÎÖÛÜâçîöûüĞğİıŞş",
 )

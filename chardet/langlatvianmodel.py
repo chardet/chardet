@@ -4757,7 +4757,7 @@ ISO_8859_13_LATVIAN_MODEL = SingleByteCharSetModel(
     language="Latvian",
     char_to_order_map=ISO_8859_13_LATVIAN_CHAR_TO_ORDER,
     language_model=LATVIAN_LANG_MODEL,
-    typical_positive_ratio=0.9711189893662547,
+    typical_positive_ratio=0.962638923144007,
     keep_ascii_letters=False,
     alphabet="ABCDEFGHIJKLMNOPRSTUVZabcdefghijklmnoprstuvzĀāČčĒēĢģĪīĶķĻļŅņŠšŪūŽž",
 )
@@ -5026,7 +5026,7 @@ WINDOWS_1257_LATVIAN_MODEL = SingleByteCharSetModel(
     language="Latvian",
     char_to_order_map=WINDOWS_1257_LATVIAN_CHAR_TO_ORDER,
     language_model=LATVIAN_LANG_MODEL,
-    typical_positive_ratio=0.9711189893662547,
+    typical_positive_ratio=0.962638923144007,
     keep_ascii_letters=False,
     alphabet="ABCDEFGHIJKLMNOPRSTUVZabcdefghijklmnoprstuvzĀāČčĒēĢģĪīĶķĻļŅņŠšŪūŽž",
 )
@@ -5295,7 +5295,7 @@ ISO_8859_4_LATVIAN_MODEL = SingleByteCharSetModel(
     language="Latvian",
     char_to_order_map=ISO_8859_4_LATVIAN_CHAR_TO_ORDER,
     language_model=LATVIAN_LANG_MODEL,
-    typical_positive_ratio=0.9711189893662547,
+    typical_positive_ratio=0.962638923144007,
     keep_ascii_letters=False,
     alphabet="ABCDEFGHIJKLMNOPRSTUVZabcdefghijklmnoprstuvzĀāČčĒēĢģĪīĶķĻļŅņŠšŪūŽž",
 )

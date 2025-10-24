@@ -37,7 +37,7 @@ from functools import partial
 from multiprocessing import Pool
 from operator import itemgetter
 from string import ascii_letters
-from typing import Iterable, Optional
+from typing import Iterable, Mapping
 
 try:
     from mediawiki import MediaWiki
@@ -96,7 +96,7 @@ def get_charset_mappings(
     char_ranks: dict[str, int],
     alphabet_set: set[str],
     keep_ascii_letters=False,
-) -> tuple[dict[int, int], dict[str, bytes]]:
+) -> tuple[dict[int, CharacterCategory], dict[str, bytes]]:
     """Returns `charset_categories` & `charset_code_points` mappings for charset
 
     `charset_categories` maps from bytes in charset/encoding to categories
@@ -329,7 +329,7 @@ def generate_sbcs_model(
     *,
     charset_name: str,
     language: str,
-    language_model: dict[str, dict[str, int]],
+    language_model: Mapping[str, Mapping[str, int]],
     char_ranks: dict[str, int],
     keep_ascii_letters: bool,
     alphabet_set: set[str],
@@ -365,11 +365,7 @@ def generate_sbcs_model(
 
     # Ratio is: "Of bigrams this charset can encode, what % are POSITIVE?"
     # Not: "Of all UTF-8 bigrams (including un-encodable), what % are POSITIVE?"
-    pos_ratio = (
-        ((pos_count + 0.25 * likely_count) / charset_bigram_count)
-        if charset_bigram_count
-        else 0
-    )
+    pos_ratio = (pos_count / charset_bigram_count) if charset_bigram_count else 0
 
     curr_model = SingleByteCharSetModel(
         charset_name=charset_name,
@@ -404,10 +400,6 @@ def print_char_to_order(var_name, order_map, charset_name, output_file):
 
 
 def print_language_model(var_name, language_model, output_file, char_ranks):
-    print(
-        "from chardet.enums import CharacterCategory, SequenceLikelihood\n",
-        file=output_file,
-    )
     print(f"{var_name} = {{", file=output_file)
     for first_char, sub_dict in sorted(language_model.items()):
         # Skip empty sub_dicts
@@ -430,7 +422,7 @@ def train_model_for_lang(
     language: str,
     *,
     depth: int,
-    input_encoding: Optional[str],
+    input_encoding: str,
     input_paths: list[str],
     max_pages: int,
     wiki_folder: str,
@@ -538,7 +530,10 @@ def train_model_for_lang(
         upper_lang = language.upper()
         # print header to set encoding
         print(
-            "from chardet.sbcharsetprober import SingleByteCharSetModel\n\n",
+            (
+                "from chardet.enums import CharacterCategory, SequenceLikelihood\n"
+                "from chardet.sbcharsetprober import SingleByteCharSetModel\n\n"
+            ),
             file=output_file,
         )
 

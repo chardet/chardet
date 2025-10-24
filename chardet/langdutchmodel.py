@@ -3077,7 +3077,7 @@ ISO_8859_1_DUTCH_MODEL = SingleByteCharSetModel(
     language="Dutch",
     char_to_order_map=ISO_8859_1_DUTCH_CHAR_TO_ORDER,
     language_model=DUTCH_LANG_MODEL,
-    typical_positive_ratio=0.989376532265091,
+    typical_positive_ratio=0.9862700074990713,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
 )
@@ -3346,7 +3346,7 @@ WINDOWS_1252_DUTCH_MODEL = SingleByteCharSetModel(
     language="Dutch",
     char_to_order_map=WINDOWS_1252_DUTCH_CHAR_TO_ORDER,
     language_model=DUTCH_LANG_MODEL,
-    typical_positive_ratio=0.989376532265091,
+    typical_positive_ratio=0.9862700074990713,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
 )
@@ -3615,7 +3615,7 @@ MACROMAN_DUTCH_MODEL = SingleByteCharSetModel(
     language="Dutch",
     char_to_order_map=MACROMAN_DUTCH_CHAR_TO_ORDER,
     language_model=DUTCH_LANG_MODEL,
-    typical_positive_ratio=0.989376532265091,
+    typical_positive_ratio=0.9862700074990713,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
 )

@@ -2869,7 +2869,7 @@ ISO_8859_2_SLOVENE_MODEL = SingleByteCharSetModel(
     language="Slovene",
     char_to_order_map=ISO_8859_2_SLOVENE_CHAR_TO_ORDER,
     language_model=SLOVENE_LANG_MODEL,
-    typical_positive_ratio=0.9896331085446977,
+    typical_positive_ratio=0.9864393065224669,
     keep_ascii_letters=False,
     alphabet="ABCDEFGHIJKLMNOPRSTUVZabcdefghijklmnoprstuvzČčŠšŽž",
 )
@@ -3138,7 +3138,7 @@ WINDOWS_1250_SLOVENE_MODEL = SingleByteCharSetModel(
     language="Slovene",
     char_to_order_map=WINDOWS_1250_SLOVENE_CHAR_TO_ORDER,
     language_model=SLOVENE_LANG_MODEL,
-    typical_positive_ratio=0.9896331085446977,
+    typical_positive_ratio=0.9864393065224669,
     keep_ascii_letters=False,
     alphabet="ABCDEFGHIJKLMNOPRSTUVZabcdefghijklmnoprstuvzČčŠšŽž",
 )

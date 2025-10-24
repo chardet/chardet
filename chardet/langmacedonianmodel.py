@@ -4237,7 +4237,7 @@ ISO_8859_5_MACEDONIAN_MODEL = SingleByteCharSetModel(
     language="Macedonian",
     char_to_order_map=ISO_8859_5_MACEDONIAN_CHAR_TO_ORDER,
     language_model=MACEDONIAN_LANG_MODEL,
-    typical_positive_ratio=0.9916816235323082,
+    typical_positive_ratio=0.9891035554127158,
     keep_ascii_letters=False,
     alphabet="ЃЅЈЉЊЌЏАБВГДЕЖЗИКЛМНОПРСТУФХЦЧШабвгдежзиклмнопрстуфхцчшѓѕјљњќџ",
 )
@@ -4506,7 +4506,7 @@ WINDOWS_1251_MACEDONIAN_MODEL = SingleByteCharSetModel(
     language="Macedonian",
     char_to_order_map=WINDOWS_1251_MACEDONIAN_CHAR_TO_ORDER,
     language_model=MACEDONIAN_LANG_MODEL,
-    typical_positive_ratio=0.9916816235323082,
+    typical_positive_ratio=0.9891035554127158,
     keep_ascii_letters=False,
     alphabet="ЃЅЈЉЊЌЏАБВГДЕЖЗИКЛМНОПРСТУФХЦЧШабвгдежзиклмнопрстуфхцчшѓѕјљњќџ",
 )
@@ -4775,7 +4775,7 @@ MACCYRILLIC_MACEDONIAN_MODEL = SingleByteCharSetModel(
     language="Macedonian",
     char_to_order_map=MACCYRILLIC_MACEDONIAN_CHAR_TO_ORDER,
     language_model=MACEDONIAN_LANG_MODEL,
-    typical_positive_ratio=0.9916816235323082,
+    typical_positive_ratio=0.9891035554127158,
     keep_ascii_letters=False,
     alphabet="ЃЅЈЉЊЌЏАБВГДЕЖЗИКЛМНОПРСТУФХЦЧШабвгдежзиклмнопрстуфхцчшѓѕјљњќџ",
 )
@@ -5044,7 +5044,7 @@ CP855_MACEDONIAN_MODEL = SingleByteCharSetModel(
     language="Macedonian",
     char_to_order_map=CP855_MACEDONIAN_CHAR_TO_ORDER,
     language_model=MACEDONIAN_LANG_MODEL,
-    typical_positive_ratio=0.9916816235323082,
+    typical_positive_ratio=0.9891035554127158,
     keep_ascii_letters=False,
     alphabet="ЃЅЈЉЊЌЏАБВГДЕЖЗИКЛМНОПРСТУФХЦЧШабвгдежзиклмнопрстуфхцчшѓѕјљњќџ",
 )

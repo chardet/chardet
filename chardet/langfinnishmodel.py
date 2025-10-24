@@ -4237,7 +4237,7 @@ ISO_8859_1_FINNISH_MODEL = SingleByteCharSetModel(
     language="Finnish",
     char_to_order_map=ISO_8859_1_FINNISH_CHAR_TO_ORDER,
     language_model=FINNISH_LANG_MODEL,
-    typical_positive_ratio=0.9913981715028859,
+    typical_positive_ratio=0.9889632515458197,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÄÅÖäåöŠšŽž",
 )
@@ -4506,7 +4506,7 @@ ISO_8859_15_FINNISH_MODEL = SingleByteCharSetModel(
     language="Finnish",
     char_to_order_map=ISO_8859_15_FINNISH_CHAR_TO_ORDER,
     language_model=FINNISH_LANG_MODEL,
-    typical_positive_ratio=0.9910566493915584,
+    typical_positive_ratio=0.9885320677293699,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÄÅÖäåöŠšŽž",
 )
@@ -4775,7 +4775,7 @@ WINDOWS_1252_FINNISH_MODEL = SingleByteCharSetModel(
     language="Finnish",
     char_to_order_map=WINDOWS_1252_FINNISH_CHAR_TO_ORDER,
     language_model=FINNISH_LANG_MODEL,
-    typical_positive_ratio=0.9910566493915584,
+    typical_positive_ratio=0.9885320677293699,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÄÅÖäåöŠšŽž",
 )
@@ -5044,7 +5044,7 @@ MACROMAN_FINNISH_MODEL = SingleByteCharSetModel(
     language="Finnish",
     char_to_order_map=MACROMAN_FINNISH_CHAR_TO_ORDER,
     language_model=FINNISH_LANG_MODEL,
-    typical_positive_ratio=0.9913981715028859,
+    typical_positive_ratio=0.9889632515458197,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÄÅÖäåöŠšŽž",
 )

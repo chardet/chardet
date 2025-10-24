@@ -2477,7 +2477,7 @@ ISO_8859_4_ESTONIAN_MODEL = SingleByteCharSetModel(
     language="Estonian",
     char_to_order_map=ISO_8859_4_ESTONIAN_CHAR_TO_ORDER,
     language_model=ESTONIAN_LANG_MODEL,
-    typical_positive_ratio=0.9942555604873318,
+    typical_positive_ratio=0.9924161606626312,
     keep_ascii_letters=False,
     alphabet="ABDEGHIJKLMNOPRSTUVabdeghijklmnoprstuvÄÕÖÜäõöü",
 )
@@ -2746,7 +2746,7 @@ ISO_8859_13_ESTONIAN_MODEL = SingleByteCharSetModel(
     language="Estonian",
     char_to_order_map=ISO_8859_13_ESTONIAN_CHAR_TO_ORDER,
     language_model=ESTONIAN_LANG_MODEL,
-    typical_positive_ratio=0.9942555604873318,
+    typical_positive_ratio=0.9924161606626312,
     keep_ascii_letters=False,
     alphabet="ABDEGHIJKLMNOPRSTUVabdeghijklmnoprstuvÄÕÖÜäõöü",
 )
@@ -3015,7 +3015,7 @@ WINDOWS_1257_ESTONIAN_MODEL = SingleByteCharSetModel(
     language="Estonian",
     char_to_order_map=WINDOWS_1257_ESTONIAN_CHAR_TO_ORDER,
     language_model=ESTONIAN_LANG_MODEL,
-    typical_positive_ratio=0.9942555604873318,
+    typical_positive_ratio=0.9924161606626312,
     keep_ascii_letters=False,
     alphabet="ABDEGHIJKLMNOPRSTUVabdeghijklmnoprstuvÄÕÖÜäõöü",
 )

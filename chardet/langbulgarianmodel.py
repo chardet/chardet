@@ -3989,7 +3989,7 @@ ISO_8859_5_BULGARIAN_MODEL = SingleByteCharSetModel(
     language="Bulgarian",
     char_to_order_map=ISO_8859_5_BULGARIAN_CHAR_TO_ORDER,
     language_model=BULGARIAN_LANG_MODEL,
-    typical_positive_ratio=0.9839222052640769,
+    typical_positive_ratio=0.9789787045212851,
     keep_ascii_letters=False,
     alphabet="АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЬЮЯабвгдежзийклмнопрстуфхцчшщъьюя",
 )
@@ -4258,7 +4258,7 @@ WINDOWS_1251_BULGARIAN_MODEL = SingleByteCharSetModel(
     language="Bulgarian",
     char_to_order_map=WINDOWS_1251_BULGARIAN_CHAR_TO_ORDER,
     language_model=BULGARIAN_LANG_MODEL,
-    typical_positive_ratio=0.9839222052640769,
+    typical_positive_ratio=0.9789787045212851,
     keep_ascii_letters=False,
     alphabet="АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЬЮЯабвгдежзийклмнопрстуфхцчшщъьюя",
 )
@@ -4527,7 +4527,7 @@ CP855_BULGARIAN_MODEL = SingleByteCharSetModel(
     language="Bulgarian",
     char_to_order_map=CP855_BULGARIAN_CHAR_TO_ORDER,
     language_model=BULGARIAN_LANG_MODEL,
-    typical_positive_ratio=0.9839222052640769,
+    typical_positive_ratio=0.9789787045212851,
     keep_ascii_letters=False,
     alphabet="АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЬЮЯабвгдежзийклмнопрстуфхцчшщъьюя",
 )

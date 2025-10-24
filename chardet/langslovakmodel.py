@@ -7837,7 +7837,7 @@ ISO_8859_2_SLOVAK_MODEL = SingleByteCharSetModel(
     language="Slovak",
     char_to_order_map=ISO_8859_2_SLOVAK_CHAR_TO_ORDER,
     language_model=SLOVAK_LANG_MODEL,
-    typical_positive_ratio=0.9458352601470785,
+    typical_positive_ratio=0.9312315476105716,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÁÄÉÍÓÔÚÝáäéíóôúýČčĎďĹĺĽľŇňŔŕŠšŤťŽž",
 )
@@ -8106,7 +8106,7 @@ WINDOWS_1250_SLOVAK_MODEL = SingleByteCharSetModel(
     language="Slovak",
     char_to_order_map=WINDOWS_1250_SLOVAK_CHAR_TO_ORDER,
     language_model=SLOVAK_LANG_MODEL,
-    typical_positive_ratio=0.9458352601470785,
+    typical_positive_ratio=0.9312315476105716,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÁÄÉÍÓÔÚÝáäéíóôúýČčĎďĹĺĽľŇňŔŕŠšŤťŽž",
 )

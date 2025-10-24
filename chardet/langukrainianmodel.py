@@ -4892,7 +4892,7 @@ ISO_8859_5_UKRAINIAN_MODEL = SingleByteCharSetModel(
     language="Ukrainian",
     char_to_order_map=ISO_8859_5_UKRAINIAN_CHAR_TO_ORDER,
     language_model=UKRAINIAN_LANG_MODEL,
-    typical_positive_ratio=0.9763411944231235,
+    typical_positive_ratio=0.9694712709408738,
     keep_ascii_letters=False,
     alphabet="ʼЄІЇАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЮЯабвгдежзийклмнопрстуфхцчшщьюяєіїҐґ",
 )
@@ -5161,7 +5161,7 @@ WINDOWS_1251_UKRAINIAN_MODEL = SingleByteCharSetModel(
     language="Ukrainian",
     char_to_order_map=WINDOWS_1251_UKRAINIAN_CHAR_TO_ORDER,
     language_model=UKRAINIAN_LANG_MODEL,
-    typical_positive_ratio=0.9760817430855385,
+    typical_positive_ratio=0.9691725712484943,
     keep_ascii_letters=False,
     alphabet="ʼЄІЇАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЮЯабвгдежзийклмнопрстуфхцчшщьюяєіїҐґ",
 )
@@ -5430,7 +5430,7 @@ KOI8_U_UKRAINIAN_MODEL = SingleByteCharSetModel(
     language="Ukrainian",
     char_to_order_map=KOI8_U_UKRAINIAN_CHAR_TO_ORDER,
     language_model=UKRAINIAN_LANG_MODEL,
-    typical_positive_ratio=0.9760817430855385,
+    typical_positive_ratio=0.9691725712484943,
     keep_ascii_letters=False,
     alphabet="ʼЄІЇАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЮЯабвгдежзийклмнопрстуфхцчшщьюяєіїҐґ",
 )
@@ -5699,7 +5699,7 @@ MACCYRILLIC_UKRAINIAN_MODEL = SingleByteCharSetModel(
     language="Ukrainian",
     char_to_order_map=MACCYRILLIC_UKRAINIAN_CHAR_TO_ORDER,
     language_model=UKRAINIAN_LANG_MODEL,
-    typical_positive_ratio=0.9760817430855385,
+    typical_positive_ratio=0.9691725712484943,
     keep_ascii_letters=False,
     alphabet="ʼЄІЇАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЮЯабвгдежзийклмнопрстуфхцчшщьюяєіїҐґ",
 )
@@ -5968,7 +5968,7 @@ CP1125_UKRAINIAN_MODEL = SingleByteCharSetModel(
     language="Ukrainian",
     char_to_order_map=CP1125_UKRAINIAN_CHAR_TO_ORDER,
     language_model=UKRAINIAN_LANG_MODEL,
-    typical_positive_ratio=0.9760817430855385,
+    typical_positive_ratio=0.9691725712484943,
     keep_ascii_letters=False,
     alphabet="ʼЄІЇАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЮЯабвгдежзийклмнопрстуфхцчшщьюяєіїҐґ",
 )

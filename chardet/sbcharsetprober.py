@@ -35,8 +35,8 @@ from .enums import CharacterCategory, ProbingState, SequenceLikelihood
 class SingleByteCharSetModel(NamedTuple):
     charset_name: str
     language: str
-    char_to_order_map: dict[int, int]
-    language_model: dict[int, dict[int, int]]
+    char_to_order_map: dict[int, CharacterCategory]
+    language_model: dict[int, dict[int, SequenceLikelihood]]
     typical_positive_ratio: float
     keep_ascii_letters: bool
     alphabet: str

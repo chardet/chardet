@@ -3749,7 +3749,7 @@ ISO_8859_1_DANISH_MODEL = SingleByteCharSetModel(
     language="Danish",
     char_to_order_map=ISO_8859_1_DANISH_CHAR_TO_ORDER,
     language_model=DANISH_LANG_MODEL,
-    typical_positive_ratio=0.9823679172839044,
+    typical_positive_ratio=0.9771074608656278,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÅÆØåæø",
 )
@@ -4018,7 +4018,7 @@ ISO_8859_15_DANISH_MODEL = SingleByteCharSetModel(
     language="Danish",
     char_to_order_map=ISO_8859_15_DANISH_CHAR_TO_ORDER,
     language_model=DANISH_LANG_MODEL,
-    typical_positive_ratio=0.9823679172839044,
+    typical_positive_ratio=0.9771074608656278,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÅÆØåæø",
 )
@@ -4287,7 +4287,7 @@ WINDOWS_1252_DANISH_MODEL = SingleByteCharSetModel(
     language="Danish",
     char_to_order_map=WINDOWS_1252_DANISH_CHAR_TO_ORDER,
     language_model=DANISH_LANG_MODEL,
-    typical_positive_ratio=0.9823679172839044,
+    typical_positive_ratio=0.9771074608656278,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÅÆØåæø",
 )
@@ -4556,7 +4556,7 @@ MACROMAN_DANISH_MODEL = SingleByteCharSetModel(
     language="Danish",
     char_to_order_map=MACROMAN_DANISH_CHAR_TO_ORDER,
     language_model=DANISH_LANG_MODEL,
-    typical_positive_ratio=0.9823679172839044,
+    typical_positive_ratio=0.9771074608656278,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÅÆØåæø",
 )

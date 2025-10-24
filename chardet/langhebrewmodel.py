@@ -1229,7 +1229,7 @@ ISO_8859_8_HEBREW_MODEL = SingleByteCharSetModel(
     language="Hebrew",
     char_to_order_map=ISO_8859_8_HEBREW_CHAR_TO_ORDER,
     language_model=HEBREW_LANG_MODEL,
-    typical_positive_ratio=0.9991066847662974,
+    typical_positive_ratio=0.9988089130217298,
     keep_ascii_letters=False,
     alphabet="אבגדהוזחטיךכלםמןנסעףפץצקרשתװױײ",
 )
@@ -1498,7 +1498,7 @@ WINDOWS_1255_HEBREW_MODEL = SingleByteCharSetModel(
     language="Hebrew",
     char_to_order_map=WINDOWS_1255_HEBREW_CHAR_TO_ORDER,
     language_model=HEBREW_LANG_MODEL,
-    typical_positive_ratio=0.9991058160617837,
+    typical_positive_ratio=0.998807754749045,
     keep_ascii_letters=False,
     alphabet="אבגדהוזחטיךכלםמןנסעףפץצקרשתװױײ",
 )

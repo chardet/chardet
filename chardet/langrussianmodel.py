@@ -4757,7 +4757,7 @@ ISO_8859_5_RUSSIAN_MODEL = SingleByteCharSetModel(
     language="Russian",
     char_to_order_map=ISO_8859_5_RUSSIAN_CHAR_TO_ORDER,
     language_model=RUSSIAN_LANG_MODEL,
-    typical_positive_ratio=0.9759095507333256,
+    typical_positive_ratio=0.9688998304257301,
     keep_ascii_letters=False,
     alphabet="ЁАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюяё",
 )
@@ -5026,7 +5026,7 @@ WINDOWS_1251_RUSSIAN_MODEL = SingleByteCharSetModel(
     language="Russian",
     char_to_order_map=WINDOWS_1251_RUSSIAN_CHAR_TO_ORDER,
     language_model=RUSSIAN_LANG_MODEL,
-    typical_positive_ratio=0.9759095507333256,
+    typical_positive_ratio=0.9688998304257301,
     keep_ascii_letters=False,
     alphabet="ЁАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюяё",
 )
@@ -5295,7 +5295,7 @@ KOI8_R_RUSSIAN_MODEL = SingleByteCharSetModel(
     language="Russian",
     char_to_order_map=KOI8_R_RUSSIAN_CHAR_TO_ORDER,
     language_model=RUSSIAN_LANG_MODEL,
-    typical_positive_ratio=0.9759095507333256,
+    typical_positive_ratio=0.9688998304257301,
     keep_ascii_letters=False,
     alphabet="ЁАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюяё",
 )
@@ -5564,7 +5564,7 @@ MACCYRILLIC_RUSSIAN_MODEL = SingleByteCharSetModel(
     language="Russian",
     char_to_order_map=MACCYRILLIC_RUSSIAN_CHAR_TO_ORDER,
     language_model=RUSSIAN_LANG_MODEL,
-    typical_positive_ratio=0.9759095507333256,
+    typical_positive_ratio=0.9688998304257301,
     keep_ascii_letters=False,
     alphabet="ЁАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюяё",
 )
@@ -5833,7 +5833,7 @@ CP866_RUSSIAN_MODEL = SingleByteCharSetModel(
     language="Russian",
     char_to_order_map=CP866_RUSSIAN_CHAR_TO_ORDER,
     language_model=RUSSIAN_LANG_MODEL,
-    typical_positive_ratio=0.9759095507333256,
+    typical_positive_ratio=0.9688998304257301,
     keep_ascii_letters=False,
     alphabet="ЁАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюяё",
 )
@@ -6102,7 +6102,7 @@ CP855_RUSSIAN_MODEL = SingleByteCharSetModel(
     language="Russian",
     char_to_order_map=CP855_RUSSIAN_CHAR_TO_ORDER,
     language_model=RUSSIAN_LANG_MODEL,
-    typical_positive_ratio=0.9759095507333256,
+    typical_positive_ratio=0.9688998304257301,
     keep_ascii_letters=False,
     alphabet="ЁАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюяё",
 )

@@ -4237,7 +4237,7 @@ ISO_8859_2_ROMANIAN_MODEL = SingleByteCharSetModel(
     language="Romanian",
     char_to_order_map=ISO_8859_2_ROMANIAN_CHAR_TO_ORDER,
     language_model=ROMANIAN_LANG_MODEL,
-    typical_positive_ratio=0.9871249880713481,
+    typical_positive_ratio=0.9834202947912889,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÂÎâîĂăȘșȚț",
 )
@@ -4506,7 +4506,7 @@ WINDOWS_1250_ROMANIAN_MODEL = SingleByteCharSetModel(
     language="Romanian",
     char_to_order_map=WINDOWS_1250_ROMANIAN_CHAR_TO_ORDER,
     language_model=ROMANIAN_LANG_MODEL,
-    typical_positive_ratio=0.9871249880713481,
+    typical_positive_ratio=0.9834202947912889,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÂÎâîĂăȘșȚț",
 )

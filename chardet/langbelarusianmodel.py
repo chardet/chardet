@@ -4624,7 +4624,7 @@ ISO_8859_5_BELARUSIAN_MODEL = SingleByteCharSetModel(
     language="Belarusian",
     char_to_order_map=ISO_8859_5_BELARUSIAN_CHAR_TO_ORDER,
     language_model=BELARUSIAN_LANG_MODEL,
-    typical_positive_ratio=0.9754646324277055,
+    typical_positive_ratio=0.9680991569568315,
     keep_ascii_letters=False,
     alphabet="ʼЁІЎАБВГДЕЖЗЙКЛМНОПРСТУФХЦЧШЫЬЭЮЯабвгдежзйклмнопрстуфхцчшыьэюяёіў",
 )
@@ -4893,7 +4893,7 @@ WINDOWS_1251_BELARUSIAN_MODEL = SingleByteCharSetModel(
     language="Belarusian",
     char_to_order_map=WINDOWS_1251_BELARUSIAN_CHAR_TO_ORDER,
     language_model=BELARUSIAN_LANG_MODEL,
-    typical_positive_ratio=0.9754646324277055,
+    typical_positive_ratio=0.9680991569568315,
     keep_ascii_letters=False,
     alphabet="ʼЁІЎАБВГДЕЖЗЙКЛМНОПРСТУФХЦЧШЫЬЭЮЯабвгдежзйклмнопрстуфхцчшыьэюяёіў",
 )
@@ -5162,7 +5162,7 @@ CP866_BELARUSIAN_MODEL = SingleByteCharSetModel(
     language="Belarusian",
     char_to_order_map=CP866_BELARUSIAN_CHAR_TO_ORDER,
     language_model=BELARUSIAN_LANG_MODEL,
-    typical_positive_ratio=0.9746601842916335,
+    typical_positive_ratio=0.967059731035038,
     keep_ascii_letters=False,
     alphabet="ʼЁІЎАБВГДЕЖЗЙКЛМНОПРСТУФХЦЧШЫЬЭЮЯабвгдежзйклмнопрстуфхцчшыьэюяёіў",
 )
@@ -5431,7 +5431,7 @@ MACCYRILLIC_BELARUSIAN_MODEL = SingleByteCharSetModel(
     language="Belarusian",
     char_to_order_map=MACCYRILLIC_BELARUSIAN_CHAR_TO_ORDER,
     language_model=BELARUSIAN_LANG_MODEL,
-    typical_positive_ratio=0.9754646324277055,
+    typical_positive_ratio=0.9680991569568315,
     keep_ascii_letters=False,
     alphabet="ʼЁІЎАБВГДЕЖЗЙКЛМНОПРСТУФХЦЧШЫЬЭЮЯабвгдежзйклмнопрстуфхцчшыьэюяёіў",
 )

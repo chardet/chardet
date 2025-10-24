@@ -6197,7 +6197,7 @@ ISO_8859_1_PORTUGUESE_MODEL = SingleByteCharSetModel(
     language="Portuguese",
     char_to_order_map=ISO_8859_1_PORTUGUESE_CHAR_TO_ORDER,
     language_model=PORTUGUESE_LANG_MODEL,
-    typical_positive_ratio=0.9812304371948471,
+    typical_positive_ratio=0.9761811680577626,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÀÁÂÃÇÉÊÍÓÔÕÚàáâãçéêíóôõú",
 )
@@ -6466,7 +6466,7 @@ ISO_8859_15_PORTUGUESE_MODEL = SingleByteCharSetModel(
     language="Portuguese",
     char_to_order_map=ISO_8859_15_PORTUGUESE_CHAR_TO_ORDER,
     language_model=PORTUGUESE_LANG_MODEL,
-    typical_positive_ratio=0.9812304371948471,
+    typical_positive_ratio=0.9761811680577626,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÀÁÂÃÇÉÊÍÓÔÕÚàáâãçéêíóôõú",
 )
@@ -6735,7 +6735,7 @@ WINDOWS_1252_PORTUGUESE_MODEL = SingleByteCharSetModel(
     language="Portuguese",
     char_to_order_map=WINDOWS_1252_PORTUGUESE_CHAR_TO_ORDER,
     language_model=PORTUGUESE_LANG_MODEL,
-    typical_positive_ratio=0.9812304371948471,
+    typical_positive_ratio=0.9761811680577626,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÀÁÂÃÇÉÊÍÓÔÕÚàáâãçéêíóôõú",
 )
@@ -7004,7 +7004,7 @@ MACROMAN_PORTUGUESE_MODEL = SingleByteCharSetModel(
     language="Portuguese",
     char_to_order_map=MACROMAN_PORTUGUESE_CHAR_TO_ORDER,
     language_model=PORTUGUESE_LANG_MODEL,
-    typical_positive_ratio=0.9812304371948471,
+    typical_positive_ratio=0.9761811680577626,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÀÁÂÃÇÉÊÍÓÔÕÚàáâãçéêíóôõú",
 )

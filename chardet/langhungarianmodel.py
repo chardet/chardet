@@ -4237,7 +4237,7 @@ ISO_8859_2_HUNGARIAN_MODEL = SingleByteCharSetModel(
     language="Hungarian",
     char_to_order_map=ISO_8859_2_HUNGARIAN_CHAR_TO_ORDER,
     language_model=HUNGARIAN_LANG_MODEL,
-    typical_positive_ratio=0.9607340880766203,
+    typical_positive_ratio=0.9490814418310145,
     keep_ascii_letters=False,
     alphabet="ABCDEFGHIJKLMNOPRSTUVZabcdefghijklmnoprstuvzÁÉÍÓÖÚÜáéíóöúüŐőŰű",
 )
@@ -4506,7 +4506,7 @@ WINDOWS_1250_HUNGARIAN_MODEL = SingleByteCharSetModel(
     language="Hungarian",
     char_to_order_map=WINDOWS_1250_HUNGARIAN_CHAR_TO_ORDER,
     language_model=HUNGARIAN_LANG_MODEL,
-    typical_positive_ratio=0.9607340880766203,
+    typical_positive_ratio=0.9490814418310145,
     keep_ascii_letters=False,
     alphabet="ABCDEFGHIJKLMNOPRSTUVZabcdefghijklmnoprstuvzÁÉÍÓÖÚÜáéíóöúüŐőŰű",
 )
