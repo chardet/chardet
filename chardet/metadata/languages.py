@@ -70,17 +70,21 @@ LANGUAGES = {
         charsets=["ISO-8859-5", "WINDOWS-1251", "CP855", "MacCyrillic"],
         alphabet="АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЬЮЯабвгдежзийклмнопрстуфхцчшщъьюя",
     ),
-    "Celtic": Language(
-        name="Celtic",
-        iso_code="cel",
+    "Breton": Language(
+        name="Breton",
+        iso_code="br",
+        use_ascii=True,
+        charsets=["ISO-8859-14"],
+        alphabet="".join(sorted(set(ascii_letters + "ÀÂÈÊÎÔÙÛàâèêîôùû"))),
+    ),
+    "Welsh": Language(
+        name="Welsh",
+        iso_code="cy",
         use_ascii=True,
         charsets=["ISO-8859-14"],
         alphabet="".join(
             sorted(
-                set(
-                    ascii_letters
-                    + "áéíóúýàèìòùâêîôûäëïöüÿćčġṁṗṡṫẁẃẅỳýŵŷÁÉÍÓÚÝÀÈÌÒÙÂÊÎÔÛÄËÏÖÜŸĆČĠṀṖṠṪẀẂẄỲÝŴŶ"
-                )
+                set(ascii_letters + "ÁÂÄÉÊËÍÎÏÓÔÖÚÛÜÝáâäéêëíîïóôöúûüýÿŴŵŶŷŸẀẁẂẃẄẅỲỳ")
             )
         ),
     ),
@@ -211,6 +215,20 @@ LANGUAGES = {
             sorted(set(ascii_letters + "àâæçèéêëîïôùûüÿÀÂÆÇÈÉÊËÎÏÔÙÛÜŸŒœ"))
         ),
     ),
+    "Irish": Language(
+        name="Irish",
+        iso_code="ga",
+        use_ascii=True,
+        charsets=["ISO-8859-14"],
+        alphabet="".join(sorted(set(ascii_letters + "ÁÉÍÓÚáéíóú"))),
+    ),
+    "Scottish Gaelic": Language(
+        name="Scottish Gaelic",
+        iso_code="gd",
+        use_ascii=True,
+        charsets=["ISO-8859-14"],
+        alphabet="".join(sorted(set(ascii_letters + "ÀÈÌÒÙàèìòù"))),
+    ),
     "Hebrew": Language(
         name="Hebrew",
         iso_code="he",
@@ -269,6 +287,13 @@ LANGUAGES = {
         use_ascii=False,
         charsets=["KZ1048", "PTCP154"],
         alphabet="АӘБВГҒДЕЁЖЗИЙКҚЛМНҢОӨПРСТУҰҮФХҺЦЧШЩЪЫІЬЭЮЯаәбвгғдеёжзийкқлмнңоөпрстууұүфхһцчшщъыіьэюя",
+    ),
+    "Cornish": Language(
+        name="Cornish",
+        iso_code="kw",
+        use_ascii=True,
+        charsets=["ISO-8859-14"],
+        alphabet="".join(sorted(set(ascii_letters + "ÂÊÎÔÛâêîôûŴŵŶŷ"))),
     ),
     "Lithuanian": Language(
         name="Lithuanian",
