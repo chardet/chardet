@@ -33,11 +33,11 @@ import sys
 import unicodedata
 from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
 from collections import Counter, defaultdict
+from collections.abc import Iterable, Mapping
 from functools import partial
 from multiprocessing import Pool
 from operator import itemgetter
 from string import ascii_letters
-from typing import Iterable, Mapping
 
 try:
     from mediawiki import MediaWiki
