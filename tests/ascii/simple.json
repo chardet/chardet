@@ -1,0 +1,23 @@
+{ 
+    "data": {
+      "list_of_things": [
+        {
+          "id": 1,
+          "tags": [
+            "test 1",
+            "test 2",
+            "test 3"
+          ]
+        },
+        {
+          "id": 2,
+          "tags": [
+            "test 4",
+            "test 5",
+            "test 6"
+          ]
+        }
+      ]
+    },
+    "meta": "Hey friends!"
+}

@@ -1,0 +1,1090 @@
+{
+  "@context": "/contexts/Book",
+  "@id": "/books",
+  "@type": "hydra:Collection",
+  "hydra:member": [
+    {
+      "@id": "/books/02720b80-e7a3-4c8d-9fd9-8a3bc4a01ec9",
+      "@type": "http://schema.org/Book",
+      "isbn": "9786011869539",
+      "title": "Laboriosam nisi sed recusandae placeat accusantium repudiandae.",
+      "description": "Dolores iusto dolor est cum. Iusto eius qui perferendis rem. Magnam omnis qui eos et pariatur voluptatem repellat similique.",
+      "author": "Dr. Cyrus Rogahn",
+      "publicationDate": "1996-09-07T00:00:00+00:00",
+      "reviews": [
+        {
+          "@id": "/reviews/bc532b4a-645e-4f8d-84c5-f40866df88bd",
+          "@type": "http://schema.org/Review",
+          "body": "Velit illo molestiae vel tempore omnis autem. Deleniti officia quisquam aut quis alias libero odit. Explicabo consectetur mollitia neque explicabo."
+        },
+        {
+          "@id": "/reviews/aff24c4f-8954-4767-8118-23c7328f80f9",
+          "@type": "http://schema.org/Review",
+          "body": "Qui rerum error id error quae doloribus minima saepe. Ullam nesciunt ut reiciendis. Eos ut dolorum magni iste rerum ut. Id consectetur sed reprehenderit adipisci magnam. Eum et consequuntur explicabo error aut at quos est."
+        },
+        {
+          "@id": "/reviews/8ea3833e-f488-4417-b240-19bb8f6b36a4",
+          "@type": "http://schema.org/Review",
+          "body": "Enim odit et deserunt. Aliquid aut suscipit laudantium sint. Nobis dolor itaque consequuntur aut architecto commodi. Rem sed numquam sapiente ut iusto nostrum cum."
+        },
+        {
+          "@id": "/reviews/af9df36e-8b68-4684-aee4-d1baaafda396",
+          "@type": "http://schema.org/Review",
+          "body": "Eius sed natus culpa quasi fugiat. Hic esse at occaecati sint qui quibusdam. Error sit optio labore et quis deserunt optio. Qui nihil eveniet autem quod dolores expedita harum."
+        },
+        {
+          "@id": "/reviews/dbdc3718-4d60-4c3a-b3e1-7b8724f6f08d",
+          "@type": "http://schema.org/Review",
+          "body": "Dicta assumenda porro nisi ut est tenetur autem. Error molestias aut velit et culpa consequatur hic. Officia reiciendis et accusantium. Sequi ipsa nisi deleniti autem nihil unde. Quidem qui quasi minima repellat."
+        }
+      ]
+    },
+    {
+      "@id": "/books/029eb9be-4ceb-43ee-8e3f-944e513715fe",
+      "@type": "http://schema.org/Book",
+      "isbn": "9786451149666",
+      "title": "Est est et eveniet porro non.",
+      "description": "Suscipit quo velit quaerat libero. Nihil minus alias eos et cum illum. Et maiores inventore iure tempora perspiciatis. Numquam veniam sequi dolorem quisquam amet nam ipsa.",
+      "author": "Deonte Effertz",
+      "publicationDate": "1989-04-26T00:00:00+00:00",
+      "reviews": [
+        {
+          "@id": "/reviews/08c7e207-0d26-426e-a87d-cebb452d6d30",
+          "@type": "http://schema.org/Review",
+          "body": "Officiis eaque expedita hic voluptatem sed voluptate expedita. Illum omnis quia et velit rerum ipsa. Sit fugit dolor voluptatem debitis adipisci rerum nam aspernatur. Eum omnis vel rem quas. Quia tempora sunt cupiditate esse quae illum."
+        },
+        {
+          "@id": "/reviews/215f7dc7-cb24-468e-a57a-05e9ed84a044",
+          "@type": "http://schema.org/Review",
+          "body": "A facilis aliquid reiciendis quas quis quisquam. Autem exercitationem facere accusantium ipsum quo error sunt optio. Eos ad quaerat quod similique dicta sunt. Asperiores cumque tempore eligendi."
+        },
+        {
+          "@id": "/reviews/48ac181a-b275-4cca-8f3e-9f3a55dff2db",
+          "@type": "http://schema.org/Review",
+          "body": "Blanditiis sunt qui qui dolorem sed veritatis. Sed dolores et molestias iusto rerum. Repudiandae iure quis hic consectetur magnam consequatur aut."
+        },
+        {
+          "@id": "/reviews/02b6499c-77c5-4057-b22c-4b03171829e4",
+          "@type": "http://schema.org/Review",
+          "body": "Aut sed culpa voluptatem inventore ut. Distinctio autem nesciunt earum corrupti quasi necessitatibus sed. Animi dolor dolores nisi accusamus et."
+        },
+        {
+          "@id": "/reviews/83b94e52-069a-4b04-8174-8b45ff18e9b0",
+          "@type": "http://schema.org/Review",
+          "body": "Sed sunt doloribus ea earum. In ad nam debitis sit. At soluta sint omnis ullam."
+        },
+        {
+          "@id": "/reviews/b6bb71cd-e234-4090-88cb-71236036a81f",
+          "@type": "http://schema.org/Review",
+          "body": "Odio ut ipsa culpa sit sint pariatur harum. Suscipit et minima rerum maxime omnis consequatur. Voluptatibus sunt quia omnis ut delectus velit."
+        }
+      ]
+    },
+    {
+      "@id": "/books/071ebc1d-1209-4749-9227-f62b6f47ce0e",
+      "@type": "http://schema.org/Book",
+      "isbn": "9793108107627",
+      "title": "Et maiores laboriosam qui pariatur.",
+      "description": "Architecto consequatur animi et nulla voluptate iste enim. Architecto aliquid amet eveniet voluptatem. Vero tempore odit commodi aut culpa totam. Facere sit et voluptatum suscipit aut dolores.",
+      "author": "Tobin Hyatt",
+      "publicationDate": "1997-06-27T00:00:00+00:00",
+      "reviews": [
+        {
+          "@id": "/reviews/0e3fe6eb-835a-4892-a4c9-3bda29af1e72",
+          "@type": "http://schema.org/Review",
+          "body": "Ut magni voluptatem maiores quia perferendis ut repudiandae. Molestiae molestiae et consequatur neque. Praesentium assumenda reiciendis consectetur quo incidunt provident. Est ipsam qui fuga doloremque."
+        },
+        {
+          "@id": "/reviews/a261d858-2b13-46b8-8416-6be4e213d6bd",
+          "@type": "http://schema.org/Review",
+          "body": "Reprehenderit quae numquam ut ut accusantium ad facere. Est minus voluptas quae rerum voluptas perspiciatis. Voluptas assumenda atque nobis impedit laudantium."
+        },
+        {
+          "@id": "/reviews/2e012cf8-6fa5-425d-bc84-f6b220683b0b",
+          "@type": "http://schema.org/Review",
+          "body": "Molestias voluptatem repellat dicta at accusantium nihil. Amet quia unde non magnam ut animi. Ad veniam quis ullam officiis non sint ex eos."
+        }
+      ]
+    },
+    {
+      "@id": "/books/0720ed69-9f52-4d5a-83e7-6cd8def03259",
+      "@type": "http://schema.org/Book",
+      "isbn": "9798946066631",
+      "title": "Sint dolorem delectus enim ipsum inventore sed libero.",
+      "description": "Qui suscipit a deserunt laudantium quibusdam. Nostrum soluta qui ipsam non ipsum. Reiciendis aperiam et fuga doloribus nisi. Cumque est ducimus temporibus modi saepe architecto unde.",
+      "author": "Annabell Tromp",
+      "publicationDate": "1985-02-23T00:00:00+00:00",
+      "reviews": [
+        {
+          "@id": "/reviews/5a3ddcf7-237a-4627-b038-5dc6ac77170d",
+          "@type": "http://schema.org/Review",
+          "body": "Sit earum quo adipisci repellat dolor. Dolores vitae in numquam. Dicta non vero quos et."
+        }
+      ]
+    },
+    {
+      "@id": "/books/073b35a2-8792-4266-a151-c18f6898e8fb",
+      "@type": "http://schema.org/Book",
+      "isbn": "9782062691334",
+      "title": "Ea aperiam unde voluptatem tempora beatae neque.",
+      "description": "Molestiae et laboriosam dolor odit omnis vel excepturi. Quia quas beatae et nam itaque nesciunt. Ea accusantium temporibus qui ad.",
+      "author": "Lola Kuphal",
+      "publicationDate": "2004-12-15T00:00:00+00:00",
+      "reviews": [
+        {
+          "@id": "/reviews/d9e6422f-51b5-4e82-b149-484caf7b9a4f",
+          "@type": "http://schema.org/Review",
+          "body": "Aut officiis autem consectetur delectus laudantium maxime. Ducimus quo qui cum temporibus impedit dignissimos quo. Assumenda recusandae eius ut repudiandae. Placeat sint et quibusdam corporis ratione. Nihil non dolorem et nesciunt."
+        },
+        {
+          "@id": "/reviews/645c14b3-afab-407d-82ff-8eef98c92757",
+          "@type": "http://schema.org/Review",
+          "body": "Illo atque pariatur sunt provident id architecto et. Dolorem itaque quidem temporibus natus omnis asperiores voluptatibus."
+        },
+        {
+          "@id": "/reviews/be52c67b-2f80-4448-8e6c-cd324ae714d2",
+          "@type": "http://schema.org/Review",
+          "body": "Culpa pariatur reprehenderit consequatur id ea quas. Voluptas rem quae quisquam magni. Aut officiis et sunt quis. Non omnis error delectus error eaque voluptas."
+        },
+        {
+          "@id": "/reviews/c1e8c860-ba54-46d9-acf1-492862ea19ef",
+          "@type": "http://schema.org/Review",
+          "body": "Voluptatum et aut dolorem deleniti. Asperiores illo culpa debitis nihil ut. Tenetur hic debitis a."
+        },
+        {
+          "@id": "/reviews/7e7fff7b-3896-4e94-8d94-b21ae5b80d45",
+          "@type": "http://schema.org/Review",
+          "body": "Quia saepe et sunt saepe nisi. Quo et expedita quo qui aut expedita. Et perferendis nulla pariatur iure veniam."
+        },
+        {
+          "@id": "/reviews/0381807e-2111-41c1-b01e-9a6a244ea4fa",
+          "@type": "http://schema.org/Review",
+          "body": "Ipsa iure est provident quo. Eos ipsa neque dolore quo ut voluptas officiis. Dolores excepturi at enim omnis minus similique autem. Non voluptas veniam repellat et vel."
+        }
+      ]
+    },
+    {
+      "@id": "/books/085b86d9-4cfc-4d87-906a-1c66308bd5bc",
+      "@type": "http://schema.org/Book",
+      "isbn": "9780736900799",
+      "title": "Nulla consectetur beatae autem dolorem maiores.",
+      "description": "In pariatur omnis blanditiis consectetur itaque. Cupiditate praesentium itaque et reiciendis. Sapiente est adipisci quaerat voluptas vitae quia molestiae.",
+      "author": "Frederic Dooley",
+      "publicationDate": "2006-10-29T00:00:00+00:00",
+      "reviews": [
+        {
+          "@id": "/reviews/64af08e0-fd8c-490c-806b-f00f407405d5",
+          "@type": "http://schema.org/Review",
+          "body": "Deleniti at excepturi temporibus excepturi. Sapiente quia reprehenderit eligendi repudiandae molestiae deserunt. Non exercitationem et quia nulla eos ex facere pariatur. Laborum aut id consequuntur tenetur."
+        },
+        {
+          "@id": "/reviews/5667b2d4-753d-47a9-933e-4391c51e3604",
+          "@type": "http://schema.org/Review",
+          "body": "Necessitatibus repudiandae consequatur qui rerum. Qui nulla et consequatur natus similique earum. Et et sit tempora hic recusandae velit. Magnam ducimus eius sunt recusandae quidem."
+        }
+      ]
+    },
+    {
+      "@id": "/books/0aca29e4-154c-4a77-9ef2-4a82bb59885d",
+      "@type": "http://schema.org/Book",
+      "isbn": "9784110289456",
+      "title": "Eligendi eos sint ut voluptates.",
+      "description": "Omnis aut enim nihil repellat. Culpa dolore rem est est. Neque autem nihil esse. Pariatur reprehenderit assumenda error consequatur fugit ad iste.",
+      "author": "Elenora Nienow",
+      "publicationDate": "2006-10-24T00:00:00+00:00",
+      "reviews": [
+        {
+          "@id": "/reviews/849b843b-2d35-4f04-b5b5-60f86812d841",
+          "@type": "http://schema.org/Review",
+          "body": "Expedita eum ea id et qui facilis. Labore et ut rerum molestiae."
+        },
+        {
+          "@id": "/reviews/9a138a77-bee9-445c-b1ab-2e66d0e91495",
+          "@type": "http://schema.org/Review",
+          "body": "Esse corporis distinctio ea molestiae. Repellat placeat accusantium natus odio aut eum porro. Reprehenderit repellendus porro est omnis cumque vel vel. Ullam aut repudiandae voluptates quibusdam."
+        },
+        {
+          "@id": "/reviews/ab017516-585b-404e-8007-6ce4c51cbe37",
+          "@type": "http://schema.org/Review",
+          "body": "Ex dolor quis expedita asperiores molestias ex. Cupiditate et eos est quibusdam sed. Soluta porro vel facilis sunt adipisci quia."
+        },
+        {
+          "@id": "/reviews/4e0ef593-a4ee-4169-9f06-17eabab570ee",
+          "@type": "http://schema.org/Review",
+          "body": "Dignissimos perferendis sapiente molestiae perspiciatis. Id error blanditiis possimus quam minima. Autem corporis suscipit at nisi sit et quia facilis. Fugit nesciunt cupiditate repellendus nam doloremque non."
+        },
+        {
+          "@id": "/reviews/8e36d73e-034d-4346-b1c0-919ba0507261",
+          "@type": "http://schema.org/Review",
+          "body": "Quas id non optio magni commodi vel ullam ut. Voluptate vero voluptas illum quia qui consequatur in. Atque dolorum eveniet blanditiis cumque. Rerum consectetur vel dolorem quis."
+        },
+        {
+          "@id": "/reviews/6cd75db5-e8f1-48f2-9adb-27d7bd32671a",
+          "@type": "http://schema.org/Review",
+          "body": "Officia nostrum officia autem voluptas voluptatem consequatur et. Sit ipsam autem autem rerum velit ipsam. Aut enim eaque velit vero beatae aut."
+        },
+        {
+          "@id": "/reviews/9e68fa2c-0d4d-42ae-a827-88fca0d5a0e9",
+          "@type": "http://schema.org/Review",
+          "body": "Magnam labore sit repellat adipisci saepe cum sunt. Odio magni odio doloremque vel occaecati neque et. Voluptas dolore velit aspernatur aperiam error et."
+        },
+        {
+          "@id": "/reviews/34ab2bb1-56cd-4d20-b378-5ede6a623682",
+          "@type": "http://schema.org/Review",
+          "body": "Commodi dolores qui ratione consequatur qui iure sed nemo. Qui quia id velit ea voluptas. Debitis sint tempora quis dolor beatae. Soluta voluptatem ratione ut officia dolores sit. Pariatur architecto odio ex similique illum sit voluptas."
+        }
+      ]
+    },
+    {
+      "@id": "/books/0b5aff0c-3318-4e7e-ba04-0d7ad008e4d6",
+      "@type": "http://schema.org/Book",
+      "isbn": "9791145436588",
+      "title": "Non et et et fugit.",
+      "description": "Enim velit qui nam nesciunt non dolore. Et eius et et omnis eaque. Non ea vel omnis rerum explicabo inventore quam. Qui accusamus eveniet dolorem voluptatem est. Tenetur aut sit aliquam provident et voluptatem.",
+      "author": "Flavie Deckow MD",
+      "publicationDate": "1996-09-14T00:00:00+00:00",
+      "reviews": [
+        {
+          "@id": "/reviews/c12f5e9e-f8ee-42f3-ad84-57fc8ae533db",
+          "@type": "http://schema.org/Review",
+          "body": "Excepturi aut cum beatae perferendis itaque asperiores dolorem. Aut cumque ut fuga. Eligendi eum eaque itaque nobis ex neque. Officia eos sit facere velit quasi itaque."
+        },
+        {
+          "@id": "/reviews/f9176d39-007e-4d91-926e-9e69801b9560",
+          "@type": "http://schema.org/Review",
+          "body": "Quia dolores ratione enim eos. Et magni rerum ducimus voluptatem nam porro et. Molestiae molestiae rerum perspiciatis et distinctio totam culpa."
+        },
+        {
+          "@id": "/reviews/aec1bb4a-7cf7-4088-83da-4d35292be2d0",
+          "@type": "http://schema.org/Review",
+          "body": "Aliquid magnam eaque magni voluptates repellat magnam. Nemo totam doloribus culpa unde. Dolor et a quisquam qui. Culpa voluptatum error eius nam cupiditate."
+        },
+        {
+          "@id": "/reviews/d60f2de1-ce1f-4dcc-9f64-784e4446c71c",
+          "@type": "http://schema.org/Review",
+          "body": "Placeat explicabo debitis qui eos alias ab. Adipisci odit eos quam incidunt. Ratione dolor reiciendis harum impedit aut."
+        },
+        {
+          "@id": "/reviews/ac06ecf7-942c-498b-a855-1927a2841423",
+          "@type": "http://schema.org/Review",
+          "body": "Velit et ea sed molestias. Eveniet at in aspernatur magnam sunt assumenda. Ducimus est et esse corrupti voluptatum nihil aut."
+        }
+      ]
+    },
+    {
+      "@id": "/books/0d1a808b-75a1-4828-9e2c-ab5501dd0d18",
+      "@type": "http://schema.org/Book",
+      "isbn": "9782804840082",
+      "title": "Expedita necessitatibus accusamus sed iure.",
+      "description": "Sit quos magni numquam iusto voluptatem quasi. Modi consequuntur eveniet est. Culpa dolores quis sunt occaecati.",
+      "author": "Holly Hodkiewicz",
+      "publicationDate": "1975-09-05T00:00:00+00:00",
+      "reviews": [
+        {
+          "@id": "/reviews/7302912e-7f39-4eb0-8ab3-b28fc2c3eecc",
+          "@type": "http://schema.org/Review",
+          "body": "Repellat beatae nobis neque expedita ut dolorem porro. Dolores eum delectus dolorum. In est ipsam ratione esse."
+        },
+        {
+          "@id": "/reviews/74079c89-dfc4-4b60-81d1-1ef4c208a44b",
+          "@type": "http://schema.org/Review",
+          "body": "Est a placeat voluptas provident maxime rem pariatur. Nihil est et ratione reprehenderit sunt sit quo. Omnis soluta sit consectetur doloremque ducimus sed corporis."
+        }
+      ]
+    },
+    {
+      "@id": "/books/0eda73b1-74ae-4186-9ccb-3351f9c41aa9",
+      "@type": "http://schema.org/Book",
+      "isbn": "9794776703739",
+      "title": "Debitis et aliquam qui vel debitis.",
+      "description": "Perferendis ut dolorum excepturi deleniti. Iure et atque aut consequuntur. Dolores in dolor necessitatibus qui. Et non quos quia repellat expedita.",
+      "author": "Dr. Reynold Breitenberg Jr.",
+      "publicationDate": "1976-03-19T00:00:00+00:00",
+      "reviews": [
+        {
+          "@id": "/reviews/426bd25c-08de-4a98-b712-85edff742a2e",
+          "@type": "http://schema.org/Review",
+          "body": "Adipisci quasi accusantium aliquam sequi. Iusto officia quia repudiandae numquam quas ratione."
+        },
+        {
+          "@id": "/reviews/aecdacef-8f6b-401b-aef9-db6d7e7ff77e",
+          "@type": "http://schema.org/Review",
+          "body": "Vel sunt in voluptate. Aliquid voluptatem excepturi et praesentium ut odit qui reprehenderit. Voluptatem ut ullam vitae sint quasi ad est."
+        },
+        {
+          "@id": "/reviews/fb682395-6bd2-4380-9081-edc5d4ebe2d8",
+          "@type": "http://schema.org/Review",
+          "body": "Illo officia aut qui sunt accusantium. Minus quidem eveniet eaque voluptatum. Ea maiores in rerum ex repellendus omnis aut."
+        },
+        {
+          "@id": "/reviews/71b3a3ca-f745-4b10-89c0-1a1ad2f0cc83",
+          "@type": "http://schema.org/Review",
+          "body": "Qui necessitatibus nostrum consequatur quibusdam voluptas. Dignissimos magni reiciendis labore corporis laudantium dolorem. Aut hic odio ex minus."
+        },
+        {
+          "@id": "/reviews/737d82e4-d153-488c-bcc0-84a8ea0ea133",
+          "@type": "http://schema.org/Review",
+          "body": "Quam veniam id recusandae dolor. Commodi necessitatibus amet eos ut enim. Omnis qui fugit illum dolores ut. Quasi enim consequatur autem necessitatibus consequuntur doloremque sapiente. Ab eum id saepe reprehenderit dignissimos."
+        }
+      ]
+    },
+    {
+      "@id": "/books/14bdacb1-e86f-4430-8017-27bb87cbe762",
+      "@type": "http://schema.org/Book",
+      "isbn": "9789208931293",
+      "title": "Nesciunt voluptas et aut.",
+      "description": "Velit voluptas molestiae eum et eos fugiat voluptas voluptatem. Nostrum culpa in quod voluptatem. Dignissimos sunt atque aut. Possimus accusamus sint hic ut atque expedita.",
+      "author": "Easter Tillman",
+      "publicationDate": "2016-07-04T00:00:00+00:00",
+      "reviews": [
+        {
+          "@id": "/reviews/4a6c2ff8-4662-4467-aee9-e788f23eb0f3",
+          "@type": "http://schema.org/Review",
+          "body": "Perferendis eum earum ut quia aperiam aspernatur. Nisi aut consequuntur corrupti ut. Fugit molestiae ratione suscipit fugiat."
+        },
+        {
+          "@id": "/reviews/0e39f27b-a979-448f-be93-b5b4a35e0034",
+          "@type": "http://schema.org/Review",
+          "body": "Debitis recusandae veniam saepe possimus quam. Est sed enim doloremque eum eius doloremque ut. Odio est amet voluptates dolorem et nisi."
+        },
+        {
+          "@id": "/reviews/24e3d195-4028-4191-b63e-1c47f4131930",
+          "@type": "http://schema.org/Review",
+          "body": "Et saepe iure et atque nostrum sit. Sed dicta eligendi et ut et error qui. Cupiditate ipsa necessitatibus qui esse."
+        },
+        {
+          "@id": "/reviews/be0deab5-03f5-4dc6-88a8-40012f4617e1",
+          "@type": "http://schema.org/Review",
+          "body": "Quibusdam in ipsa occaecati deserunt ut dignissimos. Eveniet ipsam ut odio dolorem. Dolores molestiae odit architecto illum qui. Praesentium voluptates numquam odio quis unde animi eaque iure."
+        }
+      ]
+    },
+    {
+      "@id": "/books/16a347fd-0225-4363-acec-e068ca081974",
+      "@type": "http://schema.org/Book",
+      "isbn": "9793695330927",
+      "title": "Facilis sit ea quia velit.",
+      "description": "Ea et sit enim molestias sunt. Aperiam tenetur rerum aut tempore dolorem. Libero maxime voluptatem quidem.",
+      "author": "Miss Priscilla Adams",
+      "publicationDate": "1994-10-15T00:00:00+00:00",
+      "reviews": [
+        {
+          "@id": "/reviews/063e209b-97cf-481d-aa45-4d374a4fb4fd",
+          "@type": "http://schema.org/Review",
+          "body": "Velit corrupti culpa iusto voluptate qui. Fuga vitae sit ab non reiciendis nesciunt ab. Deserunt voluptates ad sit."
+        },
+        {
+          "@id": "/reviews/85a5a82b-7b29-4a21-8f47-88a1b76d0303",
+          "@type": "http://schema.org/Review",
+          "body": "Atque sit aut dolorem non dolores non. Ex sed nihil autem magni sint et veniam. Nisi sed eligendi ad sequi molestias corporis nihil exercitationem."
+        }
+      ]
+    },
+    {
+      "@id": "/books/1964d379-1441-4732-b1ac-5df5fe856d38",
+      "@type": "http://schema.org/Book",
+      "isbn": "9794616815288",
+      "title": "Porro aut corporis quis in quia asperiores sed.",
+      "description": "Vero excepturi nihil harum sit et nemo rerum. Possimus odit qui voluptatem.",
+      "author": "Prof. Barbara Larson MD",
+      "publicationDate": "2004-01-28T00:00:00+00:00",
+      "reviews": [
+        {
+          "@id": "/reviews/d325f6e7-e90f-4b6b-af24-16b02f86d7c9",
+          "@type": "http://schema.org/Review",
+          "body": "Cupiditate expedita tempora ut nam. Omnis placeat minima repudiandae qui. Suscipit odio nobis est ex ut deserunt."
+        },
+        {
+          "@id": "/reviews/f4b52e91-ea11-477b-80ad-f8d8d2c24cd9",
+          "@type": "http://schema.org/Review",
+          "body": "Cupiditate dolorem qui doloribus voluptas. Quidem qui possimus porro accusamus. Incidunt quae id aspernatur voluptas vero repellat saepe."
+        },
+        {
+          "@id": "/reviews/76e6360b-7377-4392-a76a-df44eadce259",
+          "@type": "http://schema.org/Review",
+          "body": "Voluptatem voluptate placeat dolor nesciunt alias rerum. Dolores non id fugit fugit."
+        }
+      ]
+    },
+    {
+      "@id": "/books/1978d42a-3033-4e8b-ae79-f76ce865c495",
+      "@type": "http://schema.org/Book",
+      "isbn": "9780238840920",
+      "title": "Eaque praesentium et praesentium est velit molestiae porro.",
+      "description": "Hic animi nobis doloribus illo velit. Similique dolore consequatur et ipsam. Saepe dolor in perspiciatis sit consectetur temporibus voluptate.",
+      "author": "Vanessa Wiegand",
+      "publicationDate": "2020-06-27T00:00:00+00:00",
+      "reviews": [
+        {
+          "@id": "/reviews/e507e909-9fae-4279-9959-db1cc4a48105",
+          "@type": "http://schema.org/Review",
+          "body": "Cumque eos ipsum et dolor provident modi nihil laboriosam. Quibusdam dolorem rerum incidunt voluptate laborum. Qui voluptas earum harum harum sequi. Ut accusantium dolores vitae minima."
+        },
+        {
+          "@id": "/reviews/bb62dd9c-7315-494d-a682-d1e8bb6ca3ef",
+          "@type": "http://schema.org/Review",
+          "body": "Officiis voluptatem qui temporibus laudantium at eveniet. Aperiam fugiat asperiores cupiditate enim enim odit. Dicta veniam adipisci ex non qui veritatis."
+        },
+        {
+          "@id": "/reviews/eb4ebdb1-19e8-48f2-9f18-80123b668fa9",
+          "@type": "http://schema.org/Review",
+          "body": "Amet adipisci repudiandae consequatur dolorem optio perspiciatis reiciendis a. Culpa soluta fugit aliquid sit id suscipit cum. Accusantium aut commodi ut sunt porro repellendus. Quisquam corrupti molestiae explicabo fuga nam inventore molestiae."
+        },
+        {
+          "@id": "/reviews/0d95b481-a0af-4e56-81f3-3fefb546bc8b",
+          "@type": "http://schema.org/Review",
+          "body": "A ipsa ut et aut quis velit sit. Dolorem cum ut et quidem rerum aut. Nihil iste ab iste vitae veritatis. Dignissimos culpa aperiam id soluta occaecati qui dolores. Laudantium delectus soluta id."
+        },
+        {
+          "@id": "/reviews/6c7096bb-4df7-4a8b-b148-73d140192b1d",
+          "@type": "http://schema.org/Review",
+          "body": "Totam dolor ex ad deserunt vel et. Cum expedita cumque id distinctio occaecati corporis."
+        },
+        {
+          "@id": "/reviews/194a6b0c-67a8-4a5d-afab-37f9d277efe0",
+          "@type": "http://schema.org/Review",
+          "body": "Officia cumque excepturi dolor provident fugit. Quae voluptate vero quas omnis sapiente dolorem. Omnis ullam ea eius culpa dolor architecto eos."
+        },
+        {
+          "@id": "/reviews/247f3908-2d3c-4308-b95d-dac3a6227877",
+          "@type": "http://schema.org/Review",
+          "body": "Iure laborum qui non et quo. Non porro voluptates quae autem quod voluptas doloremque. Veritatis laudantium aliquid rem maxime. Maiores voluptas velit repellat quasi id veniam."
+        }
+      ]
+    },
+    {
+      "@id": "/books/25ace850-cbb6-4084-84e7-e168de27bbd9",
+      "@type": "http://schema.org/Book",
+      "isbn": "9782764837603",
+      "title": "Eos molestiae earum natus eum rerum consectetur.",
+      "description": "Illo qui sunt sapiente numquam. Dolore veritatis cupiditate occaecati sequi quod assumenda praesentium. Ut laudantium voluptatem autem ratione. Nihil eligendi error dolore dolores autem voluptatum porro consequuntur. Quia neque odit voluptatem ut quod.",
+      "author": "Vesta McDermott",
+      "publicationDate": "1979-05-04T00:00:00+00:00",
+      "reviews": [
+        {
+          "@id": "/reviews/10e0b330-0e46-4de1-b9d0-31b895725d62",
+          "@type": "http://schema.org/Review",
+          "body": "Doloribus esse dicta quis officia officia dolores in. Voluptas reprehenderit doloribus suscipit similique nobis quaerat voluptatibus. Et et assumenda deleniti quia qui dolorem sapiente. Est facilis dicta repellendus nemo quibusdam distinctio."
+        },
+        {
+          "@id": "/reviews/4f83b260-e475-484b-abc9-fc8b7257fa37",
+          "@type": "http://schema.org/Review",
+          "body": "Adipisci eveniet aut nisi sequi dignissimos doloremque. Quisquam optio rerum suscipit voluptas repellat aut. Quam officiis nobis quas eos doloribus voluptate perspiciatis adipisci. Ea laborum qui soluta voluptatem provident nisi quibusdam."
+        },
+        {
+          "@id": "/reviews/b4169afd-45b5-429f-8e03-fab84476ad08",
+          "@type": "http://schema.org/Review",
+          "body": "Dolor exercitationem distinctio voluptas quaerat occaecati quae quidem. Et commodi pariatur rerum minima eos deleniti totam ea. Est beatae non dolorem sit ut delectus."
+        },
+        {
+          "@id": "/reviews/d1c38f29-7d5f-4d8e-bdba-103df03f6d2e",
+          "@type": "http://schema.org/Review",
+          "body": "Incidunt aut illo voluptatem et aut. Dignissimos maiores voluptatem esse quasi ut provident rerum. Sint eos minima et magnam quia."
+        },
+        {
+          "@id": "/reviews/0257658d-4f85-4bc9-8799-c600ae7195cb",
+          "@type": "http://schema.org/Review",
+          "body": "Qui aspernatur rerum eveniet inventore. Quae laboriosam voluptatum non facere veritatis quisquam. Repellat magni sit commodi saepe quis neque id."
+        },
+        {
+          "@id": "/reviews/5a364f93-570b-489a-9554-008a23416ec8",
+          "@type": "http://schema.org/Review",
+          "body": "Aut consequatur eveniet ipsam saepe. Quia non dicta quia sint a. Facilis ad facere atque eum. Error enim aliquid delectus quis error repudiandae."
+        }
+      ]
+    },
+    {
+      "@id": "/books/26aab357-b97e-4bff-a0a6-66c8de5fd520",
+      "@type": "http://schema.org/Book",
+      "isbn": "9790650532884",
+      "title": "Corporis recusandae ad omnis explicabo expedita sed et quis.",
+      "description": "A eum et id perferendis asperiores et. Rem dolorum consequuntur sed nisi aut.",
+      "author": "Wendy Corkery DVM",
+      "publicationDate": "2009-03-12T00:00:00+00:00",
+      "reviews": [
+        {
+          "@id": "/reviews/7acae055-4669-4bbb-be79-bf14f77fc219",
+          "@type": "http://schema.org/Review",
+          "body": "Repellendus necessitatibus voluptatibus aut ipsum eos. Mollitia sint eum possimus repellat earum. Id voluptas aut molestias omnis est totam optio quia. Enim molestiae commodi dolor modi aspernatur deserunt ad."
+        },
+        {
+          "@id": "/reviews/bfa85b80-de80-4259-b9bb-889655f4bb1d",
+          "@type": "http://schema.org/Review",
+          "body": "At dolor quod et modi dolore vel. At et fugit eos nihil. Autem soluta dolores nihil ut vero perferendis."
+        },
+        {
+          "@id": "/reviews/dae6b155-c8e3-4b97-862c-2f893ab09fce",
+          "@type": "http://schema.org/Review",
+          "body": "Voluptate odio sunt aut est voluptatem. Vel et sit sunt aut deleniti commodi et. Quia debitis dolor ipsum incidunt ea quam non. Dolore impedit sed ea quia voluptatem."
+        },
+        {
+          "@id": "/reviews/e0ac6b8b-ebcf-4f7c-b2ee-71eedaf480a0",
+          "@type": "http://schema.org/Review",
+          "body": "Ducimus ipsum cupiditate repellat omnis ut. Fugit sapiente architecto eius dolore ea libero. Repellat voluptas consectetur adipisci consequuntur culpa."
+        },
+        {
+          "@id": "/reviews/56c7f2f5-c92c-4113-9f3d-2ce835963c62",
+          "@type": "http://schema.org/Review",
+          "body": "Non nisi commodi eius aut. Temporibus voluptas quia praesentium quia modi et autem cum. Quam nostrum maiores qui officiis eveniet sed. Porro cumque assumenda et mollitia harum ratione nihil fugit. Omnis id ratione repellendus facilis accusamus sunt quaerat."
+        }
+      ]
+    },
+    {
+      "@id": "/books/2a935e92-de0e-48ea-b155-f898acb2c7c6",
+      "@type": "http://schema.org/Book",
+      "isbn": "9794123358049",
+      "title": "Quia minus sint quis voluptatem.",
+      "description": "Sed ratione dolorem fugit inventore repellendus voluptatum sit. Et est qui delectus ipsam id non. Itaque sequi architecto quia veniam accusantium.",
+      "author": "Ms. Grace Rippin DDS",
+      "publicationDate": "2018-08-22T00:00:00+00:00",
+      "reviews": [
+        {
+          "@id": "/reviews/3d5c20eb-c9f7-4ef2-9b16-36babf042fcb",
+          "@type": "http://schema.org/Review",
+          "body": "Debitis et qui pariatur repudiandae nisi quia. A veritatis id iure omnis qui alias reiciendis. Consequuntur dolor similique aliquam ea tenetur voluptatem voluptatem rerum."
+        },
+        {
+          "@id": "/reviews/c0e3448b-baff-40ad-8d4a-699220edddae",
+          "@type": "http://schema.org/Review",
+          "body": "Facilis dolor corporis aliquid consequuntur alias excepturi. Ut modi delectus eum. Est qui natus incidunt et assumenda qui velit. Impedit odit vero hic quos explicabo adipisci non aperiam."
+        },
+        {
+          "@id": "/reviews/8222f312-2b2e-457c-ac3f-2564c5e4d44f",
+          "@type": "http://schema.org/Review",
+          "body": "Accusantium dicta laudantium veritatis nesciunt ut fugiat repudiandae. Omnis voluptatum et dolorum at totam voluptatem est. Natus ut ipsa qui. Quaerat culpa corporis quas necessitatibus eius et maxime."
+        },
+        {
+          "@id": "/reviews/370c1ae2-3aee-43c3-a5a5-7a8ed9e39838",
+          "@type": "http://schema.org/Review",
+          "body": "Et repellat veritatis debitis numquam possimus. Vel et maxime non repellendus placeat vitae. Rerum laboriosam eius omnis commodi."
+        }
+      ]
+    },
+    {
+      "@id": "/books/2b8d3b60-fd2e-49bc-b9ef-7e39bc0dd2cf",
+      "@type": "http://schema.org/Book",
+      "isbn": "9799928583436",
+      "title": "Iure sequi cum culpa rem.",
+      "description": "Exercitationem est rem dicta voluptas fuga totam reiciendis. Architecto fugiat nemo omnis consequatur recusandae qui cupiditate.",
+      "author": "Nicholas Berge",
+      "publicationDate": "2011-11-10T00:00:00+00:00",
+      "reviews": [
+        {
+          "@id": "/reviews/54a8c0d0-d709-43dc-bf33-8ee33d32af8f",
+          "@type": "http://schema.org/Review",
+          "body": "Officiis quo minus eaque in. Perferendis quidem optio occaecati rerum assumenda. Aut quo hic et eos. Vitae voluptatem tempora illo esse possimus maiores perspiciatis."
+        },
+        {
+          "@id": "/reviews/1f7279fc-fdad-4b79-9007-de3a6f680848",
+          "@type": "http://schema.org/Review",
+          "body": "Fugiat aperiam rerum qui perspiciatis accusamus cupiditate eaque. Illum atque quia labore eaque. Et odio rerum ipsum ut quia."
+        },
+        {
+          "@id": "/reviews/e7ec3e02-e0f2-4a75-9aeb-a38bc124763a",
+          "@type": "http://schema.org/Review",
+          "body": "Rem suscipit recusandae hic cumque voluptatem. Dolor exercitationem quibusdam ea qui laudantium est. Quis et vero dicta et voluptas explicabo quis nemo. Quasi minus est quaerat."
+        },
+        {
+          "@id": "/reviews/c79756f3-6829-465e-9147-3d6c0ce2910f",
+          "@type": "http://schema.org/Review",
+          "body": "Voluptas autem aut autem ut aperiam est. Assumenda quia est consectetur molestias quae."
+        }
+      ]
+    },
+    {
+      "@id": "/books/2efa7ea4-9b15-4fe8-b93d-1c27431a0103",
+      "@type": "http://schema.org/Book",
+      "isbn": "9784380900662",
+      "title": "Sed ipsum omnis maiores.",
+      "description": "Perspiciatis inventore voluptatem corrupti exercitationem nisi quaerat. Voluptatem harum sed quia et. Neque voluptas est totam provident sunt.",
+      "author": "Louie Fahey",
+      "publicationDate": "2007-09-06T00:00:00+00:00",
+      "reviews": [
+        {
+          "@id": "/reviews/be33c81c-939f-4f4d-a9fe-4d08a72c0cce",
+          "@type": "http://schema.org/Review",
+          "body": "Illo repudiandae sed molestias sunt ut consequuntur cum. Dolorum molestiae beatae deleniti a magnam voluptatem. Non non explicabo dicta qui qui et."
+        },
+        {
+          "@id": "/reviews/e0dffe9e-d6c2-4f33-b252-e8979f80a6ef",
+          "@type": "http://schema.org/Review",
+          "body": "Quidem quas voluptatem et quo et id in. Dolores nostrum et hic velit aspernatur aut."
+        },
+        {
+          "@id": "/reviews/b223891d-dea4-4414-b8e0-ab3e491ea399",
+          "@type": "http://schema.org/Review",
+          "body": "Dolor nihil et quis dolore harum est. Qui quam aut labore eius. Aut recusandae repudiandae optio necessitatibus dolor consequatur dolorum sint. Pariatur id autem qui sit quaerat est."
+        },
+        {
+          "@id": "/reviews/1a84bc3d-c3c6-493c-b477-add9b30403f1",
+          "@type": "http://schema.org/Review",
+          "body": "Et rerum consectetur similique voluptatibus et dicta pariatur et. Vel tempore aspernatur est placeat harum tempora. Dolorem explicabo corrupti consequatur soluta in."
+        },
+        {
+          "@id": "/reviews/5f0055e4-2845-4b87-a9c7-cdec2cabd84e",
+          "@type": "http://schema.org/Review",
+          "body": "Iste ab molestias eum aut voluptatem quibusdam. Consequatur aspernatur enim dolorem sit nobis nam. Vero dicta dolorum voluptatem voluptatem eos. Officiis consequuntur quam consectetur neque in et adipisci maxime."
+        },
+        {
+          "@id": "/reviews/731ad4d2-d19b-46cf-b052-ff747ebe17db",
+          "@type": "http://schema.org/Review",
+          "body": "Cupiditate praesentium expedita nemo non nobis. Animi quia ipsum magnam quisquam consequatur corrupti. Suscipit in quis eligendi ullam deserunt vel sunt."
+        }
+      ]
+    },
+    {
+      "@id": "/books/33a87cee-90b6-4453-8177-11fc94707b80",
+      "@type": "http://schema.org/Book",
+      "isbn": "9789899956537",
+      "title": "Qui accusamus et odio explicabo quam accusamus.",
+      "description": "Quia fuga autem impedit perspiciatis perspiciatis illo odit id. Illo omnis quidem quo. Commodi aut voluptas corrupti placeat odio.",
+      "author": "Ms. Alana Murphy",
+      "publicationDate": "1995-10-18T00:00:00+00:00",
+      "reviews": [
+        {
+          "@id": "/reviews/8038013e-4445-4ed3-ad29-b9430c153bf5",
+          "@type": "http://schema.org/Review",
+          "body": "In eaque perspiciatis dignissimos tenetur qui sapiente. Ea sit natus numquam veniam. Quisquam quo minus sed molestiae sunt autem provident."
+        },
+        {
+          "@id": "/reviews/dc410b7c-f428-4377-8f40-32bde9c7dad5",
+          "@type": "http://schema.org/Review",
+          "body": "Sit pariatur dolores iusto possimus. Voluptas dolorem quos amet pariatur dolorum sint."
+        },
+        {
+          "@id": "/reviews/1c8f8fc2-dcc4-49fc-8056-76179902353b",
+          "@type": "http://schema.org/Review",
+          "body": "Molestias quisquam atque harum veniam ut explicabo. Aut non id quos atque. Odit nihil ut dolores est est dolore rerum. Inventore sunt ipsam magnam beatae accusantium architecto."
+        },
+        {
+          "@id": "/reviews/a24c4528-9d2f-4cbf-b35f-8d92cc5381e2",
+          "@type": "http://schema.org/Review",
+          "body": "Dignissimos numquam voluptatum et. Officia dolor voluptates et quae sit nobis. Reiciendis velit quam corporis vitae."
+        },
+        {
+          "@id": "/reviews/c8ca8097-12ef-4343-a183-c89f15c43220",
+          "@type": "http://schema.org/Review",
+          "body": "Consequatur saepe occaecati dicta nostrum qui. Quos unde iste fugit praesentium aliquam est eligendi officiis. Eos porro est voluptatum est in doloribus recusandae. Cumque est voluptas eum debitis ducimus voluptatem non."
+        },
+        {
+          "@id": "/reviews/52c569c9-772a-46e9-b104-037fadf0b3c2",
+          "@type": "http://schema.org/Review",
+          "body": "Ut facere aperiam fugiat iure dignissimos mollitia aut dolores. Minima qui nobis ipsa quisquam dolores temporibus. Temporibus occaecati suscipit quo rerum ipsam ullam eveniet. Accusantium ex natus aut hic sit quas."
+        },
+        {
+          "@id": "/reviews/1ab7c58e-5234-4796-afa9-6aa159dd6993",
+          "@type": "http://schema.org/Review",
+          "body": "Nobis deserunt eum quia facilis id qui. Quae dolore fugiat ipsum laudantium."
+        }
+      ]
+    },
+    {
+      "@id": "/books/343fe2c4-1da2-4f5f-87df-55aad71d5ecc",
+      "@type": "http://schema.org/Book",
+      "isbn": "9796838140193",
+      "title": "Fuga ut perspiciatis quia quasi sit dolore.",
+      "description": "Est impedit itaque cumque officiis ut quis. Consequatur asperiores voluptatem magnam nostrum ea corrupti voluptatem. Cupiditate rerum ratione rerum repellendus ducimus.",
+      "author": "Mrs. Alene Baumbach",
+      "publicationDate": "1981-04-22T00:00:00+00:00",
+      "reviews": [
+        {
+          "@id": "/reviews/67156f17-0535-491e-a1ad-9f26e7f925a2",
+          "@type": "http://schema.org/Review",
+          "body": "Eius saepe deserunt voluptatem ut. Illo dolores ut voluptatem accusamus enim nobis. Provident vel et ipsa nostrum eveniet alias. Facere doloremque maiores corporis dolor tenetur labore dolore."
+        },
+        {
+          "@id": "/reviews/b6e8a71e-9b84-43b9-a127-770cc0102c0d",
+          "@type": "http://schema.org/Review",
+          "body": "Et molestias voluptatibus earum accusantium in veritatis. Eos molestias qui natus qui minus. Eveniet cum laborum aut. Non molestias nulla libero voluptates quas nobis earum. Consequatur placeat commodi officia dolore voluptas ad."
+        },
+        {
+          "@id": "/reviews/ecef60b7-8605-4b56-a995-2f1f4d0ae387",
+          "@type": "http://schema.org/Review",
+          "body": "Sit veniam nostrum perferendis. Sed consequatur est et assumenda."
+        }
+      ]
+    },
+    {
+      "@id": "/books/35dfb2e8-6051-4820-80c2-d0c3448eb61e",
+      "@type": "http://schema.org/Book",
+      "isbn": "9784482663052",
+      "title": "Quae dolores blanditiis aut ut nemo eum.",
+      "description": "Recusandae temporibus quam aperiam blanditiis omnis corrupti hic. Qui rem minima unde enim.",
+      "author": "Ova Mitchell MD",
+      "publicationDate": "2006-09-07T00:00:00+00:00",
+      "reviews": [
+        {
+          "@id": "/reviews/46f13175-30da-45c0-8135-811d1d8fc39b",
+          "@type": "http://schema.org/Review",
+          "body": "Est vitae vel rerum aut provident magnam. Ex quaerat et quia voluptate animi unde vel fugit. Cupiditate quasi rerum quia quia enim enim animi. Sint excepturi ea est corrupti tempore. Consequuntur laboriosam dolor dignissimos soluta omnis natus."
+        },
+        {
+          "@id": "/reviews/26c2b7a7-9f2d-4945-94df-ba3743d1863c",
+          "@type": "http://schema.org/Review",
+          "body": "Et minus et laborum quia architecto temporibus alias ratione. Dolorem consequatur omnis eum placeat laborum consequatur enim. Amet reprehenderit aperiam dolor quis velit nesciunt praesentium. Dignissimos excepturi hic ducimus expedita et voluptas."
+        },
+        {
+          "@id": "/reviews/95da25ad-4dbb-4088-aaa0-e1776e85e25f",
+          "@type": "http://schema.org/Review",
+          "body": "Quae omnis officia voluptatem vitae. Explicabo facere deserunt consequatur ratione delectus exercitationem."
+        },
+        {
+          "@id": "/reviews/36295bf1-b3b5-47d2-a6d6-cd4499ac6348",
+          "@type": "http://schema.org/Review",
+          "body": "Debitis assumenda eum est enim id corrupti. Corrupti assumenda quod et. Aut dolor id architecto et enim accusamus. Aliquam et odit doloribus culpa reiciendis voluptatem sed."
+        },
+        {
+          "@id": "/reviews/20c24dda-2fee-404a-86cd-f2185953c2a0",
+          "@type": "http://schema.org/Review",
+          "body": "Voluptatem doloribus minima fugiat odit aliquam nostrum exercitationem corporis. Neque veritatis odit et sint quaerat explicabo molestiae. Vel nulla accusantium impedit rem qui ea cupiditate. Aut praesentium culpa et est ipsa."
+        },
+        {
+          "@id": "/reviews/591bd553-414e-43e9-8163-2d1a1ad0b8db",
+          "@type": "http://schema.org/Review",
+          "body": "Aut dolor assumenda facere maiores quae aperiam et. Ut accusamus ut ut dolor. Ut nesciunt iusto aut quo."
+        }
+      ]
+    },
+    {
+      "@id": "/books/3881151d-afc4-4494-a10a-62dbb8561fb8",
+      "@type": "http://schema.org/Book",
+      "isbn": "9797765231169",
+      "title": "Culpa voluptatem sequi ad placeat dolorem.",
+      "description": "Non aut itaque eius. Delectus aspernatur maiores atque quam unde. Voluptates et eaque praesentium nam consequatur incidunt. Quasi placeat amet veniam sit.",
+      "author": "Madalyn Rice",
+      "publicationDate": "2005-02-11T00:00:00+00:00",
+      "reviews": [
+        {
+          "@id": "/reviews/91306862-f1ca-4398-af86-7daf756171ff",
+          "@type": "http://schema.org/Review",
+          "body": "Ad voluptatem ab dolor esse. Ipsum corporis aut aut repellendus. Corporis dignissimos architecto adipisci quae at a. Omnis magni non sit."
+        },
+        {
+          "@id": "/reviews/661c793a-c98e-47e5-a8ae-fce9fe2094e9",
+          "@type": "http://schema.org/Review",
+          "body": "Ut laboriosam numquam recusandae sint officiis esse. Placeat ut eum laudantium quis. Qui suscipit ad minus aut ducimus aliquam provident."
+        },
+        {
+          "@id": "/reviews/47c8cf56-1bd8-40be-8b33-e9b40f322939",
+          "@type": "http://schema.org/Review",
+          "body": "Qui expedita iusto quo consequatur odio odio quia. Sapiente non earum est labore. Voluptas sed eius quasi rerum."
+        },
+        {
+          "@id": "/reviews/0805b58a-f9e1-4b31-89e3-3371d1fc8c62",
+          "@type": "http://schema.org/Review",
+          "body": "Nemo eaque et non voluptatem quibusdam ut suscipit. Et fuga suscipit pariatur eum. Minus accusamus adipisci reiciendis dolorem iste. Maxime molestiae occaecati ipsum commodi."
+        }
+      ]
+    },
+    {
+      "@id": "/books/394fcb23-3fb8-4075-ae5e-a38bd1fba29a",
+      "@type": "http://schema.org/Book",
+      "isbn": "9786025800481",
+      "title": "Voluptatem est et ipsam molestiae ipsam consequatur.",
+      "description": "Id corrupti veritatis aspernatur neque. Quia saepe itaque inventore laborum aut commodi et. Inventore dolor assumenda ut minus vitae odit magnam.",
+      "author": "Alayna White",
+      "publicationDate": "2018-08-31T00:00:00+00:00",
+      "reviews": [
+        {
+          "@id": "/reviews/55ffabbf-5e8b-4f2a-859a-b807578f0f55",
+          "@type": "http://schema.org/Review",
+          "body": "Dolorum cum qui est sequi. Fugit ullam fugit sint eveniet eos ullam id. Hic voluptas aperiam veniam magni iusto dolores consectetur accusamus."
+        }
+      ]
+    },
+    {
+      "@id": "/books/3f81f2e0-a048-4e8a-9f44-09c9f94f3aba",
+      "@type": "http://schema.org/Book",
+      "isbn": "9783977329138",
+      "title": "Hic blanditiis ab architecto quas.",
+      "description": "Aut facilis dolore doloremque unde fuga nostrum. Dolorem dicta repellendus dolorum fugit dolorem molestiae aut. Enim cupiditate qui dolore nobis in autem dicta. Deserunt perspiciatis ut vel quibusdam.",
+      "author": "Caden Halvorson",
+      "publicationDate": "1996-04-13T00:00:00+00:00",
+      "reviews": [
+        {
+          "@id": "/reviews/16c60ce7-9a95-44c3-9341-da9762c93032",
+          "@type": "http://schema.org/Review",
+          "body": "Laudantium odit ut vel id ut. Excepturi dolorem omnis accusamus iusto. Rerum eligendi libero ipsa omnis autem totam est."
+        },
+        {
+          "@id": "/reviews/263bc669-c956-482d-bb39-e1ebcd35dd72",
+          "@type": "http://schema.org/Review",
+          "body": "Quia sed est eum explicabo et quis eos. Dolores rerum ullam voluptas nemo quia. Quas quia maxime veritatis minima non."
+        },
+        {
+          "@id": "/reviews/343c221e-0391-49a7-839b-a2f82490b883",
+          "@type": "http://schema.org/Review",
+          "body": "Similique nesciunt id illum. Ut officia maxime iste accusantium quam impedit. Aut deleniti inventore ex excepturi accusamus rerum facilis."
+        }
+      ]
+    },
+    {
+      "@id": "/books/3feed208-f3ce-460a-a172-001160d56ccb",
+      "@type": "http://schema.org/Book",
+      "isbn": "9799035988766",
+      "title": "Fugiat dolores placeat reprehenderit nesciunt.",
+      "description": "Ex similique consequatur nisi fuga dolores aut. Illo illum sint voluptas a aperiam.",
+      "author": "Mrs. Gloria Crooks",
+      "publicationDate": "2007-10-21T00:00:00+00:00",
+      "reviews": [
+        {
+          "@id": "/reviews/9ba5e291-1da8-4354-9f3f-62a7046ba5a0",
+          "@type": "http://schema.org/Review",
+          "body": "Qui nobis et et sed. Repudiandae mollitia debitis eius iusto dolorum cupiditate. Sequi omnis harum perspiciatis maxime qui qui explicabo."
+        },
+        {
+          "@id": "/reviews/e0a8c191-4161-411d-bcd1-af85d030877d",
+          "@type": "http://schema.org/Review",
+          "body": "Dolor quasi facere eos illum. Earum quia dicta est praesentium. Dolor numquam dolor aut explicabo quam. Voluptatibus accusantium harum quisquam perspiciatis voluptatem aspernatur voluptates. Voluptatem tempora dolor debitis excepturi deserunt veritatis dolorem."
+        },
+        {
+          "@id": "/reviews/09c99476-445e-4ebe-b4b4-4e87f2494f2d",
+          "@type": "http://schema.org/Review",
+          "body": "Vero nemo et facilis distinctio nemo eveniet. Aut similique qui dicta commodi dolorem. Libero ea quia est eius repellendus cumque. Nam qui necessitatibus et aperiam perferendis. Iste commodi qui enim ut."
+        }
+      ]
+    },
+    {
+      "@id": "/books/43969654-03d2-4ff5-91a7-a541d32a0baa",
+      "@type": "http://schema.org/Book",
+      "isbn": "9799164437029",
+      "title": "Laudantium quod magni non voluptas fuga.",
+      "description": "Non non explicabo et neque itaque. Quaerat ut aut at consequatur non. In cupiditate voluptas molestiae fuga quod cum.",
+      "author": "Dr. Delilah Lebsack I",
+      "publicationDate": "2008-01-05T00:00:00+00:00",
+      "reviews": [
+        {
+          "@id": "/reviews/f7ac1f97-2f19-4957-8f63-fed0bfa6ac84",
+          "@type": "http://schema.org/Review",
+          "body": "Cupiditate est inventore esse velit eligendi consequatur. In quos molestiae eum aut optio. Officia sit distinctio aut explicabo quae possimus odit."
+        },
+        {
+          "@id": "/reviews/e44cf5f1-7c93-4d76-a892-1f5fa15d9277",
+          "@type": "http://schema.org/Review",
+          "body": "Unde distinctio officiis fuga quia in. Tempora nemo quaerat quae nesciunt reiciendis ipsa. Voluptates alias dicta repudiandae nihil repellat officia velit."
+        },
+        {
+          "@id": "/reviews/9717da2f-caa9-425b-a4ac-76ead50e4d0e",
+          "@type": "http://schema.org/Review",
+          "body": "Nisi repudiandae voluptas quaerat modi. Sunt accusantium non facilis est minima id. Ut autem est dolorum laudantium vitae veritatis error vero."
+        },
+        {
+          "@id": "/reviews/2065a250-1559-45ff-a7ff-e60da8a0bdd7",
+          "@type": "http://schema.org/Review",
+          "body": "Facilis iusto eveniet quis voluptatem quisquam. Praesentium dolores deserunt officiis corporis minima voluptatem. Exercitationem quia deserunt totam ut."
+        },
+        {
+          "@id": "/reviews/7f2a3015-894e-47d3-b6ce-82397dc87107",
+          "@type": "http://schema.org/Review",
+          "body": "Magni officia assumenda nulla. Eius eos est laborum tempora ratione. Eligendi sunt sit quia ea. Iusto voluptas est ea molestiae ut est."
+        },
+        {
+          "@id": "/reviews/2524d768-b6eb-4c77-8be8-09102299905e",
+          "@type": "http://schema.org/Review",
+          "body": "Doloribus tempora necessitatibus id est. Voluptas sit fugit mollitia molestiae enim repellat non quaerat. Aliquid omnis iste culpa reiciendis rerum esse voluptas."
+        },
+        {
+          "@id": "/reviews/56f57899-de03-4ce3-9a5f-77aa72bb358f",
+          "@type": "http://schema.org/Review",
+          "body": "Autem mollitia non occaecati explicabo placeat veniam magni. Perspiciatis cupiditate modi totam sit. Quo voluptate voluptas recusandae aperiam ex."
+        },
+        {
+          "@id": "/reviews/35c3a51c-858b-4441-a80f-ec2dfe8e9660",
+          "@type": "http://schema.org/Review",
+          "body": "Consectetur non vel dolore voluptas quas distinctio. Enim voluptas sint consequatur sed. Tenetur deleniti rerum consequatur quo est."
+        },
+        {
+          "@id": "/reviews/39726128-1f77-4a3b-a84f-ae5339348207",
+          "@type": "http://schema.org/Review",
+          "body": "Iure ea quos quo iure sed. Ipsa aut expedita ex quis est unde. Consequatur eius molestiae atque ea aliquid. Minima quas neque eaque voluptatem et."
+        },
+        {
+          "@id": "/reviews/80acc0c0-0834-4d34-9472-973b55d0c554",
+          "@type": "http://schema.org/Review",
+          "body": "Culpa quidem libero quia occaecati ut. Sit aut doloremque adipisci vero quia similique et. Porro ex sed consectetur dolorem. Veniam recusandae voluptatem non a."
+        },
+        {
+          "@id": "/reviews/7d7edab0-6175-4f59-8b1e-29adaa7a0b21",
+          "@type": "http://schema.org/Review",
+          "body": "Nobis adipisci tempore eos esse facere. Pariatur saepe est amet qui at. Sunt velit vitae et laboriosam magnam. Ab sit ratione at itaque sunt consequatur exercitationem. Quo aut deserunt ea alias quia sequi."
+        }
+      ]
+    },
+    {
+      "@id": "/books/4625721c-5b45-477c-ad90-f230ab19a616",
+      "@type": "http://schema.org/Book",
+      "isbn": "9788093737119",
+      "title": "Voluptas et tempora repellat corporis excepturi.",
+      "description": "Quaerat odit quia nisi accusantium natus voluptatem. Explicabo corporis eligendi ut ut sapiente ut qui quidem. Optio amet velit aut delectus. Sed alias asperiores perspiciatis deserunt omnis. Mollitia unde id in.",
+      "author": "Melisa Kassulke",
+      "publicationDate": "1999-10-13T00:00:00+00:00",
+      "reviews": [
+        {
+          "@id": "/reviews/83e9eee5-4174-44c2-9e7e-c477989c500e",
+          "@type": "http://schema.org/Review",
+          "body": "Doloribus ea perferendis autem quo laborum odio et tenetur. Aut impedit aut sit enim voluptate facere. Et minus voluptatibus animi occaecati."
+        },
+        {
+          "@id": "/reviews/601acd8e-6d8e-4c56-bfcf-fe81d0d20332",
+          "@type": "http://schema.org/Review",
+          "body": "Et molestiae reprehenderit officia excepturi. Dolor natus sed molestiae aut esse recusandae. Ut ut voluptas expedita asperiores totam animi officia. Quidem natus autem tenetur."
+        },
+        {
+          "@id": "/reviews/9f5e053b-b88d-4a2b-a6d1-d31faf2dffa3",
+          "@type": "http://schema.org/Review",
+          "body": "Accusantium aperiam consequatur sequi rem. Delectus architecto vero numquam aut repellendus. Nulla eos quos laboriosam similique ipsam earum vitae qui."
+        },
+        {
+          "@id": "/reviews/9466a430-0ddb-4c3b-9a07-ab4417917fa2",
+          "@type": "http://schema.org/Review",
+          "body": "Laboriosam omnis voluptas vel. Laboriosam ullam quo commodi error minus. Quod rerum laboriosam voluptate dolorum."
+        },
+        {
+          "@id": "/reviews/71561ee7-542b-4a8d-970a-7fa468f50fc4",
+          "@type": "http://schema.org/Review",
+          "body": "Repellendus natus veritatis nisi voluptatem. Et enim nemo iure molestiae in. Aliquam in quo deleniti recusandae. Rerum est aut architecto."
+        },
+        {
+          "@id": "/reviews/e53258aa-58b7-402a-ad88-b201b0e8117f",
+          "@type": "http://schema.org/Review",
+          "body": "Voluptas aut qui placeat placeat dolor. Qui quis sapiente velit. Eligendi quis rem nemo natus architecto eum et."
+        },
+        {
+          "@id": "/reviews/d4b9858b-a45d-4c61-aed2-a0b2f88037a0",
+          "@type": "http://schema.org/Review",
+          "body": "Excepturi rerum voluptate autem illum quaerat quam. Pariatur nulla sed nobis sed temporibus. Id accusantium sequi occaecati non corrupti esse expedita."
+        },
+        {
+          "@id": "/reviews/8219bf74-fcda-442b-9d9c-20debb2cf849",
+          "@type": "http://schema.org/Review",
+          "body": "Et eos deleniti reiciendis molestias quia voluptate. Quibusdam doloribus totam minus at est. Quaerat itaque fugit perferendis deleniti maxime."
+        }
+      ]
+    },
+    {
+      "@id": "/books/467ff601-c30e-48b1-8286-2028b0bcf813",
+      "@type": "http://schema.org/Book",
+      "isbn": "9786074444995",
+      "title": "Doloremque aperiam qui rerum accusamus beatae.",
+      "description": "Et doloribus voluptatibus perspiciatis quae sapiente. Suscipit doloribus cupiditate dolorem saepe. Quas magni rerum consequatur laudantium nisi quo.",
+      "author": "Dr. Helga Tremblay PhD",
+      "publicationDate": "2009-05-09T00:00:00+00:00",
+      "reviews": [
+        {
+          "@id": "/reviews/497752c9-381e-454b-8613-aeaff05ae892",
+          "@type": "http://schema.org/Review",
+          "body": "Fugiat est iure rerum unde autem. Voluptatem voluptatem nihil cupiditate dolores id hic. Ad omnis rerum molestiae autem doloribus quo sit dolorum. Esse voluptatibus repellat corrupti consequuntur voluptatem magnam et."
+        }
+      ]
+    },
+    {
+      "@id": "/books/47748584-e38b-41e5-a83a-4319ed2bf246",
+      "@type": "http://schema.org/Book",
+      "isbn": "9796022162260",
+      "title": "Ad animi nihil impedit voluptatum.",
+      "description": "Laboriosam laborum doloribus iusto ipsum suscipit. Qui tempora qui qui alias itaque esse. Nisi sed maiores veritatis laudantium aliquid incidunt. Et ut dolores omnis est accusamus iusto et.",
+      "author": "Dr. Travis Schulist",
+      "publicationDate": "1993-08-20T00:00:00+00:00",
+      "reviews": [
+        {
+          "@id": "/reviews/077e8562-12fa-4e4c-9bdc-f9bcd6201ad5",
+          "@type": "http://schema.org/Review",
+          "body": "Voluptate aut id et. Voluptates sit quas molestias laudantium sunt eos officiis. Hic blanditiis perspiciatis iure qui sed fugiat doloremque voluptates."
+        },
+        {
+          "@id": "/reviews/138f5ec8-b5b6-4af1-b0e0-2fe6e8d2a41d",
+          "@type": "http://schema.org/Review",
+          "body": "Eius est laboriosam inventore dolorum dolores minus eum ad. Minus fugit optio magni sit. Repellendus nesciunt et recusandae consequuntur vel."
+        },
+        {
+          "@id": "/reviews/06daf0b3-42dd-4079-9beb-91cfa10048a2",
+          "@type": "http://schema.org/Review",
+          "body": "Et at accusamus repellat corrupti reprehenderit ab tempora. Officia sapiente eos sit corrupti maxime ut tenetur. Molestiae eius velit adipisci consequuntur fuga id qui dicta. Nulla a non accusantium nam mollitia autem."
+        },
+        {
+          "@id": "/reviews/60f19865-4d13-4e2c-9a1e-27a13ce131ed",
+          "@type": "http://schema.org/Review",
+          "body": "Asperiores odio consequuntur aperiam qui pariatur sit. Est a ea et porro qui quo. Repellendus vitae reprehenderit excepturi ut fuga magnam. Sint est voluptatem laudantium sed neque officia."
+        },
+        {
+          "@id": "/reviews/301ec0cc-d104-4c49-bd48-effb25cf553f",
+          "@type": "http://schema.org/Review",
+          "body": "Voluptatum et mollitia odit itaque. Est accusamus aspernatur labore saepe dicta ut. Ut iusto ad ducimus qui."
+        },
+        {
+          "@id": "/reviews/bf93cacd-a09b-4723-a7a4-f59cf2e8cbd2",
+          "@type": "http://schema.org/Review",
+          "body": "Omnis et nostrum temporibus necessitatibus. Molestias dolorum adipisci et fugit ut. Molestias quo dolorem aut similique hic. Id sit iure ipsa qui."
+        },
+        {
+          "@id": "/reviews/9c95c6a5-88ae-43a7-bd03-c29d9efb74c6",
+          "@type": "http://schema.org/Review",
+          "body": "Qui quo reiciendis magnam et excepturi impedit maxime ut. Dolores ex excepturi et deserunt esse quidem. At alias autem ab tempore."
+        }
+      ]
+    }
+  ],
+  "hydra:totalItems": 100,
+  "hydra:view": {
+    "@id": "/books?page=1",
+    "@type": "hydra:PartialCollectionView",
+    "hydra:first": "/books?page=1",
+    "hydra:last": "/books?page=4",
+    "hydra:next": "/books?page=2"
+  },
+  "hydra:search": {
+    "@type": "hydra:IriTemplate",
+    "hydra:template": "/books{?properties[],order[id],order[title],order[author],order[isbn],order[publicationDate],title,author}",
+    "hydra:variableRepresentation": "BasicRepresentation",
+    "hydra:mapping": [
+      {
+        "@type": "IriTemplateMapping",
+        "variable": "properties[]",
+        "property": null,
+        "required": false
+      },
+      {
+        "@type": "IriTemplateMapping",
+        "variable": "order[id]",
+        "property": "id",
+        "required": false
+      },
+      {
+        "@type": "IriTemplateMapping",
+        "variable": "order[title]",
+        "property": "title",
+        "required": false
+      },
+      {
+        "@type": "IriTemplateMapping",
+        "variable": "order[author]",
+        "property": "author",
+        "required": false
+      },
+      {
+        "@type": "IriTemplateMapping",
+        "variable": "order[isbn]",
+        "property": "isbn",
+        "required": false
+      },
+      {
+        "@type": "IriTemplateMapping",
+        "variable": "order[publicationDate]",
+        "property": "publicationDate",
+        "required": false
+      },
+      {
+        "@type": "IriTemplateMapping",
+        "variable": "title",
+        "property": "title",
+        "required": false
+      },
+      {
+        "@type": "IriTemplateMapping",
+        "variable": "author",
+        "property": "author",
+        "required": false
+      }
+    ]
+  }
+}
