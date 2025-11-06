@@ -153,6 +153,57 @@ def normalize_vietnamese_for_windows_1258(text: str) -> str:
     return "".join(result)
 
 
+def strip_hebrew_vowel_points(text: str) -> str:
+    """Remove Hebrew vowel points (nikud) and other marks not in DOS encodings.
+
+    DOS Hebrew encodings (CP424, CP856, CP862) only support the 27 Hebrew letters
+    (U+05D0-U+05EA). They do not include:
+    - Vowel points/nikud (U+05B0-U+05C7): kamatz, patach, tzere, segol, etc.
+    - Cantillation marks
+    - Other Hebrew diacritics and punctuation marks
+
+    Modern Hebrew text is typically written without vowel points anyway, except
+    in religious texts, poetry, and children's books.
+    """
+    import re
+
+    # Remove Hebrew marks and vowel points (U+0591-U+05CF, excluding letters at U+05D0-U+05EA)
+    # Keep only: Hebrew letters (U+05D0-U+05EA) and final forms
+    # Remove: vowel points, cantillation marks, punctuation like maqaf
+    HEBREW_MARKS_PATTERN = r"[\u0591-\u05BD\u05BF-\u05CF]"
+
+    return re.sub(HEBREW_MARKS_PATTERN, "", text)
+
+
+def reverse_hebrew_for_visual_encoding(text: str) -> str:
+    """Reverse Hebrew character sequences for visual order encodings.
+
+    Visual Hebrew encodings (CP424, CP856, CP862) were used on DOS systems
+    without bidirectional rendering. Hebrew text was stored reversed so that
+    when displayed left-to-right, it would appear correct.
+
+    Only Hebrew characters are reversed - Latin text, numbers, and punctuation
+    maintain their normal left-to-right order.
+
+    Example:
+        Input (logical):  "Hello שלום world 123"
+        Output (visual):  "Hello םולש world 123"
+                          (only Hebrew portion reversed)
+    """
+    import re
+
+    # Hebrew Unicode range: U+0590 to U+05FF
+    # Includes Hebrew letters, final forms, and Hebrew-specific punctuation
+    HEBREW_PATTERN = r"[\u0590-\u05FF]+"
+
+    def reverse_match(match):
+        """Reverse the matched Hebrew sequence"""
+        return match.group(0)[::-1]
+
+    # Find all Hebrew sequences and reverse each one
+    return re.sub(HEBREW_PATTERN, reverse_match, text)
+
+
 def apply_legacy_substitutions(text: str, charset_name: str) -> str:
     """Apply character substitutions for legacy encodings.
 
@@ -376,6 +427,15 @@ def write_culturax_test_files(
                     last_newline = text.rfind("\n")
                     if last_newline > max_chars_per_file * 0.8:
                         text = text[: last_newline + 1]
+
+                # Reverse Hebrew sequences for visual order encodings
+                # These DOS encodings expect Hebrew in visual order (reversed)
+                # while Latin, numbers, and punctuation stay in normal order
+                if charset_name.upper() in ("CP424", "CP856", "CP862"):
+                    # First remove vowel points that these encodings don't support
+                    text = strip_hebrew_vowel_points(text)
+                    # Then reverse Hebrew sequences for visual order
+                    text = reverse_hebrew_for_visual_encoding(text)
 
                 encoded_text = text.encode(charset_name)
 

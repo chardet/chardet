@@ -157,7 +157,54 @@ For now, **documents will be skipped** due to the encoding's limitations.
 
 **Note:** Windows-1256 uses base Arabic letters (logical encoding) and has better compatibility with modern Unicode text, though it still lacks some Urdu-specific characters. For proper Urdu support, Unicode is required.
 
-### 6. Arabic (CP864)
+### 6. Hebrew Visual Order (CP424, CP856, CP862)
+
+**Problem:** These DOS-era Hebrew encodings were designed for systems without bidirectional (BiDi) rendering algorithms. Text was stored in "visual order" - the way it appears on screen when rendered left-to-right. Additionally, they only support the 27 basic Hebrew letters, not vowel points (nikud) or other diacritical marks.
+
+**Character Support Limitations:**
+
+- **Supported:** 27 Hebrew letters (U+05D0-U+05EA: א-ת) including final forms
+- **Not Supported:** 
+  - Vowel points/nikud (U+05B0-U+05C7): kamatz, patach, tzere, segol, etc.
+  - Cantillation marks (U+0591-U+05AF)
+  - Hebrew punctuation marks like maqaf
+  - Other diacritical marks
+
+This is acceptable because modern Hebrew text is typically written without vowel points (except in religious texts, poetry, and children's books).
+
+**Understanding Visual vs. Logical Order:**
+
+- **Logical Order** (Unicode/Modern): Text stored in reading order. Hebrew text stored right-to-left, but the BiDi algorithm handles display. Example: `"Hello שלום world"` stored as-is, BiDi reverses the Hebrew portion for display.
+
+- **Visual Order** (DOS/Legacy): Text stored in display order. Hebrew sequences pre-reversed so simple left-to-right rendering displays correctly. Example: `"Hello םולש world"` (only Hebrew reversed, Latin/numbers unchanged).
+
+**Why Only Hebrew is Reversed:**
+
+DOS systems rendered all text left-to-right without BiDi. To display Hebrew correctly (which reads right-to-left), only the Hebrew character sequences were stored backwards. Latin text, numbers, and punctuation remained in normal left-to-right order since they display correctly that way.
+
+**chardet's Implementation:**
+
+From `chardet/sbcsgroupprober.py`, these encodings are configured with `is_reversed=True`:
+
+```python
+SingleByteCharSetProber(CP424_HEBREW_MODEL, is_reversed=True),
+SingleByteCharSetProber(CP856_HEBREW_MODEL, is_reversed=True),
+SingleByteCharSetProber(CP862_HEBREW_MODEL, is_reversed=True),
+```
+
+This tells chardet to perform language model lookups in reverse order, simulating visual Hebrew text.
+
+**Solution:** When generating test files for CP424, CP856, or CP862:
+1. Strip Hebrew vowel points and marks (U+0591-U+05CF, excluding letters)
+2. Reverse only Hebrew character sequences (U+0590 to U+05FF) while preserving Latin text, numbers, and punctuation in normal order
+
+**References:**
+
+- `chardet/hebrewprober.py` - Detailed explanation of Visual vs Logical Hebrew
+- IBM Code Page 424 specification
+- DOS Hebrew rendering behavior documentation
+
+### 7. Arabic (CP864)
 
 **Problem:** CP864 is a visual encoding with extensive limitations:
 
