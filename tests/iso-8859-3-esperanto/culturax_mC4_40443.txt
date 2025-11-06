@@ -1,0 +1,17 @@
+Elektrokoagulacio - Vikipedio
+Elektrokoagulacio
+Elektrokoagulado (EK), alinome radifrekvanca diatermio aý mallongonda elektrolizo, estas tekniko uzata por trakti lavakvon, uzitan akvon, industrie pretigitan akvon kaj por kuraca traktado. Elektrokoagulado forigas malpura¼ojn, kiuj estas øenerale pli malfacile forigeblaj per filtrado aý kemiaj traktado, kiel ekzemple emulsigita oleo, totalaj petrolaj hidrokarbonoj, refraktaraj organika¼oj, suspensiigitaj solidoj kaj pezaj metaloj. Disponeblas multaj markoj de electrokoaguladaj aparatoj kaj ilia komplekseco varias inter simpla anodo kaj katodo al multe pli kompleksaj aparatoj kun regado pri elektrodaj potencialoj, pasivigo, konsumi anodon, æela REDOX potencialoj, la enkonduko ultrasonon, ultraviolan lumon kaj gamon de gasoj kaj reakciantoj por atingi la tiel nomatan Avancintan Oksidadan Procezon por refraktaraj organikaj substancoj.
+1 Kuraca traktado
+2 Akvotraktado
+2.2 Utiloj
+2.4 Koagulado
+2.5 Priskribo
+2.6 Reakcioj ene de la elektrokoagulada reaktoro
+2.7 Optimumaj reakcioj
+2.8 Avantaøoj
+Kuraca traktado[redakti | redakti fonton]
+Oni uzas fajnan dratan esplorilon, aý alian liveran ilon, por elsendi radiajn ondojn al histoj proksime al la esplorilo. Tio vibrigas molekulojn ene de la histo, kaj rapide pliigas la temperaturon, kaýzante koaguladon de la proteinoj ene de la histo, efike mortiganta la histon. Per apliko de granda povo, eblas tute elsekigi la histon.
+Akvotraktado[redakti | redakti fonton]
+Per la modernaj teknologioj, redukto de elektraj bezonoj kaj miniaturigo de la bezonataj elektroproviziloj, EK-sistemoj fariøis malaltekostaj por akvotraktado kaj industriaj procezoj tutmonde. [Tria-partia fonto bezonata][1]
+Electrokoagulado ("elektro", signifanta apliki elektran kurenton al akvo kaj "koagulado", signifanta la procezon þanøi la partiklan surfacan þargon, por ke la suspensiigita materio formu aglomera¼on) estas altnivela kaj ekonomia akvotraktada teknologio. Øi efike forigas suspensiigitajn partiklojn eæ sub mikrometraj niveloj, rompas emulsiojn kiel oleo kaj graso aý latekso, kaj oksidigas kaj eliminas pezajn metalojn el akvo sen uzi filtrilojn aý aldoni apartigajn kemia¼ojn.[2]
+Konata estas larøa gamo de teknikoj por trakti uzitan akvon, kiuj inkluzivas biologiajn procezojn por nitratigado, sennitratigado kaj por forigi forsforon, kaj ankaý gamo de fiziko-kemiaj procezoj kiuj postulas kemian aldonon. La ofte uzitaj fiziko-kemiaj traktaj procezoj estas filtrado, aeroforigo, joninterþanøo, kemia precipitado, kemia oksidigado, karbona adsorbado, ultrafiltrado (UF), inversa osmoso (RO), elektrodializo, volatiligado kaj gasoforigo.
