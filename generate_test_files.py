@@ -27,6 +27,18 @@ Generate test files from CulturaX dataset for character encoding detection.
 This script downloads test data from the CulturaX dataset and creates test files
 for each language/charset combination supported by chardet. Test files are sized
 to be representative of typical webpages (~3000 characters).
+
+Note: Some legacy encodings have fundamental limitations:
+- CP866 (DOS Cyrillic): Lacks Belarusian/Ukrainian 'і' (U+0456/U+0406)
+  Workaround: Substitute with Russian 'и' (historically used, linguistically incorrect)
+- CP720, CP864, CP1006: Limited Arabic/Urdu character support
+- Windows-1258 (Vietnamese): Uses combining diacritics - requires special normalization
+  (precomposed base letters â/ê/ô/ă/ơ/ư + combining tone marks)
+- Many encodings lack modern Unicode punctuation (en-dash, em-dash, smart quotes)
+
+This script applies appropriate character substitutions where semantically valid,
+but may skip documents entirely if they contain characters essential to the
+language that cannot be represented in the target encoding.
 """
 
 import os
@@ -45,6 +57,183 @@ except Exception:
 
 from chardet import __version__
 from chardet.metadata.languages import LANGUAGES
+
+
+def normalize_vietnamese_for_windows_1258(text: str) -> str:
+    """Normalize Vietnamese text for Windows-1258 encoding.
+
+    Windows-1258 uses a unique approach:
+    - Precomposed base letters with circumflex/breve/horn: â, ê, ô, ă, ơ, ư
+    - Combining tone marks: grave, acute, tilde, hook above, dot below
+
+    Example: ế (U+1EBF) → ê (U+00EA) + combining acute (U+0301)
+
+    This function decomposes Vietnamese precomposed+tone characters into
+    the form Windows-1258 expects.
+    """
+    # Start with NFC to get consistent precomposed forms
+    nfc = unicodedata.normalize("NFC", text)
+
+    # Map Vietnamese precomposed characters to base+combining tone
+    # This is the ONLY way Windows-1258 can represent these characters
+    decomposition_map = {
+        # Regular vowels + tones
+        "à": "a\u0300",
+        "á": "a\u0301",
+        "ả": "a\u0309",
+        "ã": "a\u0303",
+        "ạ": "a\u0323",
+        "è": "e\u0300",
+        "é": "e\u0301",
+        "ẻ": "e\u0309",
+        "ẽ": "e\u0303",
+        "ẹ": "e\u0323",
+        "ì": "i\u0300",
+        "í": "i\u0301",
+        "ỉ": "i\u0309",
+        "ĩ": "i\u0303",
+        "ị": "i\u0323",
+        "ò": "o\u0300",
+        "ó": "o\u0301",
+        "ỏ": "o\u0309",
+        "õ": "o\u0303",
+        "ọ": "o\u0323",
+        "ù": "u\u0300",
+        "ú": "u\u0301",
+        "ủ": "u\u0309",
+        "ũ": "u\u0303",
+        "ụ": "u\u0323",
+        "ỳ": "y\u0300",
+        "ý": "y\u0301",
+        "ỷ": "y\u0309",
+        "ỹ": "y\u0303",
+        "ỵ": "y\u0323",
+        # â (circumflex) + tones
+        "ấ": "â\u0301",
+        "ầ": "â\u0300",
+        "ẩ": "â\u0309",
+        "ẫ": "â\u0303",
+        "ậ": "â\u0323",
+        # ê (circumflex) + tones
+        "ế": "ê\u0301",
+        "ề": "ê\u0300",
+        "ể": "ê\u0309",
+        "ễ": "ê\u0303",
+        "ệ": "ê\u0323",
+        # ô (circumflex) + tones
+        "ố": "ô\u0301",
+        "ồ": "ô\u0300",
+        "ổ": "ô\u0309",
+        "ỗ": "ô\u0303",
+        "ộ": "ô\u0323",
+        # ă (breve) + tones
+        "ắ": "ă\u0301",
+        "ằ": "ă\u0300",
+        "ẳ": "ă\u0309",
+        "ẵ": "ă\u0303",
+        "ặ": "ă\u0323",
+        # ơ (horn) + tones
+        "ớ": "ơ\u0301",
+        "ờ": "ơ\u0300",
+        "ở": "ơ\u0309",
+        "ỡ": "ơ\u0303",
+        "ợ": "ơ\u0323",
+        # ư (horn) + tones
+        "ứ": "ư\u0301",
+        "ừ": "ư\u0300",
+        "ử": "ư\u0309",
+        "ữ": "ư\u0303",
+        "ự": "ư\u0323",
+    }
+
+    result = []
+    for char in nfc:
+        result.append(decomposition_map.get(char, char))
+
+    return "".join(result)
+
+
+def apply_legacy_substitutions(text: str, charset_name: str) -> str:
+    """Apply character substitutions for legacy encodings.
+
+    Replaces modern Unicode characters with legacy-compatible equivalents
+    that would have been used historically in these encodings.
+
+    Based on research (see ENCODING_SUBSTITUTIONS.md):
+    - Typographic punctuation (en-dash, em-dash, ellipsis, smart quotes)
+      should be replaced with ASCII equivalents (-, ..., ', ")
+    - Arabic punctuation can be replaced with ASCII equivalents in limited encodings
+    - Zero-width characters should be removed
+    - All text uses NFC (precomposed) normalization for maximum compatibility
+    - CP866: Substitute Belarusian/Ukrainian 'і' with Russian 'и' (historical workaround)
+
+    Note: Some characters (like those in CP864, CP1006) have no valid substitution
+    and documents containing them must be skipped.
+    """
+    # Universal substitutions for all single-byte encodings
+    # Replace typographic punctuation with ASCII equivalents
+    substitutions = {
+        # Dashes
+        "\u2010": "-",  # HYPHEN → HYPHEN-MINUS
+        "\u2011": "-",  # NON-BREAKING HYPHEN → HYPHEN-MINUS
+        "\u2012": "-",  # FIGURE DASH → HYPHEN-MINUS
+        "\u2013": "-",  # EN DASH → HYPHEN-MINUS
+        "\u2014": "-",  # EM DASH → HYPHEN-MINUS
+        "\u2015": "-",  # HORIZONTAL BAR → HYPHEN-MINUS
+        # Quotes
+        "\u2018": "'",  # LEFT SINGLE QUOTATION MARK → APOSTROPHE
+        "\u2019": "'",  # RIGHT SINGLE QUOTATION MARK → APOSTROPHE
+        "\u201a": "'",  # SINGLE LOW-9 QUOTATION MARK → APOSTROPHE
+        "\u201b": "'",  # SINGLE HIGH-REVERSED-9 QUOTATION MARK → APOSTROPHE
+        "\u201c": '"',  # LEFT DOUBLE QUOTATION MARK → QUOTATION MARK
+        "\u201d": '"',  # RIGHT DOUBLE QUOTATION MARK → QUOTATION MARK
+        "\u201e": '"',  # DOUBLE LOW-9 QUOTATION MARK → QUOTATION MARK
+        "\u201f": '"',  # DOUBLE HIGH-REVERSED-9 QUOTATION MARK → QUOTATION MARK
+        # Ellipsis
+        "\u2026": "...",  # HORIZONTAL ELLIPSIS → THREE DOTS
+        # Spaces
+        "\u00a0": " ",  # NO-BREAK SPACE → SPACE (many encodings support it, but normalize anyway)
+        "\u2002": " ",  # EN SPACE → SPACE
+        "\u2003": " ",  # EM SPACE → SPACE
+        "\u2009": " ",  # THIN SPACE → SPACE
+        "\u200a": " ",  # HAIR SPACE → SPACE
+        # Other common punctuation
+        "\u2022": "*",  # BULLET → ASTERISK
+        "\u2032": "'",  # PRIME → APOSTROPHE
+        "\u2033": '"',  # DOUBLE PRIME → QUOTATION MARK
+        "\u2212": "-",  # MINUS SIGN → HYPHEN-MINUS
+        # Zero-width and formatting characters (remove)
+        "\u200b": "",  # ZERO WIDTH SPACE
+        "\u200c": "",  # ZERO WIDTH NON-JOINER
+        "\u200d": "",  # ZERO WIDTH JOINER
+        "\u200e": "",  # LEFT-TO-RIGHT MARK
+        "\u200f": "",  # RIGHT-TO-LEFT MARK
+        "\ufeff": "",  # ZERO WIDTH NO-BREAK SPACE (BOM)
+    }
+
+    # Arabic-specific substitutions for limited code pages
+    # CP720, CP864 have very limited Arabic support
+    if charset_name.upper() in ["CP720", "CP864", "ISO-8859-6"]:
+        substitutions.update({
+            "\u060c": ",",  # ARABIC COMMA → COMMA
+            "\u061b": ";",  # ARABIC SEMICOLON → SEMICOLON
+            "\u066a": "%",  # ARABIC PERCENT SIGN → PERCENT SIGN
+        })
+
+    # CP866 (DOS Cyrillic) - Belarusian/Ukrainian workaround
+    # Historical workaround: substitute 'і' with Russian 'и'
+    # This is linguistically incorrect but was commonly used in DOS era
+    if charset_name.upper() == "CP866":
+        substitutions.update({
+            "\u0456": "\u0438",  # і → и (Ukrainian/Belarusian I → Russian I)
+            "\u0406": "\u0418",  # І → И (uppercase)
+        })
+
+    # Apply substitutions
+    for old_char, new_char in substitutions.items():
+        text = text.replace(old_char, new_char)
+
+    return text
 
 
 def write_culturax_test_files(
@@ -111,8 +300,16 @@ def write_culturax_test_files(
         if not text or len(text) < 500:  # Skip very short texts
             continue
 
-        # NFC normalize to reduce characters to single code points where possible
-        text = unicodedata.normalize("NFC", text)
+        # Apply charset-specific normalization
+        # Most encodings use NFC (precomposed), but Windows-1258 needs special handling
+        if any(cs.upper() == "WINDOWS-1258" for cs in charsets):
+            # Windows-1258 requires partial decomposition:
+            # - Keep precomposed base+diacritic (â, ê, ô, ă, ơ, ư)
+            # - Decompose tone marks to combining characters
+            text = normalize_vietnamese_for_windows_1258(text)
+        else:
+            # Use NFC for all other encodings (precomposed characters)
+            text = unicodedata.normalize("NFC", text)
 
         # Clean up repeated whitespace
         text = re.sub(r"(\s)\1+", r"\1", text)
@@ -168,6 +365,10 @@ def write_culturax_test_files(
             # Try to encode the text in this charset
             try:
                 text = item["text"]
+
+                # Apply legacy character substitutions
+                text = apply_legacy_substitutions(text, charset_name)
+
                 # Limit to max_chars_per_file
                 if len(text) > max_chars_per_file:
                     # Try to break at a reasonable point
