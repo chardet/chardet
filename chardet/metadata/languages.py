@@ -776,7 +776,10 @@ LANGUAGES = {
         charsets=[
             "WINDOWS-1258",
         ],
-        alphabet="aăâbcdđeêghiklmnoôơpqrstuưvxyAĂÂBCDĐEÊGHIKLMNOÔƠPQRSTUƯVXY",
+        # Alphabet includes base letters and combining tone marks used by Windows-1258:
+        # - Base letters: a, ă, â, e, ê, o, ô, ơ, u, ư, etc.
+        # - Combining marks: grave (̀), acute (́), tilde (̃), hook above (̉), dot below (̣)
+        alphabet="aăâbcdđeêghiklmnoôơpqrstuưvxyAĂÂBCDĐEÊGHIKLMNOÔƠPQRSTUƯVXY\u0300\u0301\u0303\u0309\u0323",
         num_training_docs=85_692,
         num_training_chars=300_000_871,
     ),

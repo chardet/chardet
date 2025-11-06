@@ -59,6 +59,161 @@ POSITIVE_RANK_THRESOLD = 512
 LIKELY_RANK_THRESOLD = 1024
 
 
+def normalize_vietnamese_for_windows_1258(text: str) -> str:
+    """Normalize Vietnamese text for Windows-1258 encoding.
+
+    Windows-1258 uses a unique approach:
+    - Precomposed base letters with circumflex/breve/horn: â, ê, ô, ă, ơ, ư
+    - Combining tone marks: grave, acute, tilde, hook above, dot below
+
+    Example: ế (U+1EBF) → ê (U+00EA) + combining acute (U+0301)
+
+    This function decomposes Vietnamese precomposed+tone characters into
+    the form Windows-1258 expects.
+    """
+    # Start with NFC to get consistent precomposed forms
+    nfc = unicodedata.normalize("NFC", text)
+
+    # Map Vietnamese precomposed characters to base+combining tone
+    # This is the ONLY way Windows-1258 can represent these characters
+    decomposition_map = {
+        # Regular vowels + tones
+        "à": "a\u0300",
+        "á": "a\u0301",
+        "ả": "a\u0309",
+        "ã": "a\u0303",
+        "ạ": "a\u0323",
+        "è": "e\u0300",
+        "é": "e\u0301",
+        "ẻ": "e\u0309",
+        "ẽ": "e\u0303",
+        "ẹ": "e\u0323",
+        "ì": "i\u0300",
+        "í": "i\u0301",
+        "ỉ": "i\u0309",
+        "ĩ": "i\u0303",
+        "ị": "i\u0323",
+        "ò": "o\u0300",
+        "ó": "o\u0301",
+        "ỏ": "o\u0309",
+        "õ": "o\u0303",
+        "ọ": "o\u0323",
+        "ù": "u\u0300",
+        "ú": "u\u0301",
+        "ủ": "u\u0309",
+        "ũ": "u\u0303",
+        "ụ": "u\u0323",
+        "ỳ": "y\u0300",
+        "ý": "y\u0301",
+        "ỷ": "y\u0309",
+        "ỹ": "y\u0303",
+        "ỵ": "y\u0323",
+        # â (circumflex) + tones
+        "ấ": "â\u0301",
+        "ầ": "â\u0300",
+        "ẩ": "â\u0309",
+        "ẫ": "â\u0303",
+        "ậ": "â\u0323",
+        # ê (circumflex) + tones
+        "ế": "ê\u0301",
+        "ề": "ê\u0300",
+        "ể": "ê\u0309",
+        "ễ": "ê\u0303",
+        "ệ": "ê\u0323",
+        # ô (circumflex) + tones
+        "ố": "ô\u0301",
+        "ồ": "ô\u0300",
+        "ổ": "ô\u0309",
+        "ỗ": "ô\u0303",
+        "ộ": "ô\u0323",
+        # ă (breve) + tones
+        "ắ": "ă\u0301",
+        "ằ": "ă\u0300",
+        "ẳ": "ă\u0309",
+        "ẵ": "ă\u0303",
+        "ặ": "ă\u0323",
+        # ơ (horn) + tones
+        "ớ": "ơ\u0301",
+        "ờ": "ơ\u0300",
+        "ở": "ơ\u0309",
+        "ỡ": "ơ\u0303",
+        "ợ": "ơ\u0323",
+        # ư (horn) + tones
+        "ứ": "ư\u0301",
+        "ừ": "ư\u0300",
+        "ử": "ư\u0309",
+        "ữ": "ư\u0303",
+        "ự": "ư\u0323",
+        # Uppercase variants
+        "À": "A\u0300",
+        "Á": "A\u0301",
+        "Ả": "A\u0309",
+        "Ã": "A\u0303",
+        "Ạ": "A\u0323",
+        "È": "E\u0300",
+        "É": "E\u0301",
+        "Ẻ": "E\u0309",
+        "Ẽ": "E\u0303",
+        "Ẹ": "E\u0323",
+        "Ì": "I\u0300",
+        "Í": "I\u0301",
+        "Ỉ": "I\u0309",
+        "Ĩ": "I\u0303",
+        "Ị": "I\u0323",
+        "Ò": "O\u0300",
+        "Ó": "O\u0301",
+        "Ỏ": "O\u0309",
+        "Õ": "O\u0303",
+        "Ọ": "O\u0323",
+        "Ù": "U\u0300",
+        "Ú": "U\u0301",
+        "Ủ": "U\u0309",
+        "Ũ": "U\u0303",
+        "Ụ": "U\u0323",
+        "Ỳ": "Y\u0300",
+        "Ý": "Y\u0301",
+        "Ỷ": "Y\u0309",
+        "Ỹ": "Y\u0303",
+        "Ỵ": "Y\u0323",
+        "Ấ": "Â\u0301",
+        "Ầ": "Â\u0300",
+        "Ẩ": "Â\u0309",
+        "Ẫ": "Â\u0303",
+        "Ậ": "Â\u0323",
+        "Ế": "Ê\u0301",
+        "Ề": "Ê\u0300",
+        "Ể": "Ê\u0309",
+        "Ễ": "Ê\u0303",
+        "Ệ": "Ê\u0323",
+        "Ố": "Ô\u0301",
+        "Ồ": "Ô\u0300",
+        "Ổ": "Ô\u0309",
+        "Ỗ": "Ô\u0303",
+        "Ộ": "Ô\u0323",
+        "Ắ": "Ă\u0301",
+        "Ằ": "Ă\u0300",
+        "Ẳ": "Ă\u0309",
+        "Ẵ": "Ă\u0303",
+        "Ặ": "Ă\u0323",
+        "Ớ": "Ơ\u0301",
+        "Ờ": "Ơ\u0300",
+        "Ở": "Ơ\u0309",
+        "Ỡ": "Ơ\u0303",
+        "Ợ": "Ơ\u0323",
+        "Ứ": "Ư\u0301",
+        "Ừ": "Ư\u0300",
+        "Ử": "Ư\u0309",
+        "Ữ": "Ư\u0303",
+        "Ự": "Ư\u0323",
+    }
+
+    result = []
+    for char in nfc:
+        result.append(decomposition_map.get(char, char))
+
+    return "".join(result)
+
+
 def normalize_name(charset_name: str):
     """Convert name to proper Python constant format"""
     # Title case to start
@@ -186,6 +341,7 @@ def calc_ngram_freqs(
     *,
     input_generator,
     alphabet_set: set[str],
+    language: str | None = None,
 ):
     """Create a language model with the likelihoods of all bigrams in input.
 
@@ -195,6 +351,10 @@ def calc_ngram_freqs(
     The LM is filtered down to bigrams to those with unigrams that have
     frequencies greater than equal to the lowest seen alphabet character
     frequency.
+
+    For Vietnamese, special normalization is applied to decompose precomposed
+    characters with tone marks (e.g., ế → ê + combining acute) to match how
+    Windows-1258 encoding actually represents Vietnamese text.
     """
     char_freqs = Counter()
     char_ranks = {}
@@ -208,6 +368,12 @@ def calc_ngram_freqs(
         # counted as the same, and because this is meant for single-byte
         # encodings, which don't support combining forms
         line = unicodedata.normalize("NFC", line)
+
+        # Vietnamese requires special handling because Windows-1258 uses
+        # combining tone marks rather than precomposed characters
+        if language == "Vietnamese":
+            line = normalize_vietnamese_for_windows_1258(line)
+
         size_in_bytes += len(line.encode("utf-8"))
         for unicode_char in line:
             # Only consider alphabet characters for this language
@@ -295,7 +461,7 @@ def generate_sbcs_model(
     # bigrams where both characters are in charset
     # IMPORTANT: We only count bigrams that can be encoded in this charset
     # in both the numerator AND denominator, because at detection time
-    # filter_international_words() removes characters that can't be encoded.
+    # SingleByteCharsetProber.feed() removes characters that can't be encoded.
     pos_count = 0
     likely_count = 0
     charset_bigram_count = 0
@@ -415,6 +581,7 @@ def train_model_for_lang(
     char_ranks, language_model = calc_ngram_freqs(
         input_generator=input_gen,
         alphabet_set=alphabet_set,
+        language=language,
     )
 
     # Create char-to-order maps (aka char-to-rank dicts)
