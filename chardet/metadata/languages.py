@@ -53,35 +53,55 @@ LANGUAGES = {
         # that the rendering system handles presentation
         # forms. This means we purposefully skip CP864.
         # TODO: Figure out if the above comment should be true, since it is not
-        charsets=["ISO-8859-6", "WINDOWS-1256", "CP720", "CP864"],
+        charsets=[
+            "CP720",
+            "CP864",
+            "ISO-8859-6",
+            "WINDOWS-1256",
+        ],
         alphabet="ءآأؤإئابةتثجحخدذرزسشصضطظعغػؼؽؾؿـفقكلمنهوىيًٌٍَُِّ",
     ),
     "Belarusian": Language(
         name="Belarusian",
         iso_code="be",
         use_ascii=False,
-        charsets=["ISO-8859-5", "WINDOWS-1251", "CP866", "MacCyrillic", "CP855"],
+        charsets=[
+            "CP855",
+            "CP866",
+            "ISO-8859-5",
+            "MacCyrillic",
+            "WINDOWS-1251",
+        ],
         alphabet="АБВГДЕЁЖЗІЙКЛМНОПРСТУЎФХЦЧШЫЬЭЮЯабвгдеёжзійклмнопрстуўфхцчшыьэюяʼ",
     ),
     "Bulgarian": Language(
         name="Bulgarian",
         iso_code="bg",
         use_ascii=False,
-        charsets=["ISO-8859-5", "WINDOWS-1251", "CP855", "MacCyrillic"],
+        charsets=[
+            "CP855",
+            "ISO-8859-5",
+            "MacCyrillic",
+            "WINDOWS-1251",
+        ],
         alphabet="АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЬЮЯабвгдежзийклмнопрстуфхцчшщъьюя",
     ),
     "Breton": Language(
         name="Breton",
         iso_code="br",
         use_ascii=True,
-        charsets=["ISO-8859-14"],
+        charsets=[
+            "ISO-8859-14",
+        ],
         alphabet="".join(sorted(set(ascii_letters + "ÀÂÈÊÎÔÙÛàâèêîôùû"))),
     ),
     "Welsh": Language(
         name="Welsh",
         iso_code="cy",
         use_ascii=True,
-        charsets=["ISO-8859-14"],
+        charsets=[
+            "ISO-8859-14",
+        ],
         alphabet="".join(
             sorted(
                 set(ascii_letters + "ÁÂÄÉÊËÍÎÏÓÔÖÚÛÜÝáâäéêëíîïóôöúûüýÿŴŵŶŷŸẀẁẂẃẄẅỲỳ")
@@ -92,7 +112,13 @@ LANGUAGES = {
         name="Czech",
         iso_code="cz",
         use_ascii=True,
-        charsets=["ISO-8859-2", "WINDOWS-1250", "CP852", "ISO-8859-16", "MacLatin2"],
+        charsets=[
+            "CP852",
+            "ISO-8859-16",
+            "ISO-8859-2",
+            "MacLatin2",
+            "WINDOWS-1250",
+        ],
         alphabet="".join(sorted(set(ascii_letters + "áčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ"))),
     ),
     "Danish": Language(
@@ -100,13 +126,14 @@ LANGUAGES = {
         iso_code="da",
         use_ascii=True,
         charsets=[
-            "ISO-8859-1",
-            "ISO-8859-15",
-            "WINDOWS-1252",
-            "MacRoman",
+            "CP500",
             "CP850",
             "CP858",
             "CP865",
+            "ISO-8859-1",
+            "ISO-8859-15",
+            "MacRoman",
+            "WINDOWS-1252",
         ],
         alphabet="".join(sorted(set(ascii_letters + "æøåÆØÅ"))),
     ),
@@ -115,12 +142,13 @@ LANGUAGES = {
         iso_code="de",
         use_ascii=True,
         charsets=[
-            "ISO-8859-1",
-            "ISO-8859-15",
-            "WINDOWS-1252",
-            "MacRoman",
+            "CP500",
             "CP850",
             "CP858",
+            "ISO-8859-1",
+            "ISO-8859-15",
+            "MacRoman",
+            "WINDOWS-1252",
         ],
         alphabet="".join(sorted(set(ascii_letters + "äöüßẞÄÖÜ"))),
     ),
@@ -128,7 +156,14 @@ LANGUAGES = {
         name="Greek",
         iso_code="el",
         use_ascii=False,
-        charsets=["ISO-8859-7", "WINDOWS-1253", "CP737", "CP869", "CP875", "MacGreek"],
+        charsets=[
+            "CP737",
+            "CP869",
+            "CP875",
+            "ISO-8859-7",
+            "MacGreek",
+            "WINDOWS-1253",
+        ],
         alphabet="αβγδεζηθικλμνξοπρσςτυφχψωάέήίόύώΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΣΤΥΦΧΨΩΆΈΉΊΌΎΏ",
     ),
     "English": Language(
@@ -137,13 +172,15 @@ LANGUAGES = {
         alphabet=ascii_letters,
         use_ascii=True,
         charsets=[
-            "ISO-8859-1",
-            "WINDOWS-1252",
-            "MacRoman",
-            "ISO-8859-15",
+            "CP037",
             "CP437",
+            "CP500",
             "CP850",
             "CP858",
+            "ISO-8859-1",
+            "ISO-8859-15",
+            "MacRoman",
+            "WINDOWS-1252",
         ],
     ),
     "Esperanto": Language(
@@ -151,7 +188,9 @@ LANGUAGES = {
         iso_code="eo",
         # Q, W, X, and Y not used at all
         use_ascii=False,
-        charsets=["ISO-8859-3"],
+        charsets=[
+            "ISO-8859-3",
+        ],
         alphabet="abcĉdefgĝhĥijĵklmnoprsŝtuŭvzABCĈDEFGĜHĤIJĴKLMNOPRSŜTUŬVZ",
     ),
     "Spanish": Language(
@@ -159,12 +198,13 @@ LANGUAGES = {
         iso_code="es",
         use_ascii=True,
         charsets=[
-            "ISO-8859-1",
-            "ISO-8859-15",
-            "WINDOWS-1252",
-            "MacRoman",
+            "CP500",
             "CP850",
             "CP858",
+            "ISO-8859-1",
+            "ISO-8859-15",
+            "MacRoman",
+            "WINDOWS-1252",
         ],
         alphabet="".join(sorted(set(ascii_letters + "ñáéíóúüÑÁÉÍÓÚÜ"))),
     ),
@@ -172,7 +212,12 @@ LANGUAGES = {
         name="Estonian",
         iso_code="et",
         use_ascii=False,
-        charsets=["ISO-8859-4", "ISO-8859-13", "WINDOWS-1257", "CP775"],
+        charsets=[
+            "CP775",
+            "ISO-8859-13",
+            "ISO-8859-4",
+            "WINDOWS-1257",
+        ],
         # C, F, Š, Q, W, X, Y, Z, Ž are only for
         # loanwords
         alphabet="ABDEGHIJKLMNOPRSTUVÕÄÖÜabdeghijklmnoprstuvõäöü",
@@ -181,7 +226,10 @@ LANGUAGES = {
         name="Farsi",
         iso_code="fa",
         use_ascii=False,
-        charsets=["WINDOWS-1256", "ISO-8859-6"],
+        charsets=[
+            "ISO-8859-6",
+            "WINDOWS-1256",
+        ],
         alphabet="ءآأؤإئابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهیًٌٍَُِّ",
     ),
     "Finnish": Language(
@@ -189,12 +237,13 @@ LANGUAGES = {
         iso_code="fi",
         use_ascii=True,
         charsets=[
-            "ISO-8859-1",
-            "ISO-8859-15",
-            "WINDOWS-1252",
-            "MacRoman",
+            "CP500",
             "CP850",
             "CP858",
+            "ISO-8859-1",
+            "ISO-8859-15",
+            "MacRoman",
+            "WINDOWS-1252",
         ],
         alphabet="".join(sorted(set(ascii_letters + "ÅÄÖŠŽåäöšž"))),
     ),
@@ -203,13 +252,14 @@ LANGUAGES = {
         iso_code="fr",
         use_ascii=True,
         charsets=[
-            "ISO-8859-1",
-            "ISO-8859-15",
-            "WINDOWS-1252",
-            "MacRoman",
+            "CP500",
             "CP850",
             "CP858",
             "CP863",
+            "ISO-8859-1",
+            "ISO-8859-15",
+            "MacRoman",
+            "WINDOWS-1252",
         ],
         alphabet="".join(
             sorted(set(ascii_letters + "àâæçèéêëîïôùûüÿÀÂÆÇÈÉÊËÎÏÔÙÛÜŸŒœ"))
@@ -219,21 +269,31 @@ LANGUAGES = {
         name="Irish",
         iso_code="ga",
         use_ascii=True,
-        charsets=["ISO-8859-14"],
+        charsets=[
+            "ISO-8859-14",
+        ],
         alphabet="".join(sorted(set(ascii_letters + "ÁÉÍÓÚáéíóú"))),
     ),
     "Scottish Gaelic": Language(
         name="Scottish Gaelic",
         iso_code="gd",
         use_ascii=True,
-        charsets=["ISO-8859-14"],
+        charsets=[
+            "ISO-8859-14",
+        ],
         alphabet="".join(sorted(set(ascii_letters + "ÀÈÌÒÙàèìòù"))),
     ),
     "Hebrew": Language(
         name="Hebrew",
         iso_code="he",
         use_ascii=False,
-        charsets=["ISO-8859-8", "WINDOWS-1255", "CP856", "CP862"],
+        charsets=[
+            "CP424",
+            "CP856",
+            "CP862",
+            "ISO-8859-8",
+            "WINDOWS-1255",
+        ],
         alphabet="אבגדהוזחטיךכלםמןנסעףפץצקרשתװױײ",
     ),
     "Croatian": Language(
@@ -241,7 +301,13 @@ LANGUAGES = {
         iso_code="hr",
         # Q, W, X, Y are only used for foreign words.
         use_ascii=False,
-        charsets=["ISO-8859-2", "WINDOWS-1250", "CP852", "ISO-8859-16", "MacLatin2"],
+        charsets=[
+            "CP852",
+            "ISO-8859-16",
+            "ISO-8859-2",
+            "MacLatin2",
+            "WINDOWS-1250",
+        ],
         alphabet="abcčćdđefghijklmnoprsštuvzžABCČĆDĐEFGHIJKLMNOPRSŠTUVZŽ",
     ),
     "Hungarian": Language(
@@ -249,7 +315,13 @@ LANGUAGES = {
         iso_code="hu",
         # Q, W, X, Y are only used for foreign words.
         use_ascii=False,
-        charsets=["ISO-8859-2", "WINDOWS-1250", "CP852", "ISO-8859-16", "MacLatin2"],
+        charsets=[
+            "CP852",
+            "ISO-8859-16",
+            "ISO-8859-2",
+            "MacLatin2",
+            "WINDOWS-1250",
+        ],
         alphabet="abcdefghijklmnoprstuvzáéíóöőúüűABCDEFGHIJKLMNOPRSTUVZÁÉÍÓÖŐÚÜŰ",
     ),
     "Icelandic": Language(
@@ -257,14 +329,23 @@ LANGUAGES = {
         iso_code="is",
         # Q, W are not used in native Icelandic words
         use_ascii=False,
-        charsets=["ISO-8859-1", "ISO-8859-10", "CP861", "MacIceland"],
+        charsets=[
+            "CP861",
+            "ISO-8859-1",
+            "ISO-8859-10",
+            "MacIceland",
+        ],
         alphabet="aábcdðeéfghiíjklmnoóprstuúvxyýþæöAÁBCDÐEÉFGHIÍJKLMNOÓPRSTUÚVXYÝÞÆÖ",
     ),
     "Indonesian": Language(
         name="Indonesian",
         iso_code="id",
         use_ascii=True,
-        charsets=["ISO-8859-1", "WINDOWS-1252", "MacRoman"],
+        charsets=[
+            "ISO-8859-1",
+            "MacRoman",
+            "WINDOWS-1252",
+        ],
         alphabet=ascii_letters,
     ),
     "Italian": Language(
@@ -272,12 +353,13 @@ LANGUAGES = {
         iso_code="it",
         use_ascii=True,
         charsets=[
-            "ISO-8859-1",
-            "ISO-8859-15",
-            "WINDOWS-1252",
-            "MacRoman",
+            "CP500",
             "CP850",
             "CP858",
+            "ISO-8859-1",
+            "ISO-8859-15",
+            "MacRoman",
+            "WINDOWS-1252",
         ],
         alphabet="".join(sorted(set(ascii_letters + "ÀÈÉÌÒÓÙàèéìòóù"))),
     ),
@@ -285,21 +367,31 @@ LANGUAGES = {
         name="Kazakh",
         iso_code="kk",
         use_ascii=False,
-        charsets=["KZ1048", "PTCP154"],
+        charsets=[
+            "KZ1048",
+            "PTCP154",
+        ],
         alphabet="АӘБВГҒДЕЁЖЗИЙКҚЛМНҢОӨПРСТУҰҮФХҺЦЧШЩЪЫІЬЭЮЯаәбвгғдеёжзийкқлмнңоөпрстууұүфхһцчшщъыіьэюя",
     ),
     "Cornish": Language(
         name="Cornish",
         iso_code="kw",
         use_ascii=True,
-        charsets=["ISO-8859-14"],
+        charsets=[
+            "ISO-8859-14",
+        ],
         alphabet="".join(sorted(set(ascii_letters + "ÂÊÎÔÛâêîôûŴŵŶŷ"))),
     ),
     "Lithuanian": Language(
         name="Lithuanian",
         iso_code="lt",
         use_ascii=False,
-        charsets=["ISO-8859-13", "WINDOWS-1257", "ISO-8859-4", "CP775"],
+        charsets=[
+            "CP775",
+            "ISO-8859-13",
+            "ISO-8859-4",
+            "WINDOWS-1257",
+        ],
         # Q, W, and X not used at all
         alphabet="AĄBCČDEĘĖFGHIĮYJKLMNOPRSŠTUŲŪVZŽaąbcčdeęėfghiįyjklmnoprsštuųūvzž",
     ),
@@ -307,7 +399,12 @@ LANGUAGES = {
         name="Latvian",
         iso_code="lv",
         use_ascii=False,
-        charsets=["ISO-8859-13", "WINDOWS-1257", "ISO-8859-4", "CP775"],
+        charsets=[
+            "CP775",
+            "ISO-8859-13",
+            "ISO-8859-4",
+            "WINDOWS-1257",
+        ],
         # Q, W, X, Y are only for loanwords
         alphabet="AĀBCČDEĒFGĢHIĪJKĶLĻMNŅOPRSŠTUŪVZŽaābcčdeēfgģhiījkķlļmnņoprsštuūvzž",
     ),
@@ -315,7 +412,12 @@ LANGUAGES = {
         name="Macedonian",
         iso_code="mk",
         use_ascii=False,
-        charsets=["ISO-8859-5", "WINDOWS-1251", "MacCyrillic", "CP855"],
+        charsets=[
+            "CP855",
+            "ISO-8859-5",
+            "MacCyrillic",
+            "WINDOWS-1251",
+        ],
         alphabet="АБВГДЃЕЖЗЅИЈКЛЉМНЊОПРСТЌУФХЦЧЏШабвгдѓежзѕијклљмнњопрстќуфхцчџш",
     ),
     "Maltese": Language(
@@ -323,14 +425,20 @@ LANGUAGES = {
         iso_code="mt",
         # Y is only used in loanwords
         use_ascii=False,
-        charsets=["ISO-8859-3"],
+        charsets=[
+            "ISO-8859-3",
+        ],
         alphabet="abċdefġghħijklmnopqrstuvwxżzABĊDEFĠGHĦIJKLMNOPQRSTUVWXŻZ",
     ),
     "Malay": Language(
         name="Malay",
         iso_code="ms",
         use_ascii=True,
-        charsets=["ISO-8859-1", "WINDOWS-1252", "MacRoman"],
+        charsets=[
+            "ISO-8859-1",
+            "MacRoman",
+            "WINDOWS-1252",
+        ],
         alphabet=ascii_letters,
     ),
     "Dutch": Language(
@@ -340,12 +448,13 @@ LANGUAGES = {
         alphabet=ascii_letters,
         use_ascii=True,
         charsets=[
-            "ISO-8859-1",
-            "WINDOWS-1252",
-            "MacRoman",
-            "ISO-8859-15",
+            "CP500",
             "CP850",
             "CP858",
+            "ISO-8859-1",
+            "ISO-8859-15",
+            "MacRoman",
+            "WINDOWS-1252",
         ],
     ),
     "Norwegian": Language(
@@ -354,13 +463,14 @@ LANGUAGES = {
         # Q, W, X, Z are only used for foreign words
         use_ascii=False,
         charsets=[
-            "ISO-8859-1",
-            "ISO-8859-15",
-            "WINDOWS-1252",
-            "MacRoman",
+            "CP500",
             "CP850",
             "CP858",
             "CP865",
+            "ISO-8859-1",
+            "ISO-8859-15",
+            "MacRoman",
+            "WINDOWS-1252",
         ],
         alphabet="ABCDEFGHIJKLMNOPRSTUVYÆØÅabcdefghijklmnoprstuvyæøå",
     ),
@@ -369,7 +479,13 @@ LANGUAGES = {
         iso_code="pl",
         # Q and X are only used for foreign words.
         use_ascii=False,
-        charsets=["ISO-8859-2", "WINDOWS-1250", "CP852", "ISO-8859-16", "MacLatin2"],
+        charsets=[
+            "CP852",
+            "ISO-8859-16",
+            "ISO-8859-2",
+            "MacLatin2",
+            "WINDOWS-1250",
+        ],
         alphabet="AĄBCĆDEĘFGHIJKLŁMNŃOÓPRSŚTUWYZŹŻaąbcćdeęfghijklłmnńoóprsśtuwyzźż",
     ),
     "Portuguese": Language(
@@ -377,13 +493,14 @@ LANGUAGES = {
         iso_code="pt",
         use_ascii=True,
         charsets=[
-            "ISO-8859-1",
-            "ISO-8859-15",
-            "WINDOWS-1252",
-            "MacRoman",
+            "CP500",
             "CP850",
             "CP858",
             "CP860",
+            "ISO-8859-1",
+            "ISO-8859-15",
+            "MacRoman",
+            "WINDOWS-1252",
         ],
         alphabet="".join(sorted(set(ascii_letters + "ÁÂÃÀÇÉÊÍÓÔÕÚáâãàçéêíóôõú"))),
     ),
@@ -391,7 +508,13 @@ LANGUAGES = {
         name="Romanian",
         iso_code="ro",
         use_ascii=True,
-        charsets=["ISO-8859-2", "WINDOWS-1250", "CP852", "ISO-8859-16", "MacLatin2"],
+        charsets=[
+            "CP852",
+            "ISO-8859-16",
+            "ISO-8859-2",
+            "MacLatin2",
+            "WINDOWS-1250",
+        ],
         alphabet="".join(sorted(set(ascii_letters + "ăâîșțĂÂÎȘȚ"))),
     ),
     "Russian": Language(
@@ -399,12 +522,12 @@ LANGUAGES = {
         iso_code="ru",
         use_ascii=False,
         charsets=[
+            "CP855",
+            "CP866",
             "ISO-8859-5",
-            "WINDOWS-1251",
             "KOI8-R",
             "MacCyrillic",
-            "CP866",
-            "CP855",
+            "WINDOWS-1251",
         ],
         alphabet="абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ",
     ),
@@ -412,7 +535,13 @@ LANGUAGES = {
         name="Slovak",
         iso_code="sk",
         use_ascii=True,
-        charsets=["ISO-8859-2", "WINDOWS-1250", "CP852", "ISO-8859-16", "MacLatin2"],
+        charsets=[
+            "CP852",
+            "ISO-8859-16",
+            "ISO-8859-2",
+            "MacLatin2",
+            "WINDOWS-1250",
+        ],
         alphabet="".join(
             sorted(set(ascii_letters + "áäčďéíĺľňóôŕšťúýžÁÄČĎÉÍĹĽŇÓÔŔŠŤÚÝŽ"))
         ),
@@ -422,18 +551,31 @@ LANGUAGES = {
         iso_code="sl",
         # Q, W, X, Y are only used for foreign words.
         use_ascii=False,
-        charsets=["ISO-8859-2", "WINDOWS-1250", "CP852", "ISO-8859-16", "MacLatin2"],
+        charsets=[
+            "CP852",
+            "ISO-8859-16",
+            "ISO-8859-2",
+            "MacLatin2",
+            "WINDOWS-1250",
+        ],
         alphabet="abcčdefghijklmnoprsštuvzžABCČDEFGHIJKLMNOPRSŠTUVZŽ",
     ),
     # Serbian can be written in both Latin and Cyrillic, but there's no
     # simple way to get the Latin alphabet pages from Wikipedia through
-    # the API, so for now we just support Cyrillic.
+    # the API, so for now we just support Cyrillic. The Latin alphabet
+    # is the same as Croatian, so we reuse that language model to handle
+    # Latin-Serbian text.
     "Serbian": Language(
         name="Serbian",
         iso_code="sr",
         use_ascii=False,
         alphabet="АБВГДЂЕЖЗИЈКЛЉМНЊОПРСТЋУФХЦЧЏШабвгдђежзијклљмнњопрстћуфхцчџш",
-        charsets=["ISO-8859-5", "WINDOWS-1251", "MacCyrillic", "CP855"],
+        charsets=[
+            "CP855",
+            "ISO-8859-5",
+            "MacCyrillic",
+            "WINDOWS-1251",
+        ],
     ),
     "Swedish": Language(
         name="Swedish",
@@ -441,12 +583,13 @@ LANGUAGES = {
         # Q, W, Z are rare and mainly in loanwords
         use_ascii=False,
         charsets=[
-            "ISO-8859-1",
-            "ISO-8859-15",
-            "WINDOWS-1252",
-            "MacRoman",
+            "CP500",
             "CP850",
             "CP858",
+            "ISO-8859-1",
+            "ISO-8859-15",
+            "MacRoman",
+            "WINDOWS-1252",
         ],
         alphabet="ABCDEFGHIJKLMNOPRSTUVXYÅÄÖabcdefghijklmnopqrstuvxyzåäö",
     ),
@@ -454,14 +597,20 @@ LANGUAGES = {
         name="Tajik",
         iso_code="tg",
         use_ascii=False,
-        charsets=["KOI8-T"],
+        charsets=[
+            "KOI8-T",
+        ],
         alphabet="АБВГҒДЕЁЖЗИӢЙКҚЛМНОПРСТУӮФХҲЧҶШЪЭЮЯабвгғдеёжзиӣйкқлмнопрстуӯфхҳчҷшъэюя",
     ),
     "Thai": Language(
         name="Thai",
         iso_code="th",
         use_ascii=False,
-        charsets=["ISO-8859-11", "TIS-620", "CP874"],
+        charsets=[
+            "CP874",
+            "ISO-8859-11",
+            "TIS-620",
+        ],
         alphabet="กขฃคฅฆงจฉชซฌญฎฏฐฑฒณดตถทธนบปผฝพฟภมยรฤลฦวศษสหฬอฮฯะัาำิีึืฺุู฿เแโใไๅๆ็่้๊๋์ํ๎๏๐๑๒๓๔๕๖๗๘๙๚๛",
     ),
     "Turkish": Language(
@@ -470,12 +619,12 @@ LANGUAGES = {
         # Q, W, and X are not used by Turkish
         use_ascii=False,
         charsets=[
+            "CP1026",
+            "CP857",
             "ISO-8859-3",
             "ISO-8859-9",
-            "WINDOWS-1254",
-            "CP857",
-            "CP1026",
             "MacTurkish",
+            "WINDOWS-1254",
         ],
         alphabet="abcçdefgğhıijklmnoöprsştuüvyzâîûABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZÂÎÛ",
     ),
@@ -483,14 +632,22 @@ LANGUAGES = {
         name="Ukrainian",
         iso_code="uk",
         use_ascii=False,
-        charsets=["ISO-8859-5", "WINDOWS-1251", "KOI8-U", "MacCyrillic", "CP1125"],
+        charsets=[
+            "CP1125",
+            "ISO-8859-5",
+            "KOI8-U",
+            "MacCyrillic",
+            "WINDOWS-1251",
+        ],
         alphabet="АБВГҐДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯабвгґдеєжзиіїйклмнопрстуфхцчшщьюяʼ",
     ),
     "Urdu": Language(
         name="Urdu",
         iso_code="ur",
         use_ascii=False,
-        charsets=["CP1006"],
+        charsets=[
+            "CP1006",
+        ],
         alphabet="ءآأؤإئابةتثجحخدذرزسشصضطظعغػؼؽؾؿـفقكلمنهوىيپچڈڑژکگںھۂۃیے",
     ),
     "Vietnamese": Language(
@@ -513,7 +670,9 @@ LANGUAGES = {
         # scheme has declined dramatically following
         # the adoption of Unicode on the World Wide
         # Web.
-        charsets=["WINDOWS-1258"],
+        charsets=[
+            "WINDOWS-1258",
+        ],
         alphabet="aăâbcdđeêghiklmnoôơpqrstuưvxyAĂÂBCDĐEÊGHIKLMNOÔƠPQRSTUƯVXY",
     ),
 }

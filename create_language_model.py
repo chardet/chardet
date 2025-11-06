@@ -438,8 +438,8 @@ def train_model_for_lang(
     # Write output files
     print(f"Writing output file for {language}\n\n")
     sys.stdout.flush()
-    with open(f"lang{language.lower()}model.py", "w") as output_file:
-        upper_lang = language.upper()
+    with open(f"lang{language.lower().replace(' ', '')}model.py", "w") as output_file:
+        upper_lang = language.upper().replace(" ", "_")
         # print header to set encoding
         print(
             (
