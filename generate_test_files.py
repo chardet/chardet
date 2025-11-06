@@ -52,23 +52,22 @@ def write_culturax_test_files(
     language: str,
     language_name: str,
     charsets: list[str],
+    num_training_docs: int | None,
     test_dir: str = "tests",
     max_chars_per_file: int = 3000,
     num_files: int = 3,
-    skip_chars: int = 300_000_000,
 ):
-    """Write test files from CulturaX dataset (from the end) for each charset.
+    """Write test files from CulturaX dataset (after training docs) for each charset.
 
     Args:
         language: ISO language code (e.g., 'en', 'fr', 'de')
         language_name: Full language name (e.g., 'English', 'French', 'German')
         charsets: List of charset names to generate test files for
+        num_training_docs: Number of documents used for training (to skip past)
         test_dir: Root directory for test files
         max_chars_per_file: Maximum characters per test file (default: 3000,
                            roughly the size of a typical webpage's text content)
         num_files: Number of test files to generate per charset
-        skip_chars: Number of characters to skip from the beginning (default: 300M,
-                   the default training size, to avoid overlap with training data)
     """
     if not HAVE_DATASETS:
         print(
@@ -76,9 +75,16 @@ def write_culturax_test_files(
         )
         return
 
+    if num_training_docs is None:
+        print(
+            f"Skipping test file generation for {language}: "
+            f"num_training_docs not set in language metadata"
+        )
+        return
+
     print(
         f"\nGenerating test files from CulturaX train split for {language}\n"
-        f"(Skipping first {skip_chars:,} characters to avoid training data overlap)"
+        f"(Skipping first {num_training_docs:,} documents used for training)"
     )
 
     # Load train dataset (same as training script uses)
@@ -94,15 +100,13 @@ def write_culturax_test_files(
         print(f"Could not load dataset for {language}: {e}")
         return
 
-    # Skip past the training data by counting characters
+    # Skip past the training data documents
     # This ensures test files come from data not used in training
-    chars_skipped = 0
+    dataset = dataset.skip(num_training_docs)  # type: ignore
+
     items = []
     for item_idx, item in enumerate(dataset):
         text = item.get("text", "")  # type: ignore
-        if chars_skipped < skip_chars:
-            chars_skipped += len(text)
-            continue
 
         if not text or len(text) < 500:  # Skip very short texts
             continue
@@ -113,10 +117,10 @@ def write_culturax_test_files(
         # Clean up repeated whitespace
         text = re.sub(r"(\s)\1+", r"\1", text)
 
-        # Store item with metadata
+        # Store item with metadata (adjusted index to reflect skip)
         items.append({
             "text": text,
-            "idx": item_idx,
+            "idx": num_training_docs + item_idx,
             "url": item.get("url", ""),  # type: ignore
             "source": item.get("source", ""),  # type: ignore
         })
@@ -208,7 +212,6 @@ def generate_test_files_for_language(
     test_dir: str,
     max_chars_per_file: int,
     num_files: int,
-    skip_chars: int,
 ):
     """Generate test files for a single language."""
     # Validate language
@@ -232,10 +235,10 @@ def generate_test_files_for_language(
         language=lang_metadata.iso_code,
         language_name=language,
         charsets=lang_metadata.charsets,
+        num_training_docs=lang_metadata.num_training_docs,
         test_dir=test_dir,
         max_chars_per_file=max_chars_per_file,
         num_files=num_files,
-        skip_chars=skip_chars,
     )
 
 
@@ -271,14 +274,6 @@ def main():
         type=int,
         default=3,
     )
-    parser.add_argument(
-        "-s",
-        "--skip-chars",
-        help="Number of characters to skip from beginning of dataset "
-        "(to avoid overlap with training data).",
-        type=int,
-        default=300_000_000,
-    )
     parser.add_argument("--version", action="version", version=__version__)
     args = parser.parse_args()
 
@@ -296,7 +291,6 @@ def main():
             test_dir=args.test_dir,
             max_chars_per_file=args.max_chars,
             num_files=args.num_files,
-            skip_chars=args.skip_chars,
         )
 
 
