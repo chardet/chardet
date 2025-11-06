@@ -28,6 +28,15 @@ class Language:
     :ivar alphabet: The characters in the language's alphabet. If `use_ascii` is
                     `True`, you only need to add those not in the ASCII set.
     :type alphabet: str
+    :ivar num_training_docs: Number of documents from CulturaX to use for training.
+                             This represents approximately 300M characters of training data.
+                             None means the count hasn't been determined yet.
+    :type num_training_docs: int or None
+    :ivar num_training_chars: Number of characters from CulturaX used for training.
+                              The goal is for this to be at least 300M characters, but some
+                              languages may not have that much data available.
+                              None means the count hasn't been determined yet.
+    :type num_training_chars: int or None
     """
 
     name: str
@@ -35,6 +44,8 @@ class Language:
     use_ascii: bool
     charsets: list[str]
     alphabet: str
+    num_training_docs: int | None = None
+    num_training_chars: int | None = None
 
     def __repr__(self) -> str:
         param_str = ", ".join(
@@ -60,6 +71,8 @@ LANGUAGES = {
             "WINDOWS-1256",
         ],
         alphabet="ءآأؤإئابةتثجحخدذرزسشصضطظعغػؼؽؾؿـفقكلمنهوىيًٌٍَُِّ",
+        num_training_docs=98_634,
+        num_training_chars=300_001_734,
     ),
     "Belarusian": Language(
         name="Belarusian",
@@ -73,6 +86,8 @@ LANGUAGES = {
             "WINDOWS-1251",
         ],
         alphabet="АБВГДЕЁЖЗІЙКЛМНОПРСТУЎФХЦЧШЫЬЭЮЯабвгдеёжзійклмнопрстуўфхцчшыьэюяʼ",
+        num_training_docs=77_015,
+        num_training_chars=300_003_525,
     ),
     "Bulgarian": Language(
         name="Bulgarian",
@@ -85,6 +100,8 @@ LANGUAGES = {
             "WINDOWS-1251",
         ],
         alphabet="АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЬЮЯабвгдежзийклмнопрстуфхцчшщъьюя",
+        num_training_docs=84_186,
+        num_training_chars=300_001_428,
     ),
     "Breton": Language(
         name="Breton",
@@ -94,6 +111,8 @@ LANGUAGES = {
             "ISO-8859-14",
         ],
         alphabet="".join(sorted(set(ascii_letters + "ÀÂÈÊÎÔÙÛàâèêîôùû"))),
+        num_training_docs=43_761,
+        num_training_chars=39_597_819,
     ),
     "Welsh": Language(
         name="Welsh",
@@ -107,10 +126,12 @@ LANGUAGES = {
                 set(ascii_letters + "ÁÂÄÉÊËÍÎÏÓÔÖÚÛÜÝáâäéêëíîïóôöúûüýÿŴŵŶŷŸẀẁẂẃẄẅỲỳ")
             )
         ),
+        num_training_docs=78_726,
+        num_training_chars=300_014_737,
     ),
     "Czech": Language(
         name="Czech",
-        iso_code="cz",
+        iso_code="cs",
         use_ascii=True,
         charsets=[
             "CP852",
@@ -120,6 +141,8 @@ LANGUAGES = {
             "WINDOWS-1250",
         ],
         alphabet="".join(sorted(set(ascii_letters + "áčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ"))),
+        num_training_docs=98_820,
+        num_training_chars=300_005_076,
     ),
     "Danish": Language(
         name="Danish",
@@ -136,6 +159,8 @@ LANGUAGES = {
             "WINDOWS-1252",
         ],
         alphabet="".join(sorted(set(ascii_letters + "æøåÆØÅ"))),
+        num_training_docs=83_466,
+        num_training_chars=300_004_040,
     ),
     "German": Language(
         name="German",
@@ -151,6 +176,8 @@ LANGUAGES = {
             "WINDOWS-1252",
         ],
         alphabet="".join(sorted(set(ascii_letters + "äöüßẞÄÖÜ"))),
+        num_training_docs=83_754,
+        num_training_chars=300_002_572,
     ),
     "Greek": Language(
         name="Greek",
@@ -165,6 +192,8 @@ LANGUAGES = {
             "WINDOWS-1253",
         ],
         alphabet="αβγδεζηθικλμνξοπρσςτυφχψωάέήίόύώΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΣΤΥΦΧΨΩΆΈΉΊΌΎΏ",
+        num_training_docs=103_810,
+        num_training_chars=300_003_051,
     ),
     "English": Language(
         name="English",
@@ -182,6 +211,8 @@ LANGUAGES = {
             "MacRoman",
             "WINDOWS-1252",
         ],
+        num_training_docs=84_511,
+        num_training_chars=300_004_447,
     ),
     "Esperanto": Language(
         name="Esperanto",
@@ -192,6 +223,8 @@ LANGUAGES = {
             "ISO-8859-3",
         ],
         alphabet="abcĉdefgĝhĥijĵklmnoprsŝtuŭvzABCĈDEFGĜHĤIJĴKLMNOPRSŜTUŬVZ",
+        num_training_docs=40_441,
+        num_training_chars=300_001_893,
     ),
     "Spanish": Language(
         name="Spanish",
@@ -207,6 +240,8 @@ LANGUAGES = {
             "WINDOWS-1252",
         ],
         alphabet="".join(sorted(set(ascii_letters + "ñáéíóúüÑÁÉÍÓÚÜ"))),
+        num_training_docs=87_069,
+        num_training_chars=300_000_884,
     ),
     "Estonian": Language(
         name="Estonian",
@@ -221,6 +256,8 @@ LANGUAGES = {
         # C, F, Š, Q, W, X, Y, Z, Ž are only for
         # loanwords
         alphabet="ABDEGHIJKLMNOPRSTUVÕÄÖÜabdeghijklmnoprstuvõäöü",
+        num_training_docs=66_818,
+        num_training_chars=300_000_765,
     ),
     "Farsi": Language(
         name="Farsi",
@@ -231,6 +268,8 @@ LANGUAGES = {
             "WINDOWS-1256",
         ],
         alphabet="ءآأؤإئابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهیًٌٍَُِّ",
+        num_training_docs=104_835,
+        num_training_chars=300_001_684,
     ),
     "Finnish": Language(
         name="Finnish",
@@ -246,6 +285,8 @@ LANGUAGES = {
             "WINDOWS-1252",
         ],
         alphabet="".join(sorted(set(ascii_letters + "ÅÄÖŠŽåäöšž"))),
+        num_training_docs=80_361,
+        num_training_chars=300_001_375,
     ),
     "French": Language(
         name="French",
@@ -264,6 +305,8 @@ LANGUAGES = {
         alphabet="".join(
             sorted(set(ascii_letters + "àâæçèéêëîïôùûüÿÀÂÆÇÈÉÊËÎÏÔÙÛÜŸŒœ"))
         ),
+        num_training_docs=88_369,
+        num_training_chars=300_003_422,
     ),
     "Irish": Language(
         name="Irish",
@@ -273,6 +316,8 @@ LANGUAGES = {
             "ISO-8859-14",
         ],
         alphabet="".join(sorted(set(ascii_letters + "ÁÉÍÓÚáéíóú"))),
+        num_training_docs=63_468,
+        num_training_chars=300_005_169,
     ),
     "Scottish Gaelic": Language(
         name="Scottish Gaelic",
@@ -282,6 +327,8 @@ LANGUAGES = {
             "ISO-8859-14",
         ],
         alphabet="".join(sorted(set(ascii_letters + "ÀÈÌÒÙàèìòù"))),
+        num_training_docs=8_408,
+        num_training_chars=15_116_797,
     ),
     "Hebrew": Language(
         name="Hebrew",
@@ -295,6 +342,8 @@ LANGUAGES = {
             "WINDOWS-1255",
         ],
         alphabet="אבגדהוזחטיךכלםמןנסעףפץצקרשתװױײ",
+        num_training_docs=58265,
+        num_training_chars=300_009_414,
     ),
     "Croatian": Language(
         name="Croatian",
@@ -309,6 +358,8 @@ LANGUAGES = {
             "WINDOWS-1250",
         ],
         alphabet="abcčćdđefghijklmnoprsštuvzžABCČĆDĐEFGHIJKLMNOPRSŠTUVZŽ",
+        num_training_docs=460_689,
+        num_training_chars=157_579_665,
     ),
     "Hungarian": Language(
         name="Hungarian",
@@ -323,6 +374,8 @@ LANGUAGES = {
             "WINDOWS-1250",
         ],
         alphabet="abcdefghijklmnoprstuvzáéíóöőúüűABCDEFGHIJKLMNOPRSTUVZÁÉÍÓÖŐÚÜŰ",
+        num_training_docs=82_417,
+        num_training_chars=300_001_846,
     ),
     "Icelandic": Language(
         name="Icelandic",
@@ -336,6 +389,8 @@ LANGUAGES = {
             "MacIceland",
         ],
         alphabet="aábcdðeéfghiíjklmnoóprstuúvxyýþæöAÁBCDÐEÉFGHIÍJKLMNOÓPRSTUÚVXYÝÞÆÖ",
+        num_training_docs=77_487,
+        num_training_chars=300_004_354,
     ),
     "Indonesian": Language(
         name="Indonesian",
@@ -347,6 +402,8 @@ LANGUAGES = {
             "WINDOWS-1252",
         ],
         alphabet=ascii_letters,
+        num_training_docs=114_888,
+        num_training_chars=300_000_301,
     ),
     "Italian": Language(
         name="Italian",
@@ -362,6 +419,8 @@ LANGUAGES = {
             "WINDOWS-1252",
         ],
         alphabet="".join(sorted(set(ascii_letters + "ÀÈÉÌÒÓÙàèéìòóù"))),
+        num_training_docs=92_388,
+        num_training_chars=300_081_924,
     ),
     "Kazakh": Language(
         name="Kazakh",
@@ -372,6 +431,8 @@ LANGUAGES = {
             "PTCP154",
         ],
         alphabet="АӘБВГҒДЕЁЖЗИЙКҚЛМНҢОӨПРСТУҰҮФХҺЦЧШЩЪЫІЬЭЮЯаәбвгғдеёжзийкқлмнңоөпрстууұүфхһцчшщъыіьэюя",
+        num_training_docs=73_160,
+        num_training_chars=300_002_618,
     ),
     "Cornish": Language(
         name="Cornish",
@@ -381,6 +442,8 @@ LANGUAGES = {
             "ISO-8859-14",
         ],
         alphabet="".join(sorted(set(ascii_letters + "ÂÊÎÔÛâêîôûŴŵŶŷ"))),
+        num_training_docs=94,
+        num_training_chars=58_047,
     ),
     "Lithuanian": Language(
         name="Lithuanian",
@@ -394,6 +457,8 @@ LANGUAGES = {
         ],
         # Q, W, and X not used at all
         alphabet="AĄBCČDEĘĖFGHIĮYJKLMNOPRSŠTUŲŪVZŽaąbcčdeęėfghiįyjklmnoprsštuųūvzž",
+        num_training_docs=73_445,
+        num_training_chars=300_008_498,
     ),
     "Latvian": Language(
         name="Latvian",
@@ -407,6 +472,8 @@ LANGUAGES = {
         ],
         # Q, W, X, Y are only for loanwords
         alphabet="AĀBCČDEĒFGĢHIĪJKĶLĻMNŅOPRSŠTUŪVZŽaābcčdeēfgģhiījkķlļmnņoprsštuūvzž",
+        num_training_docs=71_628,
+        num_training_chars=300_007_767,
     ),
     "Macedonian": Language(
         name="Macedonian",
@@ -419,6 +486,8 @@ LANGUAGES = {
             "WINDOWS-1251",
         ],
         alphabet="АБВГДЃЕЖЗЅИЈКЛЉМНЊОПРСТЌУФХЦЧЏШабвгдѓежзѕијклљмнњопрстќуфхцчџш",
+        num_training_docs=102_724,
+        num_training_chars=300_009_729,
     ),
     "Maltese": Language(
         name="Maltese",
@@ -429,6 +498,8 @@ LANGUAGES = {
             "ISO-8859-3",
         ],
         alphabet="abċdefġghħijklmnopqrstuvwxżzABĊDEFĠGHĦIJKLMNOPQRSTUVWXŻZ",
+        num_training_docs=51_488,
+        num_training_chars=300_001_960,
     ),
     "Malay": Language(
         name="Malay",
@@ -440,6 +511,8 @@ LANGUAGES = {
             "WINDOWS-1252",
         ],
         alphabet=ascii_letters,
+        num_training_docs=238_150,
+        num_training_chars=93_983_043,
     ),
     "Dutch": Language(
         name="Dutch",
@@ -456,6 +529,8 @@ LANGUAGES = {
             "MacRoman",
             "WINDOWS-1252",
         ],
+        num_training_docs=107_675,
+        num_training_chars=300_000_260,
     ),
     "Norwegian": Language(
         name="Norwegian",
@@ -473,6 +548,8 @@ LANGUAGES = {
             "WINDOWS-1252",
         ],
         alphabet="ABCDEFGHIJKLMNOPRSTUVYÆØÅabcdefghijklmnoprstuvyæøå",
+        num_training_docs=66_762,
+        num_training_chars=300_001_076,
     ),
     "Polish": Language(
         name="Polish",
@@ -487,6 +564,8 @@ LANGUAGES = {
             "WINDOWS-1250",
         ],
         alphabet="AĄBCĆDEĘFGHIJKLŁMNŃOÓPRSŚTUWYZŹŻaąbcćdeęfghijklłmnńoóprsśtuwyzźż",
+        num_training_docs=97_060,
+        num_training_chars=300_001_942,
     ),
     "Portuguese": Language(
         name="Portuguese",
@@ -503,6 +582,8 @@ LANGUAGES = {
             "WINDOWS-1252",
         ],
         alphabet="".join(sorted(set(ascii_letters + "ÁÂÃÀÇÉÊÍÓÔÕÚáâãàçéêíóôõú"))),
+        num_training_docs=101_817,
+        num_training_chars=300_001_295,
     ),
     "Romanian": Language(
         name="Romanian",
@@ -516,6 +597,8 @@ LANGUAGES = {
             "WINDOWS-1250",
         ],
         alphabet="".join(sorted(set(ascii_letters + "ăâîșțĂÂÎȘȚ"))),
+        num_training_docs=78_976,
+        num_training_chars=300_001_970,
     ),
     "Russian": Language(
         name="Russian",
@@ -530,6 +613,8 @@ LANGUAGES = {
             "WINDOWS-1251",
         ],
         alphabet="абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ",
+        num_training_docs=85_054,
+        num_training_chars=300_001_344,
     ),
     "Slovak": Language(
         name="Slovak",
@@ -545,6 +630,8 @@ LANGUAGES = {
         alphabet="".join(
             sorted(set(ascii_letters + "áäčďéíĺľňóôŕšťúýžÁÄČĎÉÍĹĽŇÓÔŔŠŤÚÝŽ"))
         ),
+        num_training_docs=95_223,
+        num_training_chars=300_000_329,
     ),
     "Slovene": Language(
         name="Slovene",
@@ -559,6 +646,8 @@ LANGUAGES = {
             "WINDOWS-1250",
         ],
         alphabet="abcčdefghijklmnoprsštuvzžABCČDEFGHIJKLMNOPRSŠTUVZŽ",
+        num_training_docs=66_688,
+        num_training_chars=300_002_768,
     ),
     # Serbian can be written in both Latin and Cyrillic, but there's no
     # simple way to get the Latin alphabet pages from Wikipedia through
@@ -576,6 +665,8 @@ LANGUAGES = {
             "MacCyrillic",
             "WINDOWS-1251",
         ],
+        num_training_docs=66_918,
+        num_training_chars=300_000_904,
     ),
     "Swedish": Language(
         name="Swedish",
@@ -592,6 +683,8 @@ LANGUAGES = {
             "WINDOWS-1252",
         ],
         alphabet="ABCDEFGHIJKLMNOPRSTUVXYÅÄÖabcdefghijklmnopqrstuvxyzåäö",
+        num_training_docs=96_485,
+        num_training_chars=300_013_381,
     ),
     "Tajik": Language(
         name="Tajik",
@@ -601,6 +694,8 @@ LANGUAGES = {
             "KOI8-T",
         ],
         alphabet="АБВГҒДЕЁЖЗИӢЙКҚЛМНОПРСТУӮФХҲЧҶШЪЭЮЯабвгғдеёжзиӣйкқлмнопрстуӯфхҳчҷшъэюя",
+        num_training_docs=74_865,
+        num_training_chars=300_022_133,
     ),
     "Thai": Language(
         name="Thai",
@@ -612,6 +707,8 @@ LANGUAGES = {
             "TIS-620",
         ],
         alphabet="กขฃคฅฆงจฉชซฌญฎฏฐฑฒณดตถทธนบปผฝพฟภมยรฤลฦวศษสหฬอฮฯะัาำิีึืฺุู฿เแโใไๅๆ็่้๊๋์ํ๎๏๐๑๒๓๔๕๖๗๘๙๚๛",
+        num_training_docs=109_133,
+        num_training_chars=300_008_106,
     ),
     "Turkish": Language(
         name="Turkish",
@@ -627,6 +724,8 @@ LANGUAGES = {
             "WINDOWS-1254",
         ],
         alphabet="abcçdefgğhıijklmnoöprsştuüvyzâîûABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZÂÎÛ",
+        num_training_docs=107_848,
+        num_training_chars=300_001_308,
     ),
     "Ukrainian": Language(
         name="Ukrainian",
@@ -640,6 +739,8 @@ LANGUAGES = {
             "WINDOWS-1251",
         ],
         alphabet="АБВГҐДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯабвгґдеєжзиіїйклмнопрстуфхцчшщьюяʼ",
+        num_training_docs=95_019,
+        num_training_chars=300_048_946,
     ),
     "Urdu": Language(
         name="Urdu",
@@ -649,6 +750,8 @@ LANGUAGES = {
             "CP1006",
         ],
         alphabet="ءآأؤإئابةتثجحخدذرزسشصضطظعغػؼؽؾؿـفقكلمنهوىيپچڈڑژکگںھۂۃیے",
+        num_training_docs=82_296,
+        num_training_chars=300_001_141,
     ),
     "Vietnamese": Language(
         name="Vietnamese",
@@ -674,5 +777,7 @@ LANGUAGES = {
             "WINDOWS-1258",
         ],
         alphabet="aăâbcdđeêghiklmnoôơpqrstuưvxyAĂÂBCDĐEÊGHIKLMNOÔƠPQRSTUƯVXY",
+        num_training_docs=85_692,
+        num_training_chars=300_000_871,
     ),
 }
