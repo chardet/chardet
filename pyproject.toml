@@ -3,7 +3,7 @@ name = "chardet"
 description = "Universal encoding detector for Python 3"
 readme = "README.rst"
 requires-python = ">=3.9"
-license = { text = "LGPL" }
+license = { text = "LGPL-2.1-or-later" }
 authors = [{ name = "Mark Pilgrim", email = "mark@diveintomark.org" }]
 maintainers = [
   { name = "Dan Blanchard", email = "dan.blanchard@gmail.com" },
