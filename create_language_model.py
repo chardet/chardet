@@ -139,13 +139,13 @@ def gen_input_lines(input_paths: list[str], input_encoding: str):
 def gen_culturax_lines(
     *,
     language: str,
-    max_chars: int,
+    num_docs: int | None,
 ):
     """Generate lines from CulturaX dataset for the given language.
 
     Args:
         language: ISO language code (e.g., 'en', 'fr', 'de')
-        max_chars: Maximum number of characters to yield
+        num_docs: Number of documents to process (None means all available)
     """
     if not HAVE_DATASETS:
         raise ValueError(
@@ -163,7 +163,7 @@ def gen_culturax_lines(
     )
 
     char_count = 0
-    for item in dataset:
+    for doc_count, item in enumerate(dataset):
         text = item.get("text", "")  # type: ignore
         if not text:
             continue
@@ -174,9 +174,12 @@ def gen_culturax_lines(
         for line in text.splitlines(True):
             yield line
             char_count += len(line)
-            if char_count >= max_chars:
-                print(f"\nReached {char_count:,} characters from CulturaX")
-                return
+
+        if num_docs is not None and doc_count >= num_docs:
+            print(
+                f"\nProcessed {doc_count:,} documents ({char_count:,} characters) from CulturaX"
+            )
+            return
 
 
 def calc_ngram_freqs(
@@ -368,7 +371,6 @@ def train_model_for_lang(
     *,
     input_encoding: str,
     input_paths: list[str],
-    max_chars: int,
 ):
     """Train a SingleByteCharSetModel for the given language"""
     # Validate language
@@ -385,7 +387,7 @@ def train_model_for_lang(
         f"\n{language}\n----------------------------------------------------------------\n"
         f"Keep ASCII Letters: {lang_metadata.use_ascii}\n"
         f"Alphabet: {lang_metadata.alphabet}\n"
-        f"Data Source: {'Custom files' if input_paths else f'CulturaX (max {max_chars:,} chars)'}"
+        f"Data Source: {'Custom files' if input_paths else f'CulturaX ({lang_metadata.num_training_docs:,} docs)' if lang_metadata.num_training_docs else 'CulturaX (all docs)'}"
     )
 
     # Setup input generator
@@ -400,7 +402,8 @@ def train_model_for_lang(
                 "The datasets package is required. Install with: pip install datasets"
             )
         input_gen = gen_culturax_lines(
-            language=lang_metadata.iso_code, max_chars=max_chars
+            language=lang_metadata.iso_code,
+            num_docs=lang_metadata.num_training_docs,
         )
         data_size_str = "CulturaX"
 
@@ -506,13 +509,6 @@ def main():
         dest="input_paths",
     )
     parser.add_argument(
-        "-c",
-        "--max-chars",
-        help="Maximum number of characters to read from CulturaX dataset.",
-        type=int,
-        default=300_000_000,
-    )
-    parser.add_argument(
         "-p",
         "--parallel-langs",
         help="Number of language models to train at once.",
@@ -546,7 +542,6 @@ def main():
                 train_model_for_lang,
                 input_encoding=args.input_encoding,
                 input_paths=args.input_paths,
-                max_chars=args.max_chars,
             ),
             args.language,
         )
@@ -558,7 +553,6 @@ def main():
                 language,
                 input_encoding=args.input_encoding,
                 input_paths=args.input_paths,
-                max_chars=args.max_chars,
             )
 
 
