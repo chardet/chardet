@@ -88,16 +88,17 @@ class UniversalDetector:
         "iso-8859-13": "Windows-1257",
     }
     # Based on https://encoding.spec.whatwg.org/#names-and-labels
-    # but altered to match Python names for encodings and remove mappings
-    # that break tests.
+    # Maps legacy encoding names to their modern/superset equivalents.
+    # Uses Python's canonical codec names (case-insensitive).
     LEGACY_MAP = {
-        "ascii": "Windows-1252",
-        "iso-8859-1": "Windows-1252",
-        "tis-620": "ISO-8859-11",
-        "iso-8859-9": "Windows-1254",
-        "gb2312": "GB18030",
-        "euc-kr": "CP949",
-        "utf-16le": "UTF-16",
+        "ascii": "Windows-1252",  # ASCII is subset of Windows-1252
+        "iso-8859-1": "Windows-1252",  # Latin-1 extended by Windows-1252
+        "iso-8859-9": "Windows-1254",  # Latin-5 extended by Windows-1254
+        "iso-8859-11": "cp874",  # Thai, extended by CP874 (aka Windows-874)
+        "tis-620": "cp874",  # Thai, equivalent to Windows-874
+        "gb2312": "GB18030",  # GB2312 < GBK < GB18030 (GB18030 is superset)
+        "euc-kr": "CP949",  # EUC-KR extended by CP949 (aka Windows-949)
+        "utf-16le": "UTF-16",  # UTF-16LE without BOM -> UTF-16 with BOM handling
     }
 
     def __init__(
@@ -286,8 +287,14 @@ class UniversalDetector:
                     self._charset_probers.append(SBCSGroupProber())
             for prober in self._charset_probers:
                 if prober.feed(byte_str) == ProbingState.FOUND_IT:
+                    charset_name = prober.charset_name
+                    # Rename legacy encodings if requested
+                    if self.should_rename_legacy:
+                        charset_name = self.LEGACY_MAP.get(
+                            (charset_name or "").lower(), charset_name
+                        )
                     self.result = {
-                        "encoding": prober.charset_name,
+                        "encoding": charset_name,
                         "confidence": prober.get_confidence(),
                         "language": prober.language,
                     }
