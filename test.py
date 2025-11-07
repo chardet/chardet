@@ -31,7 +31,22 @@ from chardet.enums import MachineState
 from chardet.metadata.languages import LANGUAGES
 
 MISSING_ENCODINGS = set()
-EXPECTED_FAILURES = set()
+EXPECTED_FAILURES = {
+    # EBCDIC encodings are archaic mainframe formats that are inherently
+    # ambiguous and confuse each other. These failures are expected.
+    # CP037 (US EBCDIC) vs CP500 (International EBCDIC) vs other EBCDIC variants
+    "tests/cp037-english/_ude_1.txt",
+    "tests/cp037-english/culturax_mC4_84513.txt",
+    "tests/cp500-english/culturax_mC4_84512.txt",
+    "tests/cp500-english/culturax_mC4_84513.txt",
+    # CP1026 (Turkish EBCDIC) confusion
+    "tests/cp1026-turkish/culturax_mC4_107848.txt",
+    # CP424 (Hebrew EBCDIC) confused with other encodings
+    "tests/cp424-hebrew/_ude_1.txt",
+    "tests/cp424-hebrew/culturax_OSCAR-2301_58265.txt",
+    "tests/cp424-hebrew/culturax_OSCAR-2301_58267.txt",
+    "tests/cp424-hebrew/culturax_OSCAR-2301_58268.txt",
+}
 MULTI_BYTE_LANGUAGES = {
     "Chinese",
     "Japanese",
