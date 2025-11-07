@@ -57,7 +57,23 @@ except Exception:
 
 from chardet import __version__
 from chardet.metadata.languages import LANGUAGES
+from chardet.universaldetector import UniversalDetector
 from create_language_model import normalize_vietnamese_for_windows_1258
+
+# Windows encodings that need bytes in 0x80-0x9F to be detected
+# (otherwise ISO equivalent will be detected instead)
+WINDOWS_ENCODINGS_NEEDING_HIGH_BYTES = set(UniversalDetector.ISO_WIN_MAP.values())
+
+# Mac encodings that have ISO equivalents and need bytes in 0x80-0x9F to be detected
+# (otherwise ISO equivalent will be detected instead)
+MAC_ENCODINGS_NEEDING_HIGH_BYTES = {
+    "MacRoman",  # ~ ISO-8859-1
+    "MacLatin2",  # ~ ISO-8859-2
+    "MacCyrillic",  # ~ ISO-8859-5
+    "MacGreek",  # ~ ISO-8859-7
+    "MacTurkish",  # ~ ISO-8859-9
+    "MacIceland",  # ~ ISO-8859-1
+}
 
 
 def strip_hebrew_vowel_points(text: str) -> str:
@@ -109,6 +125,31 @@ def reverse_hebrew_for_visual_encoding(text: str) -> str:
 
     # Find all Hebrew sequences and reverse each one
     return re.sub(HEBREW_PATTERN, reverse_match, text)
+
+
+def has_windows_high_bytes(text: str, charset_name: str) -> bool:
+    """Check if text contains bytes in 0x80-0x9F range when encoded.
+
+    For Windows and Mac encodings that have ISO equivalents, we need to ensure
+    the test files contain bytes in the 0x80-0x9F range. This is because:
+    - ISO encodings have control codes (not printable) in 0x80-0x9F
+    - Windows/Mac encodings have printable chars (letters/punctuation) in 0x80-0x9F
+    - Detection logic uses WIN_BYTE_DETECTOR to find these bytes and upgrade ISO → Windows/Mac
+    - Without these bytes, ISO will be detected instead of Windows/Mac
+
+    Args:
+        text: The text to check
+        charset_name: The charset to encode with
+
+    Returns:
+        True if encoding produces bytes in 0x80-0x9F range, False otherwise
+    """
+    try:
+        encoded = text.encode(charset_name)
+        # Check if any bytes are in 0x80-0x9F range
+        return any(0x80 <= byte <= 0x9F for byte in encoded)
+    except (UnicodeEncodeError, LookupError):
+        return False
 
 
 def apply_legacy_substitutions(text: str, charset_name: str) -> str:
@@ -343,6 +384,20 @@ def write_culturax_test_files(
                     text = strip_hebrew_vowel_points(text)
                     # Then reverse Hebrew sequences for visual order
                     text = reverse_hebrew_for_visual_encoding(text)
+
+                # For Windows/Mac encodings with ISO equivalents, verify that
+                # the text contains bytes in the 0x80-0x9F range
+                # Otherwise, the file will be detected as ISO instead of Windows/Mac
+                if (
+                    charset_name in WINDOWS_ENCODINGS_NEEDING_HIGH_BYTES
+                    or charset_name in MAC_ENCODINGS_NEEDING_HIGH_BYTES
+                ):
+                    if not has_windows_high_bytes(text, charset_name):
+                        print(
+                            f"  Skipping item {idx} for {charset_name}: "
+                            f"No high bytes (0x80-0x9F) found - would be detected as ISO"
+                        )
+                        continue
 
                 encoded_text = text.encode(charset_name)
 

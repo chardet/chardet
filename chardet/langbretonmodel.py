@@ -5029,7 +5029,7 @@ ISO_8859_14_BRETON_MODEL = SingleByteCharSetModel(
     language="Breton",
     char_to_order_map=ISO_8859_14_BRETON_CHAR_TO_ORDER,
     language_model=BRETON_LANG_MODEL,
-    typical_positive_ratio=0.9903366825032802,
+    typical_positive_ratio=0.9903366122568247,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÀÂÈÊÎÔÙÛàâèêîôùû",
 )

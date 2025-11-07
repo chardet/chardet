@@ -43,4 +43,4 @@ class EUCTWProber(MultiByteCharSetProber):
 
     @property
     def language(self) -> str:
-        return "Taiwan"
+        return "Taiwanese"

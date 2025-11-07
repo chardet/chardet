@@ -4234,7 +4234,7 @@ ISO_8859_14_SCOTTISH_GAELIC_CHAR_TO_ORDER = {
 
 ISO_8859_14_SCOTTISH_GAELIC_MODEL = SingleByteCharSetModel(
     charset_name="ISO-8859-14",
-    language="Scottish_Gaelic",
+    language="Scottish Gaelic",
     char_to_order_map=ISO_8859_14_SCOTTISH_GAELIC_CHAR_TO_ORDER,
     language_model=SCOTTISH_GAELIC_LANG_MODEL,
     typical_positive_ratio=0.9919494770482096,

@@ -121,10 +121,9 @@ LANGUAGES = {
         charsets=[
             "ISO-8859-14",
         ],
+        # ẀẂẄ never seem to occur in training data, so don't include them
         alphabet="".join(
-            sorted(
-                set(ascii_letters + "ÁÂÄÉÊËÍÎÏÓÔÖÚÛÜÝáâäéêëíîïóôöúûüýÿŴŵŶŷŸẀẁẂẃẄẅỲỳ")
-            )
+            sorted(set(ascii_letters + "ÁÂÄÉÊËÍÎÏÓÔÖÚÛÜÝáâäéêëíîïóôöúûüýÿŴŵŶŷŸẁẃẅỲỳ"))
         ),
         num_training_docs=78_726,
         num_training_chars=300_014_737,
@@ -217,12 +216,12 @@ LANGUAGES = {
     "Esperanto": Language(
         name="Esperanto",
         iso_code="eo",
-        # Q, W, X, and Y not used at all
-        use_ascii=False,
+        use_ascii=True,
         charsets=[
             "ISO-8859-3",
         ],
-        alphabet="abcĉdefgĝhĥijĵklmnoprsŝtuŭvzABCĈDEFGĜHĤIJĴKLMNOPRSŜTUŬVZ",
+        # Include Q, W, X, Y for loanwords
+        alphabet="".join(sorted(set(ascii_letters + "ĉĝĥĵŝŭĈĜĤĴŜŬ"))),
         num_training_docs=40_441,
         num_training_chars=300_001_893,
     ),
@@ -246,16 +245,15 @@ LANGUAGES = {
     "Estonian": Language(
         name="Estonian",
         iso_code="et",
-        use_ascii=False,
+        use_ascii=True,
         charsets=[
             "CP775",
             "ISO-8859-13",
             "ISO-8859-4",
             "WINDOWS-1257",
         ],
-        # C, F, Š, Q, W, X, Y, Z, Ž are only for
-        # loanwords
-        alphabet="ABDEGHIJKLMNOPRSTUVÕÄÖÜabdeghijklmnoprstuvõäöü",
+        # Include C, F, Š, Q, W, X, Y, Z, Ž for loanwords
+        alphabet="".join(sorted(set(ascii_letters + "õäöüšžÕÄÖÜŠŽ"))),
         num_training_docs=66_818,
         num_training_chars=300_000_765,
     ),
@@ -348,8 +346,7 @@ LANGUAGES = {
     "Croatian": Language(
         name="Croatian",
         iso_code="hr",
-        # Q, W, X, Y are only used for foreign words.
-        use_ascii=False,
+        use_ascii=True,
         charsets=[
             "CP852",
             "ISO-8859-16",
@@ -357,15 +354,15 @@ LANGUAGES = {
             "MacLatin2",
             "WINDOWS-1250",
         ],
-        alphabet="abcčćdđefghijklmnoprsštuvzžABCČĆDĐEFGHIJKLMNOPRSŠTUVZŽ",
+        # Include Q, W, X, Y for loanwords
+        alphabet="".join(sorted(set(ascii_letters + "čćđšžČĆĐŠŽ"))),
         num_training_docs=460_689,
         num_training_chars=157_579_665,
     ),
     "Hungarian": Language(
         name="Hungarian",
         iso_code="hu",
-        # Q, W, X, Y are only used for foreign words.
-        use_ascii=False,
+        use_ascii=True,
         charsets=[
             "CP852",
             "ISO-8859-16",
@@ -373,22 +370,23 @@ LANGUAGES = {
             "MacLatin2",
             "WINDOWS-1250",
         ],
-        alphabet="abcdefghijklmnoprstuvzáéíóöőúüűABCDEFGHIJKLMNOPRSTUVZÁÉÍÓÖŐÚÜŰ",
+        # Include Q, W, X, Y for loanwords
+        alphabet="".join(sorted(set(ascii_letters + "áéíóöőúüűÁÉÍÓÖŐÚÜŰ"))),
         num_training_docs=82_417,
         num_training_chars=300_001_846,
     ),
     "Icelandic": Language(
         name="Icelandic",
         iso_code="is",
-        # Q, W are not used in native Icelandic words
-        use_ascii=False,
+        use_ascii=True,
         charsets=[
             "CP861",
             "ISO-8859-1",
             "ISO-8859-10",
             "MacIceland",
         ],
-        alphabet="aábcdðeéfghiíjklmnoóprstuúvxyýþæöAÁBCDÐEÉFGHIÍJKLMNOÓPRSTUÚVXYÝÞÆÖ",
+        # Include Q, W for loanwords
+        alphabet="".join(sorted(set(ascii_letters + "áðéíóúýþæöÁÐÉÍÓÚÝÞÆÖ"))),
         num_training_docs=77_487,
         num_training_chars=300_004_354,
     ),
@@ -448,30 +446,30 @@ LANGUAGES = {
     "Lithuanian": Language(
         name="Lithuanian",
         iso_code="lt",
-        use_ascii=False,
+        use_ascii=True,
         charsets=[
             "CP775",
             "ISO-8859-13",
             "ISO-8859-4",
             "WINDOWS-1257",
         ],
-        # Q, W, and X not used at all
-        alphabet="AĄBCČDEĘĖFGHIĮYJKLMNOPRSŠTUŲŪVZŽaąbcčdeęėfghiįyjklmnoprsštuųūvzž",
+        # Include Q, W, X for loanwords
+        alphabet="".join(sorted(set(ascii_letters + "ąčęėįšųūžĄČĘĖĮŠŲŪŽ"))),
         num_training_docs=73_445,
         num_training_chars=300_008_498,
     ),
     "Latvian": Language(
         name="Latvian",
         iso_code="lv",
-        use_ascii=False,
+        use_ascii=True,
         charsets=[
             "CP775",
             "ISO-8859-13",
             "ISO-8859-4",
             "WINDOWS-1257",
         ],
-        # Q, W, X, Y are only for loanwords
-        alphabet="AĀBCČDEĒFGĢHIĪJKĶLĻMNŅOPRSŠTUŪVZŽaābcčdeēfgģhiījkķlļmnņoprsštuūvzž",
+        # Include Q, W, X, Y for loanwords
+        alphabet="".join(sorted(set(ascii_letters + "āčēģīķļņšūžĀČĒĢĪĶĻŅŠŪŽ"))),
         num_training_docs=71_628,
         num_training_chars=300_007_767,
     ),
@@ -492,12 +490,12 @@ LANGUAGES = {
     "Maltese": Language(
         name="Maltese",
         iso_code="mt",
-        # Y is only used in loanwords
-        use_ascii=False,
+        use_ascii=True,
         charsets=[
             "ISO-8859-3",
         ],
-        alphabet="abċdefġghħijklmnopqrstuvwxżzABĊDEFĠGHĦIJKLMNOPQRSTUVWXŻZ",
+        # Include Y for loanwords
+        alphabet="".join(sorted(set(ascii_letters + "ċġħżĊĠĦŻ"))),
         num_training_docs=51_488,
         num_training_chars=300_001_960,
     ),
@@ -517,8 +515,6 @@ LANGUAGES = {
     "Dutch": Language(
         name="Dutch",
         iso_code="nl",
-        # àâçèéîïñôùûêŒÀÂÇÈÉÊÎÏÔÑÙÛ are all used for loanwords
-        alphabet=ascii_letters,
         use_ascii=True,
         charsets=[
             "CP500",
@@ -529,14 +525,15 @@ LANGUAGES = {
             "MacRoman",
             "WINDOWS-1252",
         ],
+        # Include loanword characters commonly used in Dutch
+        alphabet="".join(sorted(set(ascii_letters + "àâçèéêëïîñôùûœÀÂÇÈÉÊËÏÎÑÔÙÛŒ"))),
         num_training_docs=107_675,
         num_training_chars=300_000_260,
     ),
     "Norwegian": Language(
         name="Norwegian",
         iso_code="no",
-        # Q, W, X, Z are only used for foreign words
-        use_ascii=False,
+        use_ascii=True,
         charsets=[
             "CP500",
             "CP850",
@@ -547,15 +544,15 @@ LANGUAGES = {
             "MacRoman",
             "WINDOWS-1252",
         ],
-        alphabet="ABCDEFGHIJKLMNOPRSTUVYÆØÅabcdefghijklmnoprstuvyæøå",
+        # Include Q, W, X, Z and common loanword characters
+        alphabet="".join(sorted(set(ascii_letters + "ÆØÅæøå"))),
         num_training_docs=66_762,
         num_training_chars=300_001_076,
     ),
     "Polish": Language(
         name="Polish",
         iso_code="pl",
-        # Q and X are only used for foreign words.
-        use_ascii=False,
+        use_ascii=True,
         charsets=[
             "CP852",
             "ISO-8859-16",
@@ -563,7 +560,8 @@ LANGUAGES = {
             "MacLatin2",
             "WINDOWS-1250",
         ],
-        alphabet="AĄBCĆDEĘFGHIJKLŁMNŃOÓPRSŚTUWYZŹŻaąbcćdeęfghijklłmnńoóprsśtuwyzźż",
+        # Include Q, X for loanwords
+        alphabet="".join(sorted(set(ascii_letters + "ąćęłńóśźżĄĆĘŁŃÓŚŹŻ"))),
         num_training_docs=97_060,
         num_training_chars=300_001_942,
     ),
@@ -636,8 +634,7 @@ LANGUAGES = {
     "Slovene": Language(
         name="Slovene",
         iso_code="sl",
-        # Q, W, X, Y are only used for foreign words.
-        use_ascii=False,
+        use_ascii=True,
         charsets=[
             "CP852",
             "ISO-8859-16",
@@ -645,7 +642,8 @@ LANGUAGES = {
             "MacLatin2",
             "WINDOWS-1250",
         ],
-        alphabet="abcčdefghijklmnoprsštuvzžABCČDEFGHIJKLMNOPRSŠTUVZŽ",
+        # Include Q, W, X, Y for loanwords
+        alphabet="".join(sorted(set(ascii_letters + "čšžČŠŽ"))),
         num_training_docs=66_688,
         num_training_chars=300_002_768,
     ),
@@ -671,8 +669,7 @@ LANGUAGES = {
     "Swedish": Language(
         name="Swedish",
         iso_code="sv",
-        # Q, W, Z are rare and mainly in loanwords
-        use_ascii=False,
+        use_ascii=True,
         charsets=[
             "CP500",
             "CP850",
@@ -682,7 +679,8 @@ LANGUAGES = {
             "MacRoman",
             "WINDOWS-1252",
         ],
-        alphabet="ABCDEFGHIJKLMNOPRSTUVXYÅÄÖabcdefghijklmnopqrstuvxyzåäö",
+        # Include Q, W, Z (loanwords) and common accented characters
+        alphabet="".join(sorted(set(ascii_letters + "ÅÄÖåäö"))),
         num_training_docs=96_485,
         num_training_chars=300_013_381,
     ),
@@ -713,8 +711,7 @@ LANGUAGES = {
     "Turkish": Language(
         name="Turkish",
         iso_code="tr",
-        # Q, W, and X are not used by Turkish
-        use_ascii=False,
+        use_ascii=True,
         charsets=[
             "CP1026",
             "CP857",
@@ -723,7 +720,8 @@ LANGUAGES = {
             "MacTurkish",
             "WINDOWS-1254",
         ],
-        alphabet="abcçdefgğhıijklmnoöprsştuüvyzâîûABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZÂÎÛ",
+        # Include Q, W, X for loanwords
+        alphabet="".join(sorted(set(ascii_letters + "çğıiöşüâîûÇĞIİÖŞÜÂÎÛ"))),
         num_training_docs=107_848,
         num_training_chars=300_001_308,
     ),

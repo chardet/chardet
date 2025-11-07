@@ -7493,7 +7493,7 @@ CP500_FRENCH_MODEL = SingleByteCharSetModel(
     language="French",
     char_to_order_map=CP500_FRENCH_CHAR_TO_ORDER,
     language_model=FRENCH_LANG_MODEL,
-    typical_positive_ratio=0.9776430007506997,
+    typical_positive_ratio=0.9776429532774372,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÀÂÆÇÈÉÊËÎÏÔÙÛÜàâæçèéêëîïôùûüÿŒœŸ",
 )
@@ -7762,7 +7762,7 @@ CP850_FRENCH_MODEL = SingleByteCharSetModel(
     language="French",
     char_to_order_map=CP850_FRENCH_CHAR_TO_ORDER,
     language_model=FRENCH_LANG_MODEL,
-    typical_positive_ratio=0.9776430007506997,
+    typical_positive_ratio=0.9776429532774372,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÀÂÆÇÈÉÊËÎÏÔÙÛÜàâæçèéêëîïôùûüÿŒœŸ",
 )
@@ -8031,7 +8031,7 @@ CP858_FRENCH_MODEL = SingleByteCharSetModel(
     language="French",
     char_to_order_map=CP858_FRENCH_CHAR_TO_ORDER,
     language_model=FRENCH_LANG_MODEL,
-    typical_positive_ratio=0.9776430007506997,
+    typical_positive_ratio=0.9776429532774372,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÀÂÆÇÈÉÊËÎÏÔÙÛÜàâæçèéêëîïôùûüÿŒœŸ",
 )
@@ -8300,7 +8300,7 @@ CP863_FRENCH_MODEL = SingleByteCharSetModel(
     language="French",
     char_to_order_map=CP863_FRENCH_CHAR_TO_ORDER,
     language_model=FRENCH_LANG_MODEL,
-    typical_positive_ratio=0.9776464890128603,
+    typical_positive_ratio=0.9776464415485024,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÀÂÆÇÈÉÊËÎÏÔÙÛÜàâæçèéêëîïôùûüÿŒœŸ",
 )
@@ -8569,7 +8569,7 @@ ISO_8859_1_FRENCH_MODEL = SingleByteCharSetModel(
     language="French",
     char_to_order_map=ISO_8859_1_FRENCH_CHAR_TO_ORDER,
     language_model=FRENCH_LANG_MODEL,
-    typical_positive_ratio=0.9776430007506997,
+    typical_positive_ratio=0.9776429532774372,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÀÂÆÇÈÉÊËÎÏÔÙÛÜàâæçèéêëîïôùûüÿŒœŸ",
 )
@@ -8838,7 +8838,7 @@ ISO_8859_15_FRENCH_MODEL = SingleByteCharSetModel(
     language="French",
     char_to_order_map=ISO_8859_15_FRENCH_CHAR_TO_ORDER,
     language_model=FRENCH_LANG_MODEL,
-    typical_positive_ratio=0.977556479955064,
+    typical_positive_ratio=0.97755643226728,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÀÂÆÇÈÉÊËÎÏÔÙÛÜàâæçèéêëîïôùûüÿŒœŸ",
 )
@@ -9107,7 +9107,7 @@ MACROMAN_FRENCH_MODEL = SingleByteCharSetModel(
     language="French",
     char_to_order_map=MACROMAN_FRENCH_CHAR_TO_ORDER,
     language_model=FRENCH_LANG_MODEL,
-    typical_positive_ratio=0.977556479955064,
+    typical_positive_ratio=0.97755643226728,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÀÂÆÇÈÉÊËÎÏÔÙÛÜàâæçèéêëîïôùûüÿŒœŸ",
 )
@@ -9376,7 +9376,7 @@ WINDOWS_1252_FRENCH_MODEL = SingleByteCharSetModel(
     language="French",
     char_to_order_map=WINDOWS_1252_FRENCH_CHAR_TO_ORDER,
     language_model=FRENCH_LANG_MODEL,
-    typical_positive_ratio=0.977556479955064,
+    typical_positive_ratio=0.97755643226728,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÀÂÆÇÈÉÊËÎÏÔÙÛÜàâæçèéêëîïôùûüÿŒœŸ",
 )

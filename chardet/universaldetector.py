@@ -69,7 +69,14 @@ class UniversalDetector:
     MINIMUM_THRESHOLD = 0.20
     HIGH_BYTE_DETECTOR = re.compile(b"[\x80-\xff]")
     ESC_DETECTOR = re.compile(b"(\033|~{)")
+    # Bytes in the 0x80-0x9F range are different in Windows vs Mac/ISO encodings:
+    # - Windows-125x: Uses for punctuation (smart quotes, dashes, ellipsis, etc.)
+    # - Mac encodings: Uses for letters (accented characters)
+    # - ISO-8859-x: Mostly undefined control codes
     WIN_BYTE_DETECTOR = re.compile(b"[\x80-\x9f]")
+    # Check if Win bytes appear between word characters (suggesting Mac encoding)
+    # e.g., "cre\x91rd" (ë in MacRoman) vs " \x91quote\x92 " (smart quotes in Windows)
+    MAC_LETTER_IN_WORD_DETECTOR = re.compile(b"[a-zA-Z][\x80-\x9f][a-zA-Z]")
     ISO_WIN_MAP = {
         "iso-8859-1": "Windows-1252",
         "iso-8859-2": "Windows-1250",
@@ -113,6 +120,7 @@ class UniversalDetector:
         self.lang_filter = lang_filter
         self.logger = logging.getLogger(__name__)
         self._has_win_bytes = False
+        self._has_mac_letter_pattern = False
         self.should_rename_legacy = should_rename_legacy
         self.reset()
 
@@ -149,6 +157,7 @@ class UniversalDetector:
         self.done = False
         self._got_data = False
         self._has_win_bytes = False
+        self._has_mac_letter_pattern = False
         self._input_state = InputState.PURE_ASCII
         self._last_char = b""
         if self._esc_charset_prober:
@@ -286,6 +295,8 @@ class UniversalDetector:
                     break
             if self.WIN_BYTE_DETECTOR.search(byte_str):
                 self._has_win_bytes = True
+            if self.MAC_LETTER_IN_WORD_DETECTOR.search(byte_str):
+                self._has_mac_letter_pattern = True
 
     def close(self) -> ResultDict:
         """
@@ -350,6 +361,28 @@ class UniversalDetector:
                         charset_name = self.ISO_WIN_MAP.get(
                             lower_charset_name, charset_name
                         )
+                # Distinguish between MacRoman and Windows-1252 ONLY
+                # These are the only pair where 0x80-0x9F is punctuation (Win) vs letters (Mac)
+                # Other Windows/Mac pairs (1250/MacLatin2, 1251/MacCyrillic, etc.) both have letters
+                elif (
+                    lower_charset_name == "windows-1252"
+                    and self._has_mac_letter_pattern
+                ):
+                    # Check if MacRoman has similar confidence
+                    for prober in self._charset_probers:
+                        if not prober:
+                            continue
+                        if isinstance(prober, CharSetGroupProber):
+                            for sub_prober in getattr(prober, "probers", []):
+                                sub_charset = (sub_prober.charset_name or "").lower()
+                                if sub_charset == "macroman":
+                                    sub_confidence = sub_prober.get_confidence()
+                                    # If MacRoman prober has at least 90% of Windows-1252 confidence,
+                                    # and we have letter patterns, prefer MacRoman
+                                    if sub_confidence >= confidence * 0.90:
+                                        charset_name = sub_prober.charset_name
+                                        confidence = sub_confidence
+                                        break
                 # Rename legacy encodings with superset encodings if asked
                 if self.should_rename_legacy:
                     charset_name = self.LEGACY_MAP.get(

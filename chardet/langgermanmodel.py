@@ -3989,7 +3989,7 @@ CP500_GERMAN_MODEL = SingleByteCharSetModel(
     language="German",
     char_to_order_map=CP500_GERMAN_CHAR_TO_ORDER,
     language_model=GERMAN_LANG_MODEL,
-    typical_positive_ratio=0.9706854960069838,
+    typical_positive_ratio=0.9706854667596968,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÄÖÜßäöüẞ",
 )
@@ -4258,7 +4258,7 @@ CP850_GERMAN_MODEL = SingleByteCharSetModel(
     language="German",
     char_to_order_map=CP850_GERMAN_CHAR_TO_ORDER,
     language_model=GERMAN_LANG_MODEL,
-    typical_positive_ratio=0.9706854960069838,
+    typical_positive_ratio=0.9706854667596968,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÄÖÜßäöüẞ",
 )
@@ -4527,7 +4527,7 @@ CP858_GERMAN_MODEL = SingleByteCharSetModel(
     language="German",
     char_to_order_map=CP858_GERMAN_CHAR_TO_ORDER,
     language_model=GERMAN_LANG_MODEL,
-    typical_positive_ratio=0.9706854960069838,
+    typical_positive_ratio=0.9706854667596968,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÄÖÜßäöüẞ",
 )
@@ -4796,7 +4796,7 @@ ISO_8859_1_GERMAN_MODEL = SingleByteCharSetModel(
     language="German",
     char_to_order_map=ISO_8859_1_GERMAN_CHAR_TO_ORDER,
     language_model=GERMAN_LANG_MODEL,
-    typical_positive_ratio=0.9706854960069838,
+    typical_positive_ratio=0.9706854667596968,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÄÖÜßäöüẞ",
 )
@@ -5065,7 +5065,7 @@ ISO_8859_15_GERMAN_MODEL = SingleByteCharSetModel(
     language="German",
     char_to_order_map=ISO_8859_15_GERMAN_CHAR_TO_ORDER,
     language_model=GERMAN_LANG_MODEL,
-    typical_positive_ratio=0.9706854960069838,
+    typical_positive_ratio=0.9706854667596968,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÄÖÜßäöüẞ",
 )
@@ -5334,7 +5334,7 @@ MACROMAN_GERMAN_MODEL = SingleByteCharSetModel(
     language="German",
     char_to_order_map=MACROMAN_GERMAN_CHAR_TO_ORDER,
     language_model=GERMAN_LANG_MODEL,
-    typical_positive_ratio=0.9706854960069838,
+    typical_positive_ratio=0.9706854667596968,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÄÖÜßäöüẞ",
 )
@@ -5603,7 +5603,7 @@ WINDOWS_1252_GERMAN_MODEL = SingleByteCharSetModel(
     language="German",
     char_to_order_map=WINDOWS_1252_GERMAN_CHAR_TO_ORDER,
     language_model=GERMAN_LANG_MODEL,
-    typical_positive_ratio=0.9706854960069838,
+    typical_positive_ratio=0.9706854667596968,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÄÖÜßäöüẞ",
 )

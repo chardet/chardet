@@ -5309,7 +5309,7 @@ KOI8_T_TAJIK_MODEL = SingleByteCharSetModel(
     language="Tajik",
     char_to_order_map=KOI8_T_TAJIK_CHAR_TO_ORDER,
     language_model=TAJIK_LANG_MODEL,
-    typical_positive_ratio=0.9655272346523064,
+    typical_positive_ratio=0.9655277101951257,
     keep_ascii_letters=False,
     alphabet="ЁАБВГДЕЖЗИЙКЛМНОПРСТУФХЧШЪЭЮЯабвгдежзийклмнопрстуфхчшъэюяёҒғҚқҲҳҶҷӢӣӮӯ",
 )

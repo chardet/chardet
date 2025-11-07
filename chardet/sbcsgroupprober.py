@@ -302,6 +302,7 @@ from .langukrainianmodel import (
     WINDOWS_1251_UKRAINIAN_MODEL,
 )
 from .langvietnamesemodel import WINDOWS_1258_VIETNAMESE_MODEL
+from .langwelshmodel import ISO_8859_14_WELSH_MODEL
 from .sbcharsetprober import SingleByteCharSetProber
 
 
@@ -522,6 +523,7 @@ class SBCSGroupProber(CharSetGroupProber):
             SingleByteCharSetProber(KOI8_U_UKRAINIAN_MODEL),
             SingleByteCharSetProber(MACCYRILLIC_UKRAINIAN_MODEL),
             SingleByteCharSetProber(WINDOWS_1251_UKRAINIAN_MODEL),
+            SingleByteCharSetProber(ISO_8859_14_WELSH_MODEL),
             SingleByteCharSetProber(WINDOWS_1258_VIETNAMESE_MODEL),
         ]
         self.reset()

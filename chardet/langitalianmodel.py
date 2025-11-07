@@ -4757,7 +4757,7 @@ CP500_ITALIAN_MODEL = SingleByteCharSetModel(
     language="Italian",
     char_to_order_map=CP500_ITALIAN_CHAR_TO_ORDER,
     language_model=ITALIAN_LANG_MODEL,
-    typical_positive_ratio=0.9886039933313202,
+    typical_positive_ratio=0.9886036930034635,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÀÈÉÌÒÓÙàèéìòóù",
 )
@@ -5026,7 +5026,7 @@ CP850_ITALIAN_MODEL = SingleByteCharSetModel(
     language="Italian",
     char_to_order_map=CP850_ITALIAN_CHAR_TO_ORDER,
     language_model=ITALIAN_LANG_MODEL,
-    typical_positive_ratio=0.9886039933313202,
+    typical_positive_ratio=0.9886036930034635,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÀÈÉÌÒÓÙàèéìòóù",
 )
@@ -5295,7 +5295,7 @@ CP858_ITALIAN_MODEL = SingleByteCharSetModel(
     language="Italian",
     char_to_order_map=CP858_ITALIAN_CHAR_TO_ORDER,
     language_model=ITALIAN_LANG_MODEL,
-    typical_positive_ratio=0.9886039933313202,
+    typical_positive_ratio=0.9886036930034635,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÀÈÉÌÒÓÙàèéìòóù",
 )
@@ -5564,7 +5564,7 @@ ISO_8859_1_ITALIAN_MODEL = SingleByteCharSetModel(
     language="Italian",
     char_to_order_map=ISO_8859_1_ITALIAN_CHAR_TO_ORDER,
     language_model=ITALIAN_LANG_MODEL,
-    typical_positive_ratio=0.9886039933313202,
+    typical_positive_ratio=0.9886036930034635,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÀÈÉÌÒÓÙàèéìòóù",
 )
@@ -5833,7 +5833,7 @@ ISO_8859_15_ITALIAN_MODEL = SingleByteCharSetModel(
     language="Italian",
     char_to_order_map=ISO_8859_15_ITALIAN_CHAR_TO_ORDER,
     language_model=ITALIAN_LANG_MODEL,
-    typical_positive_ratio=0.9886039933313202,
+    typical_positive_ratio=0.9886036930034635,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÀÈÉÌÒÓÙàèéìòóù",
 )
@@ -6102,7 +6102,7 @@ MACROMAN_ITALIAN_MODEL = SingleByteCharSetModel(
     language="Italian",
     char_to_order_map=MACROMAN_ITALIAN_CHAR_TO_ORDER,
     language_model=ITALIAN_LANG_MODEL,
-    typical_positive_ratio=0.9886039933313202,
+    typical_positive_ratio=0.9886036930034635,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÀÈÉÌÒÓÙàèéìòóù",
 )
@@ -6371,7 +6371,7 @@ WINDOWS_1252_ITALIAN_MODEL = SingleByteCharSetModel(
     language="Italian",
     char_to_order_map=WINDOWS_1252_ITALIAN_CHAR_TO_ORDER,
     language_model=ITALIAN_LANG_MODEL,
-    typical_positive_ratio=0.9886039933313202,
+    typical_positive_ratio=0.9886036930034635,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÀÈÉÌÒÓÙàèéìòóù",
 )

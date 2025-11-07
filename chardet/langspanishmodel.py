@@ -4757,7 +4757,7 @@ CP500_SPANISH_MODEL = SingleByteCharSetModel(
     language="Spanish",
     char_to_order_map=CP500_SPANISH_CHAR_TO_ORDER,
     language_model=SPANISH_LANG_MODEL,
-    typical_positive_ratio=0.976669281227421,
+    typical_positive_ratio=0.9766692321051526,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÁÉÍÑÓÚÜáéíñóúü",
 )
@@ -5026,7 +5026,7 @@ CP850_SPANISH_MODEL = SingleByteCharSetModel(
     language="Spanish",
     char_to_order_map=CP850_SPANISH_CHAR_TO_ORDER,
     language_model=SPANISH_LANG_MODEL,
-    typical_positive_ratio=0.976669281227421,
+    typical_positive_ratio=0.9766692321051526,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÁÉÍÑÓÚÜáéíñóúü",
 )
@@ -5295,7 +5295,7 @@ CP858_SPANISH_MODEL = SingleByteCharSetModel(
     language="Spanish",
     char_to_order_map=CP858_SPANISH_CHAR_TO_ORDER,
     language_model=SPANISH_LANG_MODEL,
-    typical_positive_ratio=0.976669281227421,
+    typical_positive_ratio=0.9766692321051526,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÁÉÍÑÓÚÜáéíñóúü",
 )
@@ -5564,7 +5564,7 @@ ISO_8859_1_SPANISH_MODEL = SingleByteCharSetModel(
     language="Spanish",
     char_to_order_map=ISO_8859_1_SPANISH_CHAR_TO_ORDER,
     language_model=SPANISH_LANG_MODEL,
-    typical_positive_ratio=0.976669281227421,
+    typical_positive_ratio=0.9766692321051526,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÁÉÍÑÓÚÜáéíñóúü",
 )
@@ -5833,7 +5833,7 @@ ISO_8859_15_SPANISH_MODEL = SingleByteCharSetModel(
     language="Spanish",
     char_to_order_map=ISO_8859_15_SPANISH_CHAR_TO_ORDER,
     language_model=SPANISH_LANG_MODEL,
-    typical_positive_ratio=0.976669281227421,
+    typical_positive_ratio=0.9766692321051526,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÁÉÍÑÓÚÜáéíñóúü",
 )
@@ -6102,7 +6102,7 @@ MACROMAN_SPANISH_MODEL = SingleByteCharSetModel(
     language="Spanish",
     char_to_order_map=MACROMAN_SPANISH_CHAR_TO_ORDER,
     language_model=SPANISH_LANG_MODEL,
-    typical_positive_ratio=0.976669281227421,
+    typical_positive_ratio=0.9766692321051526,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÁÉÍÑÓÚÜáéíñóúü",
 )
@@ -6371,7 +6371,7 @@ WINDOWS_1252_SPANISH_MODEL = SingleByteCharSetModel(
     language="Spanish",
     char_to_order_map=WINDOWS_1252_SPANISH_CHAR_TO_ORDER,
     language_model=SPANISH_LANG_MODEL,
-    typical_positive_ratio=0.976669281227421,
+    typical_positive_ratio=0.9766692321051526,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÁÉÍÑÓÚÜáéíñóúü",
 )

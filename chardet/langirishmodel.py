@@ -4237,7 +4237,7 @@ ISO_8859_14_IRISH_MODEL = SingleByteCharSetModel(
     language="Irish",
     char_to_order_map=ISO_8859_14_IRISH_CHAR_TO_ORDER,
     language_model=IRISH_LANG_MODEL,
-    typical_positive_ratio=0.9814852339633506,
+    typical_positive_ratio=0.9814850489255669,
     keep_ascii_letters=True,
     alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÁÉÍÓÚáéíóú",
 )

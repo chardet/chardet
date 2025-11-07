@@ -1229,7 +1229,7 @@ CP424_HEBREW_MODEL = SingleByteCharSetModel(
     language="Hebrew",
     char_to_order_map=CP424_HEBREW_CHAR_TO_ORDER,
     language_model=HEBREW_LANG_MODEL,
-    typical_positive_ratio=0.9986300580551387,
+    typical_positive_ratio=0.998630029821627,
     keep_ascii_letters=False,
     alphabet="אבגדהוזחטיךכלםמןנסעףפץצקרשתװױײ",
 )
@@ -1498,7 +1498,7 @@ CP856_HEBREW_MODEL = SingleByteCharSetModel(
     language="Hebrew",
     char_to_order_map=CP856_HEBREW_CHAR_TO_ORDER,
     language_model=HEBREW_LANG_MODEL,
-    typical_positive_ratio=0.9986300580551387,
+    typical_positive_ratio=0.998630029821627,
     keep_ascii_letters=False,
     alphabet="אבגדהוזחטיךכלםמןנסעףפץצקרשתװױײ",
 )
@@ -1767,7 +1767,7 @@ CP862_HEBREW_MODEL = SingleByteCharSetModel(
     language="Hebrew",
     char_to_order_map=CP862_HEBREW_CHAR_TO_ORDER,
     language_model=HEBREW_LANG_MODEL,
-    typical_positive_ratio=0.9986300580551387,
+    typical_positive_ratio=0.998630029821627,
     keep_ascii_letters=False,
     alphabet="אבגדהוזחטיךכלםמןנסעףפץצקרשתװױײ",
 )
@@ -2036,7 +2036,7 @@ ISO_8859_8_HEBREW_MODEL = SingleByteCharSetModel(
     language="Hebrew",
     char_to_order_map=ISO_8859_8_HEBREW_CHAR_TO_ORDER,
     language_model=HEBREW_LANG_MODEL,
-    typical_positive_ratio=0.9986300580551387,
+    typical_positive_ratio=0.998630029821627,
     keep_ascii_letters=False,
     alphabet="אבגדהוזחטיךכלםמןנסעףפץצקרשתװױײ",
 )
@@ -2305,7 +2305,7 @@ WINDOWS_1255_HEBREW_MODEL = SingleByteCharSetModel(
     language="Hebrew",
     char_to_order_map=WINDOWS_1255_HEBREW_CHAR_TO_ORDER,
     language_model=HEBREW_LANG_MODEL,
-    typical_positive_ratio=0.9986288458619058,
+    typical_positive_ratio=0.9986288176505997,
     keep_ascii_letters=False,
     alphabet="אבגדהוזחטיךכלםמןנסעףפץצקרשתװױײ",
 )

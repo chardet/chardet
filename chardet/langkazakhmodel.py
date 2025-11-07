@@ -7493,7 +7493,7 @@ KZ1048_KAZAKH_MODEL = SingleByteCharSetModel(
     language="Kazakh",
     char_to_order_map=KZ1048_KAZAKH_CHAR_TO_ORDER,
     language_model=KAZAKH_LANG_MODEL,
-    typical_positive_ratio=0.9696662472122378,
+    typical_positive_ratio=0.9696662785097961,
     keep_ascii_letters=False,
     alphabet="ЁІАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюяёіҒғҚқҢңҮүҰұҺһӘәӨө",
 )
@@ -7762,7 +7762,7 @@ PTCP154_KAZAKH_MODEL = SingleByteCharSetModel(
     language="Kazakh",
     char_to_order_map=PTCP154_KAZAKH_CHAR_TO_ORDER,
     language_model=KAZAKH_LANG_MODEL,
-    typical_positive_ratio=0.9696662472122378,
+    typical_positive_ratio=0.9696662785097961,
     keep_ascii_letters=False,
     alphabet="ЁІАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюяёіҒғҚқҢңҮүҰұҺһӘәӨө",
 )

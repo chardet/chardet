@@ -10,7 +10,7 @@ import sys
 import textwrap
 from difflib import ndiff
 from os import listdir
-from os.path import dirname, isdir, join, realpath, relpath, splitext
+from os.path import dirname, isdir, join, realpath, relpath
 from pathlib import Path
 from pprint import pformat
 from unicodedata import category, normalize
@@ -49,6 +49,12 @@ EXPECTED_FAILURES = {
     "tests/iso-8859-7-greek/naftemporiki.gr.spo.xml",
     "tests/iso-8859-7-greek/naftemporiki.gr.wld.xml",
 }
+MULTI_BYTE_LANGUAGES = {
+    "Chinese",
+    "Japanese",
+    "Korean",
+    "Taiwanese",
+}
 
 
 def gen_test_params():
@@ -61,7 +67,7 @@ def gen_test_params():
             continue
         # Remove language suffixes from encoding if present
         encoding = encoding.lower()
-        for language in sorted(LANGUAGES.keys()):
+        for language in sorted(set(LANGUAGES.keys()) | MULTI_BYTE_LANGUAGES):
             postfix = "-" + language.lower()
             if encoding.endswith(postfix):
                 encoding = encoding.rpartition(postfix)[0]
@@ -71,9 +77,6 @@ def gen_test_params():
             continue
         # Test encoding detection for each file we have of encoding for
         for file_name in listdir(path):
-            ext = splitext(file_name)[1].lower()
-            if ext not in [".html", ".txt", ".xml", ".srt"]:
-                continue
             full_path = join(path, file_name)
             test_case = full_path, encoding
             # Normalize path to use forward slashes for comparison with EXPECTED_FAILURES
@@ -147,8 +150,8 @@ def test_encoding_detection_rename_legacy(file_name, encoding):
         encoding_match = False
     # Only care about mismatches that would actually result in different
     # behavior when decoding
-    expected_unicode = normalize("NFKD", expected_unicode)
-    detected_unicode = normalize("NFKD", detected_unicode)
+    expected_unicode = normalize("NFKC", expected_unicode)
+    detected_unicode = normalize("NFKC", detected_unicode)
     if not encoding_match and expected_unicode != detected_unicode:
         wrapped_expected = "\n".join(textwrap.wrap(expected_unicode, 100)) + "\n"
         wrapped_detected = "\n".join(textwrap.wrap(detected_unicode, 100)) + "\n"
