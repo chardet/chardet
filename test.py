@@ -31,24 +31,7 @@ from chardet.enums import MachineState
 from chardet.metadata.languages import LANGUAGES
 
 MISSING_ENCODINGS = set()
-EXPECTED_FAILURES = {
-    # TIS-620 vs CP874 confusion (very similar Thai encodings)
-    "tests/TIS-620/pharmacy.kku.ac.th.centerlab.xml",
-    "tests/TIS-620/pharmacy.kku.ac.th.healthinfo-ne.xml",
-    # MacRoman confusion
-    "tests/MacRoman/ioreg_output.txt",
-    # Windows-1251 vs MacCyrillic confusion (similar Cyrillic encodings)
-    "tests/windows-1251-russian/greek.ru.xml",
-    "tests/windows-1251-russian/aug32.hole.ru.xml",
-    "tests/MacCyrillic/aug32.hole.ru.xml",
-    # ISO-8859-7 vs WINDOWS-1253 confusion (similar Greek encodings)
-    "tests/iso-8859-7-greek/disabled.gr.xml",
-    "tests/iso-8859-7-greek/naftemporiki.gr.bus.xml",
-    "tests/iso-8859-7-greek/naftemporiki.gr.cmm.xml",
-    "tests/iso-8859-7-greek/naftemporiki.gr.mrk.xml",
-    "tests/iso-8859-7-greek/naftemporiki.gr.spo.xml",
-    "tests/iso-8859-7-greek/naftemporiki.gr.wld.xml",
-}
+EXPECTED_FAILURES = set()
 MULTI_BYTE_LANGUAGES = {
     "Chinese",
     "Japanese",
