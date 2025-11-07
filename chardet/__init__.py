@@ -18,7 +18,7 @@ from typing import Union
 
 from .charsetgroupprober import CharSetGroupProber
 from .charsetprober import CharSetProber
-from .enums import InputState
+from .enums import EncodingEra, InputState
 from .resultdict import ResultDict
 from .universaldetector import UniversalDetector
 from .version import VERSION, __version__
@@ -27,7 +27,9 @@ __all__ = ["UniversalDetector", "detect", "detect_all", "__version__", "VERSION"
 
 
 def detect(
-    byte_str: Union[bytes, bytearray], should_rename_legacy: bool = False
+    byte_str: Union[bytes, bytearray],
+    should_rename_legacy: bool = False,
+    encoding_era: EncodingEra = EncodingEra.MODERN_WEB,
 ) -> ResultDict:
     """
     Detect the encoding of the given byte string.
@@ -37,6 +39,8 @@ def detect(
     :param should_rename_legacy:  Should we rename legacy encodings
                                   to their more modern equivalents?
     :type should_rename_legacy:   ``bool``
+    :param encoding_era:  Which era of encodings to consider during detection.
+    :type encoding_era:   ``EncodingEra``
     """
     if not isinstance(byte_str, bytearray):
         if not isinstance(byte_str, bytes):
@@ -44,7 +48,9 @@ def detect(
                 f"Expected object of type bytes or bytearray, got: {type(byte_str)}"
             )
         byte_str = bytearray(byte_str)
-    detector = UniversalDetector(should_rename_legacy=should_rename_legacy)
+    detector = UniversalDetector(
+        should_rename_legacy=should_rename_legacy, encoding_era=encoding_era
+    )
     detector.feed(byte_str)
     return detector.close()
 
@@ -53,6 +59,7 @@ def detect_all(
     byte_str: Union[bytes, bytearray],
     ignore_threshold: bool = False,
     should_rename_legacy: bool = False,
+    encoding_era: EncodingEra = EncodingEra.MODERN_WEB,
 ) -> list[ResultDict]:
     """
     Detect all the possible encodings of the given byte string.
@@ -66,6 +73,8 @@ def detect_all(
     :param should_rename_legacy:  Should we rename legacy encodings
                                   to their more modern equivalents?
     :type should_rename_legacy:   ``bool``
+    :param encoding_era:  Which era of encodings to consider during detection.
+    :type encoding_era:   ``EncodingEra``
     """
     if not isinstance(byte_str, bytearray):
         if not isinstance(byte_str, bytes):
@@ -74,7 +83,9 @@ def detect_all(
             )
         byte_str = bytearray(byte_str)
 
-    detector = UniversalDetector(should_rename_legacy=should_rename_legacy)
+    detector = UniversalDetector(
+        should_rename_legacy=should_rename_legacy, encoding_era=encoding_era
+    )
     detector.feed(byte_str)
     detector.close()
 

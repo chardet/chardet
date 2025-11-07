@@ -41,7 +41,7 @@ from typing import Optional, Union
 
 from .charsetgroupprober import CharSetGroupProber
 from .charsetprober import CharSetProber
-from .enums import InputState, LanguageFilter, ProbingState
+from .enums import EncodingEra, InputState, LanguageFilter, ProbingState
 from .escprober import EscCharSetProber
 from .mbcsgroupprober import MBCSGroupProber
 from .resultdict import ResultDict
@@ -105,6 +105,7 @@ class UniversalDetector:
         self,
         lang_filter: LanguageFilter = LanguageFilter.ALL,
         should_rename_legacy: bool = False,
+        encoding_era: EncodingEra = EncodingEra.MODERN_WEB,
     ) -> None:
         self._esc_charset_prober: Optional[EscCharSetProber] = None
         self._utf1632_prober: Optional[UTF1632Prober] = None
@@ -123,6 +124,7 @@ class UniversalDetector:
         self._has_win_bytes = False
         self._has_mac_letter_pattern = False
         self.should_rename_legacy = should_rename_legacy
+        self.encoding_era = encoding_era
         self.reset()
 
     @property
@@ -284,7 +286,7 @@ class UniversalDetector:
                 self._charset_probers = [MBCSGroupProber(self.lang_filter)]
                 # If we're checking non-CJK encodings, use single-byte prober
                 if self.lang_filter & LanguageFilter.NON_CJK:
-                    self._charset_probers.append(SBCSGroupProber())
+                    self._charset_probers.append(SBCSGroupProber(self.encoding_era))
             for prober in self._charset_probers:
                 if prober.feed(byte_str) == ProbingState.FOUND_IT:
                     charset_name = prober.charset_name

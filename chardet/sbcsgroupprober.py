@@ -26,6 +26,8 @@
 ######################### END LICENSE BLOCK #########################
 
 from .charsetgroupprober import CharSetGroupProber
+from .encoding_eras import get_encoding_era
+from .enums import EncodingEra
 from .hebrewprober import HebrewProber
 from .langarabicmodel import (
     CP720_ARABIC_MODEL,
@@ -307,8 +309,9 @@ from .sbcharsetprober import SingleByteCharSetProber
 
 
 class SBCSGroupProber(CharSetGroupProber):
-    def __init__(self) -> None:
+    def __init__(self, encoding_era: EncodingEra = EncodingEra.MODERN_WEB) -> None:
         super().__init__()
+        self.encoding_era = encoding_era
 
         hebrew_prober = HebrewProber()
         logical_hebrew_prober = SingleByteCharSetProber(
@@ -526,4 +529,32 @@ class SBCSGroupProber(CharSetGroupProber):
             SingleByteCharSetProber(ISO_8859_14_WELSH_MODEL),
             SingleByteCharSetProber(WINDOWS_1258_VIETNAMESE_MODEL),
         ]
+
+        # Filter probers based on encoding era
+        if self.encoding_era != EncodingEra.ALL:
+            self.probers = self._filter_probers_by_era(self.probers)
+
         self.reset()
+
+    def _filter_probers_by_era(self, probers):
+        """Filter probers to only include those matching the specified encoding era."""
+        filtered = []
+        for prober in probers:
+            # Skip HebrewProber - it's a meta-prober
+            if prober.__class__.__name__ == "HebrewProber":
+                filtered.append(prober)
+                continue
+
+            # Get charset name from the prober's model
+            if hasattr(prober, "_model") and hasattr(prober._model, "charset_name"):
+                charset_name = prober._model.charset_name
+                prober_era = get_encoding_era(charset_name)
+
+                # Check if this prober's era is included in the allowed eras
+                if prober_era in self.encoding_era:
+                    filtered.append(prober)
+            else:
+                # If we can't determine era, include it (e.g., HebrewProber delegates)
+                filtered.append(prober)
+
+        return filtered

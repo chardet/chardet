@@ -27,7 +27,7 @@ import pytest  # type: ignore[reportMissingImports]
 import chardet
 from chardet import escsm, mbcssm
 from chardet.codingstatemachine import CodingStateMachine
-from chardet.enums import MachineState
+from chardet.enums import EncodingEra, MachineState
 from chardet.metadata.languages import LANGUAGES
 
 MISSING_ENCODINGS = set()
@@ -47,6 +47,76 @@ EXPECTED_FAILURES = {
     "tests/cp424-hebrew/culturax_OSCAR-2301_58267.txt",
     "tests/cp424-hebrew/culturax_OSCAR-2301_58268.txt",
 }
+
+
+def get_era_for_encoding(encoding: str) -> EncodingEra:
+    """Determine which encoding era is needed to detect a specific encoding."""
+    encoding_lower = encoding.lower().replace("_", "-")
+
+    # MAINFRAME: EBCDIC variants
+    if encoding_lower in ("cp037", "cp424", "cp500", "cp1026", "cp1125"):
+        return EncodingEra.MAINFRAME
+
+    # DOS: DOS codepages (including IBM aliases)
+    if encoding_lower in (
+        "cp437",
+        "cp850",
+        "cp852",
+        "cp855",
+        "cp856",
+        "cp857",
+        "cp858",
+        "cp860",
+        "cp861",
+        "cp862",
+        "cp863",
+        "cp864",
+        "cp865",
+        "cp866",
+        "cp869",
+        "cp737",
+        "cp875",
+        "ibm437",
+        "ibm850",
+        "ibm852",
+        "ibm855",
+        "ibm856",
+        "ibm857",
+        "ibm858",
+        "ibm860",
+        "ibm861",
+        "ibm862",
+        "ibm863",
+        "ibm864",
+        "ibm865",
+        "ibm866",
+        "ibm869",
+        "ibm737",
+        "ibm875",
+    ):
+        return EncodingEra.DOS
+
+    # LEGACY: Mac encodings and less common ISO
+    if encoding_lower.startswith("mac") or encoding_lower in (
+        "iso-8859-3",
+        "iso-8859-4",
+        "iso-8859-5",
+        "iso-8859-6",
+        "iso-8859-10",
+        "iso-8859-11",
+        "iso-8859-13",
+        "iso-8859-14",
+        "cp720",
+        "cp775",
+        "ibm720",
+        "ibm775",
+    ):
+        return EncodingEra.LEGACY
+
+    # MODERN_WEB: Everything else (default)
+    return EncodingEra.MODERN_WEB
+
+
 MULTI_BYTE_LANGUAGES = {
     "Chinese",
     "Japanese",
@@ -87,55 +157,12 @@ def gen_test_params():
 @pytest.mark.timeout(7)
 @pytest.mark.parametrize("file_name, encoding", gen_test_params())
 def test_encoding_detection(file_name, encoding):
+    # Determine which era is needed for this encoding
+    era = get_era_for_encoding(encoding)
+
     with open(file_name, "rb") as f:
         input_bytes = f.read()
-        result = chardet.detect(input_bytes)
-        try:
-            expected_unicode = input_bytes.decode(encoding)
-        except LookupError:
-            expected_unicode = ""
-        try:
-            detected_unicode = input_bytes.decode(result["encoding"])  # type: ignore[reportArgumentType]
-        except (LookupError, UnicodeDecodeError, TypeError):
-            detected_unicode = ""
-    if result:
-        encoding_match = (result["encoding"] or "").lower() == encoding
-    else:
-        encoding_match = False
-    # Only care about mismatches that would actually result in different
-    # behavior when decoding
-    expected_unicode = normalize("NFKC", expected_unicode)
-    detected_unicode = normalize("NFKC", detected_unicode)
-    if not encoding_match and expected_unicode != detected_unicode:
-        wrapped_expected = "\n".join(textwrap.wrap(expected_unicode, 100)) + "\n"
-        wrapped_detected = "\n".join(textwrap.wrap(detected_unicode, 100)) + "\n"
-        diff = "".join(
-            [
-                line
-                for line in ndiff(
-                    wrapped_expected.splitlines(True), wrapped_detected.splitlines(True)
-                )
-                if not line.startswith(" ")
-            ][:20]
-        )
-        all_encodings = chardet.detect_all(input_bytes, ignore_threshold=True)
-    else:
-        diff = ""
-        encoding_match = True
-        all_encodings = [result]
-    assert encoding_match, (
-        f"Expected {encoding}, but got {result} for {file_name}.  First 20 "
-        f"lines with character differences: \n{diff}\n"
-        f"All encodings: {pformat(all_encodings)}"
-    )
-
-
-@pytest.mark.timeout(7)
-@pytest.mark.parametrize("file_name, encoding", gen_test_params())
-def test_encoding_detection_rename_legacy(file_name, encoding):
-    with open(file_name, "rb") as f:
-        input_bytes = f.read()
-        result = chardet.detect(input_bytes, should_rename_legacy=True)
+        result = chardet.detect(input_bytes, encoding_era=era)
         try:
             expected_unicode = input_bytes.decode(encoding)
         except LookupError:
@@ -165,7 +192,63 @@ def test_encoding_detection_rename_legacy(file_name, encoding):
             ][:20]
         )
         all_encodings = chardet.detect_all(
-            input_bytes, ignore_threshold=True, should_rename_legacy=True
+            input_bytes, ignore_threshold=True, encoding_era=era
+        )
+    else:
+        diff = ""
+        encoding_match = True
+        all_encodings = [result]
+    assert encoding_match, (
+        f"Expected {encoding}, but got {result} for {file_name}.  First 20 "
+        f"lines with character differences: \n{diff}\n"
+        f"All encodings: {pformat(all_encodings)}"
+    )
+
+
+@pytest.mark.timeout(7)
+@pytest.mark.parametrize("file_name, encoding", gen_test_params())
+def test_encoding_detection_rename_legacy(file_name, encoding):
+    # Determine which era is needed for this encoding
+    era = get_era_for_encoding(encoding)
+
+    with open(file_name, "rb") as f:
+        input_bytes = f.read()
+        result = chardet.detect(
+            input_bytes, should_rename_legacy=True, encoding_era=era
+        )
+        try:
+            expected_unicode = input_bytes.decode(encoding)
+        except LookupError:
+            expected_unicode = ""
+        try:
+            detected_unicode = input_bytes.decode(result["encoding"])  # type: ignore[reportArgumentType]
+        except (LookupError, UnicodeDecodeError, TypeError):
+            detected_unicode = ""
+    if result:
+        encoding_match = (result["encoding"] or "").lower() == encoding
+    else:
+        encoding_match = False
+    # Only care about mismatches that would actually result in different
+    # behavior when decoding
+    expected_unicode = normalize("NFKC", expected_unicode)
+    detected_unicode = normalize("NFKC", detected_unicode)
+    if not encoding_match and expected_unicode != detected_unicode:
+        wrapped_expected = "\n".join(textwrap.wrap(expected_unicode, 100)) + "\n"
+        wrapped_detected = "\n".join(textwrap.wrap(detected_unicode, 100)) + "\n"
+        diff = "".join(
+            [
+                line
+                for line in ndiff(
+                    wrapped_expected.splitlines(True), wrapped_detected.splitlines(True)
+                )
+                if not line.startswith(" ")
+            ][:20]
+        )
+        all_encodings = chardet.detect_all(
+            input_bytes,
+            ignore_threshold=True,
+            should_rename_legacy=True,
+            encoding_era=era,
         )
     else:
         diff = ""

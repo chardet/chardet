@@ -78,3 +78,17 @@ class CharacterCategory(IntEnum):
     SYMBOL = 253
     LINE_BREAK = 252
     DIGIT = 251
+
+
+class EncodingEra(Flag):
+    """
+    This enum represents different eras of character encodings, used to filter
+    which encodings are considered during detection.
+    """
+
+    NONE = 0x00
+    MODERN_WEB = 0x01  # UTF-8, Windows-125x, modern ISO
+    LEGACY = 0x02  # Mac encodings, older ISO standards
+    DOS = 0x04  # CP437, CP850, CP852, etc.
+    MAINFRAME = 0x08  # EBCDIC variants (CP037, CP500, etc.)
+    ALL = 0x0F
