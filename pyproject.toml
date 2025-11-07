@@ -49,6 +49,8 @@ dev = [
   "hypothesis>=6.0.0,<7",
   "pre-commit~=3.5",
   "pytest>=8.3.2,<9",
+  "pytest-timeout>=2.2.0,<3",
+  "pytest-xdist>=3.0.0,<4",
   "ruff>=0.13,<1.0",
   "sphinx_rtd_theme>=1.0.0,<2",
 ]
@@ -67,7 +69,7 @@ local_scheme = "no-local-version"
 reportTypedDictNotRequiredAccess = "none"
 
 [tool.pytest.ini_options]
-addopts = "-v"
+addopts = "-v -n auto"
 norecursedirs = "*"
 python_files = "test.py"
 

@@ -86,6 +86,7 @@ def gen_test_params():
             yield test_case
 
 
+@pytest.mark.timeout(7)
 @pytest.mark.parametrize("file_name, encoding", gen_test_params())
 def test_encoding_detection(file_name, encoding):
     with open(file_name, "rb") as f:
@@ -131,6 +132,7 @@ def test_encoding_detection(file_name, encoding):
     )
 
 
+@pytest.mark.timeout(7)
 @pytest.mark.parametrize("file_name, encoding", gen_test_params())
 def test_encoding_detection_rename_legacy(file_name, encoding):
     with open(file_name, "rb") as f:
