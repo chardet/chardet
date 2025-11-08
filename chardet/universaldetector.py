@@ -106,6 +106,7 @@ class UniversalDetector:
         lang_filter: LanguageFilter = LanguageFilter.ALL,
         should_rename_legacy: bool = False,
         encoding_era: EncodingEra = EncodingEra.MODERN_WEB,
+        max_bytes: int = 200_000,
     ) -> None:
         self._esc_charset_prober: Optional[EscCharSetProber] = None
         self._utf1632_prober: Optional[UTF1632Prober] = None
@@ -125,6 +126,8 @@ class UniversalDetector:
         self._has_mac_letter_pattern = False
         self.should_rename_legacy = should_rename_legacy
         self.encoding_era = encoding_era
+        self._total_bytes_fed = 0
+        self.max_bytes = max_bytes
         self.reset()
 
     @property
@@ -163,6 +166,7 @@ class UniversalDetector:
         self._has_mac_letter_pattern = False
         self._input_state = InputState.PURE_ASCII
         self._last_char = b""
+        self._total_bytes_fed = 0
         if self._esc_charset_prober:
             self._esc_charset_prober.reset()
         if self._utf1632_prober:
@@ -245,6 +249,14 @@ class UniversalDetector:
                 self._input_state = InputState.ESC_ASCII
 
         self._last_char = byte_str[-1:]
+
+        # Track total bytes processed
+        self._total_bytes_fed += len(byte_str)
+
+        # Stop processing after processing enough data
+        if self._total_bytes_fed > self.max_bytes:
+            self.done = True
+            return
 
         # next we will look to see if it is appears to be either a UTF-16 or
         # UTF-32 encoding

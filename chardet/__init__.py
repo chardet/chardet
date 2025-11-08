@@ -30,6 +30,8 @@ def detect(
     byte_str: Union[bytes, bytearray],
     should_rename_legacy: bool = False,
     encoding_era: EncodingEra = EncodingEra.MODERN_WEB,
+    chunk_size: int = 65_536,
+    max_bytes: int = 200_000,
 ) -> ResultDict:
     """
     Detect the encoding of the given byte string.
@@ -41,6 +43,10 @@ def detect(
     :type should_rename_legacy:   ``bool``
     :param encoding_era:  Which era of encodings to consider during detection.
     :type encoding_era:   ``EncodingEra``
+    :param chunk_size:    Size of chunks to process at a time
+    :type chunk_size:     ``int``
+    :param max_bytes:    Maximum number of bytes to examine
+    :type chunk_size:     ``int``
     """
     if not isinstance(byte_str, bytearray):
         if not isinstance(byte_str, bytes):
@@ -48,10 +54,18 @@ def detect(
                 f"Expected object of type bytes or bytearray, got: {type(byte_str)}"
             )
         byte_str = bytearray(byte_str)
+
     detector = UniversalDetector(
         should_rename_legacy=should_rename_legacy, encoding_era=encoding_era
     )
-    detector.feed(byte_str)
+
+    # Process in chunks like uchardet does
+    for i in range(0, len(byte_str), chunk_size):
+        chunk = byte_str[i : i + chunk_size]
+        detector.feed(chunk)
+        if detector.done:
+            break
+
     return detector.close()
 
 
@@ -60,6 +74,8 @@ def detect_all(
     ignore_threshold: bool = False,
     should_rename_legacy: bool = False,
     encoding_era: EncodingEra = EncodingEra.MODERN_WEB,
+    chunk_size: int = 65_536,
+    max_bytes: int = 200_000,
 ) -> list[ResultDict]:
     """
     Detect all the possible encodings of the given byte string.
@@ -75,6 +91,10 @@ def detect_all(
     :type should_rename_legacy:   ``bool``
     :param encoding_era:  Which era of encodings to consider during detection.
     :type encoding_era:   ``EncodingEra``
+    :param chunk_size:    Size of chunks to process at a time.
+    :type chunk_size:     ``int``
+    :param max_bytes:    Size of chunks to process at a time.
+    :type max_bytes:     ``int``
     """
     if not isinstance(byte_str, bytearray):
         if not isinstance(byte_str, bytes):
@@ -86,7 +106,14 @@ def detect_all(
     detector = UniversalDetector(
         should_rename_legacy=should_rename_legacy, encoding_era=encoding_era
     )
-    detector.feed(byte_str)
+
+    # Process in chunks like uchardet does
+    for i in range(0, len(byte_str), chunk_size):
+        chunk = byte_str[i : i + chunk_size]
+        detector.feed(chunk)
+        if detector.done:
+            break
+
     detector.close()
 
     if detector.input_state in (InputState.HIGH_BYTE, InputState.ESC_ASCII):
