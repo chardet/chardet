@@ -215,6 +215,38 @@ class UniversalDetector:
                 # FF FE  UTF-16, little endian BOM
                 # FE FF  UTF-16, big endian BOM
                 self.result = {"encoding": "UTF-16", "confidence": 1.0, "language": ""}
+            else:
+                # Binary file detection - check for excessive null bytes early
+                # But UTF-16/32 have null bytes, so check for patterns first
+
+                # Check for no-BOM UTF-16/32 patterns (alternating nulls)
+                # UTF-32LE: XX 00 00 00 pattern
+                # UTF-32BE: 00 00 00 XX pattern
+                # UTF-16LE: XX 00 pattern
+                # UTF-16BE: 00 XX pattern
+                looks_like_utf16_32 = False
+                if len(byte_str) >= 100:
+                    sample = byte_str[:100]
+                    # Count nulls in even and odd positions
+                    even_nulls = sum(1 for i in range(0, 100, 2) if sample[i] == 0)
+                    odd_nulls = sum(1 for i in range(1, 100, 2) if sample[i] == 0)
+                    # If most even or odd positions are null, likely UTF-16/32
+                    if even_nulls > 20 or odd_nulls > 20:
+                        looks_like_utf16_32 = True
+
+                if not looks_like_utf16_32:
+                    # Sample first 8KB to detect binary files
+                    sample_size = min(len(byte_str), 8192)
+                    null_count = byte_str[:sample_size].count(0)
+                    if null_count > sample_size * 0.1:  # >10% null bytes
+                        # Likely a binary file, not text
+                        self.result = {
+                            "encoding": None,
+                            "confidence": 0.0,
+                            "language": "",
+                        }
+                        self.done = True
+                        return
 
             self._got_data = True
             if self.result["encoding"] is not None:
