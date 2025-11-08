@@ -144,6 +144,14 @@ class SingleByteCharSetProber(CharSetProber):
                         self.NEGATIVE_SHORTCUT_THRESHOLD,
                     )
                     self._state = ProbingState.NOT_ME
+            # Early termination: if we have enough data and very low confidence, give up
+            elif self._total_seqs > 512 and self._total_char > 1000:
+                confidence = self.get_confidence()
+                if confidence < 0.01:
+                    self.logger.debug(
+                        "%s confidence = %s, giving up early", charset_name, confidence
+                    )
+                    self._state = ProbingState.NOT_ME
 
         return self.state
 
