@@ -27,7 +27,8 @@ import pytest  # type: ignore[reportMissingImports]
 import chardet
 from chardet import escsm, mbcssm
 from chardet.codingstatemachine import CodingStateMachine
-from chardet.enums import EncodingEra, MachineState
+from chardet.encoding_eras import get_encoding_era
+from chardet.enums import MachineState
 from chardet.metadata.languages import LANGUAGES
 from chardet.universaldetector import UniversalDetector
 
@@ -78,79 +79,7 @@ EXPECTED_FAILURES = {
     # File with only 1 high byte in 748KB (99.9998% ASCII)
     # Sampling may miss the single non-ASCII character
     "tests/iso-8859-1-english/ioreg_output.txt",
-    # Large files where strategic sampling changes detection
-    # Trade-off for performance on very large files (>100KB)
-    "tests/windows-1252-english/anzeige-value-stars.html",  # 206KB
-    "tests/euc-jp-japanese/siesta.co.jp.aozora.xml",  # 120KB
 }
-
-
-def get_era_for_encoding(encoding: str) -> EncodingEra:
-    """Determine which encoding era is needed to detect a specific encoding."""
-    encoding_lower = encoding.lower().replace("_", "-")
-
-    # MAINFRAME: EBCDIC variants
-    if encoding_lower in ("cp037", "cp424", "cp500", "cp1026", "cp1125"):
-        return EncodingEra.MAINFRAME
-
-    # DOS: DOS codepages (including IBM aliases)
-    if encoding_lower in (
-        "cp437",
-        "cp850",
-        "cp852",
-        "cp855",
-        "cp856",
-        "cp857",
-        "cp858",
-        "cp860",
-        "cp861",
-        "cp862",
-        "cp863",
-        "cp864",
-        "cp865",
-        "cp866",
-        "cp869",
-        "cp737",
-        "cp875",
-        "ibm437",
-        "ibm850",
-        "ibm852",
-        "ibm855",
-        "ibm856",
-        "ibm857",
-        "ibm858",
-        "ibm860",
-        "ibm861",
-        "ibm862",
-        "ibm863",
-        "ibm864",
-        "ibm865",
-        "ibm866",
-        "ibm869",
-        "ibm737",
-        "ibm875",
-    ):
-        return EncodingEra.DOS
-
-    # LEGACY: Mac encodings and less common ISO
-    if encoding_lower.startswith("mac") or encoding_lower in (
-        "iso-8859-3",
-        "iso-8859-4",
-        "iso-8859-5",
-        "iso-8859-6",
-        "iso-8859-10",
-        "iso-8859-11",
-        "iso-8859-13",
-        "iso-8859-14",
-        "cp720",
-        "cp775",
-        "ibm720",
-        "ibm775",
-    ):
-        return EncodingEra.LEGACY
-
-    # MODERN_WEB: Everything else (default)
-    return EncodingEra.MODERN_WEB
 
 
 MULTI_BYTE_LANGUAGES = {
@@ -194,7 +123,7 @@ def gen_test_params():
 @pytest.mark.parametrize("file_name, encoding", gen_test_params())
 def test_encoding_detection(file_name, encoding):
     # Determine which era is needed for this encoding
-    era = get_era_for_encoding(encoding)
+    era = get_encoding_era(encoding)
 
     with open(file_name, "rb") as f:
         input_bytes = f.read()
@@ -245,7 +174,7 @@ def test_encoding_detection(file_name, encoding):
 @pytest.mark.parametrize("file_name, encoding", gen_test_params())
 def test_encoding_detection_rename_legacy(file_name, encoding):
     # Determine which era is needed for this encoding
-    era = get_era_for_encoding(encoding)
+    era = get_encoding_era(encoding)
 
     with open(file_name, "rb") as f:
         input_bytes = f.read()
