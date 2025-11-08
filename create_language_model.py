@@ -227,21 +227,33 @@ def unicode_to_category(
     *,
     unicode_char: str,
     char_ranks: dict[str, int],
+    alphabet_set: set[str] | None = None,
 ) -> int:
-    """Convert a Unicode character to categories used by SingleByteCharSetProber"""
-    unicode_cat = unicodedata.category(unicode_char)
-    if unicode_cat.startswith("N"):
-        ret_val = CharacterCategory.DIGIT
-    # Valid letters have their category set to their order/rank
-    elif unicode_cat.startswith("L"):
+    """Convert a Unicode character to categories used by SingleByteCharSetProber
+
+    If alphabet_set is provided, any character in it will be treated as a letter
+    regardless of its Unicode category. This is important for languages that use
+    combining marks (like Vietnamese) or other non-letter characters as part of
+    their alphabet.
+    """
+    # If this character is in the language's alphabet, treat it as a letter
+    if alphabet_set is not None and unicode_char in alphabet_set:
         ret_val = char_ranks.get(unicode_char, 0)
     elif unicode_char in ("\r", "\n"):
         ret_val = CharacterCategory.LINE_BREAK
-    # Punctuation, Symbols, and Marks are all symbols as far as we care
-    elif unicode_cat.startswith(("P", "S", "M")):
-        ret_val = CharacterCategory.SYMBOL
     else:
-        ret_val = CharacterCategory.CONTROL
+        # Fall back to Unicode category-based classification
+        unicode_cat = unicodedata.category(unicode_char)
+        if unicode_cat.startswith("N"):
+            ret_val = CharacterCategory.DIGIT
+        # Valid letters have their category set to their order/rank
+        elif unicode_cat.startswith("L"):
+            ret_val = char_ranks.get(unicode_char, 0)
+        # Punctuation, Symbols, and Marks are all symbols as far as we care
+        elif unicode_cat.startswith(("P", "S", "M")):
+            ret_val = CharacterCategory.SYMBOL
+        else:
+            ret_val = CharacterCategory.CONTROL
     return ret_val
 
 
@@ -276,6 +288,7 @@ def get_charset_mappings(
             char_cat = unicode_to_category(
                 unicode_char=unicode_char,
                 char_ranks=char_ranks,
+                alphabet_set=alphabet_set,
             )
             charset_code_points[unicode_char] = char
         except UnicodeDecodeError:
