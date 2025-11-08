@@ -28,7 +28,7 @@ __all__ = ["UniversalDetector", "detect", "detect_all", "__version__", "VERSION"
 
 def detect(
     byte_str: Union[bytes, bytearray],
-    should_rename_legacy: bool = False,
+    should_rename_legacy: bool | None = None,
     encoding_era: EncodingEra = EncodingEra.MODERN_WEB,
     chunk_size: int = 65_536,
     max_bytes: int = 200_000,
@@ -40,7 +40,9 @@ def detect(
     :type byte_str:      ``bytes`` or ``bytearray``
     :param should_rename_legacy:  Should we rename legacy encodings
                                   to their more modern equivalents?
-    :type should_rename_legacy:   ``bool``
+                                  If None (default), automatically enabled
+                                  when encoding_era is MODERN_WEB.
+    :type should_rename_legacy:   ``bool`` or ``None``
     :param encoding_era:  Which era of encodings to consider during detection.
     :type encoding_era:   ``EncodingEra``
     :param chunk_size:    Size of chunks to process at a time
@@ -54,6 +56,10 @@ def detect(
                 f"Expected object of type bytes or bytearray, got: {type(byte_str)}"
             )
         byte_str = bytearray(byte_str)
+
+    # Automatically enable legacy remapping for MODERN_WEB era if not explicitly set
+    if should_rename_legacy is None:
+        should_rename_legacy = encoding_era == EncodingEra.MODERN_WEB
 
     detector = UniversalDetector(
         should_rename_legacy=should_rename_legacy, encoding_era=encoding_era
@@ -72,7 +78,7 @@ def detect(
 def detect_all(
     byte_str: Union[bytes, bytearray],
     ignore_threshold: bool = False,
-    should_rename_legacy: bool = False,
+    should_rename_legacy: bool | None = None,
     encoding_era: EncodingEra = EncodingEra.MODERN_WEB,
     chunk_size: int = 65_536,
     max_bytes: int = 200_000,
@@ -88,7 +94,9 @@ def detect_all(
     :type ignore_threshold:   ``bool``
     :param should_rename_legacy:  Should we rename legacy encodings
                                   to their more modern equivalents?
-    :type should_rename_legacy:   ``bool``
+                                  If None (default), automatically enabled
+                                  when encoding_era is MODERN_WEB.
+    :type should_rename_legacy:   ``bool`` or ``None``
     :param encoding_era:  Which era of encodings to consider during detection.
     :type encoding_era:   ``EncodingEra``
     :param chunk_size:    Size of chunks to process at a time.
@@ -102,6 +110,10 @@ def detect_all(
                 f"Expected object of type bytes or bytearray, got: {type(byte_str)}"
             )
         byte_str = bytearray(byte_str)
+
+    # Automatically enable legacy remapping for MODERN_WEB era if not explicitly set
+    if should_rename_legacy is None:
+        should_rename_legacy = encoding_era == EncodingEra.MODERN_WEB
 
     detector = UniversalDetector(
         should_rename_legacy=should_rename_legacy, encoding_era=encoding_era

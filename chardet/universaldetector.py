@@ -93,8 +93,14 @@ class UniversalDetector:
     LEGACY_MAP = {
         "ascii": "Windows-1252",  # ASCII is subset of Windows-1252
         "iso-8859-1": "Windows-1252",  # Latin-1 extended by Windows-1252
-        "iso-8859-9": "Windows-1254",  # Latin-5 extended by Windows-1254
+        "iso-8859-2": "Windows-1250",  # Central European
+        "iso-8859-5": "Windows-1251",  # Cyrillic
+        "iso-8859-6": "Windows-1256",  # Arabic
+        "iso-8859-7": "Windows-1253",  # Greek
+        "iso-8859-8": "Windows-1255",  # Hebrew
+        "iso-8859-9": "Windows-1254",  # Turkish
         "iso-8859-11": "cp874",  # Thai, extended by CP874 (aka Windows-874)
+        "iso-8859-13": "Windows-1257",  # Baltic
         "tis-620": "cp874",  # Thai, equivalent to Windows-874
         "gb2312": "GB18030",  # GB2312 < GBK < GB18030 (GB18030 is superset)
         "euc-kr": "CP949",  # EUC-KR extended by CP949 (aka Windows-949)
