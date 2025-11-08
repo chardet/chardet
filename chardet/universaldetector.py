@@ -211,23 +211,7 @@ class UniversalDetector:
                 # FF FE 00 00  UTF-32, little-endian BOM
                 # 00 00 FE FF  UTF-32, big-endian BOM
                 self.result = {"encoding": "UTF-32", "confidence": 1.0, "language": ""}
-            elif byte_str.startswith(b"\xfe\xff\x00\x00"):
-                # FE FF 00 00  UCS-4, unusual octet order BOM (3412)
-                self.result = {
-                    # TODO: This encoding is not supported by Python. Should remove?
-                    "encoding": "X-ISO-10646-UCS-4-3412",
-                    "confidence": 1.0,
-                    "language": "",
-                }
-            elif byte_str.startswith(b"\x00\x00\xff\xfe"):
-                # 00 00 FF FE  UCS-4, unusual octet order BOM (2143)
-                self.result = {
-                    # TODO: This encoding is not supported by Python. Should remove?
-                    "encoding": "X-ISO-10646-UCS-4-2143",
-                    "confidence": 1.0,
-                    "language": "",
-                }
-            elif byte_str.startswith((codecs.BOM_LE, codecs.BOM_BE)):
+            elif byte_str.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE)):
                 # FF FE  UTF-16, little endian BOM
                 # FE FF  UTF-16, big endian BOM
                 self.result = {"encoding": "UTF-16", "confidence": 1.0, "language": ""}
