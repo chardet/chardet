@@ -276,8 +276,8 @@ class UniversalDetector:
         self._total_bytes_fed += len(byte_str)
 
         # Stop processing after processing enough data
+        # Don't set done=True here, let close() finalize the result
         if self._total_bytes_fed > self.max_bytes:
-            self.done = True
             return
 
         # next we will look to see if it is appears to be either a UTF-16 or
