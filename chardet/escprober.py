@@ -31,7 +31,6 @@ from .codingstatemachine import CodingStateMachine
 from .enums import LanguageFilter, MachineState, ProbingState
 from .escsm import (
     HZ_SM_MODEL,
-    ISO2022CN_SM_MODEL,
     ISO2022JP_SM_MODEL,
     ISO2022KR_SM_MODEL,
 )
@@ -49,7 +48,6 @@ class EscCharSetProber(CharSetProber):
         self.coding_sm = []
         if self.lang_filter & LanguageFilter.CHINESE_SIMPLIFIED:
             self.coding_sm.append(CodingStateMachine(HZ_SM_MODEL))
-            self.coding_sm.append(CodingStateMachine(ISO2022CN_SM_MODEL))
         if self.lang_filter & LanguageFilter.JAPANESE:
             self.coding_sm.append(CodingStateMachine(ISO2022JP_SM_MODEL))
         if self.lang_filter & LanguageFilter.KOREAN:

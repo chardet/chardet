@@ -74,7 +74,7 @@ UniversalDetector
 
 **Multi-byte Probers**:
 
-- `big5prober.py`, `cp949prober.py`, `eucjpprober.py`, `euckrprober.py`, `euctwprober.py`
+- `big5prober.py`, `cp949prober.py`, `eucjpprober.py`, `euckrprober.py`
 - `gb2312prober.py`, `sjisprober.py`, `johabprober.py`
 - `mbcharsetprober.py` (base class), `mbcsgroupprober.py` (orchestrator)
 

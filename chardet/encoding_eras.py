@@ -79,7 +79,6 @@ ENCODING_ERA_MAP = {
     "CP720": EncodingEra.LEGACY,  # Arabic
     # Legacy multibyte encodings
     "GB2312": EncodingEra.LEGACY,  # Chinese (subset of GB18030)
-    "EUC-TW": EncodingEra.LEGACY,  # Traditional Chinese
     "JOHAB": EncodingEra.LEGACY,  # Korean
     "CP932": EncodingEra.LEGACY,  # Japanese (Windows)
     # DOS-era codepages

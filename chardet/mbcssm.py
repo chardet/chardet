@@ -320,63 +320,6 @@ JOHAB_SM_MODEL: CodingStateMachineDict = {
     "name": "Johab",
 }
 
-# EUC-TW
-# fmt: off
-EUCTW_CLS = (
-    2, 2, 2, 2, 2, 2, 2, 2,  # 00 - 07
-    2, 2, 2, 2, 2, 2, 0, 0,  # 08 - 0f
-    2, 2, 2, 2, 2, 2, 2, 2,  # 10 - 17
-    2, 2, 2, 0, 2, 2, 2, 2,  # 18 - 1f
-    2, 2, 2, 2, 2, 2, 2, 2,  # 20 - 27
-    2, 2, 2, 2, 2, 2, 2, 2,  # 28 - 2f
-    2, 2, 2, 2, 2, 2, 2, 2,  # 30 - 37
-    2, 2, 2, 2, 2, 2, 2, 2,  # 38 - 3f
-    2, 2, 2, 2, 2, 2, 2, 2,  # 40 - 47
-    2, 2, 2, 2, 2, 2, 2, 2,  # 48 - 4f
-    2, 2, 2, 2, 2, 2, 2, 2,  # 50 - 57
-    2, 2, 2, 2, 2, 2, 2, 2,  # 58 - 5f
-    2, 2, 2, 2, 2, 2, 2, 2,  # 60 - 67
-    2, 2, 2, 2, 2, 2, 2, 2,  # 68 - 6f
-    2, 2, 2, 2, 2, 2, 2, 2,  # 70 - 77
-    2, 2, 2, 2, 2, 2, 2, 2,  # 78 - 7f
-    0, 0, 0, 0, 0, 0, 0, 0,  # 80 - 87
-    0, 0, 0, 0, 0, 0, 6, 0,  # 88 - 8f
-    0, 0, 0, 0, 0, 0, 0, 0,  # 90 - 97
-    0, 0, 0, 0, 0, 0, 0, 0,  # 98 - 9f
-    0, 3, 4, 4, 4, 4, 4, 4,  # a0 - a7
-    5, 5, 1, 1, 1, 1, 1, 1,  # a8 - af
-    1, 1, 1, 1, 1, 1, 1, 1,  # b0 - b7
-    1, 1, 1, 1, 1, 1, 1, 1,  # b8 - bf
-    1, 1, 3, 1, 3, 3, 3, 3,  # c0 - c7
-    3, 3, 3, 3, 3, 3, 3, 3,  # c8 - cf
-    3, 3, 3, 3, 3, 3, 3, 3,  # d0 - d7
-    3, 3, 3, 3, 3, 3, 3, 3,  # d8 - df
-    3, 3, 3, 3, 3, 3, 3, 3,  # e0 - e7
-    3, 3, 3, 3, 3, 3, 3, 3,  # e8 - ef
-    3, 3, 3, 3, 3, 3, 3, 3,  # f0 - f7
-    3, 3, 3, 3, 3, 3, 3, 0   # f8 - ff
-)
-
-EUCTW_ST = (
-    MachineState.ERROR,MachineState.ERROR,MachineState.START,     3,     3,     3,     4,MachineState.ERROR,#00-07
-    MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ITS_ME,MachineState.ITS_ME,#08-0f
-    MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ERROR,MachineState.START,MachineState.ERROR,#10-17
-    MachineState.START,MachineState.START,MachineState.START,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,#18-1f
-         5,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.START,MachineState.ERROR,MachineState.START,MachineState.START,#20-27
-    MachineState.START,MachineState.ERROR,MachineState.START,MachineState.START,MachineState.START,MachineState.START,MachineState.START,MachineState.START #28-2f
-)
-# fmt: on
-
-EUCTW_CHAR_LEN_TABLE = (0, 0, 1, 2, 2, 2, 3)
-
-EUCTW_SM_MODEL: CodingStateMachineDict = {
-    "class_table": EUCTW_CLS,
-    "class_factor": 7,
-    "state_table": EUCTW_ST,
-    "char_len_table": EUCTW_CHAR_LEN_TABLE,
-    "name": "x-euc-tw",
-}
-
 # GB2312
 # fmt: off
 GB2312_CLS = (

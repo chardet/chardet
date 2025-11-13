@@ -119,7 +119,6 @@ Unigram files
 - ``big5freqprober.py``
 - ``chardistribution.py``
 - ``euckrfreqprober.py``
-- ``euctwfreqprober.py``
 - ``gb2312freqprober.py``
 - ``jisfreqprober.py``
 
@@ -130,7 +129,6 @@ Multibyte probers
 - ``cp949prober.py``
 - ``eucjpprober.py``
 - ``euckrprober.py``
-- ``euctwprober.py``
 - ``gb2312prober.py``
 - ``mbcharsetprober.py``
 - ``mbcsgroupprober.py``

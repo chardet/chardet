@@ -124,22 +124,6 @@ chardet.euckrprober module
     :undoc-members:
     :show-inheritance:
 
-chardet.euctwfreq module
-------------------------
-
-.. automodule:: chardet.euctwfreq
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-chardet.euctwprober module
---------------------------
-
-.. automodule:: chardet.euctwprober
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 chardet.gb2312freq module
 -------------------------
 

@@ -32,7 +32,6 @@ from .cp949prober import CP949Prober
 from .enums import LanguageFilter
 from .eucjpprober import EUCJPProber
 from .euckrprober import EUCKRProber
-from .euctwprober import EUCTWProber
 from .gb2312prober import GB2312Prober
 from .johabprober import JOHABProber
 from .sjisprober import SJISProber
@@ -50,7 +49,6 @@ class MBCSGroupProber(CharSetGroupProber):
             EUCKRProber(),
             CP949Prober(),
             Big5Prober(),
-            EUCTWProber(),
             JOHABProber(),
         ]
         self.reset()

@@ -233,21 +233,16 @@ def test_encoding_detection_rename_legacy(file_name, encoding):
     )
 
 
-# TODO add fixtures for non-supported encodings
 STATE_MACHINE_MODELS = [
     mbcssm.BIG5_SM_MODEL,
     mbcssm.CP949_SM_MODEL,
     mbcssm.EUCJP_SM_MODEL,
     mbcssm.EUCKR_SM_MODEL,
-    # mbcssm.EUCTW_SM_MODEL,
     mbcssm.JOHAB_SM_MODEL,
     mbcssm.GB2312_SM_MODEL,
     mbcssm.SJIS_SM_MODEL,
-    # mbcssm.UCS2BE_SM_MODEL,
-    # mbcssm.UCS2LE_SM_MODEL,
-    # mbcssm.UTF8_SM_MODEL,
+    mbcssm.UTF8_SM_MODEL,
     escsm.HZ_SM_MODEL,
-    # escsm.ISO2022CN_SM_MODEL,
     escsm.ISO2022JP_SM_MODEL,
     escsm.ISO2022KR_SM_MODEL,
 ]

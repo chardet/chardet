@@ -53,7 +53,7 @@ an escaped encoding, ``UniversalDetector`` creates an
 text.
 
 ``EscCharSetProber`` creates a series of state machines, based on models
-of ``HZ-GB-2312``, ``ISO-2022-CN``, ``ISO-2022-JP``, and ``ISO-2022-KR``
+of ``HZ-GB-2312``, ``ISO-2022-JP``, and ``ISO-2022-KR``
 (defined in ``escsm.py``). ``EscCharSetProber`` feeds the text to each
 of these state machines, one byte at a time. If any state machine ends
 up uniquely identifying the encoding, ``EscCharSetProber`` immediately
@@ -72,7 +72,7 @@ resort, ``windows-1252``.
 The multi-byte encoding prober, ``MBCSGroupProber`` (defined in
 ``mbcsgroupprober.py``), is really just a shell that manages a group of
 other probers, one for each multi-byte encoding: ``Big5``, ``GB2312``,
-``EUC-TW``, ``EUC-KR``, ``EUC-JP``, ``SHIFT_JIS``, and ``UTF-8``.
+``EUC-KR``, ``EUC-JP``, ``SHIFT_JIS``, and ``UTF-8``.
 ``MBCSGroupProber`` feeds the text to each of these encoding-specific
 probers and checks the results. If a prober reports that it has found an
 illegal byte sequence, it is dropped from further processing (so that,
