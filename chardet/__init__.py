@@ -10,9 +10,8 @@
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser General Public
-# License along with this library; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-# 02110-1301  USA
+# License along with this library; if not, see
+# <https://www.gnu.org/licenses/>.
 ######################### END LICENSE BLOCK #########################
 
 from typing import List, Union
@@ -102,13 +101,11 @@ def detect_all(
                     charset_name = detector.LEGACY_MAP.get(
                         charset_name.lower(), charset_name
                     )
-                results.append(
-                    {
-                        "encoding": charset_name,
-                        "confidence": prober.get_confidence(),
-                        "language": prober.language,
-                    }
-                )
+                results.append({
+                    "encoding": charset_name,
+                    "confidence": prober.get_confidence(),
+                    "language": prober.language,
+                })
         if len(results) > 0:
             return sorted(results, key=lambda result: -result["confidence"])
 

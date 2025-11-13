@@ -20,9 +20,8 @@
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser General Public
-# License along with this library; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-# 02110-1301  USA
+# License along with this library; if not, see
+# <https://www.gnu.org/licenses/>.
 ######################### END LICENSE BLOCK #########################
 
 from typing import List, Tuple, Union
@@ -195,7 +194,7 @@ class SJISContextAnalysis(JapaneseContextAnalysis):
     def charset_name(self) -> str:
         return self._charset_name
 
-    def get_order(self, byte_str: Union[bytes, bytearray]) -> Tuple[int, int]:
+    def get_order(self, byte_str: Union[bytes, bytearray]) -> Tuple[int, int]:  # type: ignore[reportIncompatibleMethodOverride]
         if not byte_str:
             return -1, 1
         # find out current char's byte length
@@ -217,7 +216,7 @@ class SJISContextAnalysis(JapaneseContextAnalysis):
 
 
 class EUCJPContextAnalysis(JapaneseContextAnalysis):
-    def get_order(self, byte_str: Union[bytes, bytearray]) -> Tuple[int, int]:
+    def get_order(self, byte_str: Union[bytes, bytearray]) -> Tuple[int, int]:  # type: ignore[reportIncompatibleMethodOverride]
         if not byte_str:
             return -1, 1
         # find out current char's byte length

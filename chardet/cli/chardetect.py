@@ -12,7 +12,6 @@ If no paths are provided, it takes its input from stdin.
 
 """
 
-
 import argparse
 import sys
 from typing import Iterable, List, Optional
@@ -51,7 +50,7 @@ def description_of(
     if minimal:
         return result["encoding"]
     if result["encoding"]:
-        return f'{name}: {result["encoding"]} with confidence {result["confidence"]}'
+        return f"{name}: {result['encoding']} with confidence {result['confidence']}"
     return f"{name}: no result"
 
 

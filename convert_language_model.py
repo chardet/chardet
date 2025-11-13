@@ -16,9 +16,8 @@
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser General Public
-# License along with this library; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-# 02110-1301  USA
+# License along with this library; if not, see
+# <https://www.gnu.org/licenses/>.
 #
 ######################### END LICENSE BLOCK #########################
 
@@ -29,7 +28,7 @@ Convert old style SBCS model to new
 import os
 import sys
 from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
-from string import ascii_letters
+from string import ascii_letters as _ascii_letters
 
 import chardet
 from chardet import __version__
@@ -37,7 +36,7 @@ from chardet.metadata.languages import LANGUAGES
 from chardet.sbcharsetprober import SingleByteCharSetModel
 
 # Turn ascii_letters into a set to make other ops easier
-ascii_letters = set(ascii_letters)
+ascii_letters = set(_ascii_letters)
 
 
 def normalize_name(charset_name):
@@ -61,7 +60,7 @@ def convert_sbcs_model(old_model, alphabet):
         language=old_model["language"],
         char_to_order_map=char_to_order,
         # language_model is filled in later
-        language_model=None,
+        language_model={},
         typical_positive_ratio=pos_ratio,
         keep_ascii_letters=keep_ascii_letters,
         alphabet=alphabet,
