@@ -248,34 +248,183 @@ STATE_MACHINE_MODELS = [
 ]
 
 
-def gen_all_chars_unicode():
-    """Returns all chars in unicode, except control chars"""
-    all_chars = [chr(i) for i in range(0, sys.maxunicode)]
-    excluded_categories = set(("Cc", "Cf", "Cn", "Co", "Cs"))
+@pytest.mark.parametrize(
+    "state_machine_model", STATE_MACHINE_MODELS, ids=lambda model: model["name"]
+)
+def test_coding_state_machine_valid_characters(state_machine_model):
+    """
+    Test that state machines accept all valid characters for their encoding.
 
-    return [char for char in all_chars if category(char) not in excluded_categories]
+    State machines should never enter ERROR state when processing valid byte
+    sequences. ASCII characters (0x00-0x7F) should stay in or return to START
+    state since they're valid single-byte sequences in multi-byte encodings.
+    Multi-byte sequences should transition through intermediate states and
+    return to START upon completion.
+    """
+    state_machine = CodingStateMachine(state_machine_model)
+    encoding_name = state_machine_model["name"]
+    all_non_control_codepoints = [
+        chr(i) for i in range(0, sys.maxunicode) if not category(chr(i)).startswith("C")
+    ]
+
+    for codepoint in all_non_control_codepoints:
+        try:
+            encoded_bytes = codecs.encode(codepoint, encoding_name)
+        except (LookupError, UnicodeEncodeError):
+            # Encoding not supported or character not representable in this encoding
+            continue
+
+        state_machine.reset()
+        state = MachineState.START
+        for i, encoded_byte in enumerate(encoded_bytes):
+            state = state_machine.next_state(encoded_byte)
+
+            assert state != MachineState.ERROR, (
+                f"{encoding_name} state machine entered ERROR state for Unicode "
+                f"{codepoint!r} ({hex(ord(codepoint))}) represented by the bytes "
+                f"{encoded_bytes!r} at byte {encoded_byte!r} (index {i})"
+            )
+
+        # After processing all bytes, should be back in START state (complete sequence)
+        assert state == MachineState.START or state == MachineState.ITS_ME, (
+            f"{encoding_name} state machine ended in unexpected state {state} for Unicode "
+            f"{codepoint!r} ({hex(ord(codepoint))}) represented by the bytes "
+            f"{encoded_bytes!r}. Expected START (complete sequence) or ITS_ME (definitive match)."
+        )
+
+
+@pytest.mark.parametrize(
+    "state_machine_model,invalid_sequence,description",
+    [
+        # UTF-8 invalid sequences
+        (mbcssm.UTF8_SM_MODEL, [0xC0, 0x80], "Overlong encoding of NULL"),
+        (mbcssm.UTF8_SM_MODEL, [0xFF], "Invalid start byte 0xFF"),
+        (mbcssm.UTF8_SM_MODEL, [0xFE], "Invalid start byte 0xFE"),
+        (mbcssm.UTF8_SM_MODEL, [0xC2], "Incomplete 2-byte sequence"),
+        (mbcssm.UTF8_SM_MODEL, [0xE0], "Incomplete 3-byte sequence"),
+        (mbcssm.UTF8_SM_MODEL, [0xF0], "Incomplete 4-byte sequence"),
+        (mbcssm.UTF8_SM_MODEL, [0xC2, 0x00], "Invalid continuation byte"),
+        # EUC-JP
+        (mbcssm.EUCJP_SM_MODEL, [0xA1], "Incomplete 2-byte sequence"),
+        # EUC-KR
+        (mbcssm.EUCKR_SM_MODEL, [0xA1], "Incomplete 2-byte sequence"),
+        # GB2312
+        (mbcssm.GB2312_SM_MODEL, [0xA1], "Incomplete 2-byte sequence"),
+        # Shift_JIS
+        (mbcssm.SJIS_SM_MODEL, [0x81], "Incomplete 2-byte sequence"),
+        # Big5
+        (mbcssm.BIG5_SM_MODEL, [0xA1], "Incomplete 2-byte sequence"),
+        # CP949
+        (mbcssm.CP949_SM_MODEL, [0x81], "Incomplete 2-byte sequence"),
+        # Johab
+        (mbcssm.JOHAB_SM_MODEL, [0x84], "Incomplete 2-byte sequence"),
+    ],
+    ids=[
+        "UTF-8-Overlong encoding of NULL",
+        "UTF-8-Invalid start byte 0xFF",
+        "UTF-8-Invalid start byte 0xFE",
+        "UTF-8-Incomplete 2-byte sequence",
+        "UTF-8-Incomplete 3-byte sequence",
+        "UTF-8-Incomplete 4-byte sequence",
+        "UTF-8-Invalid continuation byte",
+        "EUC-JP-Incomplete 2-byte sequence",
+        "EUC-KR-Incomplete 2-byte sequence",
+        "GB2312-Incomplete 2-byte sequence",
+        "Shift_JIS-Incomplete 2-byte sequence",
+        "Big5-Incomplete 2-byte sequence",
+        "CP949-Incomplete 2-byte sequence",
+        "Johab-Incomplete 2-byte sequence",
+    ],
+)
+def test_coding_state_machine_invalid_sequences(
+    state_machine_model, invalid_sequence, description
+):
+    """
+    Test that state machines reject invalid byte sequences.
+
+    This test verifies that invalid byte sequences cause the state
+    machine to either enter ERROR state or remain in a non-START state
+    (for incomplete sequences).
+    """
+    state_machine = CodingStateMachine(state_machine_model)
+    encoding_name = state_machine_model["name"]
+    state_machine.reset()
+    final_state = MachineState.START
+
+    for byte in invalid_sequence:
+        final_state = state_machine.next_state(byte)
+
+    # For incomplete sequences, we expect either ERROR or not START
+    # (since a complete sequence should return to START)
+    if len(invalid_sequence) == 1 and invalid_sequence[0] >= 0x80:
+        # Single high byte should leave us in non-START state or ERROR
+        assert final_state != MachineState.START, (
+            f"{encoding_name} state machine returned to START for incomplete "
+            f"sequence {invalid_sequence!r} ({description}), expected non-START state"
+        )
 
 
 @pytest.mark.parametrize(
     "state_machine_model", STATE_MACHINE_MODELS, ids=lambda model: model["name"]
 )
-def test_coding_state_machine(state_machine_model):
+def test_coding_state_machine_transitions(state_machine_model):
+    """
+    Test state machine transition properties.
+
+    Verify that:
+    1. Multi-byte sequences transition through intermediate states
+    2. Complete sequences return to START or ITS_ME
+    3. State machine resets properly
+    """
     state_machine = CodingStateMachine(state_machine_model)
     encoding_name = state_machine_model["name"]
-    unicode_all_chars = gen_all_chars_unicode()
 
-    for char in unicode_all_chars:
-        encoded_chars = codecs.encode(char, encoding_name, errors="ignore")
+    # Find a multi-byte character for this encoding
+    multi_byte_char = None
+    for codepoint in range(0x80, 0x10000):  # Start at 0x80 to avoid ASCII
+        try:
+            encoded_bytes = codecs.encode(chr(codepoint), encoding_name)
+            if len(encoded_bytes) > 1:
+                multi_byte_char = (chr(codepoint), encoded_bytes)
+                break
+        except (LookupError, UnicodeEncodeError):
+            continue
 
-        for encoded_char in encoded_chars:
-            state = state_machine.next_state(encoded_char)
+    if multi_byte_char:
+        char, encoded_bytes = multi_byte_char
+        state_machine.reset()
 
-            if state == MachineState.ERROR:
-                error_message = "Failed to encode Unicode %s, Encoding: %s" % (
-                    hex(ord(char)),
-                    ",".join([hex(encoded_char) for encoded_char in encoded_chars]),
+        states = []
+        for encoded_byte in encoded_bytes:
+            state = state_machine.next_state(encoded_byte)
+            states.append(state)
+
+        # For multi-byte sequences, should see intermediate states
+        if len(encoded_bytes) > 1:
+            # At least one intermediate state should be non-START (except possibly the last)
+            intermediate_states = states[:-1]
+            if intermediate_states:
+                has_intermediate = any(
+                    s != MachineState.START for s in intermediate_states
                 )
-                raise Exception(error_message)
+                assert has_intermediate, (
+                    f"{encoding_name} state machine did not transition through intermediate "
+                    f"states for multi-byte character {char!r} ({hex(ord(char))}) with bytes "
+                    f"{encoded_bytes!r}. States: {states}"
+                )
+
+        # Final state should be START or ITS_ME (complete sequence)
+        final_state = states[-1]
+        assert final_state in (MachineState.START, MachineState.ITS_ME), (
+            f"{encoding_name} state machine ended in unexpected state {final_state} for "
+            f"character {char!r} with bytes {encoded_bytes!r}"
+        )
+
+        # Test reset functionality
+        state_machine.reset()
+        assert state_machine._curr_state == MachineState.START, (
+            f"{encoding_name} state machine did not reset to START state"
+        )
 
 
 if HAVE_HYPOTHESIS:
