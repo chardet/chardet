@@ -364,6 +364,123 @@ def test_coding_state_machine_invalid_sequences(
         )
 
 
+# State machine models that support comprehensive invalid sequence testing
+# (excludes stateful encodings like ISO-2022 and HZ that use escape sequences)
+TESTABLE_STATE_MACHINE_MODELS = [
+    (mbcssm.BIG5_SM_MODEL, "big5"),
+    (mbcssm.CP949_SM_MODEL, "cp949"),
+    (mbcssm.EUCJP_SM_MODEL, "euc_jp"),
+    (mbcssm.EUCKR_SM_MODEL, "euc_kr"),
+    (mbcssm.GB18030_SM_MODEL, "gb18030"),
+    (mbcssm.GB2312_SM_MODEL, "gb2312"),
+    (mbcssm.JOHAB_SM_MODEL, "johab"),
+    (mbcssm.SJIS_SM_MODEL, "shift_jis"),
+    (mbcssm.UTF8_SM_MODEL, "utf-8"),
+]
+
+
+@pytest.mark.parametrize(
+    "state_machine_model,python_codec",
+    TESTABLE_STATE_MACHINE_MODELS,
+    ids=[model["name"] for model, _ in TESTABLE_STATE_MACHINE_MODELS],
+)
+def test_coding_state_machine_rejects_all_invalid_sequences(
+    state_machine_model, python_codec
+):
+    """
+    Generative test that state machines properly reject ALL invalid byte sequences.
+
+    This test generates all possible byte sequences up to the maximum character
+    length for the encoding and verifies that sequences which Python's strict
+    decoder rejects are NOT accepted by the state machine (i.e., do not return
+    to START or ITS_ME state, indicating successful decoding).
+
+    The goal is to ensure state machines don't accept byte sequences that are
+    invalid according to the encoding specification. Invalid sequences should
+    either:
+    - Enter ERROR state (definitively invalid)
+    - Stay in an intermediate state (incomplete sequence)
+    - Never return to START/ITS_ME (which indicates a complete valid sequence)
+
+    Optimizations to avoid timeout:
+    - Only tests sequences starting with high bytes (0x80+) since ASCII is always valid
+    - Limits to 100,000 test cases for encodings with large search spaces
+    - Skips stateful encodings (ISO-2022, HZ) that require escape sequences
+    """
+    import itertools
+
+    state_machine = CodingStateMachine(state_machine_model)
+    encoding_name = state_machine_model["name"]
+
+    # Find maximum character length for this encoding
+    char_len_table = state_machine_model["char_len_table"]
+    max_len = max(char_len_table)
+
+    if max_len == 0:
+        # Stateful encoding, skip (requires escape sequences)
+        pytest.skip(f"{encoding_name} is stateful and requires escape sequences")
+
+    # Track statistics and issues
+    invalid_count = 0
+    tested_count = 0
+    issues = []
+
+    for length in range(1, max_len + 1):
+        # Only generate sequences starting with high bytes (0x80-0xFF)
+        # as ASCII (0x00-0x7F) is always valid in these encodings
+        for byte_tuple in itertools.product(range(0x80, 0x100), repeat=length):
+            tested_count += 1
+            byte_sequence = bytes(byte_tuple)
+
+            # Try to decode with Python's codec using strict error handling
+            try:
+                byte_sequence.decode(python_codec, errors="strict")
+                is_valid_in_python = True
+            except UnicodeDecodeError:
+                is_valid_in_python = False
+                invalid_count += 1
+
+            # Test state machine
+            state_machine.reset()
+            final_state = MachineState.START
+
+            for byte_val in byte_sequence:
+                final_state = state_machine.next_state(byte_val)
+
+            # If Python's strict decoder rejects the sequence, the state machine
+            # must NOT accept it as a complete valid sequence
+            if not is_valid_in_python and final_state in (
+                MachineState.START,
+                MachineState.ITS_ME,
+            ):
+                issues.append((byte_sequence, final_state))
+
+            # Limit testing to avoid extremely long tests
+            # UTF-8 with 4-byte sequences could be 128^4 = 268M combinations
+            if tested_count >= 100000:
+                break
+
+        if tested_count >= 100000:
+            break
+
+    # Assert that no invalid sequences were accepted
+    if issues:
+        issue_summary = "\n".join(
+            f"  {seq.hex()}: ended in state {state.name}" for seq, state in issues[:20]
+        )
+        if len(issues) > 20:
+            issue_summary += f"\n  ... and {len(issues) - 20} more"
+
+        pytest.fail(
+            f"{encoding_name} state machine incorrectly accepted {len(issues)} invalid byte "
+            f"sequences (out of {invalid_count} total invalid sequences tested).\n"
+            f"State machines should reject (ERROR) or leave incomplete (intermediate state) "
+            f"invalid sequences, not accept them (START/ITS_ME).\n"
+            f"\nFirst invalid sequences that were incorrectly accepted:\n{issue_summary}\n\n"
+            f"Total tested: {tested_count} sequences"
+        )
+
+
 @pytest.mark.parametrize(
     "state_machine_model", STATE_MACHINE_MODELS, ids=lambda model: model["name"]
 )

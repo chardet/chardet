@@ -33,6 +33,7 @@ from .enums import LanguageFilter
 from .eucjpprober import EUCJPProber
 from .euckrprober import EUCKRProber
 from .gb2312prober import GB2312Prober
+from .gb18030prober import GB18030Prober
 from .johabprober import JOHABProber
 from .sjisprober import SJISProber
 from .utf8prober import UTF8Prober
@@ -45,6 +46,7 @@ class MBCSGroupProber(CharSetGroupProber):
             UTF8Prober(),
             SJISProber(),
             EUCJPProber(),
+            GB18030Prober(),
             GB2312Prober(),
             EUCKRProber(),
             CP949Prober(),

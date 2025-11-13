@@ -382,6 +382,86 @@ GB2312_SM_MODEL: CodingStateMachineDict = {
     "name": "GB2312",
 }
 
+# GB18030
+# GB18030 is a superset of GB2312 and GBK
+# It supports:
+#   - 1-byte: ASCII (0x00-0x7F)
+#   - 2-byte: lead 0x81-0xFE, trail 0x40-0x7E or 0x80-0xFE (GBK/GB2312 compatible)
+#   - 4-byte: 0x81-0xFE, 0x30-0x39, 0x81-0xFE, 0x30-0x39 (GB18030 extension)
+#
+# Byte classes:
+#   0: Invalid
+#   1: ASCII (0x00-0x7F)
+#   2: Digit 0x30-0x39 (can be 2nd or 4th byte in 4-byte sequence)
+#   3: Valid 2-byte trail (0x40-0x7E)
+#   4: Invalid byte 0x7F
+#   5: Valid 2-byte trail and lead for 4-byte (0x80-0xFE)
+#   6: Lead byte (0x81-0xFE) - can start 2-byte or 4-byte, or be 3rd byte in 4-byte
+
+# fmt: off
+GB18030_CLS = (
+    1, 1, 1, 1, 1, 1, 1, 1,  # 00 - 07
+    1, 1, 1, 1, 1, 1, 0, 0,  # 08 - 0f
+    1, 1, 1, 1, 1, 1, 1, 1,  # 10 - 17
+    1, 1, 1, 0, 1, 1, 1, 1,  # 18 - 1f
+    1, 1, 1, 1, 1, 1, 1, 1,  # 20 - 27
+    1, 1, 1, 1, 1, 1, 1, 1,  # 28 - 2f
+    2, 2, 2, 2, 2, 2, 2, 2,  # 30 - 37
+    2, 2, 1, 1, 1, 1, 1, 1,  # 38 - 3f
+    3, 3, 3, 3, 3, 3, 3, 3,  # 40 - 47
+    3, 3, 3, 3, 3, 3, 3, 3,  # 48 - 4f
+    3, 3, 3, 3, 3, 3, 3, 3,  # 50 - 57
+    3, 3, 3, 3, 3, 3, 3, 3,  # 58 - 5f
+    3, 3, 3, 3, 3, 3, 3, 3,  # 60 - 67
+    3, 3, 3, 3, 3, 3, 3, 3,  # 68 - 6f
+    3, 3, 3, 3, 3, 3, 3, 3,  # 70 - 77
+    3, 3, 3, 3, 3, 3, 3, 4,  # 78 - 7f
+    5, 6, 6, 6, 6, 6, 6, 6,  # 80 - 87    0x80 can be trail byte (class 5)
+    6, 6, 6, 6, 6, 6, 6, 6,  # 88 - 8f
+    6, 6, 6, 6, 6, 6, 6, 6,  # 90 - 97
+    6, 6, 6, 6, 6, 6, 6, 6,  # 98 - 9f
+    6, 6, 6, 6, 6, 6, 6, 6,  # a0 - a7
+    6, 6, 6, 6, 6, 6, 6, 6,  # a8 - af
+    6, 6, 6, 6, 6, 6, 6, 6,  # b0 - b7
+    6, 6, 6, 6, 6, 6, 6, 6,  # b8 - bf
+    6, 6, 6, 6, 6, 6, 6, 6,  # c0 - c7
+    6, 6, 6, 6, 6, 6, 6, 6,  # c8 - cf
+    6, 6, 6, 6, 6, 6, 6, 6,  # d0 - d7
+    6, 6, 6, 6, 6, 6, 6, 6,  # d8 - df
+    6, 6, 6, 6, 6, 6, 6, 6,  # e0 - e7
+    6, 6, 6, 6, 6, 6, 6, 6,  # e8 - ef
+    6, 6, 6, 6, 6, 6, 6, 6,  # f0 - f7
+    6, 6, 6, 6, 6, 6, 6, 0   # f8 - ff    0xFF is invalid
+)
+
+# States:
+#   START (0): Initial state
+#   ERROR (1): Error state
+#   ITS_ME (2): Definitive match
+#   FIRST (3): After receiving lead byte (0x81-0xFE)
+#   SECOND_4BYTE (4): After digit as 2nd byte in potential 4-byte sequence
+#   THIRD_4BYTE (5): After 3rd byte (0x81-0xFE) in 4-byte sequence
+GB18030_ST = (
+#  cls:    0                     1                   2                   3                   4                  5                 6
+    MachineState.ERROR,  MachineState.START, MachineState.START, MachineState.START, MachineState.START,MachineState.ERROR,     3,  # START (0)
+    MachineState.ERROR,  MachineState.ERROR, MachineState.ERROR, MachineState.ERROR, MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,  # ERROR (1)
+    MachineState.ITS_ME, MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,  # ITS_ME (2)
+    MachineState.ERROR,  MachineState.ERROR,          4,MachineState.START, MachineState.ERROR,MachineState.START,MachineState.START,  # FIRST (3): 0x81-0xFE completes 2-byte
+    MachineState.ERROR,  MachineState.ERROR, MachineState.ERROR, MachineState.ERROR, MachineState.ERROR,MachineState.ERROR,          5,  # SECOND_4BYTE (4): after 2nd digit
+    MachineState.ERROR,  MachineState.ERROR, MachineState.START, MachineState.ERROR, MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,  # THIRD_4BYTE (5): after 3rd byte
+)
+# fmt: on
+
+GB18030_CHAR_LEN_TABLE = (0, 1, 1, 1, 1, 2, 4)
+
+GB18030_SM_MODEL: CodingStateMachineDict = {
+    "class_table": GB18030_CLS,
+    "class_factor": 7,
+    "state_table": GB18030_ST,
+    "char_len_table": GB18030_CHAR_LEN_TABLE,
+    "name": "GB18030",
+}
+
 # Shift_JIS
 # fmt: off
 SJIS_CLS = (
