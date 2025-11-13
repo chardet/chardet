@@ -39,7 +39,7 @@ See `NOTES.rst` for detailed class hierarchy. Key components:
 ```
 UniversalDetector
   ├─> CharSetGroupProber (abstract orchestrator)
-  │    ├─> MBCSGroupProber (multi-byte charsets: UTF-8, GB2312, Big5, EUC-*, Shift-JIS, etc.)
+  │    ├─> MBCSGroupProber (multi-byte charsets: UTF-8, GB18030, Big5, EUC-*, Shift-JIS, etc.)
   │    │    └─> MultiByteCharSetProber (uses CodingStateMachine + CharDistributionAnalysis)
   │    └─> SBCSGroupProber (single-byte charsets: ISO-8859-*, Windows-125*, etc.)
   │         └─> SingleByteCharSetProber (uses precedence matrix/bigram model)
@@ -75,7 +75,7 @@ UniversalDetector
 **Multi-byte Probers**:
 
 - `big5prober.py`, `cp949prober.py`, `eucjpprober.py`, `euckrprober.py`
-- `gb2312prober.py`, `sjisprober.py`, `johabprober.py`
+- `gb18030prober.py`, `sjisprober.py`, `johabprober.py`
 - `mbcharsetprober.py` (base class), `mbcsgroupprober.py` (orchestrator)
 
 **Single-byte Probers**:

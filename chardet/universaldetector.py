@@ -102,7 +102,6 @@ class UniversalDetector:
         "iso-8859-11": "cp874",  # Thai, extended by CP874 (aka Windows-874)
         "iso-8859-13": "Windows-1257",  # Baltic
         "tis-620": "cp874",  # Thai, equivalent to Windows-874
-        "gb2312": "GB18030",  # GB2312 < GBK < GB18030 (GB18030 is superset)
         "euc-kr": "CP949",  # EUC-KR extended by CP949 (aka Windows-949)
         "utf-16le": "UTF-16",  # UTF-16LE without BOM -> UTF-16 with BOM handling
     }

@@ -320,67 +320,12 @@ JOHAB_SM_MODEL: CodingStateMachineDict = {
     "name": "Johab",
 }
 
-# GB2312
-# fmt: off
-GB2312_CLS = (
-    1, 1, 1, 1, 1, 1, 1, 1,  # 00 - 07
-    1, 1, 1, 1, 1, 1, 0, 0,  # 08 - 0f
-    1, 1, 1, 1, 1, 1, 1, 1,  # 10 - 17
-    1, 1, 1, 0, 1, 1, 1, 1,  # 18 - 1f
-    1, 1, 1, 1, 1, 1, 1, 1,  # 20 - 27
-    1, 1, 1, 1, 1, 1, 1, 1,  # 28 - 2f
-    3, 3, 3, 3, 3, 3, 3, 3,  # 30 - 37
-    3, 3, 1, 1, 1, 1, 1, 1,  # 38 - 3f
-    2, 2, 2, 2, 2, 2, 2, 2,  # 40 - 47
-    2, 2, 2, 2, 2, 2, 2, 2,  # 48 - 4f
-    2, 2, 2, 2, 2, 2, 2, 2,  # 50 - 57
-    2, 2, 2, 2, 2, 2, 2, 2,  # 58 - 5f
-    2, 2, 2, 2, 2, 2, 2, 2,  # 60 - 67
-    2, 2, 2, 2, 2, 2, 2, 2,  # 68 - 6f
-    2, 2, 2, 2, 2, 2, 2, 2,  # 70 - 77
-    2, 2, 2, 2, 2, 2, 2, 4,  # 78 - 7f
-    5, 6, 6, 6, 6, 6, 6, 6,  # 80 - 87
-    6, 6, 6, 6, 6, 6, 6, 6,  # 88 - 8f
-    6, 6, 6, 6, 6, 6, 6, 6,  # 90 - 97
-    6, 6, 6, 6, 6, 6, 6, 6,  # 98 - 9f
-    6, 6, 6, 6, 6, 6, 6, 6,  # a0 - a7
-    6, 6, 6, 6, 6, 6, 6, 6,  # a8 - af
-    6, 6, 6, 6, 6, 6, 6, 6,  # b0 - b7
-    6, 6, 6, 6, 6, 6, 6, 6,  # b8 - bf
-    6, 6, 6, 6, 6, 6, 6, 6,  # c0 - c7
-    6, 6, 6, 6, 6, 6, 6, 6,  # c8 - cf
-    6, 6, 6, 6, 6, 6, 6, 6,  # d0 - d7
-    6, 6, 6, 6, 6, 6, 6, 6,  # d8 - df
-    6, 6, 6, 6, 6, 6, 6, 6,  # e0 - e7
-    6, 6, 6, 6, 6, 6, 6, 6,  # e8 - ef
-    6, 6, 6, 6, 6, 6, 6, 6,  # f0 - f7
-    6, 6, 6, 6, 6, 6, 6, 0   # f8 - ff
-)
-
-GB2312_ST = (
-    MachineState.ERROR,MachineState.START,MachineState.START,MachineState.START,MachineState.START,MachineState.START,     3,MachineState.ERROR,#00-07
-    MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ITS_ME,MachineState.ITS_ME,#08-0f
-    MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ERROR,MachineState.ERROR,MachineState.START,#10-17
-         4,MachineState.ERROR,MachineState.START,MachineState.START,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,#18-1f
-    MachineState.ERROR,MachineState.ERROR,     5,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ITS_ME,MachineState.ERROR,#20-27
-    MachineState.ERROR,MachineState.ERROR,MachineState.START,MachineState.START,MachineState.START,MachineState.START,MachineState.START,MachineState.START #28-2f
-)
-# fmt: on
-
-# To be accurate, the length of class 6 can be either 2 or 4.
-# But it is not necessary to discriminate between the two since
-# it is used for frequency analysis only, and we are validating
-# each code range there as well. So it is safe to set it to be
-# 2 here.
-GB2312_CHAR_LEN_TABLE = (0, 1, 1, 1, 1, 1, 2)
-
-GB2312_SM_MODEL: CodingStateMachineDict = {
-    "class_table": GB2312_CLS,
-    "class_factor": 7,
-    "state_table": GB2312_ST,
-    "char_len_table": GB2312_CHAR_LEN_TABLE,
-    "name": "GB2312",
-}
+# GB2312 - REMOVED
+# GB2312 is a subset of GB18030. The GB18030 state machine and prober now
+# correctly detect GB2312 content with the same confidence as the old GB2312
+# prober (both use GB2312DistributionAnalysis). The LEGACY_MAP renames
+# GB2312 → GB18030 for backward compatibility.
+# Having both probers was redundant after fixing GB18030's char_len_table.
 
 # GB18030
 # GB18030 is a superset of GB2312 and GBK

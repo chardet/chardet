@@ -239,7 +239,7 @@ STATE_MACHINE_MODELS = [
     mbcssm.EUCJP_SM_MODEL,
     mbcssm.EUCKR_SM_MODEL,
     mbcssm.JOHAB_SM_MODEL,
-    mbcssm.GB2312_SM_MODEL,
+    mbcssm.GB18030_SM_MODEL,  # GB2312 removed - GB18030 is superset
     mbcssm.SJIS_SM_MODEL,
     mbcssm.UTF8_SM_MODEL,
     escsm.HZ_SM_MODEL,
@@ -308,8 +308,8 @@ def test_coding_state_machine_valid_characters(state_machine_model):
         (mbcssm.EUCJP_SM_MODEL, [0xA1], "Incomplete 2-byte sequence"),
         # EUC-KR
         (mbcssm.EUCKR_SM_MODEL, [0xA1], "Incomplete 2-byte sequence"),
-        # GB2312
-        (mbcssm.GB2312_SM_MODEL, [0xA1], "Incomplete 2-byte sequence"),
+        # GB18030 (GB2312 removed - GB18030 is superset)
+        (mbcssm.GB18030_SM_MODEL, [0x81], "Incomplete 2-byte sequence"),
         # Shift_JIS
         (mbcssm.SJIS_SM_MODEL, [0x81], "Incomplete 2-byte sequence"),
         # Big5
@@ -329,7 +329,7 @@ def test_coding_state_machine_valid_characters(state_machine_model):
         "UTF-8-Invalid continuation byte",
         "EUC-JP-Incomplete 2-byte sequence",
         "EUC-KR-Incomplete 2-byte sequence",
-        "GB2312-Incomplete 2-byte sequence",
+        "GB18030-Incomplete 2-byte sequence",
         "Shift_JIS-Incomplete 2-byte sequence",
         "Big5-Incomplete 2-byte sequence",
         "CP949-Incomplete 2-byte sequence",
@@ -372,7 +372,7 @@ TESTABLE_STATE_MACHINE_MODELS = [
     (mbcssm.EUCJP_SM_MODEL, "euc_jp"),
     (mbcssm.EUCKR_SM_MODEL, "euc_kr"),
     (mbcssm.GB18030_SM_MODEL, "gb18030"),
-    (mbcssm.GB2312_SM_MODEL, "gb2312"),
+    # GB2312 removed - GB18030 is superset and detects GB2312 content
     (mbcssm.JOHAB_SM_MODEL, "johab"),
     (mbcssm.SJIS_SM_MODEL, "shift_jis"),
     (mbcssm.UTF8_SM_MODEL, "utf-8"),

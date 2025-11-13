@@ -32,7 +32,6 @@ from .cp949prober import CP949Prober
 from .enums import LanguageFilter
 from .eucjpprober import EUCJPProber
 from .euckrprober import EUCKRProber
-from .gb2312prober import GB2312Prober
 from .gb18030prober import GB18030Prober
 from .johabprober import JOHABProber
 from .sjisprober import SJISProber
@@ -46,8 +45,7 @@ class MBCSGroupProber(CharSetGroupProber):
             UTF8Prober(),
             SJISProber(),
             EUCJPProber(),
-            GB18030Prober(),
-            GB2312Prober(),
+            GB18030Prober(),  # Detects both GB18030 and GB2312 (subset)
             EUCKRProber(),
             CP949Prober(),
             Big5Prober(),
