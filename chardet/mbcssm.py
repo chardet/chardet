@@ -452,7 +452,11 @@ GB18030_ST = (
 )
 # fmt: on
 
-GB18030_CHAR_LEN_TABLE = (0, 1, 1, 1, 1, 2, 4)
+# Character length table for distribution analysis
+# Class 6 (lead byte) is marked as 2 bytes since that's the most common case
+# (2-byte GB2312/GBK sequences). 4-byte sequences will be detected by the state
+# machine but won't contribute to character distribution analysis.
+GB18030_CHAR_LEN_TABLE = (0, 1, 1, 1, 1, 2, 2)
 
 GB18030_SM_MODEL: CodingStateMachineDict = {
     "class_table": GB18030_CLS,
