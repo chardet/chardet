@@ -2,13 +2,12 @@
 Metadata about languages used by our model training code for our
 SingleByteCharSetProbers.  Could be used for other things in the future.
 
-This code is based on the language metadata from the uchardet project.
+This code was originally based on the language metadata from the uchardet
+project.
 """
 
 from dataclasses import dataclass
 from string import ascii_letters
-
-# TODO: Add more languages (like Tajik)
 
 
 @dataclass(frozen=True)
