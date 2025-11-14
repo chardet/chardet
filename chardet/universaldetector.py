@@ -427,13 +427,64 @@ class UniversalDetector:
                 assert charset_name is not None
                 lower_charset_name = charset_name.lower()
                 confidence = max_prober.get_confidence()
+
+                # Tie-breaking: If MacRoman wins but there are close ISO/Windows alternatives
+                # and no Mac-specific letter patterns, prefer the ISO/Windows encoding
+                # This handles cases where text only uses common characters (>0x9F) that are
+                # identical across MacRoman, ISO-8859-1, and Windows-1252
+                # Only apply when confidences are VERY close (>99.5%) to avoid changing
+                # correct MacRoman detections
+                if (
+                    lower_charset_name == "macroman"
+                    and not self._has_mac_letter_pattern
+                    and not self._has_win_bytes
+                ):
+                    # Look for very close ISO-8859-1 or Windows-1252 alternatives
+                    for prober in self._charset_probers:
+                        if not prober:
+                            continue
+                        if isinstance(prober, CharSetGroupProber):
+                            for sub_prober in getattr(prober, "probers", []):
+                                sub_charset = (sub_prober.charset_name or "").lower()
+                                if sub_charset in (
+                                    "iso-8859-1",
+                                    "windows-1252",
+                                    "iso-8859-15",
+                                ):
+                                    sub_confidence = sub_prober.get_confidence()
+                                    # Only prefer ISO/Windows if confidence is within 0.5% (99.5%+)
+                                    if sub_confidence >= confidence * 0.995:
+                                        charset_name = sub_prober.charset_name
+                                        confidence = sub_confidence
+                                        break
+
                 # Use Windows encoding name instead of ISO-8859 if we saw any
-                # extra Windows-specific bytes
+                # extra Windows-specific bytes AND MacRoman is not a close contender
                 if lower_charset_name.startswith("iso-8859"):
                     if self._has_win_bytes:
-                        charset_name = self.ISO_WIN_MAP.get(
-                            lower_charset_name, charset_name
-                        )
+                        # Check if MacRoman is a close contender before switching to Windows
+                        should_switch_to_windows = True
+                        if self._has_mac_letter_pattern:
+                            # If we have Mac letter patterns, check MacRoman confidence
+                            for prober in self._charset_probers:
+                                if not prober:
+                                    continue
+                                if isinstance(prober, CharSetGroupProber):
+                                    for sub_prober in getattr(prober, "probers", []):
+                                        sub_charset = (
+                                            sub_prober.charset_name or ""
+                                        ).lower()
+                                        if sub_charset == "macroman":
+                                            sub_confidence = sub_prober.get_confidence()
+                                            # If MacRoman has at least 99.5% of ISO confidence,
+                                            # don't switch to Windows - let MacRoman compete
+                                            if sub_confidence >= confidence * 0.995:
+                                                should_switch_to_windows = False
+                                                break
+                        if should_switch_to_windows:
+                            charset_name = self.ISO_WIN_MAP.get(
+                                lower_charset_name, charset_name
+                            )
                 # Distinguish between MacRoman and Windows-1252 ONLY
                 # These are the only pair where 0x80-0x9F is punctuation (Win) vs letters (Mac)
                 # Other Windows/Mac pairs (1250/MacLatin2, 1251/MacCyrillic, etc.) both have letters
