@@ -152,7 +152,9 @@ def has_windows_high_bytes(text: str, charset_name: str) -> bool:
         return False
 
 
-def apply_legacy_substitutions(text: str, charset_name: str) -> str:
+def apply_legacy_substitutions(
+    text: str, charset_name: str, language_name: str | None = None
+) -> str:
     """Apply character substitutions for legacy encodings.
 
     Replaces modern Unicode characters with legacy-compatible equivalents
@@ -165,6 +167,7 @@ def apply_legacy_substitutions(text: str, charset_name: str) -> str:
     - Zero-width characters should be removed
     - All text uses NFC (precomposed) normalization for maximum compatibility
     - CP866: Substitute Belarusian/Ukrainian 'і' with Russian 'и' (historical workaround)
+    - Romanian: Substitute modern comma-below (ș, ț) with legacy cedilla (ş, ţ)
 
     Note: Some characters (like those in CP864, CP1006) have no valid substitution
     and documents containing them must be skipped.
@@ -226,6 +229,18 @@ def apply_legacy_substitutions(text: str, charset_name: str) -> str:
         substitutions.update({
             "\u0456": "\u0438",  # і → и (Ukrainian/Belarusian I → Russian I)
             "\u0406": "\u0418",  # І → И (uppercase)
+        })
+
+    # Romanian: comma-below → cedilla for legacy encodings
+    # Modern Romanian (since 1993) uses comma-below (ș, ț), but legacy encodings
+    # except ISO-8859-16 only have cedilla versions (ş, ţ)
+    # Reference: https://hsivonen.fi/chardetng/#legacy
+    if language_name == "Romanian" and charset_name.upper() not in ["ISO-8859-16"]:
+        substitutions.update({
+            "\u021b": "\u0163",  # ț → ţ (t comma-below → t cedilla)
+            "\u0219": "\u015f",  # ș → ş (s comma-below → s cedilla)
+            "\u021a": "\u0162",  # Ț → Ţ (uppercase)
+            "\u0218": "\u015e",  # Ș → Ş (uppercase)
         })
 
     # Apply substitutions
@@ -366,7 +381,7 @@ def write_culturax_test_files(
                 text = item["text"]
 
                 # Apply legacy character substitutions
-                text = apply_legacy_substitutions(text, charset_name)
+                text = apply_legacy_substitutions(text, charset_name, language_name)
 
                 # Limit to max_chars_per_file
                 if len(text) > max_chars_per_file:

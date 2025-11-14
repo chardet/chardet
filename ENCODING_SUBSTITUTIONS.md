@@ -2,7 +2,7 @@
 
 ## Overview
 
-When generating test files for legacy single-byte character encodings, many modern Unicode characters cannot be represented. This document explains the research findings and substitutions applied by `generate_test_files.py`.
+When generating test files for legacy single-byte character encodings, many modern Unicode characters cannot be represented. This document explains the research findings and substitutions applied by `generate_test_files.py` and `create_language_model.py`.
 
 ## Research Summary
 
@@ -72,7 +72,38 @@ When generating test files for legacy single-byte character encodings, many mode
 - GitHub issue #502 on far2l project discussing Ukrainian 'і' in CP866
 - Unicode character database for U+0456
 
-### 4. Vietnamese (Windows-1258)
+### 4. Romanian: Comma-below → Cedilla
+
+**Problem:** Modern Romanian orthography (since 1993) uses comma-below diacritics ș (U+0219) and ț (U+021B), but most legacy encodings only support cedilla versions ş (U+015F) and ţ (U+0163).
+
+**Why:** These characters were unified in pre-Unicode encodings but disunified in Unicode at the request of Romanian authorities. Legacy 8-bit encodings (except ISO-8859-16) only have the cedilla versions.
+
+**Historical context:** Before the 1993 Romanian orthography reform, cedilla forms were used. When Unicode was developed, Romanian authorities requested separate code points for comma-below forms to reflect the modern orthography. However, legacy encodings couldn't be updated.
+
+**Implementation:** Both `create_language_model.py` and `generate_test_files.py` apply this substitution:
+
+- ț (U+021B) → ţ (U+0163) - t with comma-below → t with cedilla
+- ș (U+0219) → ş (U+015F) - s with comma-below → s with cedilla
+- Ț (U+021A) → Ţ (U+0162) - uppercase
+- Ș (U+0218) → Ş (U+015E) - uppercase
+
+**Important caveats:**
+
+- This substitution is **only applied for encodings that need it**
+- ISO-8859-16 actually has the modern comma-below versions, so no substitution is needed
+- Affected encodings: ISO-8859-2, Windows-1250, MacLatin2, CP852
+
+**Example:**
+- Modern text: "București și Timiș" (cannot encode in Windows-1250)
+- With substitution: "Bucureşti şi Timiş" (encodes successfully)
+
+**References:**
+
+- chardetng: https://hsivonen.fi/chardetng/#legacy
+- Unicode character database for U+0218, U+0219, U+021A, U+021B
+- ISO-8859-2 and Windows-1250 character set documentation
+
+### 5. Vietnamese (Windows-1258)
 
 **Problem:** Vietnamese uses three essential diacritics (circumflex â/ê/ô, breve ă, horn ơ/ư) **combined** with tone marks (acute, grave, hook above, tilde, dot below). This creates characters like ấ, ồ, ừ, ẵ.
 
@@ -103,7 +134,7 @@ When generating test files for legacy single-byte character encodings, many mode
 - Unicode Vietnamese character tables
 - Testing with Python's codec library
 
-### 5. Urdu (CP1006)
+### 6. Urdu (CP1006)
 
 **Problem:** Python's CP1006 implementation uses **Arabic Presentation Forms** (U+FE70-U+FEFF, U+FB50-U+FDFF) instead of base Arabic letters (U+0600-U+06FF). This means:
 
@@ -157,7 +188,7 @@ For now, **documents will be skipped** due to the encoding's limitations.
 
 **Note:** Windows-1256 uses base Arabic letters (logical encoding) and has better compatibility with modern Unicode text, though it still lacks some Urdu-specific characters. For proper Urdu support, Unicode is required.
 
-### 6. Hebrew Visual Order (CP424, CP856, CP862)
+### 7. Hebrew Visual Order (CP424, CP856, CP862)
 
 **Problem:** These DOS-era Hebrew encodings were designed for systems without bidirectional (BiDi) rendering algorithms. Text was stored in "visual order" - the way it appears on screen when rendered left-to-right. Additionally, they only support the 27 basic Hebrew letters, not vowel points (nikud) or other diacritical marks.
 
@@ -204,7 +235,7 @@ This tells chardet to perform language model lookups in reverse order, simulatin
 - IBM Code Page 424 specification
 - DOS Hebrew rendering behavior documentation
 
-### 7. Arabic (CP864)
+### 8. Arabic (CP864)
 
 **Problem:** CP864 is a visual encoding with extensive limitations:
 
@@ -247,7 +278,14 @@ The `apply_legacy_substitutions()` function in `generate_test_files.py` performs
    - 'і' → 'и' (Ukrainian/Belarusian I → Russian I)
    - **Important:** This is linguistically incorrect but was the historical DOS-era workaround
 
-4. **No substitution** for fundamentally incompatible encodings:
+4. **Romanian-specific substitutions** (ISO-8859-2, Windows-1250, CP852, MacLatin2):
+
+   - ț → ţ (t with comma-below → t with cedilla)
+   - ș → ş (s with comma-below → s with cedilla)
+   - **Important:** NOT applied for ISO-8859-16, which supports modern forms
+   - **Implementation:** Applied in both `create_language_model.py` (for training) and `generate_test_files.py` (for test generation)
+
+5. **No substitution** for fundamentally incompatible encodings:
    - CP864, CP1006 (Arabic/Urdu) - require manual shaping and have extensive missing characters
 
 ### Unicode Normalization

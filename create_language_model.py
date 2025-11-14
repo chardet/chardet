@@ -214,6 +214,45 @@ def normalize_vietnamese_for_windows_1258(text: str) -> str:
     return "".join(result)
 
 
+def normalize_romanian_for_legacy_encodings(text: str) -> str:
+    """Normalize Romanian text for legacy 8-bit encodings.
+
+    Modern Romanian orthography (since 1993) uses comma-below diacritics:
+    - ș (U+0219 LATIN SMALL LETTER S WITH COMMA BELOW)
+    - ț (U+021B LATIN SMALL LETTER T WITH COMMA BELOW)
+
+    However, legacy 8-bit encodings (except ISO-8859-16) only have cedilla versions:
+    - ş (U+015F LATIN SMALL LETTER S WITH CEDILLA)
+    - ţ (U+0163 LATIN SMALL LETTER T WITH CEDILLA)
+
+    These characters were unified in pre-Unicode encodings but disunified in Unicode
+    at the request of Romanian authorities. For training and testing with legacy
+    encodings, we must substitute to the cedilla versions.
+
+    This substitution is needed for:
+    - ISO-8859-2
+    - Windows-1250
+    - MacLatin2
+    - CP852
+
+    ISO-8859-16 actually has the modern comma-below versions, so no substitution
+    is needed there.
+
+    Reference: https://hsivonen.fi/chardetng/#legacy (chardetng does this same substitution)
+    """
+    substitutions = {
+        "ț": "ţ",  # U+021B → U+0163 (t with comma-below → t with cedilla)
+        "ș": "ş",  # U+0219 → U+015F (s with comma-below → s with cedilla)
+        "Ț": "Ţ",  # U+021A → U+0162 (uppercase)
+        "Ș": "Ş",  # U+0218 → U+015E (uppercase)
+    }
+
+    for modern, legacy in substitutions.items():
+        text = text.replace(modern, legacy)
+
+    return text
+
+
 def normalize_name(charset_name: str):
     """Convert name to proper Python constant format"""
     # Title case to start
@@ -365,6 +404,9 @@ def calc_ngram_freqs(
     frequencies greater than equal to the lowest seen alphabet character
     frequency.
 
+    For Romanian, modern comma-below diacritics (ș, ț) are substituted with
+    legacy cedilla versions (ş, ţ) to match what legacy encodings support.
+
     For Vietnamese, special normalization is applied to decompose precomposed
     characters with tone marks (e.g., ế → ê + combining acute) to match how
     Windows-1258 encoding actually represents Vietnamese text.
@@ -381,6 +423,10 @@ def calc_ngram_freqs(
         # counted as the same, and because this is meant for single-byte
         # encodings, which don't support combining forms
         line = unicodedata.normalize("NFC", line)
+
+        # Romanian requires substitution for legacy encodings (comma-below → cedilla)
+        if language == "Romanian":
+            line = normalize_romanian_for_legacy_encodings(line)
 
         # Vietnamese requires special handling because Windows-1258 uses
         # combining tone marks rather than precomposed characters
