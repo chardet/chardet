@@ -119,14 +119,23 @@ CHARSETS = {
     "ISO-8859-9": Charset(
         name="ISO-8859-9", is_multi_byte=False, encoding_era=EncodingEra.LEGACY
     ),
+    "ISO-8859-10": Charset(
+        name="ISO-8859-10", is_multi_byte=False, encoding_era=EncodingEra.LEGACY
+    ),
     "ISO-8859-11": Charset(
         name="ISO-8859-11", is_multi_byte=False, encoding_era=EncodingEra.LEGACY
     ),
     "ISO-8859-13": Charset(
         name="ISO-8859-13", is_multi_byte=False, encoding_era=EncodingEra.LEGACY
     ),
+    "ISO-8859-14": Charset(
+        name="ISO-8859-14", is_multi_byte=False, encoding_era=EncodingEra.LEGACY
+    ),
     "ISO-8859-15": Charset(
         name="ISO-8859-15", is_multi_byte=False, encoding_era=EncodingEra.LEGACY
+    ),
+    "ISO-8859-16": Charset(
+        name="ISO-8859-16", is_multi_byte=False, encoding_era=EncodingEra.LEGACY
     ),
     "JOHAB": Charset(name="Johab", is_multi_byte=True, encoding_era=EncodingEra.LEGACY),
     "KOI8-R": Charset(
