@@ -87,6 +87,66 @@ class UniversalDetector:
         "iso-8859-9": "Windows-1254",
         "iso-8859-13": "Windows-1257",
     }
+    # Encoding preference tiers for tie-breaking when confidence scores are very close
+    # Lower tier number = more preferred encoding
+    # Used when encodings are within VERY_CLOSE_THRESHOLD (0.5%) of each other
+    ENCODING_PREFERENCE_TIERS = {
+        # Tier 1: Modern universal encodings
+        "utf-8": 1,
+        "utf-16": 1,
+        "utf-32": 1,
+        # Tier 2: Modern Windows encodings (widely used, superset of ISO)
+        "windows-1252": 2,
+        "windows-1250": 2,
+        "windows-1251": 2,
+        "windows-1253": 2,
+        "windows-1254": 2,
+        "windows-1255": 2,
+        "windows-1256": 2,
+        "windows-1257": 2,
+        "windows-1258": 2,
+        # Tier 3: ISO-8859 encodings (legacy but common)
+        "iso-8859-1": 3,
+        "iso-8859-2": 3,
+        "iso-8859-3": 3,
+        "iso-8859-4": 3,
+        "iso-8859-5": 3,
+        "iso-8859-6": 3,
+        "iso-8859-7": 3,
+        "iso-8859-8": 3,
+        "iso-8859-9": 3,
+        "iso-8859-10": 3,
+        "iso-8859-11": 3,
+        "iso-8859-13": 3,
+        "iso-8859-14": 3,
+        "iso-8859-15": 3,
+        "iso-8859-16": 3,
+        # Tier 4: Mac encodings (less common)
+        "macroman": 4,
+        "maclatin2": 4,
+        "maccyrillic": 4,
+        "macgreek": 4,
+        "macturkish": 4,
+        "maciceland": 4,
+        # Tier 5: DOS encodings (very legacy)
+        "cp437": 5,
+        "cp850": 5,
+        "cp852": 5,
+        "cp858": 5,
+        "cp860": 5,
+        "cp861": 5,
+        "cp862": 5,
+        "cp863": 5,
+        "cp865": 5,
+        # Tier 6: EBCDIC (mainframe only)
+        "cp037": 6,
+        "cp500": 6,
+        "cp875": 6,
+        "cp1026": 6,
+    }
+    # Threshold for "very close" confidence scores where tier preference applies
+    VERY_CLOSE_THRESHOLD = 0.005  # 0.5%
+
     # Based on https://encoding.spec.whatwg.org/#names-and-labels
     # Maps legacy encoding names to their modern/superset equivalents.
     # Uses Python's canonical codec names (case-insensitive).
@@ -427,6 +487,34 @@ class UniversalDetector:
                 assert charset_name is not None
                 lower_charset_name = charset_name.lower()
                 confidence = max_prober.get_confidence()
+
+                # Encoding preference tier tie-breaking:
+                # If there's a better-tiered encoding within VERY_CLOSE_THRESHOLD (0.5%),
+                # prefer the more modern/common encoding
+                current_tier = self.ENCODING_PREFERENCE_TIERS.get(
+                    lower_charset_name, 999
+                )
+                for prober in self._charset_probers:
+                    if not prober or prober == max_prober:
+                        continue
+                    alt_charset = (prober.charset_name or "").lower()
+                    alt_confidence = prober.get_confidence()
+                    alt_tier = self.ENCODING_PREFERENCE_TIERS.get(alt_charset, 999)
+
+                    # If alternative has better tier and is very close in confidence
+                    if alt_tier < current_tier and alt_confidence >= confidence * (
+                        1 - self.VERY_CLOSE_THRESHOLD
+                    ):
+                        # Switch to the preferred encoding
+                        charset_name = prober.charset_name
+                        lower_charset_name = alt_charset
+                        confidence = alt_confidence
+                        current_tier = alt_tier
+                        max_prober = prober
+                        self.logger.debug(
+                            f"Tier preference: {alt_charset} (tier {alt_tier}) "
+                            f"preferred over {lower_charset_name} (tier {current_tier})"
+                        )
 
                 # Tie-breaking: If MacRoman wins but there are close ISO/Windows alternatives
                 # and no Mac-specific letter patterns, prefer the ISO/Windows encoding
