@@ -214,11 +214,8 @@ def write_culturax_test_files(
         return
 
     if num_training_docs is None:
-        print(
-            f"Skipping test file generation for {language}: "
-            f"num_training_docs not set in language metadata"
-        )
-        return
+        num_training_docs = 0
+        print(f"{language} does not have num_training_docs set - assuming 0")
 
     print(
         f"\nGenerating test files from CulturaX train split for {language}\n"
