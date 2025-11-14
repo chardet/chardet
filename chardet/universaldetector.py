@@ -225,25 +225,56 @@ class UniversalDetector:
                 # But UTF-16/32 have null bytes, so check for patterns first
 
                 # Check for no-BOM UTF-16/32 patterns (alternating nulls)
-                # UTF-32LE: XX 00 00 00 pattern
-                # UTF-32BE: 00 00 00 XX pattern
-                # UTF-16LE: XX 00 pattern
-                # UTF-16BE: 00 XX pattern
+                # UTF-32LE: XX 00 00 00 pattern (every 4th byte is null)
+                # UTF-32BE: 00 00 00 XX pattern (first 3 of 4 bytes are null)
+                # UTF-16LE: XX 00 pattern (every other byte is null in odd positions)
+                # UTF-16BE: 00 XX pattern (every other byte is null in even positions)
                 looks_like_utf16_32 = False
-                if len(byte_str) >= 100:
-                    sample = byte_str[:100]
-                    # Count nulls in even and odd positions
-                    even_nulls = sum(1 for i in range(0, 100, 2) if sample[i] == 0)
-                    odd_nulls = sum(1 for i in range(1, 100, 2) if sample[i] == 0)
-                    # If most even or odd positions are null, likely UTF-16/32
-                    if even_nulls > 20 or odd_nulls > 20:
+
+                # Use larger sample for better pattern detection
+                sample_size = min(len(byte_str), 200)
+                if sample_size >= 50:
+                    sample = byte_str[:sample_size]
+
+                    # Count nulls in even and odd positions (for UTF-16 detection)
+                    even_nulls = sum(
+                        1 for i in range(0, sample_size, 2) if sample[i] == 0
+                    )
+                    odd_nulls = sum(
+                        1 for i in range(1, sample_size, 2) if sample[i] == 0
+                    )
+
+                    # Check for UTF-32 patterns (more nulls in groups of 4)
+                    # For UTF-32LE: positions 1,2,3 of every 4 bytes might be null
+                    # For UTF-32BE: positions 0,1,2 of every 4 bytes might be null
+                    if sample_size >= 100:
+                        mod1_nulls = sum(
+                            1 for i in range(1, sample_size, 4) if sample[i] == 0
+                        )
+                        mod2_nulls = sum(
+                            1 for i in range(2, sample_size, 4) if sample[i] == 0
+                        )
+                        mod3_nulls = sum(
+                            1 for i in range(3, sample_size, 4) if sample[i] == 0
+                        )
+
+                        # Strong UTF-32 signal: consistent null pattern in 2+ of the 3 positions
+                        utf32_nulls = [mod1_nulls, mod2_nulls, mod3_nulls]
+                        if sum(n > sample_size // 8 for n in utf32_nulls) >= 2:
+                            looks_like_utf16_32 = True
+
+                    # UTF-16 detection: significant nulls in even OR odd positions
+                    # Lower threshold: 12% of positions (24 out of 200)
+                    utf16_threshold = sample_size // 16
+                    if even_nulls > utf16_threshold or odd_nulls > utf16_threshold:
                         looks_like_utf16_32 = True
 
                 if not looks_like_utf16_32:
                     # Sample first 8KB to detect binary files
-                    sample_size = min(len(byte_str), 8192)
-                    null_count = byte_str[:sample_size].count(0)
-                    if null_count > sample_size * 0.1:  # >10% null bytes
+                    check_size = min(len(byte_str), 8192)
+                    null_count = byte_str[:check_size].count(0)
+
+                    if null_count > check_size * 0.1:  # >10% null bytes
                         # Likely a binary file, not text
                         self.result = {
                             "encoding": None,

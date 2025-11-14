@@ -79,6 +79,10 @@ EXPECTED_FAILURES = {
     # File with only 1 high byte in 748KB (99.9998% ASCII)
     # Sampling may miss the single non-ASCII character
     "tests/iso-8859-1-english/ioreg_output.txt",
+    # UTF-16 without BOM: Files with >95% non-ASCII CJK characters
+    # These have too few null bytes (<5%) for reliable UTF-16 pattern detection
+    "tests/utf-16le-japanese/culturax_mC4_5.txt",
+    "tests/utf-16be-japanese/culturax_mC4_5.txt",
 }
 
 
