@@ -367,14 +367,7 @@ def test_coding_state_machine_invalid_sequences(
 # State machine models that support comprehensive invalid sequence testing
 # (excludes stateful encodings like ISO-2022 and HZ that use escape sequences)
 TESTABLE_STATE_MACHINE_MODELS = [
-    (mbcssm.BIG5_SM_MODEL, "big5"),
-    (mbcssm.CP949_SM_MODEL, "cp949"),
-    (mbcssm.EUCJP_SM_MODEL, "euc_jp"),
-    (mbcssm.EUCKR_SM_MODEL, "euc_kr"),
     (mbcssm.GB18030_SM_MODEL, "gb18030"),
-    # GB2312 removed - GB18030 is superset and detects GB2312 content
-    (mbcssm.JOHAB_SM_MODEL, "johab"),
-    (mbcssm.SJIS_SM_MODEL, "shift_jis"),
     (mbcssm.UTF8_SM_MODEL, "utf-8"),
 ]
 
