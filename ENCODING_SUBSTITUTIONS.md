@@ -80,12 +80,11 @@ When generating test files for legacy single-byte character encodings, many mode
 
 **Historical context:** Before the 1993 Romanian orthography reform, cedilla forms were used. When Unicode was developed, Romanian authorities requested separate code points for comma-below forms to reflect the modern orthography. However, legacy encodings couldn't be updated.
 
-**Implementation:** Both `create_language_model.py` and `generate_test_files.py` apply this substitution:
+**Implementation:** Handled at the byte-to-order mapping level in `get_charset_mappings()`:
 
-- ț (U+021B) → ţ (U+0163) - t with comma-below → t with cedilla
-- ș (U+0219) → ş (U+015F) - s with comma-below → s with cedilla
-- Ț (U+021A) → Ţ (U+0162) - uppercase
-- Ș (U+0218) → Ş (U+015E) - uppercase
+- When generating character encoding models, the byte representing the cedilla character (ş/ţ) is mapped to the frequency rank of the modern comma-below character (ș/ț) in the language model
+- This keeps the language model encoding-independent (trained on modern text with ș/ț) while allowing the charset-specific mappings to handle the legacy substitution
+- For test file generation, `get_legacy_char_substitutions()` provides the substitution mapping
 
 **Important caveats:**
 
@@ -96,6 +95,7 @@ When generating test files for legacy single-byte character encodings, many mode
 **Example:**
 - Modern text: "București și Timiș" (cannot encode in Windows-1250)
 - With substitution: "Bucureşti şi Timiş" (encodes successfully)
+- Language model: Trained on modern text with ș/ț, but Windows-1250 byte 0xBA (ş) maps to ș's frequency rank
 
 **References:**
 
@@ -259,7 +259,16 @@ This tells chardet to perform language model lookups in reverse order, simulatin
 
 ### Character Substitutions Applied
 
-The `apply_legacy_substitutions()` function in `generate_test_files.py` performs the following:
+The `get_legacy_char_substitutions()` function in `create_language_model.py` provides character substitutions for legacy encodings, which are applied in two contexts:
+
+1. **During test file generation** (`generate_test_files.py`): Text is transformed before encoding
+2. **During model training** (`create_language_model.py`): Substitutions are applied at the byte-to-order mapping level in `get_charset_mappings()`
+
+**How byte-to-order mapping works for substitutions:**
+
+When generating charset models, if an encoding has a substitute character (e.g., ţ cedilla) for a character that can't be encoded (e.g., ț comma-below), the byte representing the substitute is mapped to the original character's frequency rank in the language model. This allows the language model to remain encoding-independent (trained on modern Unicode text) while charset-specific mappings handle legacy compatibility.
+
+**Substitutions by category:**
 
 1. **Universal substitutions** (all encodings):
 
@@ -283,9 +292,14 @@ The `apply_legacy_substitutions()` function in `generate_test_files.py` performs
    - ț → ţ (t with comma-below → t with cedilla)
    - ș → ş (s with comma-below → s with cedilla)
    - **Important:** NOT applied for ISO-8859-16, which supports modern forms
-   - **Implementation:** Applied in both `create_language_model.py` (for training) and `generate_test_files.py` (for test generation)
+   - **Implementation:** Applied at byte-to-order mapping level during training, and as text substitution during test generation
 
-5. **No substitution** for fundamentally incompatible encodings:
+5. **Hebrew visual encodings** (CP424, CP856, CP862):
+   - Vowel points stripped (during test generation only)
+   - Hebrew sequences reversed (during test generation only)
+   - **Note:** These are NOT applied during training; models use logical Hebrew
+
+6. **No substitution** for fundamentally incompatible encodings:
    - CP864, CP1006 (Arabic/Urdu) - require manual shaping and have extensive missing characters
 
 ### Unicode Normalization

@@ -58,7 +58,10 @@ except Exception:
 from chardet import __version__
 from chardet.metadata.languages import LANGUAGES
 from chardet.universaldetector import UniversalDetector
-from create_language_model import normalize_vietnamese_for_windows_1258
+from create_language_model import (
+    get_legacy_char_substitutions,
+    normalize_vietnamese_for_windows_1258,
+)
 
 # Windows encodings that need bytes in 0x80-0x9F to be detected
 # (otherwise ISO equivalent will be detected instead)
@@ -158,94 +161,26 @@ def apply_legacy_substitutions(
     """Apply character substitutions for legacy encodings.
 
     Replaces modern Unicode characters with legacy-compatible equivalents
-    that would have been used historically in these encodings.
+    and applies Hebrew-specific transformations for visual encodings.
 
-    Based on research (see ENCODING_SUBSTITUTIONS.md):
-    - Typographic punctuation (en-dash, em-dash, ellipsis, smart quotes)
-      should be replaced with ASCII equivalents (-, ..., ', ")
-    - Arabic punctuation can be replaced with ASCII equivalents in limited encodings
-    - Zero-width characters should be removed
-    - All text uses NFC (precomposed) normalization for maximum compatibility
-    - CP866: Substitute Belarusian/Ukrainian 'і' with Russian 'и' (historical workaround)
-    - Romanian: Substitute modern comma-below (ș, ț) with legacy cedilla (ş, ţ)
+    See get_legacy_char_substitutions() in create_language_model.py for details
+    on which substitutions are applied.
 
-    Note: Some characters (like those in CP864, CP1006) have no valid substitution
-    and documents containing them must be skipped.
+    Additionally handles Hebrew visual encoding transformations:
+    - Strips vowel points (nikud) that DOS Hebrew encodings don't support
+    - Reverses Hebrew sequences for visual order display
     """
-    # Universal substitutions for all single-byte encodings
-    # Replace typographic punctuation with ASCII equivalents
-    substitutions = {
-        # Dashes
-        "\u2010": "-",  # HYPHEN → HYPHEN-MINUS
-        "\u2011": "-",  # NON-BREAKING HYPHEN → HYPHEN-MINUS
-        "\u2012": "-",  # FIGURE DASH → HYPHEN-MINUS
-        "\u2013": "-",  # EN DASH → HYPHEN-MINUS
-        "\u2014": "-",  # EM DASH → HYPHEN-MINUS
-        "\u2015": "-",  # HORIZONTAL BAR → HYPHEN-MINUS
-        # Quotes
-        "\u2018": "'",  # LEFT SINGLE QUOTATION MARK → APOSTROPHE
-        "\u2019": "'",  # RIGHT SINGLE QUOTATION MARK → APOSTROPHE
-        "\u201a": "'",  # SINGLE LOW-9 QUOTATION MARK → APOSTROPHE
-        "\u201b": "'",  # SINGLE HIGH-REVERSED-9 QUOTATION MARK → APOSTROPHE
-        "\u201c": '"',  # LEFT DOUBLE QUOTATION MARK → QUOTATION MARK
-        "\u201d": '"',  # RIGHT DOUBLE QUOTATION MARK → QUOTATION MARK
-        "\u201e": '"',  # DOUBLE LOW-9 QUOTATION MARK → QUOTATION MARK
-        "\u201f": '"',  # DOUBLE HIGH-REVERSED-9 QUOTATION MARK → QUOTATION MARK
-        # Ellipsis
-        "\u2026": "...",  # HORIZONTAL ELLIPSIS → THREE DOTS
-        # Spaces
-        "\u00a0": " ",  # NO-BREAK SPACE → SPACE (many encodings support it, but normalize anyway)
-        "\u2002": " ",  # EN SPACE → SPACE
-        "\u2003": " ",  # EM SPACE → SPACE
-        "\u2009": " ",  # THIN SPACE → SPACE
-        "\u200a": " ",  # HAIR SPACE → SPACE
-        # Other common punctuation
-        "\u2022": "*",  # BULLET → ASTERISK
-        "\u2032": "'",  # PRIME → APOSTROPHE
-        "\u2033": '"',  # DOUBLE PRIME → QUOTATION MARK
-        "\u2212": "-",  # MINUS SIGN → HYPHEN-MINUS
-        # Zero-width and formatting characters (remove)
-        "\u200b": "",  # ZERO WIDTH SPACE
-        "\u200c": "",  # ZERO WIDTH NON-JOINER
-        "\u200d": "",  # ZERO WIDTH JOINER
-        "\u200e": "",  # LEFT-TO-RIGHT MARK
-        "\u200f": "",  # RIGHT-TO-LEFT MARK
-        "\ufeff": "",  # ZERO WIDTH NO-BREAK SPACE (BOM)
-    }
-
-    # Arabic-specific substitutions for limited code pages
-    # CP720, CP864 have very limited Arabic support
-    if charset_name.upper() in ["CP720", "CP864", "ISO-8859-6"]:
-        substitutions.update({
-            "\u060c": ",",  # ARABIC COMMA → COMMA
-            "\u061b": ";",  # ARABIC SEMICOLON → SEMICOLON
-            "\u066a": "%",  # ARABIC PERCENT SIGN → PERCENT SIGN
-        })
-
-    # CP866 (DOS Cyrillic) - Belarusian/Ukrainian workaround
-    # Historical workaround: substitute 'і' with Russian 'и'
-    # This is linguistically incorrect but was commonly used in DOS era
-    if charset_name.upper() == "CP866":
-        substitutions.update({
-            "\u0456": "\u0438",  # і → и (Ukrainian/Belarusian I → Russian I)
-            "\u0406": "\u0418",  # І → И (uppercase)
-        })
-
-    # Romanian: comma-below → cedilla for legacy encodings
-    # Modern Romanian (since 1993) uses comma-below (ș, ț), but legacy encodings
-    # except ISO-8859-16 only have cedilla versions (ş, ţ)
-    # Reference: https://hsivonen.fi/chardetng/#legacy
-    if language_name == "Romanian" and charset_name.upper() not in ["ISO-8859-16"]:
-        substitutions.update({
-            "\u021b": "\u0163",  # ț → ţ (t comma-below → t cedilla)
-            "\u0219": "\u015f",  # ș → ş (s comma-below → s cedilla)
-            "\u021a": "\u0162",  # Ț → Ţ (uppercase)
-            "\u0218": "\u015e",  # Ș → Ş (uppercase)
-        })
-
-    # Apply substitutions
+    # Get and apply substitutions (from create_language_model.py)
+    substitutions = get_legacy_char_substitutions(charset_name, language_name)
     for old_char, new_char in substitutions.items():
         text = text.replace(old_char, new_char)
+
+    # Hebrew visual encodings: strip vowel points and reverse sequences
+    # These transformations are specific to test file generation and NOT
+    # applied during model training (the models work with logical Hebrew)
+    if charset_name.upper() in ("CP424", "CP856", "CP862"):
+        text = strip_hebrew_vowel_points(text)
+        text = reverse_hebrew_for_visual_encoding(text)
 
     return text
 
@@ -380,7 +315,7 @@ def write_culturax_test_files(
             try:
                 text = item["text"]
 
-                # Apply legacy character substitutions
+                # Apply legacy character substitutions (includes Hebrew handling)
                 text = apply_legacy_substitutions(text, charset_name, language_name)
 
                 # Limit to max_chars_per_file
@@ -390,15 +325,6 @@ def write_culturax_test_files(
                     last_newline = text.rfind("\n")
                     if last_newline > max_chars_per_file * 0.8:
                         text = text[: last_newline + 1]
-
-                # Reverse Hebrew sequences for visual order encodings
-                # These DOS encodings expect Hebrew in visual order (reversed)
-                # while Latin, numbers, and punctuation stay in normal order
-                if charset_name.upper() in ("CP424", "CP856", "CP862"):
-                    # First remove vowel points that these encodings don't support
-                    text = strip_hebrew_vowel_points(text)
-                    # Then reverse Hebrew sequences for visual order
-                    text = reverse_hebrew_for_visual_encoding(text)
 
                 # For Windows/Mac encodings with ISO equivalents, verify that
                 # the text contains bytes in the 0x80-0x9F range

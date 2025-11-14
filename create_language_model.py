@@ -214,43 +214,94 @@ def normalize_vietnamese_for_windows_1258(text: str) -> str:
     return "".join(result)
 
 
-def normalize_romanian_for_legacy_encodings(text: str) -> str:
-    """Normalize Romanian text for legacy 8-bit encodings.
+def get_legacy_char_substitutions(
+    charset_name: str, language_name: str | None = None
+) -> dict[str, str]:
+    """Get character substitutions for legacy encodings.
 
-    Modern Romanian orthography (since 1993) uses comma-below diacritics:
-    - ș (U+0219 LATIN SMALL LETTER S WITH COMMA BELOW)
-    - ț (U+021B LATIN SMALL LETTER T WITH COMMA BELOW)
+    Returns a mapping of modern Unicode characters to legacy-compatible equivalents
+    that would have been used historically in these encodings.
 
-    However, legacy 8-bit encodings (except ISO-8859-16) only have cedilla versions:
-    - ş (U+015F LATIN SMALL LETTER S WITH CEDILLA)
-    - ţ (U+0163 LATIN SMALL LETTER T WITH CEDILLA)
+    Based on research (see ENCODING_SUBSTITUTIONS.md):
+    - Typographic punctuation (en-dash, em-dash, ellipsis, smart quotes)
+      should be replaced with ASCII equivalents (-, ..., ', ")
+    - Arabic punctuation can be replaced with ASCII equivalents in limited encodings
+    - Zero-width characters should be removed
+    - CP866: Substitute Belarusian/Ukrainian 'і' with Russian 'и' (historical workaround)
+    - Romanian: Substitute modern comma-below (ș, ț) with legacy cedilla (ş, ţ)
+      for encodings that don't support modern forms
 
-    These characters were unified in pre-Unicode encodings but disunified in Unicode
-    at the request of Romanian authorities. For training and testing with legacy
-    encodings, we must substitute to the cedilla versions.
-
-    This substitution is needed for:
-    - ISO-8859-2
-    - Windows-1250
-    - MacLatin2
-    - CP852
-
-    ISO-8859-16 actually has the modern comma-below versions, so no substitution
-    is needed there.
-
-    Reference: https://hsivonen.fi/chardetng/#legacy (chardetng does this same substitution)
+    Note: Hebrew vowel point stripping and visual order reversal are NOT included here
+    as they are handled separately.
     """
+    # Universal substitutions for all single-byte encodings
+    # Replace typographic punctuation with ASCII equivalents
     substitutions = {
-        "ț": "ţ",  # U+021B → U+0163 (t with comma-below → t with cedilla)
-        "ș": "ş",  # U+0219 → U+015F (s with comma-below → s with cedilla)
-        "Ț": "Ţ",  # U+021A → U+0162 (uppercase)
-        "Ș": "Ş",  # U+0218 → U+015E (uppercase)
+        # Dashes
+        "\u2010": "-",  # HYPHEN → HYPHEN-MINUS
+        "\u2011": "-",  # NON-BREAKING HYPHEN → HYPHEN-MINUS
+        "\u2012": "-",  # FIGURE DASH → HYPHEN-MINUS
+        "\u2013": "-",  # EN DASH → HYPHEN-MINUS
+        "\u2014": "-",  # EM DASH → HYPHEN-MINUS
+        "\u2015": "-",  # HORIZONTAL BAR → HYPHEN-MINUS
+        # Quotes
+        "\u2018": "'",  # LEFT SINGLE QUOTATION MARK → APOSTROPHE
+        "\u2019": "'",  # RIGHT SINGLE QUOTATION MARK → APOSTROPHE
+        "\u201a": "'",  # SINGLE LOW-9 QUOTATION MARK → APOSTROPHE
+        "\u201b": "'",  # SINGLE HIGH-REVERSED-9 QUOTATION MARK → APOSTROPHE
+        "\u201c": '"',  # LEFT DOUBLE QUOTATION MARK → QUOTATION MARK
+        "\u201d": '"',  # RIGHT DOUBLE QUOTATION MARK → QUOTATION MARK
+        "\u201e": '"',  # DOUBLE LOW-9 QUOTATION MARK → QUOTATION MARK
+        "\u201f": '"',  # DOUBLE HIGH-REVERSED-9 QUOTATION MARK → QUOTATION MARK
+        # Ellipsis
+        "\u2026": "...",  # HORIZONTAL ELLIPSIS → THREE DOTS
+        # Spaces
+        "\u00a0": " ",  # NO-BREAK SPACE → SPACE
+        "\u2002": " ",  # EN SPACE → SPACE
+        "\u2003": " ",  # EM SPACE → SPACE
+        "\u2009": " ",  # THIN SPACE → SPACE
+        "\u200a": " ",  # HAIR SPACE → SPACE
+        # Other common punctuation
+        "\u2022": "*",  # BULLET → ASTERISK
+        "\u2032": "'",  # PRIME → APOSTROPHE
+        "\u2033": '"',  # DOUBLE PRIME → QUOTATION MARK
+        "\u2212": "-",  # MINUS SIGN → HYPHEN-MINUS
+        # Zero-width and formatting characters (remove)
+        "\u200b": "",  # ZERO WIDTH SPACE
+        "\u200c": "",  # ZERO WIDTH NON-JOINER
+        "\u200d": "",  # ZERO WIDTH JOINER
+        "\u200e": "",  # LEFT-TO-RIGHT MARK
+        "\u200f": "",  # RIGHT-TO-LEFT MARK
+        "\ufeff": "",  # ZERO WIDTH NO-BREAK SPACE (BOM)
     }
 
-    for modern, legacy in substitutions.items():
-        text = text.replace(modern, legacy)
+    # Arabic-specific substitutions for limited code pages
+    if charset_name.upper() in ["CP720", "CP864", "ISO-8859-6"]:
+        substitutions.update({
+            "\u060c": ",",  # ARABIC COMMA → COMMA
+            "\u061b": ";",  # ARABIC SEMICOLON → SEMICOLON
+            "\u066a": "%",  # ARABIC PERCENT SIGN → PERCENT SIGN
+        })
 
-    return text
+    # CP866 (DOS Cyrillic) - Belarusian/Ukrainian workaround
+    if charset_name.upper() == "CP866":
+        substitutions.update({
+            "\u0456": "\u0438",  # і → и (Ukrainian/Belarusian I → Russian I)
+            "\u0406": "\u0418",  # І → И (uppercase)
+        })
+
+    # Romanian: comma-below → cedilla for legacy encodings
+    # Modern Romanian uses comma-below (ș, ț), but legacy encodings
+    # except ISO-8859-16 only have cedilla versions (ş, ţ)
+    if language_name == "Romanian" and charset_name.upper() not in ["ISO-8859-16"]:
+        substitutions.update({
+            "\u021b": "\u0163",  # ț → ţ (t comma-below → t cedilla)
+            "\u0219": "\u015f",  # ș → ş (s comma-below → s cedilla)
+            "\u021a": "\u0162",  # Ț → Ţ (uppercase)
+            "\u0218": "\u015e",  # Ș → Ş (uppercase)
+        })
+
+    return substitutions
 
 
 def normalize_name(charset_name: str):
@@ -299,6 +350,7 @@ def unicode_to_category(
 def get_charset_mappings(
     *,
     charset_name: str,
+    language: str,
     char_ranks: dict[str, int],
     alphabet_set: set[str],
     keep_ascii_letters=False,
@@ -313,9 +365,24 @@ def get_charset_mappings(
     `charset_code_points` maps from unicode code points to charset bytes. This
     is handy for quickly determining what code points are in the encoding.
 
+    For characters that have legacy substitutions (e.g., Romanian comma-below → cedilla),
+    we map the byte representing the substitute character to the original Unicode
+    codepoint's rank in the language model. This way common substitutions are encoded
+    into the trained model while keeping it encoding-independent.
+
     It seems like there should be a simpler way to pull these out of the Python
     `encodings` module, but only some encodings have tables in there.
     """
+    # Get substitutions for this encoding/language combination
+    substitutions = get_legacy_char_substitutions(charset_name, language)
+
+    # Build reverse map: substitute char → original char
+    # This handles the case where a substitute might map to multiple originals
+    reverse_subs: dict[str, str] = {}
+    for original, substitute in substitutions.items():
+        if substitute and substitute not in reverse_subs:
+            reverse_subs[substitute] = original
+
     char_to_order = {}
     charset_code_points = {}
     # 0 - 256 = all possible values for a single byte
@@ -324,8 +391,13 @@ def get_charset_mappings(
         char = bytes((byte_hex,))
         try:
             unicode_char = char.decode(charset_name)
+
+            # If this character is a substitute for an original character
+            # that can't be encoded, use the original's rank from the language model
+            char_for_rank = reverse_subs.get(unicode_char, unicode_char)
+
             char_cat = unicode_to_category(
-                unicode_char=unicode_char,
+                unicode_char=char_for_rank,
                 char_ranks=char_ranks,
                 alphabet_set=alphabet_set,
             )
@@ -404,12 +476,11 @@ def calc_ngram_freqs(
     frequencies greater than equal to the lowest seen alphabet character
     frequency.
 
-    For Romanian, modern comma-below diacritics (ș, ț) are substituted with
-    legacy cedilla versions (ş, ţ) to match what legacy encodings support.
-
     For Vietnamese, special normalization is applied to decompose precomposed
     characters with tone marks (e.g., ế → ê + combining acute) to match how
-    Windows-1258 encoding actually represents Vietnamese text.
+    Windows-1258 encoding actually represents Vietnamese text. This is the only
+    language-specific transformation applied during training, as Vietnamese is
+    only supported by a single encoding (Windows-1258) in Python.
     """
     char_freqs = Counter()
     char_ranks = {}
@@ -423,10 +494,6 @@ def calc_ngram_freqs(
         # counted as the same, and because this is meant for single-byte
         # encodings, which don't support combining forms
         line = unicodedata.normalize("NFC", line)
-
-        # Romanian requires substitution for legacy encodings (comma-below → cedilla)
-        if language == "Romanian":
-            line = normalize_romanian_for_legacy_encodings(line)
 
         # Vietnamese requires special handling because Windows-1258 uses
         # combining tone marks rather than precomposed characters
@@ -511,6 +578,7 @@ def generate_sbcs_model(
     # Setup tables necessary for computing transition frequencies for model
     char_to_order, charset_code_points = get_charset_mappings(
         charset_name=charset_name,
+        language=language,
         char_ranks=char_ranks,
         keep_ascii_letters=keep_ascii_letters,
         alphabet_set=alphabet_set,
