@@ -48,6 +48,7 @@ except Exception:
 
 from chardet import __version__
 from chardet.enums import CharacterCategory, SequenceLikelihood
+from chardet.metadata.charsets import CHARSETS
 from chardet.metadata.languages import LANGUAGES
 from chardet.sbcharsetprober import SingleByteCharSetModel
 
@@ -676,6 +677,17 @@ def train_model_for_lang(
             "languages.py"
         )
 
+    single_byte_charsets = [
+        cs_name
+        for cs_name in lang_metadata.charsets
+        if cs_name.upper() in CHARSETS and not CHARSETS[cs_name.upper()].is_multi_byte
+    ]
+    if not single_byte_charsets:
+        print(
+            f"Skipping {language} because no single-byte character sets are available for it"
+        )
+        return
+
     print(
         f"\n{language}\n----------------------------------------------------------------\n"
         f"Keep ASCII Letters: {lang_metadata.use_ascii}\n"
@@ -714,6 +726,12 @@ def train_model_for_lang(
     # Create char-to-order maps (aka char-to-rank dicts)
     charset_models = {}
     for charset_name in lang_metadata.charsets:
+        if charset_name.upper() not in CHARSETS:
+            print(f"Skipping unsupported charset: {charset_name}")
+            continue
+        if CHARSETS[charset_name.upper()].is_multi_byte:
+            print(f"Skipping multi-byte charset: {charset_name}")
+            continue
         print(f"Creating charset model for {charset_name}")
         sys.stdout.flush()
         charset_models[charset_name] = generate_sbcs_model(
