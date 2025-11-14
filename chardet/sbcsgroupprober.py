@@ -41,7 +41,11 @@ from .langbelarusianmodel import (
     MACCYRILLIC_BELARUSIAN_MODEL,
     WINDOWS_1251_BELARUSIAN_MODEL,
 )
-from .langbretonmodel import CP037_BRETON_MODEL, ISO_8859_14_BRETON_MODEL
+from .langbretonmodel import (
+    CP037_BRETON_MODEL,
+    CP500_BRETON_MODEL,
+    ISO_8859_14_BRETON_MODEL,
+)
 from .langbulgarianmodel import (
     CP855_BULGARIAN_MODEL,
     ISO_8859_5_BULGARIAN_MODEL,
@@ -157,6 +161,7 @@ from .langhungarianmodel import (
 )
 from .langicelandicmodel import (
     CP037_ICELANDIC_MODEL,
+    CP500_ICELANDIC_MODEL,
     CP861_ICELANDIC_MODEL,
     ISO_8859_1_ICELANDIC_MODEL,
     ISO_8859_10_ICELANDIC_MODEL,
@@ -164,11 +169,16 @@ from .langicelandicmodel import (
 )
 from .langindonesianmodel import (
     CP037_INDONESIAN_MODEL,
+    CP500_INDONESIAN_MODEL,
     ISO_8859_1_INDONESIAN_MODEL,
     MACROMAN_INDONESIAN_MODEL,
     WINDOWS_1252_INDONESIAN_MODEL,
 )
-from .langirishmodel import CP037_IRISH_MODEL, ISO_8859_14_IRISH_MODEL
+from .langirishmodel import (
+    CP037_IRISH_MODEL,
+    CP500_IRISH_MODEL,
+    ISO_8859_14_IRISH_MODEL,
+)
 from .langitalianmodel import (
     CP037_ITALIAN_MODEL,
     CP500_ITALIAN_MODEL,
@@ -203,6 +213,7 @@ from .langmacedonianmodel import (
 )
 from .langmalaymodel import (
     CP037_MALAY_MODEL,
+    CP500_MALAY_MODEL,
     ISO_8859_1_MALAY_MODEL,
     MACROMAN_MALAY_MODEL,
     WINDOWS_1252_MALAY_MODEL,
@@ -254,6 +265,7 @@ from .langrussianmodel import (
 )
 from .langscottishgaelicmodel import (
     CP037_SCOTTISH_GAELIC_MODEL,
+    CP500_SCOTTISH_GAELIC_MODEL,
     ISO_8859_14_SCOTTISH_GAELIC_MODEL,
 )
 from .langserbianmodel import (
@@ -318,7 +330,11 @@ from .langukrainianmodel import (
     WINDOWS_1251_UKRAINIAN_MODEL,
 )
 from .langvietnamesemodel import WINDOWS_1258_VIETNAMESE_MODEL
-from .langwelshmodel import CP037_WELSH_MODEL, ISO_8859_14_WELSH_MODEL
+from .langwelshmodel import (
+    CP037_WELSH_MODEL,
+    CP500_WELSH_MODEL,
+    ISO_8859_14_WELSH_MODEL,
+)
 from .sbcharsetprober import SingleByteCharSetProber
 
 
@@ -351,6 +367,7 @@ class SBCSGroupProber(CharSetGroupProber):
             SingleByteCharSetProber(WINDOWS_1251_BELARUSIAN_MODEL),
             SingleByteCharSetProber(ISO_8859_14_BRETON_MODEL),
             SingleByteCharSetProber(CP037_BRETON_MODEL),
+            SingleByteCharSetProber(CP500_BRETON_MODEL),
             SingleByteCharSetProber(CP855_BULGARIAN_MODEL),
             SingleByteCharSetProber(ISO_8859_5_BULGARIAN_MODEL),
             SingleByteCharSetProber(MACCYRILLIC_BULGARIAN_MODEL),
@@ -438,16 +455,19 @@ class SBCSGroupProber(CharSetGroupProber):
             SingleByteCharSetProber(MACLATIN2_HUNGARIAN_MODEL),
             SingleByteCharSetProber(WINDOWS_1250_HUNGARIAN_MODEL),
             SingleByteCharSetProber(CP037_ICELANDIC_MODEL),
+            SingleByteCharSetProber(CP500_ICELANDIC_MODEL),
             SingleByteCharSetProber(CP861_ICELANDIC_MODEL),
             SingleByteCharSetProber(ISO_8859_10_ICELANDIC_MODEL),
             SingleByteCharSetProber(ISO_8859_1_ICELANDIC_MODEL),
             SingleByteCharSetProber(MACICELAND_ICELANDIC_MODEL),
             SingleByteCharSetProber(CP037_INDONESIAN_MODEL),
+            SingleByteCharSetProber(CP500_INDONESIAN_MODEL),
             SingleByteCharSetProber(ISO_8859_1_INDONESIAN_MODEL),
             SingleByteCharSetProber(MACROMAN_INDONESIAN_MODEL),
             SingleByteCharSetProber(WINDOWS_1252_INDONESIAN_MODEL),
             SingleByteCharSetProber(ISO_8859_14_IRISH_MODEL),
             SingleByteCharSetProber(CP037_IRISH_MODEL),
+            SingleByteCharSetProber(CP500_IRISH_MODEL),
             SingleByteCharSetProber(CP037_ITALIAN_MODEL),
             SingleByteCharSetProber(CP500_ITALIAN_MODEL),
             SingleByteCharSetProber(CP850_ITALIAN_MODEL),
@@ -471,6 +491,7 @@ class SBCSGroupProber(CharSetGroupProber):
             SingleByteCharSetProber(MACCYRILLIC_MACEDONIAN_MODEL),
             SingleByteCharSetProber(WINDOWS_1251_MACEDONIAN_MODEL),
             SingleByteCharSetProber(CP037_MALAY_MODEL),
+            SingleByteCharSetProber(CP500_MALAY_MODEL),
             SingleByteCharSetProber(ISO_8859_1_MALAY_MODEL),
             SingleByteCharSetProber(MACROMAN_MALAY_MODEL),
             SingleByteCharSetProber(WINDOWS_1252_MALAY_MODEL),
@@ -515,6 +536,7 @@ class SBCSGroupProber(CharSetGroupProber):
             SingleByteCharSetProber(WINDOWS_1251_SERBIAN_MODEL),
             SingleByteCharSetProber(ISO_8859_14_SCOTTISH_GAELIC_MODEL),
             SingleByteCharSetProber(CP037_SCOTTISH_GAELIC_MODEL),
+            SingleByteCharSetProber(CP500_SCOTTISH_GAELIC_MODEL),
             SingleByteCharSetProber(CP852_SLOVAK_MODEL),
             SingleByteCharSetProber(ISO_8859_16_SLOVAK_MODEL),
             SingleByteCharSetProber(ISO_8859_2_SLOVAK_MODEL),
@@ -558,6 +580,7 @@ class SBCSGroupProber(CharSetGroupProber):
             SingleByteCharSetProber(WINDOWS_1251_UKRAINIAN_MODEL),
             SingleByteCharSetProber(ISO_8859_14_WELSH_MODEL),
             SingleByteCharSetProber(CP037_WELSH_MODEL),
+            SingleByteCharSetProber(CP500_WELSH_MODEL),
             SingleByteCharSetProber(WINDOWS_1258_VIETNAMESE_MODEL),
         ]
 
