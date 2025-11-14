@@ -621,3 +621,87 @@ if HAVE_HYPOTHESIS:
             f"detect() returned {result['encoding']} but detect_all()[0] "
             f"returned {results[0]['encoding']} for {len(data)} bytes of {enc}"
         )
+
+
+def test_all_single_byte_encodings_have_probers():
+    """
+    Test that all single-byte encodings listed in languages.py and charsets.py
+    have corresponding probers registered in SBCSGroupProber.
+
+    This ensures we don't forget to register models after generating them.
+    """
+    from chardet.enums import EncodingEra
+    from chardet.metadata.charsets import CHARSETS
+    from chardet.metadata.languages import LANGUAGES
+    from chardet.sbcsgroupprober import SBCSGroupProber
+
+    # Collect all single-byte encodings from metadata
+    expected_encodings = set()
+
+    # From CHARSETS
+    for charset_name, charset in CHARSETS.items():
+        if not charset.is_multi_byte:
+            expected_encodings.add(charset_name.upper())
+
+    # From LANGUAGES
+    for language in LANGUAGES.values():
+        for charset in language.charsets:
+            charset_upper = charset.upper()
+            if charset_upper in CHARSETS and not CHARSETS[charset_upper].is_multi_byte:
+                expected_encodings.add(charset_upper)
+
+    # Create SBCSGroupProber with ALL encoding era to get all probers
+    prober = SBCSGroupProber(encoding_era=EncodingEra.ALL)
+
+    # Collect all charsets that have probers
+    registered_encodings = set()
+    for sub_prober in prober.probers:
+        if hasattr(sub_prober, "_model"):
+            model = sub_prober._model  # type: ignore[reportAttributeAccessIssue]
+            if hasattr(model, "charset_name"):
+                charset_name = model.charset_name.upper()  # type: ignore[reportAttributeAccessIssue]
+                registered_encodings.add(charset_name)
+
+    # Find encodings that are missing probers
+    missing_probers = expected_encodings - registered_encodings
+
+    # Some encodings are intentionally not implemented as single-byte probers
+    # because they're handled by specialized probers or not yet supported
+    known_exceptions = {
+        "ASCII",  # Subset of all other encodings, no dedicated prober needed
+        "CP932",  # Shift-JIS variant, handled by multi-byte prober
+        "CP1006",  # Urdu encoding not fully supported by Python's codecs
+    }
+
+    missing_probers -= known_exceptions
+
+    # Find probers that aren't in metadata (might be okay, but worth checking)
+    extra_probers = registered_encodings - expected_encodings
+
+    # Report any issues
+    error_messages = []
+
+    if missing_probers:
+        sorted_missing = sorted(missing_probers)
+        error_messages.append(
+            f"Single-byte encodings in metadata but missing probers:\n"
+            f"  {', '.join(sorted_missing)}\n"
+            f"  These encodings should have corresponding models in SBCSGroupProber."
+        )
+
+    if extra_probers:
+        sorted_extra = sorted(extra_probers)
+        # This is just informational, not necessarily an error
+        print(
+            f"\nInfo: Probers registered but not in metadata:\n"
+            f"  {', '.join(sorted_extra)}\n"
+            f"  (This may be okay if these are aliases or special cases)"
+        )
+
+    if error_messages:
+        pytest.fail("\n\n".join(error_messages))
+
+    # Success message
+    print(
+        f"\n✓ All {len(expected_encodings)} single-byte encodings have probers registered"
+    )

@@ -63,7 +63,7 @@ CHARSETS = {
         name="CP932", is_multi_byte=False, encoding_era=EncodingEra.LEGACY
     ),
     "CP949": Charset(
-        name="CP949", is_multi_byte=False, encoding_era=EncodingEra.MODERN_WEB
+        name="CP949", is_multi_byte=True, encoding_era=EncodingEra.MODERN_WEB
     ),
     "CP1006": Charset(
         name="CP1006", is_multi_byte=False, encoding_era=EncodingEra.LEGACY
