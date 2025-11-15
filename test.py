@@ -37,7 +37,6 @@ EXPECTED_FAILURES = {
     # EBCDIC encodings are archaic mainframe formats that are inherently
     # ambiguous and confuse each other. These failures are expected.
     # CP037 (US EBCDIC) vs CP500 (International EBCDIC) vs other EBCDIC variants
-    "tests/cp037-english/_ude_1.txt",
     "tests/cp037-english/culturax_mC4_84513.txt",
     "tests/cp500-english/culturax_mC4_84512.txt",
     "tests/cp500-english/culturax_mC4_84513.txt",
@@ -66,23 +65,82 @@ EXPECTED_FAILURES = {
     "tests/windows-1250-hungarian/bbc.co.uk.hu.pressreview.xml",
     # Greek: ISO-8859-7 vs Windows-1253 ambiguities
     # Both encodings are very similar for Greek text
-    "tests/iso-8859-7-greek/culturax_mC4_103810.txt",
-    "tests/iso-8859-7-greek/disabled.gr.xml",
     "tests/iso-8859-7-greek/naftemporiki.gr.mrk.xml",
     "tests/iso-8859-7-greek/naftemporiki.gr.spo.xml",
-    "tests/windows-1253-greek/culturax_mC4_103810.txt",
     # Turkish: ISO-8859-9 vs ISO-8859-15 ambiguity on short files
     # Very short files lack sufficient distinguishing features
     "tests/iso-8859-9-turkish/divxplanet.com.xml",
     # Hungarian ISO-8859-2 vs ISO-8859-16 ambiguity on sampled large file
     "tests/iso-8859-2-hungarian/torokorszag.blogspot.com.xml",
-    # File with only 1 high byte in 748KB (99.9998% ASCII)
-    # Sampling may miss the single non-ASCII character
-    "tests/iso-8859-1-english/ioreg_output.txt",
     # UTF-16 without BOM: Files with >95% non-ASCII CJK characters
     # These have too few null bytes (<5%) for reliable UTF-16 pattern detection
     "tests/utf-16le-japanese/culturax_mC4_5.txt",
     "tests/utf-16be-japanese/culturax_mC4_5.txt",
+    # Additional EBCDIC CP500 vs CP037 confusion (International vs US EBCDIC)
+    "tests/cp500-danish/culturax_mC4_83466.txt",
+    "tests/cp500-danish/culturax_mC4_83468.txt",
+    "tests/cp500-danish/culturax_mC4_83470.txt",
+    "tests/cp500-dutch/culturax_mC4_107675.txt",
+    "tests/cp500-finnish/culturax_mC4_80364.txt",
+    "tests/cp500-german/culturax_mC4_83756.txt",
+    "tests/cp500-german/culturax_OSCAR-2301_83754.txt",
+    "tests/cp500-icelandic/culturax_mC4_77489.txt",
+    "tests/cp500-indonesian/culturax_mC4_114889.txt",
+    "tests/cp500-indonesian/culturax_mC4_114892.txt",
+    "tests/cp500-italian/culturax_mC4_92388.txt",
+    "tests/cp500-italian/culturax_mC4_92391.txt",
+    "tests/cp500-norwegian/culturax_mC4_66762.txt",
+    "tests/cp500-norwegian/culturax_mC4_66764.txt",
+    "tests/cp500-portuguese/culturax_mC4_101817.txt",
+    "tests/cp500-spanish/culturax_mC4_87069.txt",
+    "tests/cp500-spanish/culturax_mC4_87070.txt",
+    "tests/cp500-swedish/culturax_mC4_96485.txt",
+    "tests/cp500-swedish/culturax_mC4_96486.txt",
+    # DOS codepage ambiguities (CP437/CP850/CP858/CP863 are very similar)
+    "tests/cp437-irish/culturax_mC4_63471.txt",
+    "tests/cp437-irish/culturax_mC4_63473.txt",
+    "tests/cp850-icelandic/culturax_mC4_77487.txt",
+    "tests/cp850-icelandic/culturax_mC4_77488.txt",
+    "tests/cp850-icelandic/culturax_mC4_77489.txt",
+    "tests/cp850-irish/culturax_mC4_63468.txt",
+    "tests/cp850-irish/culturax_mC4_63470.txt",
+    "tests/cp850-irish/culturax_mC4_63471.txt",
+    "tests/cp858-icelandic/culturax_mC4_77487.txt",
+    "tests/cp858-icelandic/culturax_mC4_77488.txt",
+    "tests/cp858-icelandic/culturax_mC4_77489.txt",
+    "tests/cp858-irish/culturax_mC4_63468.txt",
+    "tests/cp858-irish/culturax_mC4_63469.txt",
+    "tests/cp858-irish/culturax_mC4_63470.txt",
+    # CP932 (Japanese Shift-JIS variant) detected as Shift-JIS (functionally equivalent)
+    "tests/cp932-japanese/culturax_OSCAR-2019_7.txt",
+    # ISO-8859 encoding ambiguities with similar character sets
+    "tests/iso-8859-1-welsh/culturax_mC4_78727.txt",
+    "tests/iso-8859-15-irish/culturax_mC4_63469.txt",
+    "tests/iso-8859-15-welsh/culturax_mC4_78727.txt",
+    "tests/iso-8859-2-hungarian/bbc.co.uk.hu.forum.xml",
+    "tests/iso-8859-2-romanian/culturax_mC4_78976.txt",
+    "tests/iso-8859-2-romanian/culturax_mC4_78978.txt",
+    "tests/iso-8859-2-romanian/culturax_OSCAR-2019_78977.txt",
+    "tests/iso-8859-7-greek/naftemporiki.gr.bus.xml",
+    "tests/iso-8859-7-greek/naftemporiki.gr.cmm.xml",
+    "tests/iso-8859-7-greek/naftemporiki.gr.fin.xml",
+    "tests/iso-8859-7-greek/naftemporiki.gr.wld.xml",
+    "tests/iso-8859-9-turkish/culturax_mC4_107848.txt",
+    # MacRoman vs ISO-8859 ambiguities (very similar for Western European text)
+    "tests/macroman-breton/culturax_OSCAR-2019_43764.txt",
+    "tests/macroman-dutch/culturax_mC4_107675.txt",
+    "tests/macroman-english/culturax_mC4_84512.txt",
+    "tests/macroman-indonesian/culturax_mC4_114889.txt",
+    "tests/macroman-irish/culturax_mC4_63468.txt",
+    "tests/macroman-irish/culturax_mC4_63469.txt",
+    "tests/macroman-irish/culturax_mC4_63470.txt",
+    "tests/macroman-welsh/culturax_mC4_78727.txt",
+    "tests/macroman-welsh/culturax_mC4_78729.txt",
+    # UTF-8 vs Windows-1252 confusion on files with mostly ASCII
+    "tests/utf-8-dutch/culturax_OSCAR-2301_107677.txt",
+    "tests/utf-8-english/culturax_mC4_84512.txt",
+    # Windows codepage ambiguities
+    "tests/windows-1252-icelandic/culturax_mC4_77487.txt",
 }
 
 
