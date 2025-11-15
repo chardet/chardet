@@ -1,10 +1,10 @@
-from typing import Tuple, TypedDict
+from typing import TypedDict
 
 
 class CodingStateMachineDict(TypedDict, total=False):
-    class_table: Tuple[int, ...]
+    class_table: tuple[int, ...]
     class_factor: int
-    state_table: Tuple[int, ...]
-    char_len_table: Tuple[int, ...]
+    state_table: tuple[int, ...]
+    char_len_table: tuple[int, ...]
     name: str
     language: str  # Optional key

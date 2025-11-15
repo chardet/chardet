@@ -29,5 +29,4 @@ repos:
         entry: uv run --active pyright
         language: node
         types: [python]
-        pass_filenames: false
         additional_dependencies: ["pyright@1.1.406"]

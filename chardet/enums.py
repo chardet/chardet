@@ -4,10 +4,10 @@ All of the Enums that are used throughout the chardet package.
 :author: Dan Blanchard (dan.blanchard@gmail.com)
 """
 
-from enum import Enum, Flag
+from enum import Flag, IntEnum
 
 
-class InputState:
+class InputState(IntEnum):
     """
     This enum represents the different states a universal detector can be in.
     """
@@ -34,7 +34,7 @@ class LanguageFilter(Flag):
     CJK = CHINESE | JAPANESE | KOREAN
 
 
-class ProbingState(Enum):
+class ProbingState(IntEnum):
     """
     This enum represents the different states a prober can be in.
     """
@@ -44,7 +44,7 @@ class ProbingState(Enum):
     NOT_ME = 2
 
 
-class MachineState:
+class MachineState(IntEnum):
     """
     This enum represents the different states a state machine can be in.
     """
@@ -54,7 +54,7 @@ class MachineState:
     ITS_ME = 2
 
 
-class SequenceLikelihood:
+class SequenceLikelihood(IntEnum):
     """
     This enum represents the likelihood of a character following the previous one.
     """
@@ -64,22 +64,31 @@ class SequenceLikelihood:
     LIKELY = 2
     POSITIVE = 3
 
-    @classmethod
-    def get_num_categories(cls) -> int:
-        """:returns: The number of likelihood categories in the enum."""
-        return 4
 
-
-class CharacterCategory:
+class CharacterCategory(IntEnum):
     """
     This enum represents the different categories language models for
     ``SingleByteCharsetProber`` put characters into.
 
-    Anything less than CONTROL is considered a letter.
+    Anything less than DIGIT is considered a letter.
     """
 
     UNDEFINED = 255
-    LINE_BREAK = 254
+    CONTROL = 254
     SYMBOL = 253
-    DIGIT = 252
-    CONTROL = 251
+    LINE_BREAK = 252
+    DIGIT = 251
+
+
+class EncodingEra(Flag):
+    """
+    This enum represents different eras of character encodings, used to filter
+    which encodings are considered during detection.
+    """
+
+    NONE = 0x00
+    MODERN_WEB = 0x01  # UTF-8, Windows-125x, modern ISO
+    LEGACY = 0x02  # Mac encodings, older ISO standards
+    DOS = 0x04  # CP437, CP850, CP852, etc.
+    MAINFRAME = 0x08  # EBCDIC variants (CP037, CP500, etc.)
+    ALL = 0x0F

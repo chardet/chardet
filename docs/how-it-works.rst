@@ -53,7 +53,7 @@ an escaped encoding, ``UniversalDetector`` creates an
 text.
 
 ``EscCharSetProber`` creates a series of state machines, based on models
-of ``HZ-GB-2312``, ``ISO-2022-CN``, ``ISO-2022-JP``, and ``ISO-2022-KR``
+of ``HZ-GB-2312``, ``ISO-2022-JP``, and ``ISO-2022-KR``
 (defined in ``escsm.py``). ``EscCharSetProber`` feeds the text to each
 of these state machines, one byte at a time. If any state machine ends
 up uniquely identifying the encoding, ``EscCharSetProber`` immediately
@@ -72,7 +72,7 @@ resort, ``windows-1252``.
 The multi-byte encoding prober, ``MBCSGroupProber`` (defined in
 ``mbcsgroupprober.py``), is really just a shell that manages a group of
 other probers, one for each multi-byte encoding: ``Big5``, ``GB2312``,
-``EUC-TW``, ``EUC-KR``, ``EUC-JP``, ``SHIFT_JIS``, and ``UTF-8``.
+``EUC-KR``, ``EUC-JP``, ``SHIFT_JIS``, and ``UTF-8``.
 ``MBCSGroupProber`` feeds the text to each of these encoding-specific
 probers and checks the results. If a prober reports that it has found an
 illegal byte sequence, it is dropped from further processing (so that,
@@ -119,11 +119,35 @@ Single-byte encodings
 The single-byte encoding prober, ``SBCSGroupProber`` (defined in
 ``sbcsgroupprober.py``), is also just a shell that manages a group of
 other probers, one for each combination of single-byte encoding and
-language: ``windows-1251``, ``KOI8-R``, ``ISO-8859-5``, ``MacCyrillic``,
-``IBM855``, and ``IBM866`` (Russian); ``ISO-8859-7`` and
-``windows-1253`` (Greek); ``ISO-8859-5`` and ``windows-1251``
-(Bulgarian); ``ISO-8859-2`` and ``windows-1250`` (Hungarian);
-``TIS-620`` (Thai); ``windows-1255`` and ``ISO-8859-8`` (Hebrew).
+language:
+ - ``ASCII``
+ - ``CP720`` (Arabic)
+ - ``CP855``/IBM855 (Bulgarian, Macedonian, Russian, Serbian)
+ - ``CP864`` (Arabic)
+ - ``CP866``/``IBM866`` (Belarusian, Russian)
+ - ``CP874`` (Thai)
+ - ``ISO-8859-1`` (Dutch, English, Finnish, French, German, Italian, Portuguese, Spanish)
+ - ``ISO-8859-2`` (Croatian, Czech, Hungarian, Polish, Romanian, Slovak, Slovene)
+ - ``ISO-8859-3`` (Esperanto)
+ - ``ISO-8859-4`` (Estonian, Latvian, Lithuanian)
+ - ``ISO-8859-5`` (Belarusian, Bulgarian, Macedonian, Russian, Serbian)
+ - ``ISO-8859-6`` (Arabic)
+ - ``ISO-8859-7`` (Greek)
+ - ``ISO-8859-8`` (Visual and Logical Hebrew)
+ - ``ISO-8859-9`` (Turkish)
+ - ``ISO-8859-11`` (Thai)
+ - ``ISO-8859-13`` (Estonian, Latvian, Lithuanian)
+ - ``ISO-8859-15`` (Danish, Finnish, French, Italian, Portuguese, Spanish)
+ - ``MacCyrillic`` (Belarusian, Macedonian, Russian, Serbian)
+ - ``TIS-620`` (Thai)
+ - ``Windows-1250`` (Croatian, Czech, Hungarian, Polish, Romanian, Slovak, Slovene)
+ - ``Windows-1251`` (Belarusian, Bulgarian, Macedonian, Russian, Serbian)
+ - ``Windows-1252`` (Dutch, English, Finnish, French, German, Italian, Portuguese, Spanish)
+ - ``Windows-1253`` (Greek)
+ - ``Windows-1254`` (Turkish)
+ - ``Windows-1255`` (Visual and Logical Hebrew)
+ - ``Windows-1256`` (Arabic)
+ - ``Windows-1257`` (Estonian, Latvian, Lithuanian)
 
 ``SBCSGroupProber`` feeds the text to each of these
 encoding+language-specific probers and checks the results. These probers

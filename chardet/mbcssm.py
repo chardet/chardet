@@ -320,83 +320,48 @@ JOHAB_SM_MODEL: CodingStateMachineDict = {
     "name": "Johab",
 }
 
-# EUC-TW
+# GB2312 - REMOVED
+# GB2312 is a subset of GB18030. The GB18030 state machine and prober now
+# correctly detect GB2312 content with the same confidence as the old GB2312
+# prober (both use GB2312DistributionAnalysis). The LEGACY_MAP renames
+# GB2312 → GB18030 for backward compatibility.
+# Having both probers was redundant after fixing GB18030's char_len_table.
+
+# GB18030
+# GB18030 is a superset of GB2312 and GBK
+# It supports:
+#   - 1-byte: ASCII (0x00-0x7F)
+#   - 2-byte: lead 0x81-0xFE, trail 0x40-0x7E or 0x80-0xFE (GBK/GB2312 compatible)
+#   - 4-byte: 0x81-0xFE, 0x30-0x39, 0x81-0xFE, 0x30-0x39 (GB18030 extension)
+#
+# Byte classes:
+#   0: Invalid
+#   1: ASCII (0x00-0x7F)
+#   2: Digit 0x30-0x39 (can be 2nd or 4th byte in 4-byte sequence)
+#   3: Valid 2-byte trail (0x40-0x7E)
+#   4: Invalid byte 0x7F
+#   5: Valid 2-byte trail and lead for 4-byte (0x80-0xFE)
+#   6: Lead byte (0x81-0xFE) - can start 2-byte or 4-byte, or be 3rd byte in 4-byte
+
 # fmt: off
-EUCTW_CLS = (
-    2, 2, 2, 2, 2, 2, 2, 2,  # 00 - 07
-    2, 2, 2, 2, 2, 2, 0, 0,  # 08 - 0f
-    2, 2, 2, 2, 2, 2, 2, 2,  # 10 - 17
-    2, 2, 2, 0, 2, 2, 2, 2,  # 18 - 1f
-    2, 2, 2, 2, 2, 2, 2, 2,  # 20 - 27
-    2, 2, 2, 2, 2, 2, 2, 2,  # 28 - 2f
-    2, 2, 2, 2, 2, 2, 2, 2,  # 30 - 37
-    2, 2, 2, 2, 2, 2, 2, 2,  # 38 - 3f
-    2, 2, 2, 2, 2, 2, 2, 2,  # 40 - 47
-    2, 2, 2, 2, 2, 2, 2, 2,  # 48 - 4f
-    2, 2, 2, 2, 2, 2, 2, 2,  # 50 - 57
-    2, 2, 2, 2, 2, 2, 2, 2,  # 58 - 5f
-    2, 2, 2, 2, 2, 2, 2, 2,  # 60 - 67
-    2, 2, 2, 2, 2, 2, 2, 2,  # 68 - 6f
-    2, 2, 2, 2, 2, 2, 2, 2,  # 70 - 77
-    2, 2, 2, 2, 2, 2, 2, 2,  # 78 - 7f
-    0, 0, 0, 0, 0, 0, 0, 0,  # 80 - 87
-    0, 0, 0, 0, 0, 0, 6, 0,  # 88 - 8f
-    0, 0, 0, 0, 0, 0, 0, 0,  # 90 - 97
-    0, 0, 0, 0, 0, 0, 0, 0,  # 98 - 9f
-    0, 3, 4, 4, 4, 4, 4, 4,  # a0 - a7
-    5, 5, 1, 1, 1, 1, 1, 1,  # a8 - af
-    1, 1, 1, 1, 1, 1, 1, 1,  # b0 - b7
-    1, 1, 1, 1, 1, 1, 1, 1,  # b8 - bf
-    1, 1, 3, 1, 3, 3, 3, 3,  # c0 - c7
-    3, 3, 3, 3, 3, 3, 3, 3,  # c8 - cf
-    3, 3, 3, 3, 3, 3, 3, 3,  # d0 - d7
-    3, 3, 3, 3, 3, 3, 3, 3,  # d8 - df
-    3, 3, 3, 3, 3, 3, 3, 3,  # e0 - e7
-    3, 3, 3, 3, 3, 3, 3, 3,  # e8 - ef
-    3, 3, 3, 3, 3, 3, 3, 3,  # f0 - f7
-    3, 3, 3, 3, 3, 3, 3, 0   # f8 - ff
-)
-
-EUCTW_ST = (
-    MachineState.ERROR,MachineState.ERROR,MachineState.START,     3,     3,     3,     4,MachineState.ERROR,#00-07
-    MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ITS_ME,MachineState.ITS_ME,#08-0f
-    MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ERROR,MachineState.START,MachineState.ERROR,#10-17
-    MachineState.START,MachineState.START,MachineState.START,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,#18-1f
-         5,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.START,MachineState.ERROR,MachineState.START,MachineState.START,#20-27
-    MachineState.START,MachineState.ERROR,MachineState.START,MachineState.START,MachineState.START,MachineState.START,MachineState.START,MachineState.START #28-2f
-)
-# fmt: on
-
-EUCTW_CHAR_LEN_TABLE = (0, 0, 1, 2, 2, 2, 3)
-
-EUCTW_SM_MODEL: CodingStateMachineDict = {
-    "class_table": EUCTW_CLS,
-    "class_factor": 7,
-    "state_table": EUCTW_ST,
-    "char_len_table": EUCTW_CHAR_LEN_TABLE,
-    "name": "x-euc-tw",
-}
-
-# GB2312
-# fmt: off
-GB2312_CLS = (
+GB18030_CLS = (
     1, 1, 1, 1, 1, 1, 1, 1,  # 00 - 07
     1, 1, 1, 1, 1, 1, 0, 0,  # 08 - 0f
     1, 1, 1, 1, 1, 1, 1, 1,  # 10 - 17
     1, 1, 1, 0, 1, 1, 1, 1,  # 18 - 1f
     1, 1, 1, 1, 1, 1, 1, 1,  # 20 - 27
     1, 1, 1, 1, 1, 1, 1, 1,  # 28 - 2f
-    3, 3, 3, 3, 3, 3, 3, 3,  # 30 - 37
-    3, 3, 1, 1, 1, 1, 1, 1,  # 38 - 3f
-    2, 2, 2, 2, 2, 2, 2, 2,  # 40 - 47
-    2, 2, 2, 2, 2, 2, 2, 2,  # 48 - 4f
-    2, 2, 2, 2, 2, 2, 2, 2,  # 50 - 57
-    2, 2, 2, 2, 2, 2, 2, 2,  # 58 - 5f
-    2, 2, 2, 2, 2, 2, 2, 2,  # 60 - 67
-    2, 2, 2, 2, 2, 2, 2, 2,  # 68 - 6f
-    2, 2, 2, 2, 2, 2, 2, 2,  # 70 - 77
-    2, 2, 2, 2, 2, 2, 2, 4,  # 78 - 7f
-    5, 6, 6, 6, 6, 6, 6, 6,  # 80 - 87
+    2, 2, 2, 2, 2, 2, 2, 2,  # 30 - 37
+    2, 2, 1, 1, 1, 1, 1, 1,  # 38 - 3f
+    3, 3, 3, 3, 3, 3, 3, 3,  # 40 - 47
+    3, 3, 3, 3, 3, 3, 3, 3,  # 48 - 4f
+    3, 3, 3, 3, 3, 3, 3, 3,  # 50 - 57
+    3, 3, 3, 3, 3, 3, 3, 3,  # 58 - 5f
+    3, 3, 3, 3, 3, 3, 3, 3,  # 60 - 67
+    3, 3, 3, 3, 3, 3, 3, 3,  # 68 - 6f
+    3, 3, 3, 3, 3, 3, 3, 3,  # 70 - 77
+    3, 3, 3, 3, 3, 3, 3, 4,  # 78 - 7f
+    5, 6, 6, 6, 6, 6, 6, 6,  # 80 - 87    0x80 can be trail byte (class 5)
     6, 6, 6, 6, 6, 6, 6, 6,  # 88 - 8f
     6, 6, 6, 6, 6, 6, 6, 6,  # 90 - 97
     6, 6, 6, 6, 6, 6, 6, 6,  # 98 - 9f
@@ -411,32 +376,39 @@ GB2312_CLS = (
     6, 6, 6, 6, 6, 6, 6, 6,  # e0 - e7
     6, 6, 6, 6, 6, 6, 6, 6,  # e8 - ef
     6, 6, 6, 6, 6, 6, 6, 6,  # f0 - f7
-    6, 6, 6, 6, 6, 6, 6, 0   # f8 - ff
+    6, 6, 6, 6, 6, 6, 6, 0   # f8 - ff    0xFF is invalid
 )
 
-GB2312_ST = (
-    MachineState.ERROR,MachineState.START,MachineState.START,MachineState.START,MachineState.START,MachineState.START,     3,MachineState.ERROR,#00-07
-    MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ITS_ME,MachineState.ITS_ME,#08-0f
-    MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ERROR,MachineState.ERROR,MachineState.START,#10-17
-         4,MachineState.ERROR,MachineState.START,MachineState.START,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,#18-1f
-    MachineState.ERROR,MachineState.ERROR,     5,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ITS_ME,MachineState.ERROR,#20-27
-    MachineState.ERROR,MachineState.ERROR,MachineState.START,MachineState.START,MachineState.START,MachineState.START,MachineState.START,MachineState.START #28-2f
+# States:
+#   START (0): Initial state
+#   ERROR (1): Error state
+#   ITS_ME (2): Definitive match
+#   FIRST (3): After receiving lead byte (0x81-0xFE)
+#   SECOND_4BYTE (4): After digit as 2nd byte in potential 4-byte sequence
+#   THIRD_4BYTE (5): After 3rd byte (0x81-0xFE) in 4-byte sequence
+GB18030_ST = (
+#  cls:    0                     1                   2                   3                   4                  5                 6
+    MachineState.ERROR,  MachineState.START, MachineState.START, MachineState.START, MachineState.START,MachineState.ERROR,     3,  # START (0)
+    MachineState.ERROR,  MachineState.ERROR, MachineState.ERROR, MachineState.ERROR, MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,  # ERROR (1)
+    MachineState.ITS_ME, MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,  # ITS_ME (2)
+    MachineState.ERROR,  MachineState.ERROR,          4,MachineState.START, MachineState.ERROR,MachineState.START,MachineState.START,  # FIRST (3): 0x81-0xFE completes 2-byte
+    MachineState.ERROR,  MachineState.ERROR, MachineState.ERROR, MachineState.ERROR, MachineState.ERROR,MachineState.ERROR,          5,  # SECOND_4BYTE (4): after 2nd digit
+    MachineState.ERROR,  MachineState.ERROR, MachineState.START, MachineState.ERROR, MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,  # THIRD_4BYTE (5): after 3rd byte
 )
 # fmt: on
 
-# To be accurate, the length of class 6 can be either 2 or 4.
-# But it is not necessary to discriminate between the two since
-# it is used for frequency analysis only, and we are validating
-# each code range there as well. So it is safe to set it to be
-# 2 here.
-GB2312_CHAR_LEN_TABLE = (0, 1, 1, 1, 1, 1, 2)
+# Character length table for distribution analysis
+# Class 6 (lead byte) is marked as 2 bytes since that's the most common case
+# (2-byte GB2312/GBK sequences). 4-byte sequences will be detected by the state
+# machine but won't contribute to character distribution analysis.
+GB18030_CHAR_LEN_TABLE = (0, 1, 1, 1, 1, 2, 2)
 
-GB2312_SM_MODEL: CodingStateMachineDict = {
-    "class_table": GB2312_CLS,
+GB18030_SM_MODEL: CodingStateMachineDict = {
+    "class_table": GB18030_CLS,
     "class_factor": 7,
-    "state_table": GB2312_ST,
-    "char_len_table": GB2312_CHAR_LEN_TABLE,
-    "name": "GB2312",
+    "state_table": GB18030_ST,
+    "char_len_table": GB18030_CHAR_LEN_TABLE,
+    "name": "GB18030",
 }
 
 # Shift_JIS
@@ -612,77 +584,50 @@ UCS2LE_SM_MODEL: CodingStateMachineDict = {
 }
 
 # UTF-8
+# Adapted from Björn Höhrmann's DFA UTF-8 decoder
+# See http://bjoern.hoehrmann.de/utf-8/decoder/dfa/ for details.
+# Copyright (c) 2008-2009 Bjoern Hoehrmann <bjoern@hoehrmann.de>
 # fmt: off
 UTF8_CLS = (
-    1, 1, 1, 1, 1, 1, 1, 1,  # 00 - 07  #allow 0x00 as a legal value
-    1, 1, 1, 1, 1, 1, 0, 0,  # 08 - 0f
-    1, 1, 1, 1, 1, 1, 1, 1,  # 10 - 17
-    1, 1, 1, 0, 1, 1, 1, 1,  # 18 - 1f
-    1, 1, 1, 1, 1, 1, 1, 1,  # 20 - 27
-    1, 1, 1, 1, 1, 1, 1, 1,  # 28 - 2f
-    1, 1, 1, 1, 1, 1, 1, 1,  # 30 - 37
-    1, 1, 1, 1, 1, 1, 1, 1,  # 38 - 3f
-    1, 1, 1, 1, 1, 1, 1, 1,  # 40 - 47
-    1, 1, 1, 1, 1, 1, 1, 1,  # 48 - 4f
-    1, 1, 1, 1, 1, 1, 1, 1,  # 50 - 57
-    1, 1, 1, 1, 1, 1, 1, 1,  # 58 - 5f
-    1, 1, 1, 1, 1, 1, 1, 1,  # 60 - 67
-    1, 1, 1, 1, 1, 1, 1, 1,  # 68 - 6f
-    1, 1, 1, 1, 1, 1, 1, 1,  # 70 - 77
-    1, 1, 1, 1, 1, 1, 1, 1,  # 78 - 7f
-    2, 2, 2, 2, 3, 3, 3, 3,  # 80 - 87
-    4, 4, 4, 4, 4, 4, 4, 4,  # 88 - 8f
-    4, 4, 4, 4, 4, 4, 4, 4,  # 90 - 97
-    4, 4, 4, 4, 4, 4, 4, 4,  # 98 - 9f
-    5, 5, 5, 5, 5, 5, 5, 5,  # a0 - a7
-    5, 5, 5, 5, 5, 5, 5, 5,  # a8 - af
-    5, 5, 5, 5, 5, 5, 5, 5,  # b0 - b7
-    5, 5, 5, 5, 5, 5, 5, 5,  # b8 - bf
-    0, 0, 6, 6, 6, 6, 6, 6,  # c0 - c7
-    6, 6, 6, 6, 6, 6, 6, 6,  # c8 - cf
-    6, 6, 6, 6, 6, 6, 6, 6,  # d0 - d7
-    6, 6, 6, 6, 6, 6, 6, 6,  # d8 - df
-    7, 8, 8, 8, 8, 8, 8, 8,  # e0 - e7
-    8, 8, 8, 8, 8, 9, 8, 8,  # e8 - ef
-    10, 11, 11, 11, 11, 11, 11, 11,  # f0 - f7
-    12, 13, 13, 13, 14, 15, 0, 0    # f8 - ff
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # 00-0f
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # 10-1f
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # 20-2f
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # 30-3f
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # 40-4f
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # 50-5f
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # 60-6f
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # 70-7f
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  # 80-8f
+    9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,  # 90-9f
+    7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,  # a0-af
+    7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,  # b0-bf
+    8, 8, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,  # c0-cf
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,  # d0-df
+    10, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 3, 3,  # e0-ef
+    11, 6, 6, 6, 5, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,  # f0-ff
 )
 
+# Höhrmann's DFA has states 0,12,24,36,48,60,72,84,96 which we map to states 0-8
+# State 0=ACCEPT (START), State 1=REJECT (ERROR), States 2-8 are intermediate
 UTF8_ST = (
-    MachineState.ERROR,MachineState.START,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,     12,   10,#00-07
-         9,     11,     8,     7,     6,     5,     4,    3,#08-0f
-    MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,#10-17
-    MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,#18-1f
-    MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,#20-27
-    MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,#28-2f
-    MachineState.ERROR,MachineState.ERROR,     5,     5,     5,     5,MachineState.ERROR,MachineState.ERROR,#30-37
-    MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,#38-3f
-    MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,     5,     5,     5,MachineState.ERROR,MachineState.ERROR,#40-47
-    MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,#48-4f
-    MachineState.ERROR,MachineState.ERROR,     7,     7,     7,     7,MachineState.ERROR,MachineState.ERROR,#50-57
-    MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,#58-5f
-    MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,     7,     7,MachineState.ERROR,MachineState.ERROR,#60-67
-    MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,#68-6f
-    MachineState.ERROR,MachineState.ERROR,     9,     9,     9,     9,MachineState.ERROR,MachineState.ERROR,#70-77
-    MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,#78-7f
-    MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,     9,MachineState.ERROR,MachineState.ERROR,#80-87
-    MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,#88-8f
-    MachineState.ERROR,MachineState.ERROR,    12,    12,    12,    12,MachineState.ERROR,MachineState.ERROR,#90-97
-    MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,#98-9f
-    MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,    12,MachineState.ERROR,MachineState.ERROR,#a0-a7
-    MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,#a8-af
-    MachineState.ERROR,MachineState.ERROR,    12,    12,    12,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,#b0-b7
-    MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,#b8-bf
-    MachineState.ERROR,MachineState.ERROR,MachineState.START,MachineState.START,MachineState.START,MachineState.START,MachineState.ERROR,MachineState.ERROR,#c0-c7
-    MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR #c8-cf
+    MachineState.START,MachineState.ERROR,     3,     4,     6,     9,     8,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,     5,     7,  # state 0 (START)
+    MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,  # state 1 (ERROR)
+    MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,MachineState.ITS_ME,  # state 2 (ITS_ME)
+    MachineState.ERROR,MachineState.START,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.START,MachineState.ERROR,MachineState.START,MachineState.ERROR,MachineState.ERROR,  # state 3
+    MachineState.ERROR,     3,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,     3,MachineState.ERROR,     3,MachineState.ERROR,MachineState.ERROR,  # state 4
+    MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,     3,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,  # state 5
+    MachineState.ERROR,     3,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,     3,MachineState.ERROR,MachineState.ERROR,  # state 6
+    MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,     4,MachineState.ERROR,     4,MachineState.ERROR,MachineState.ERROR,  # state 7
+    MachineState.ERROR,     4,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,     4,MachineState.ERROR,     4,MachineState.ERROR,MachineState.ERROR,  # state 8
+    MachineState.ERROR,     4,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,MachineState.ERROR,  # state 9
 )
 # fmt: on
 
-UTF8_CHAR_LEN_TABLE = (0, 1, 0, 0, 0, 0, 2, 3, 3, 3, 4, 4, 5, 5, 6, 6)
+UTF8_CHAR_LEN_TABLE = (1, 1, 2, 3, 3, 4, 4, 1, 1, 1, 3, 4)
 
 UTF8_SM_MODEL: CodingStateMachineDict = {
     "class_table": UTF8_CLS,
-    "class_factor": 16,
+    "class_factor": 12,
     "state_table": UTF8_ST,
     "char_len_table": UTF8_CHAR_LEN_TABLE,
     "name": "UTF-8",

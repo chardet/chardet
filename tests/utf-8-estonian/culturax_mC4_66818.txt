@@ -1,0 +1,20 @@
+Lao inventuuri juhend - Autorsoft
+Home Juhendid Autoteeninduse programmi kasutamiseks Lao inventuuri juhend
+Inventuuri alustamine.
+Lao inventuuri avamiseks/alustamiseks vajuta lao sektsioonis nupule "Lao inventuurid".
+Järgnevast aknast kuvatakse kõik sisestatud inventuurid kui need on olemas. Uue inventuuri alustamiseks vajuta nupule "Alusta uut inventuuri" ja järgnevas aknas sisesta inventuuri alustamise kuupäev. Peale kuupäeva sisestamist vajuta nupule "Kindel".
+Selle peale hakkab programm koostama antud kuupäevale vastavat laoseisu inventuuri alustamiseks ja loetud kaupade võrdlemiseks laoseisuga. Kui arvutus saab valmis, kuvatakse teade "Laoseis arvutatud".
+Peale "OK" nupule vajutamist peaks inventuuride nimekirja ilmuma uus inventuur.
+Ava see ja sisesta lao number.
+Peale lao numbri valimist võib hakata loetud laotooteid sisestama. Selleks vajuta nupule "Alusta sisestamist". Avanevas aknas saad sisestada koguse (vaikimisi 1), koodi ja vajuta nupule "Sisesta".
+Kui kood on sisestatud õigesti, ilmub toode allpool olevasse nimekirja. Vale sisestuse peale ilmub veateade. Valesti sisestatud rea kustutamiseks klikka lahtris "Jnr" rea numbrile ja avanevast aknast on võimalus muuta loetud kauba kogust, hinda või kustutada rida.
+Inventuuri aruandeid on kolm. "Lugemata kaubad" kuvab kõik kaubad, mis on veel lugemata.
+"Leitud erisusi" kuvab nii lugemata kaubad kui need, mille kogus on laoseisus erinev inventuuri käigus loetud kogusest.
+"Inventuuri aruanne" kuvab ainult inventuuri käigus loetud kaubad.
+Inventuuri lõpetamine.
+Peale kõikide laokaupade sisestamist võib inventuuri lõpetada. Inventuuri lõpetamise käsk kannab kõigepealt laost lao väljamineku dokumendi abil välja/sisse kõik laotooted, et laoseis oleks kõigil 0. Seejärel koostatakse kõikide inventuuri käigus loetud toodete alusel uus lao sissetulek Inventuuri dokumendina. Peale selle sissetuleku dokumendi kinnitamist on laoseisus ainult loetud tooted.
+Inventuuri lõpetamiseks vajuta inventuuri lehelt nupule "Lõpeta inventuur".
+Seejärel sisesta lõpetamise kuupäev.
+Seejärel toimub mõni aeg laodokumentide koostamine ja avaneb inventuuri alusel koostatud sissetulev laodokument.
+Peale nupule "Kinnita lao sissetulek" vajutamist loetakse kõik tooted laoseisu. Lisaks sellele pannakse programmi seadetesse kirja koostatud laodokumendi ID number ja kuupäev.
+Edaspidises laoseisu arvutamises võetakse aluseks ainult need laodokumendid, mis koostatakse peale märgitud ID numbrit ja inventuuri lõpetamise kuupäeva. See tähendab, et mineviku kuupäevaga sisestatud laodokumente enam lattu ei saa sisestada.

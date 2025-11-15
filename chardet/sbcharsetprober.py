@@ -25,7 +25,9 @@
 # <https://www.gnu.org/licenses/>.
 ######################### END LICENSE BLOCK #########################
 
-from typing import Dict, List, NamedTuple, Optional, Union
+import logging
+from collections.abc import Mapping
+from typing import NamedTuple, Optional, Union
 
 from .charsetprober import CharSetProber
 from .enums import CharacterCategory, ProbingState, SequenceLikelihood
@@ -34,16 +36,15 @@ from .enums import CharacterCategory, ProbingState, SequenceLikelihood
 class SingleByteCharSetModel(NamedTuple):
     charset_name: str
     language: str
-    char_to_order_map: Dict[int, int]
-    language_model: Dict[int, Dict[int, int]]
+    char_to_order_map: Mapping[int, Union[CharacterCategory, int]]
+    language_model: Mapping[int, Mapping[int, Union[SequenceLikelihood, int]]]
     typical_positive_ratio: float
     keep_ascii_letters: bool
     alphabet: str
 
 
 class SingleByteCharSetProber(CharSetProber):
-    SAMPLE_SIZE = 64
-    SB_ENOUGH_REL_THRESHOLD = 1024  # 0.25 * SAMPLE_SIZE^2
+    SB_ENOUGH_REL_THRESHOLD = 1024  #  0.25 * SAMPLE_SIZE^2 (SAMPLE_SIZE was 64)
     POSITIVE_SHORTCUT_THRESHOLD = 0.95
     NEGATIVE_SHORTCUT_THRESHOLD = 0.05
 
@@ -59,19 +60,20 @@ class SingleByteCharSetProber(CharSetProber):
         self._reversed = is_reversed
         # Optional auxiliary prober for name decision
         self._name_prober = name_prober
-        self._last_order = 255
-        self._seq_counters: List[int] = []
+        self._last_order = CharacterCategory.UNDEFINED
+        self._seq_counters: list[int] = []
         self._total_seqs = 0
         self._total_char = 0
         self._control_char = 0
         self._freq_char = 0
+        self.logger = logging.getLogger(__name__)
         self.reset()
 
     def reset(self) -> None:
         super().reset()
         # char order of last character
-        self._last_order = 255
-        self._seq_counters = [0] * SequenceLikelihood.get_num_categories()
+        self._last_order = CharacterCategory.UNDEFINED
+        self._seq_counters = [0] * len(SequenceLikelihood)
         self._total_seqs = 0
         self._total_char = 0
         self._control_char = 0
@@ -91,7 +93,6 @@ class SingleByteCharSetProber(CharSetProber):
         return self._model.language
 
     def feed(self, byte_str: Union[bytes, bytearray]) -> ProbingState:
-        # TODO: Make filter_international_words keep things in self.alphabet
         if not self._model.keep_ascii_letters:
             byte_str = self.filter_international_words(byte_str)
         else:
@@ -101,17 +102,23 @@ class SingleByteCharSetProber(CharSetProber):
         char_to_order_map = self._model.char_to_order_map
         language_model = self._model.language_model
         for char in byte_str:
-            order = char_to_order_map.get(char, CharacterCategory.UNDEFINED)
-            # XXX: This was SYMBOL_CAT_ORDER before, with a value of 250, but
-            #      CharacterCategory.SYMBOL is actually 253, so we use CONTROL
-            #      to make it closer to the original intent. The only difference
-            #      is whether or not we count digits and control characters for
-            #      _total_char purposes.
-            if order < CharacterCategory.CONTROL:
+            order = char_to_order_map[char]
+            if order < CharacterCategory.DIGIT:
                 self._total_char += 1
-            if order < self.SAMPLE_SIZE:
+            elif order == CharacterCategory.UNDEFINED:
+                # If we find a character that is undefined in the mapping,
+                # this cannot be the right charset
+                self._state = ProbingState.NOT_ME
+                self._last_order = order
+                break
+            # TODO: Follow uchardet's lead and discount confidence for frequent
+            #       control characters.
+            #       See https://github.com/BYVoid/uchardet/commit/55b4f23971db61
+            elif order == CharacterCategory.CONTROL:
+                self._control_char += 1
+            if 0 < order < CharacterCategory.DIGIT:
                 self._freq_char += 1
-                if self._last_order < self.SAMPLE_SIZE:
+                if 0 < self._last_order < CharacterCategory.DIGIT:
                     self._total_seqs += 1
                     if not self._reversed:
                         lm_cat = language_model[self._last_order][order]
@@ -137,25 +144,44 @@ class SingleByteCharSetProber(CharSetProber):
                         self.NEGATIVE_SHORTCUT_THRESHOLD,
                     )
                     self._state = ProbingState.NOT_ME
+            # Early termination: if we have enough data and very low confidence, give up
+            elif self._total_seqs > 512 and self._total_char > 1000:
+                confidence = self.get_confidence()
+                if confidence < 0.01:
+                    self.logger.debug(
+                        "%s confidence = %s, giving up early", charset_name, confidence
+                    )
+                    self._state = ProbingState.NOT_ME
 
         return self.state
 
     def get_confidence(self) -> float:
         r = 0.01
-        if self._total_seqs > 0:
+        if self._total_seqs > 0 and self._total_char > 0:
             r = (
-                (
-                    self._seq_counters[SequenceLikelihood.POSITIVE]
-                    + 0.25 * self._seq_counters[SequenceLikelihood.LIKELY]
-                )
+                self._seq_counters[SequenceLikelihood.POSITIVE]
                 / self._total_seqs
                 / self._model.typical_positive_ratio
             )
+            # Multiply by ratio of positive sequences per character.
+            # This helps distinguish close winners by penalizing models
+            # that have very few positive sequences relative to the
+            # number of characters. If you add a letter, you'd expect
+            # the positive sequence count to increase proportionally.
+            # If it doesn't, this new character may not have been a letter
+            # but a symbol, making the model less confident.
+            r *= (
+                self._seq_counters[SequenceLikelihood.POSITIVE]
+                + self._seq_counters[SequenceLikelihood.LIKELY] / 4
+            ) / self._total_char
             # The more control characters (proportionnaly to the size
             # of the text), the less confident we become in the current
             # charset.
-            r = r * (self._total_char - self._control_char) / self._total_char
-            r = r * self._freq_char / self._total_char
+            r *= (self._total_char - self._control_char) / self._total_char
+            # The more frequent characters (proportionnaly to the size
+            # of the text), the more confident we become in the current
+            # charset.
+            r *= self._freq_char / self._total_char
             if r >= 1.0:
                 r = 0.99
         return r

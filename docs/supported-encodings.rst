@@ -1,30 +1,76 @@
 Supported encodings
 ===================
 
-Universal Encoding Detector currently supports over two dozen character
+Universal Encoding Detector currently supports over seventy character
 encodings.
 
--  ``Big5``, ``GB2312``/``GB18030``, ``EUC-TW``, ``HZ-GB-2312``, and
-   ``ISO-2022-CN`` (Traditional and Simplified Chinese)
--  ``EUC-JP``, ``SHIFT_JIS``, and ``ISO-2022-JP`` (Japanese)
--  ``EUC-KR`` and ``ISO-2022-KR`` (Korean)
--  ``KOI8-R``, ``MacCyrillic``, ``IBM855``, ``IBM866``, ``ISO-8859-5``,
-   and ``windows-1251`` (Russian)
--  ``ISO-8859-2`` and ``windows-1250`` (Hungarian)
--  ``ISO-8859-5`` and ``windows-1251`` (Bulgarian)
--  ``ISO-8859-1`` and ``windows-1252`` (Western European languages)
--  ``ISO-8859-7`` and ``windows-1253`` (Greek)
--  ``ISO-8859-8`` and ``windows-1255`` (Visual and Logical Hebrew)
--  ``TIS-620`` (Thai)
--  ``UTF-32`` BE, LE, 3412-ordered, or 2143-ordered (with a BOM)
--  ``UTF-16`` BE or LE (with a BOM)
--  ``UTF-8`` (with or without a BOM)
--  ASCII
-
-.. warning::
-
-    Due to inherent similarities between certain encodings, some encodings may
-    be detected incorrectly. In my tests, the most problematic case was
-    Hungarian text encoded as ``ISO-8859-2`` or ``windows-1250`` (encoded as
-    one but reported as the other). Also, Greek text encoded as ``ISO-8859-7``
-    was often mis-reported as ``ISO-8859-2``. Your mileage may vary.
+ - ``ASCII``
+ - ``Big5`` (Traditional Chinese)
+ - ``CP037``
+ - ``CP424``
+ - ``CP437``
+ - ``CP500``
+ - ``CP720`` (Arabic)
+ - ``CP737`` (Greek)
+ - ``CP775`` (Estonian, Latvian, Lithuanian)
+ - ``CP850`` (Dutch, English, Finnish, French, German, Italian, Portuguese, Spanish)
+ - ``CP852`` (Croatian, Czech, Hungarian, Polish, Romanian, Slovak, Slovene)
+ - ``CP855``/``IBM855`` (Bulgarian, Macedonian, Russian, Serbian)
+ - ``CP856``/``IBM856`` (Hebrew)
+ - ``CP857`` (Turkish)
+ - ``CP858`` (Dutch, English, Finnish, French, German, Italian, Portuguese, Spanish)
+ - ``CP860`` (Portuguese)
+ - ``CP861`` (Icelandic)
+ - ``CP862`` (Hebrew)
+ - ``CP863`` (French)
+ - ``CP864`` (Arabic)
+ - ``CP865`` (Nordic)
+ - ``CP866``/``IBM866`` (Belarusian, Russian)
+ - ``CP874`` (Thai)
+ - ``CP875`` (Greek)
+ - ``CP932`` (Japanese)
+ - ``CP949`` (Korean)
+ - ``EUC-JP`` (Japanese)
+ - ``EUC-KR`` (Korean)
+ - ``GB18030`` (Unified Chinese)
+ - ``HZ-GB-2312`` (Simplified Chinese)
+ - ``ISO-2022-JP`` (Japanese)
+ - ``ISO-2022-KR`` (Korean)
+ - ``ISO-8859-1`` (Dutch, English, Finnish, French, German, Italian, Portuguese, Spanish)
+ - ``ISO-8859-2`` (Croatian, Czech, Hungarian, Polish, Romanian, Slovak, Slovene)
+ - ``ISO-8859-3`` (Esperanto)
+ - ``ISO-8859-4`` (Estonian, Latvian, Lithuanian)
+ - ``ISO-8859-5`` (Belarusian, Bulgarian, Macedonian, Russian, Serbian)
+ - ``ISO-8859-6`` (Arabic)
+ - ``ISO-8859-7`` (Greek)
+ - ``ISO-8859-8`` (Visual and Logical Hebrew)
+ - ``ISO-8859-9`` (Turkish)
+ - ``ISO-8859-11`` (Thai)
+ - ``ISO-8859-13`` (Estonian, Latvian, Lithuanian)
+ - ``ISO-8859-15`` (Danish, Finnish, French, Italian, Portuguese, Spanish)
+ - ``Johab`` (Korean)
+ - ``KOI8-R`` (Russian)
+ - ``KOI8-U`` (Ukrainian)
+ - ``KOI8-T`` (Turkish)
+ - ``KZ1048`` (Kazakh)
+ - ``MacCyrillic`` (Belarusian, Macedonian, Russian, Serbian)
+ - ``MacGreek`` (Greek)
+ - ``MacIceland`` (Icelandic)
+ - ``MacLatin2`` (Croatian, Czech, Hungarian, Polish, Romanian, Slovak, Slovene)
+ - ``MacRoman`` (Dutch, English, Finnish, French, German, Italian, Portuguese, Spanish)
+ - ``MacTurkish`` (Turkish)
+ - ``PTCP154`` (Kazakh)
+ - ``SHIFT_JIS`` (Japanese)
+ - ``TIS-620`` (Thai)
+ - ``UTF-8``
+ - ``UTF-16`` (3 variants)
+ - ``UTF-32`` (3 variants)
+ - ``Windows-1250`` (Croatian, Czech, Hungarian, Polish, Romanian, Slovak, Slovene)
+ - ``Windows-1251`` (Belarusian, Bulgarian, Macedonian, Russian, Serbian)
+ - ``Windows-1252`` (Dutch, English, Finnish, French, German, Italian, Portuguese, Spanish)
+ - ``Windows-1253`` (Greek)
+ - ``Windows-1254`` (Turkish)
+ - ``Windows-1255`` (Visual and Logical Hebrew)
+ - ``Windows-1256`` (Arabic)
+ - ``Windows-1257`` (Estonian, Latvian, Lithuanian)
+ - ``Windows-1258`` (Vietnamese)

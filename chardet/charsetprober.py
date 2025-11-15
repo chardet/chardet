@@ -32,7 +32,7 @@ from typing import Optional, Union
 from .enums import LanguageFilter, ProbingState
 
 INTERNATIONAL_WORDS_PATTERN = re.compile(
-    b"[a-zA-Z]*[\x80-\xff]+[a-zA-Z]*[^a-zA-Z\x80-\xff]?"
+    b"[\x80-\xff][a-zA-Z\x80-\xff]*[^a-zA-Z\x80-\xff]?"
 )
 
 
