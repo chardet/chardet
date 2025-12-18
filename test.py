@@ -342,7 +342,12 @@ def test_encoding_detection_all(file_name, encoding, file_era, encoding_era):
         except (LookupError, UnicodeDecodeError, TypeError):
             detected_unicode = ""
     if result:
-        encoding_match = (result["encoding"] or "").lower() == encoding
+        detected_encoding = (result["encoding"] or "").lower()
+        # Handle "none" encoding (binary files)
+        if encoding == "none":
+            encoding_match = detected_encoding == ""
+        else:
+            encoding_match = detected_encoding == encoding
     else:
         encoding_match = False
     # Only care about mismatches that would actually result in different
