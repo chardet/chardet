@@ -90,7 +90,7 @@ Detects
  - ``Windows-1258`` (Vietnamese)
 
 
-Requires Python 3.8+.
+Requires Python 3.10+.
 
 Installation
 ------------
