@@ -79,7 +79,7 @@ local_scheme = "no-local-version"
 reportTypedDictNotRequiredAccess = "none"
 
 [tool.pytest.ini_options]
-addopts = "-v -n auto --timeout=30 --timeout-method=thread"
+addopts = "-v -n auto --timeout=30"
 norecursedirs = "*"
 python_files = "test.py"
 timeout_func_only = true
