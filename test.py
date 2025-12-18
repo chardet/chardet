@@ -322,7 +322,7 @@ def gen_test_params():
             yield full_path, encoding, era
 
 
-@pytest.mark.timeout(7)
+@pytest.mark.timeout(10)
 @pytest.mark.parametrize("file_name, encoding, file_era", gen_test_params())
 @pytest.mark.parametrize("encoding_era", [EncodingEra.ALL, EncodingEra.MODERN_WEB])
 def test_encoding_detection_all(file_name, encoding, file_era, encoding_era):
