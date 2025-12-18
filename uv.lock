@@ -224,13 +224,29 @@ source = { editable = "." }
 
 [package.dev-dependencies]
 dev = [
+    { name = "datasets" },
     { name = "hypothesis" },
     { name = "pre-commit" },
     { name = "pytest" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
     { name = "ruff" },
+    { name = "sphinx" },
     { name = "sphinx-rtd-theme" },
+]
+docs = [
+    { name = "sphinx" },
+    { name = "sphinx-rtd-theme" },
+]
+lint = [
+    { name = "pre-commit" },
+    { name = "ruff" },
+]
+test = [
+    { name = "hypothesis" },
+    { name = "pytest" },
+    { name = "pytest-timeout" },
+    { name = "pytest-xdist" },
 ]
 train = [
     { name = "datasets" },
@@ -240,13 +256,29 @@ train = [
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "datasets", specifier = ">4.0.0,<5" },
     { name = "hypothesis", specifier = ">=6.0.0,<7" },
-    { name = "pre-commit", specifier = "~=3.5" },
+    { name = "pre-commit", specifier = ">3,<4" },
     { name = "pytest", specifier = ">=8.3.2,<9" },
     { name = "pytest-timeout", specifier = ">=2.2.0,<3" },
     { name = "pytest-xdist", specifier = ">=3.0.0,<4" },
     { name = "ruff", specifier = ">=0.13,<1.0" },
+    { name = "sphinx" },
     { name = "sphinx-rtd-theme", specifier = ">=1.0.0,<2" },
+]
+docs = [
+    { name = "sphinx" },
+    { name = "sphinx-rtd-theme", specifier = ">=1.0.0,<2" },
+]
+lint = [
+    { name = "pre-commit", specifier = ">3,<4" },
+    { name = "ruff", specifier = ">=0.13,<1.0" },
+]
+test = [
+    { name = "hypothesis", specifier = ">=6.0.0,<7" },
+    { name = "pytest", specifier = ">=8.3.2,<9" },
+    { name = "pytest-timeout", specifier = ">=2.2.0,<3" },
+    { name = "pytest-xdist", specifier = ">=3.0.0,<4" },
 ]
 train = [{ name = "datasets", specifier = ">4.0.0,<5" }]
 
