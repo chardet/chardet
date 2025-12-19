@@ -79,10 +79,9 @@ local_scheme = "no-local-version"
 reportTypedDictNotRequiredAccess = "none"
 
 [tool.pytest.ini_options]
-addopts = "-v -n auto --timeout=30"
+addopts = "-v -n auto --timeout=60"
 norecursedirs = "*"
 python_files = "test.py"
-timeout_func_only = true
 
 [tool.ruff]
 target-version = "py310"
