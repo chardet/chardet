@@ -330,6 +330,9 @@ def test_encoding_detection_all(file_name, encoding, file_era, encoding_era):
         pytest.skip("Skip files outside era")
     if Path(file_name).as_posix() in EXPECTED_FAILURES[encoding_era]:
         pytest.xfail("Expected failure for this encoding/file under this era")
+    # Skip large binary MP4 file on Windows due to pytest-xdist worker crash
+    if sys.platform == "win32" and file_name.endswith(".mp4"):
+        pytest.skip("Skipping large binary MP4 file on Windows to avoid worker crash")
     with open(file_name, "rb") as f:
         input_bytes = f.read()
         result = chardet.detect(input_bytes, encoding_era=encoding_era)
