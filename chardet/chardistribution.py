@@ -204,7 +204,7 @@ class SJISDistributionAnalysis(CharDistributionAnalysis):
     def get_order(self, byte_str: Union[bytes, bytearray]) -> int:  # type: ignore[reportIncompatibleMethodOverride]
         # for sjis encoding, we are interested
         #   first  byte range: 0x81 -- 0x9f , 0xe0 -- 0xfe
-        #   second byte range: 0x40 -- 0x7e,  0x81 -- oxfe
+        #   second byte range: 0x40 -- 0x7e,  0x80 -- 0xfc
         # no validation needed here. State machine has done that
         first_char, second_char = byte_str[0], byte_str[1]
         if 0x81 <= first_char <= 0x9F:
@@ -215,7 +215,7 @@ class SJISDistributionAnalysis(CharDistributionAnalysis):
             return -1
         order = order + second_char - 0x40
         if second_char > 0x7F:
-            order = -1
+            order -= 1  # account for the gap at 0x7F (not a valid SJIS trail byte)
         return order
 
 
