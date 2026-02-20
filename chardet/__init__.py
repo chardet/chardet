@@ -62,7 +62,9 @@ def detect(
         should_rename_legacy = encoding_era == EncodingEra.MODERN_WEB
 
     detector = UniversalDetector(
-        should_rename_legacy=should_rename_legacy, encoding_era=encoding_era
+        should_rename_legacy=should_rename_legacy,
+        encoding_era=encoding_era,
+        max_bytes=max_bytes,
     )
 
     # Process in chunks like uchardet does
@@ -116,7 +118,9 @@ def detect_all(
         should_rename_legacy = encoding_era == EncodingEra.MODERN_WEB
 
     detector = UniversalDetector(
-        should_rename_legacy=should_rename_legacy, encoding_era=encoding_era
+        should_rename_legacy=should_rename_legacy,
+        encoding_era=encoding_era,
+        max_bytes=max_bytes,
     )
 
     # Process in chunks like uchardet does
