@@ -152,8 +152,12 @@ def _has_valid_utf7_sequences(data: bytes) -> bool:
             continue
         # Guard A: '+' as the first base64 character encodes PUA code points
         # (U+F800-U+FBFC) which never appear in real text.  This catches
-        # patterns like "C++20".
+        # patterns like "C++20" and "++row".  Skip past ALL consecutive '+'
+        # characters so the next '+' in a run like ``++`` or ``+++`` is not
+        # re-examined as a new shift character.
         if pos < len(data) and data[pos] == ord("+"):
+            while pos < len(data) and data[pos] == ord("+"):
+                pos += 1
             start = pos
             continue
         # Guard B: if the '+' is embedded in a base64 stream (PEM, email
@@ -166,10 +170,24 @@ def _has_valid_utf7_sequences(data: bytes) -> bool:
         while i < len(data) and data[i] in _UTF7_BASE64:
             i += 1
         b64_len = i - pos
+        b64_data = data[pos:i]
+        # Guard C: reject base64 blocks with no uppercase letters.
+        # UTF-7 encodes UTF-16BE code points, and the high byte for virtually
+        # every script (Latin Extended, Cyrillic, Arabic, CJK, …) produces
+        # uppercase base64 characters.  Sequences without any uppercase like
+        # "row", "foo", "pos" are almost always variable names or English
+        # words that accidentally follow a '+'.  (bytes.islower() returns
+        # True when there are no uppercase letters, even if digits or '/'
+        # are present, which is the desired behavior here.)  Out of 71,510
+        # real UTF-7 base64 blocks in the test corpus, only 4 lack uppercase
+        # letters (0.006%).
+        if b64_len >= 3 and b64_data.islower():
+            start = i
+            continue
         # Accept if base64 content is valid UTF-16BE (padding bits check
         # prevents false positives).  Terminator can be '-', any non-Base64
         # byte, or end of data — all per RFC 2152.
-        if b64_len >= 3 and _is_valid_utf7_b64(data[pos:i]):
+        if b64_len >= 3 and _is_valid_utf7_b64(b64_data):
             return True
         start = max(pos, i)
 

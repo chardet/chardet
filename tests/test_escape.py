@@ -272,6 +272,44 @@ def test_utf7_b64_accepts_valid_surrogate_pair() -> None:
     assert _is_valid_utf7_b64(b"2ADcAA")
 
 
+def test_utf7_rejects_increment_operator() -> None:
+    """++row in C code must not trigger UTF-7 detection (regression #332).
+
+    The ``++`` prefix causes Guard A to skip the first ``+``, but the second
+    ``+`` starts a new candidate sequence with ``row`` as Base64.  ``row``
+    (3 chars) decodes to the valid code point U+AE8C, which previously
+    caused a false positive.
+    """
+    data = b"int f() {\n  int row = 0;\n  ++row;\n}"
+    result = detect_escape_encoding(data)
+    assert result is None
+
+
+def test_utf7_rejects_triple_plus_variable() -> None:
+    """+++i should not trigger UTF-7 — all consecutive pluses must be skipped."""
+    data = b"for (int i = 0; i < n; +++i) {}"
+    result = detect_escape_encoding(data)
+    assert result is None
+
+
+def test_utf7_rejects_double_plus_at_end() -> None:
+    """++ at end of data should not cause issues (Guard A boundary)."""
+    data = b"I love C++"
+    result = detect_escape_encoding(data)
+    assert result is None
+
+
+def test_utf7_rejects_all_lowercase_base64() -> None:
+    """All-lowercase base64 blocks like +foo are variable names, not UTF-7.
+
+    UTF-7 encodes UTF-16BE, so real base64 blocks almost always contain
+    uppercase letters or digits.
+    """
+    data = b"hello +foo world"
+    result = detect_escape_encoding(data)
+    assert result is None
+
+
 def test_utf7_rejects_sha1_git_hash() -> None:
     """SHA-1 git hash after '+' must not be detected as UTF-7 (regression #323).
 
