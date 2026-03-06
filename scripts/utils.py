@@ -77,10 +77,18 @@ def get_data_dir() -> Path:
 
 
 def find_chardet_so_files() -> list[Path]:
-    """Return any mypyc .so/.pyd files under the chardet package directory."""
-    import chardet
+    """Return any mypyc .so/.pyd files under the chardet package directory.
 
-    pkg_dir = Path(chardet.__file__).parent
+    Uses ``importlib.util.find_spec`` to locate the package directory without
+    triggering a full ``import chardet``, which would make subsequent import
+    timing measurements inaccurate.
+    """
+    import importlib.util
+
+    spec = importlib.util.find_spec("chardet")
+    if spec is None or spec.origin is None:
+        return []
+    pkg_dir = Path(spec.origin).parent
     return sorted(
         p for p in pkg_dir.rglob("*") if p.suffix in (".so", ".pyd") and p.is_file()
     )
