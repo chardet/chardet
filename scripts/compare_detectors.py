@@ -26,6 +26,7 @@ import subprocess
 import sys
 import tempfile
 from collections import defaultdict
+from dataclasses import dataclass
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -39,6 +40,21 @@ from chardet.equivalences import (
     is_correct,
     is_equivalent_detection,
 )
+
+# Per-file detection result: (expected_enc, expected_lang, path, detected_enc, detected_lang)
+_DetectionRow = tuple[str, str, str, str | None, str | None]
+
+
+@dataclass(slots=True)
+class _TimingResult:
+    """Aggregated timing data from a single or multi-run benchmark."""
+
+    results: list[_DetectionRow]
+    elapsed: float
+    file_times: list[float]
+    import_time: float
+    first_detect_time: float
+
 
 # ---------------------------------------------------------------------------
 # Cache infrastructure
@@ -394,13 +410,7 @@ def _run_timing_subprocess(
     detector_type: str = "chardet",
     encoding_era: str = "all",
     pure: bool = False,
-) -> tuple[
-    list[tuple[str, str, str, str | None, str | None]],
-    float,
-    list[float],
-    float,
-    float,
-]:
+) -> _TimingResult:
     """Run detection timing in an isolated subprocess via ``benchmark_time.py``.
 
     Parameters
@@ -418,13 +428,9 @@ def _run_timing_subprocess(
 
     Returns
     -------
-    tuple
-        ``(results, elapsed, file_times, import_time, first_detect_time)``
-        where *results* is a list of ``(expected_encoding, expected_language,
-        filepath_str, detected_encoding, detected_language)`` tuples,
-        *file_times* is a list of per-file durations in seconds,
-        *import_time* is the detector import time, and *first_detect_time*
-        is the time for the first ``detect()`` call (includes lazy init).
+    _TimingResult
+        Aggregated timing data including per-file results, elapsed time,
+        per-file durations, import time, and first-detect time.
 
     """
     benchmark_script = str(Path(__file__).resolve().parent / "benchmark_time.py")
@@ -447,9 +453,9 @@ def _run_timing_subprocess(
             f"  WARNING: subprocess detection failed:\n  {result.stderr.strip()}",
             file=sys.stderr,
         )
-        return [], 0.0, [], 0.0, 0.0
+        return _TimingResult([], 0.0, [], 0.0, 0.0)
 
-    results: list[tuple[str, str, str, str | None, str | None]] = []
+    results: list[_DetectionRow] = []
     file_times: list[float] = []
     timing = 0.0
     import_time = 0.0
@@ -473,7 +479,7 @@ def _run_timing_subprocess(
                 )
             )
             file_times.append(obj["elapsed"])
-    return results, timing, file_times, import_time, first_detect_time
+    return _TimingResult(results, timing, file_times, import_time, first_detect_time)
 
 
 # ---------------------------------------------------------------------------
@@ -489,13 +495,7 @@ def _run_timing_with_median(  # noqa: PLR0913
     encoding_era: str = "all",
     pure: bool = False,
     num_runs: int = 3,
-) -> tuple[
-    list[tuple[str, str, str, str | None, str | None]],
-    float,
-    list[float],
-    float,
-    float,
-]:
+) -> _TimingResult:
     """Run timing ``num_runs`` times and return median-aggregated results.
 
     Detection results (accuracy data) come from the first run.
@@ -506,27 +506,25 @@ def _run_timing_with_median(  # noqa: PLR0913
     all_import_times: list[float] = []
     all_first_detect_times: list[float] = []
     all_file_times: list[list[float]] = []
-    first_results: list[tuple[str, str, str, str | None, str | None]] = []
+    first_results: list[_DetectionRow] = []
 
     for i in range(num_runs):
-        results, elapsed, file_times, import_time, first_detect_time = (
-            _run_timing_subprocess(
-                python_executable,
-                data_dir,
-                detector_type=detector_type,
-                encoding_era=encoding_era,
-                pure=pure,
-            )
+        run = _run_timing_subprocess(
+            python_executable,
+            data_dir,
+            detector_type=detector_type,
+            encoding_era=encoding_era,
+            pure=pure,
         )
         if i == 0:
-            first_results = results
-        all_totals.append(elapsed)
-        all_import_times.append(import_time)
-        all_first_detect_times.append(first_detect_time)
-        all_file_times.append(file_times)
+            first_results = run.results
+        all_totals.append(run.elapsed)
+        all_import_times.append(run.import_time)
+        all_first_detect_times.append(run.first_detect_time)
+        all_file_times.append(run.file_times)
 
     if not all_totals:
-        return [], 0.0, [], 0.0, 0.0
+        return _TimingResult([], 0.0, [], 0.0, 0.0)
 
     median_total = statistics.median(all_totals)
     median_import = statistics.median(all_import_times)
@@ -542,7 +540,7 @@ def _run_timing_with_median(  # noqa: PLR0913
     else:
         median_file_times = []
 
-    return (
+    return _TimingResult(
         first_results,
         median_total,
         median_file_times,
@@ -734,14 +732,7 @@ def run_comparison(  # noqa: PLR0913
 
     def _run_timing_for_detector(
         label: str, detector_type: str, python_exe: str, era: str
-    ) -> tuple[
-        str,
-        list[tuple[str, str, str, str | None, str | None]],
-        float,
-        list[float],
-        float,
-        float,
-    ]:
+    ) -> tuple[str, _TimingResult]:
         version = detector_versions.get(label, "unknown")
         py_tag = python_tags.get(label, "unknown")
         b_tag = build_tags.get(label, "unknown")
@@ -754,13 +745,12 @@ def run_comparison(  # noqa: PLR0913
             cached = _load_cached(cache_dir, fname)
             if cached is not None:
                 print(f"  Using cached timing results for {label}")
-                return (
-                    label,
-                    [tuple(r) for r in cached["results"]],
-                    cached["total"],
-                    cached["file_times"],
-                    cached["import_time"],
-                    cached.get("first_detect_time", 0.0),
+                return label, _TimingResult(
+                    results=[tuple(r) for r in cached["results"]],
+                    elapsed=cached["total"],
+                    file_times=cached["file_times"],
+                    import_time=cached["import_time"],
+                    first_detect_time=cached.get("first_detect_time", 0.0),
                 )
 
         # Old chardet (major < 7) gets 1 run (too slow for 3x)
@@ -774,15 +764,13 @@ def run_comparison(  # noqa: PLR0913
 
         is_pure = pure and detector_type == "chardet"
         print(f"  Running {num_runs}x timing for {label} ...")
-        results, elapsed, file_times, import_time, first_detect_time = (
-            _run_timing_with_median(
-                python_exe,
-                data_dir_str,
-                detector_type=detector_type,
-                encoding_era=era,
-                pure=is_pure,
-                num_runs=num_runs,
-            )
+        timing = _run_timing_with_median(
+            python_exe,
+            data_dir_str,
+            detector_type=detector_type,
+            encoding_era=era,
+            pure=is_pure,
+            num_runs=num_runs,
         )
 
         # Save to cache
@@ -794,15 +782,15 @@ def run_comparison(  # noqa: PLR0913
                 cache_dir,
                 fname,
                 {
-                    "results": results,
-                    "total": elapsed,
-                    "file_times": file_times,
-                    "import_time": import_time,
-                    "first_detect_time": first_detect_time,
+                    "results": timing.results,
+                    "total": timing.elapsed,
+                    "file_times": timing.file_times,
+                    "import_time": timing.import_time,
+                    "first_detect_time": timing.first_detect_time,
                 },
             )
 
-        return label, results, elapsed, file_times, import_time, first_detect_time
+        return label, timing
 
     max_workers = max(1, (os.cpu_count() or 2) // 2)
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
@@ -813,14 +801,12 @@ def run_comparison(  # noqa: PLR0913
             for label, detector_type, python_exe, era in detectors
         }
         for future in concurrent.futures.as_completed(futures):
-            label, results, elapsed, file_times, import_time, first_detect_time = (
-                future.result()
-            )
-            stats[label]["time"] = elapsed
-            stats[label]["file_times"] = file_times
-            import_times[label] = import_time
-            first_detect_times[label] = first_detect_time
-            for expected, exp_lang, path_str, detected, det_lang in results:
+            label, timing = future.result()
+            stats[label]["time"] = timing.elapsed
+            stats[label]["file_times"] = timing.file_times
+            import_times[label] = timing.import_time
+            first_detect_times[label] = timing.first_detect_time
+            for expected, exp_lang, path_str, detected, det_lang in timing.results:
                 _record_result(
                     stats[label],
                     expected,
