@@ -29,25 +29,25 @@ def test_registry_utf8_is_modern_web():
 
 
 def test_registry_iso_8859_1_is_legacy_iso():
-    assert EncodingEra.LEGACY_ISO in REGISTRY["iso-8859-1"].era
+    assert EncodingEra.LEGACY_ISO in REGISTRY["ISO-8859-1"].era
 
 
 def test_registry_cp037_is_mainframe():
-    cp1140 = REGISTRY["cp1140"]
+    cp1140 = REGISTRY["CP1140"]
     assert EncodingEra.MAINFRAME in cp1140.era
     assert "cp037" in cp1140.aliases
 
 
 def test_registry_macroman_is_legacy_mac():
-    assert EncodingEra.LEGACY_MAC in REGISTRY["mac-roman"].era
+    assert EncodingEra.LEGACY_MAC in REGISTRY["MacRoman"].era
 
 
 def test_registry_cp437_is_dos():
-    assert EncodingEra.DOS in REGISTRY["cp437"].era
+    assert EncodingEra.DOS in REGISTRY["CP437"].era
 
 
 def test_registry_kz1048_is_legacy_regional():
-    assert EncodingEra.LEGACY_REGIONAL in REGISTRY["kz-1048"].era
+    assert EncodingEra.LEGACY_REGIONAL in REGISTRY["KZ-1048"].era
 
 
 def test_get_candidates_filters_by_era():
@@ -65,23 +65,23 @@ def test_get_candidates_combined_eras():
     combined = get_candidates(EncodingEra.MODERN_WEB | EncodingEra.LEGACY_ISO)
     names = {e.name for e in combined}
     assert "utf-8" in names
-    assert "iso-8859-1" in names
+    assert "ISO-8859-1" in names
 
 
 def test_multibyte_encodings_flagged():
-    assert REGISTRY["shift_jis_2004"].is_multibyte is True
-    assert REGISTRY["iso-8859-1"].is_multibyte is False
+    assert REGISTRY["Shift_JIS_2004"].is_multibyte is True
+    assert REGISTRY["ISO-8859-1"].is_multibyte is False
 
 
 def test_registry_cp273_is_mainframe():
-    cp273 = REGISTRY["cp273"]
+    cp273 = REGISTRY["CP273"]
     assert EncodingEra.MAINFRAME in cp273.era
     assert cp273.is_multibyte is False
     assert cp273.python_codec == "cp273"
 
 
 def test_registry_hp_roman8_is_legacy_regional():
-    hp = REGISTRY["hp-roman8"]
+    hp = REGISTRY["HP-Roman8"]
     assert EncodingEra.LEGACY_REGIONAL in hp.era
     assert hp.is_multibyte is False
     assert hp.python_codec == "hp-roman8"
@@ -106,19 +106,19 @@ def test_languages_field_exists():
 
 def test_single_language_encodings():
     """Spot-check single-language encodings."""
-    assert REGISTRY["shift_jis_2004"].languages == ("ja",)
-    assert REGISTRY["euc-kr"].languages == ("ko",)
-    assert REGISTRY["gb18030"].languages == ("zh",)
-    assert REGISTRY["cp273"].languages == ("de",)
-    assert REGISTRY["koi8-r"].languages == ("ru",)
+    assert REGISTRY["Shift_JIS_2004"].languages == ("ja",)
+    assert REGISTRY["EUC-KR"].languages == ("ko",)
+    assert REGISTRY["GB18030"].languages == ("zh",)
+    assert REGISTRY["CP273"].languages == ("de",)
+    assert REGISTRY["KOI8-R"].languages == ("ru",)
 
 
 def test_multi_language_encodings():
     """Spot-check multi-language encodings."""
-    assert "en" in REGISTRY["windows-1252"].languages
-    assert "fr" in REGISTRY["windows-1252"].languages
-    assert "ru" in REGISTRY["windows-1251"].languages
-    assert "bg" in REGISTRY["windows-1251"].languages
+    assert "en" in REGISTRY["Windows-1252"].languages
+    assert "fr" in REGISTRY["Windows-1252"].languages
+    assert "ru" in REGISTRY["Windows-1251"].languages
+    assert "bg" in REGISTRY["Windows-1251"].languages
 
 
 def test_language_agnostic_encodings():
@@ -126,7 +126,7 @@ def test_language_agnostic_encodings():
     assert REGISTRY["ascii"].languages == ()
     assert REGISTRY["utf-8"].languages == ()
     assert REGISTRY["utf-7"].languages == ()
-    assert REGISTRY["utf-16"].languages == ()
+    assert REGISTRY["UTF-16"].languages == ()
 
 
 def test_utf7_in_registry():
@@ -141,7 +141,7 @@ def test_utf7_in_registry():
 
 def test_big5_family_uses_broadest_superset():
     """big5hkscs is the primary name; big5 is an alias."""
-    entry = REGISTRY["big5hkscs"]
+    entry = REGISTRY["Big5HKSCS"]
     assert entry.python_codec == "big5hkscs"
     assert "big5" in entry.aliases
     assert "big5-tw" in entry.aliases
@@ -156,7 +156,7 @@ def test_big5_family_uses_broadest_superset():
 
 def test_gb18030_has_subset_aliases():
     """gb18030 includes gb2312 and gbk as aliases."""
-    entry = REGISTRY["gb18030"]
+    entry = REGISTRY["GB18030"]
     assert "gb2312" in entry.aliases
     assert "gbk" in entry.aliases
     assert "gb-18030" in entry.aliases
@@ -167,7 +167,7 @@ def test_gb18030_has_subset_aliases():
 
 def test_euc_jp_family_uses_broadest_superset():
     """euc-jis-2004 is the primary name; euc-jp is an alias."""
-    entry = REGISTRY["euc-jis-2004"]
+    entry = REGISTRY["EUC-JIS-2004"]
     assert entry.python_codec == "euc_jis_2004"
     assert "euc-jp" in entry.aliases
     assert "eucjp" in entry.aliases
@@ -183,7 +183,7 @@ def test_euc_jp_family_uses_broadest_superset():
 
 def test_shift_jis_family_uses_broadest_superset():
     """shift_jis_2004 is the primary name; shift_jis is an alias."""
-    entry = REGISTRY["shift_jis_2004"]
+    entry = REGISTRY["Shift_JIS_2004"]
     assert entry.python_codec == "shift_jis_2004"
     assert "shift_jis" in entry.aliases
     assert "sjis" in entry.aliases
@@ -203,7 +203,7 @@ def test_iso2022_jp_split_into_branches():
     assert "iso-2022-jp" not in REGISTRY
 
     # iso2022-jp-2 is the multinational branch and gets the old alias
-    jp2 = REGISTRY["iso2022-jp-2"]
+    jp2 = REGISTRY["ISO-2022-JP-2"]
     assert "iso-2022-jp" in jp2.aliases
     assert "csiso2022jp" in jp2.aliases
     assert "iso2022-jp-1" in jp2.aliases
@@ -212,14 +212,14 @@ def test_iso2022_jp_split_into_branches():
     assert jp2.languages == ("ja",)
 
     # iso2022-jp-2004 is the modern Japanese branch
-    jp2004 = REGISTRY["iso2022-jp-2004"]
+    jp2004 = REGISTRY["ISO-2022-JP-2004"]
     assert "iso2022-jp-3" in jp2004.aliases
     assert jp2004.python_codec == "iso2022_jp_2004"
     assert jp2004.is_multibyte is True
     assert jp2004.languages == ("ja",)
 
     # iso2022-jp-ext is the katakana branch
-    jpext = REGISTRY["iso2022-jp-ext"]
+    jpext = REGISTRY["ISO-2022-JP-EXT"]
     assert jpext.aliases == ()
     assert jpext.python_codec == "iso2022_jp_ext"
     assert jpext.is_multibyte is True
@@ -231,14 +231,14 @@ def test_iso2022_jp_split_into_branches():
 
 def test_cp037_flipped_to_cp1140():
     """cp1140 is the primary name; cp037 is an alias (cp1140 = cp037 + euro sign)."""
-    assert "cp1140" in REGISTRY
-    entry = REGISTRY["cp1140"]
+    assert "CP1140" in REGISTRY
+    entry = REGISTRY["CP1140"]
     assert "cp037" in entry.aliases
     assert entry.python_codec == "cp1140"
     assert EncodingEra.MAINFRAME in entry.era
     # cp500 should still be its own entry (different EBCDIC variant)
-    assert "cp500" in REGISTRY
-    assert REGISTRY["cp500"].python_codec == "cp500"
+    assert "CP500" in REGISTRY
+    assert REGISTRY["CP500"].python_codec == "cp500"
 
 
 # === Task 6b: tis-620 gets iso-8859-11 alias ===
@@ -246,7 +246,7 @@ def test_cp037_flipped_to_cp1140():
 
 def test_tis620_has_iso8859_11_alias():
     """tis-620 includes iso-8859-11 as an alias."""
-    entry = REGISTRY["tis-620"]
+    entry = REGISTRY["TIS-620"]
     assert "iso-8859-11" in entry.aliases
     assert "tis620" in entry.aliases
 
@@ -267,22 +267,22 @@ def test_encoding_name_literal_matches_registry():
 
 def test_lookup_encoding_canonical():
     """lookup_encoding returns the canonical name for known encodings."""
-    assert lookup_encoding("windows-1252") == "windows-1252"
-    assert lookup_encoding("WINDOWS-1252") == "windows-1252"
-    assert lookup_encoding("Windows-1252") == "windows-1252"
+    assert lookup_encoding("windows-1252") == "Windows-1252"
+    assert lookup_encoding("WINDOWS-1252") == "Windows-1252"
+    assert lookup_encoding("Windows-1252") == "Windows-1252"
 
 
 def test_lookup_encoding_alias():
     """lookup_encoding resolves aliases to canonical names."""
     assert lookup_encoding("us-ascii") == "ascii"
     assert lookup_encoding("utf8") == "utf-8"
-    assert lookup_encoding("big5") == "big5hkscs"
-    assert lookup_encoding("gb2312") == "gb18030"
+    assert lookup_encoding("big5") == "Big5HKSCS"
+    assert lookup_encoding("gb2312") == "GB18030"
 
 
 def test_lookup_encoding_python_codec():
     """lookup_encoding resolves Python codec names to canonical names."""
-    assert lookup_encoding("cp1252") == "windows-1252"
+    assert lookup_encoding("cp1252") == "Windows-1252"
 
 
 def test_lookup_encoding_unknown():
