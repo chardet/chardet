@@ -42,7 +42,7 @@ _EMPTY_RESULT = DetectionResult(encoding="utf-8", confidence=0.10, language=None
 # windows-1252 is the most common single-byte encoding on the web and the
 # HTTP/1.1 default charset — used when no encoding can be determined.
 _FALLBACK_RESULT = DetectionResult(
-    encoding="windows-1252", confidence=0.10, language=None
+    encoding="Windows-1252", confidence=0.10, language=None
 )
 # Threshold at which a CJK structural score is confident enough to trigger
 # combined structural+statistical ranking rather than purely statistical.
@@ -55,9 +55,9 @@ _STRUCTURAL_CONFIDENCE_THRESHOLD = 0.85
 # (e.g. windows-1254).
 _COMMON_LATIN_ENCODINGS: frozenset[str] = frozenset(
     {
-        "iso-8859-1",
-        "iso-8859-15",
-        "windows-1252",
+        "ISO-8859-1",
+        "ISO-8859-15",
+        "Windows-1252",
     }
 )
 
@@ -171,9 +171,9 @@ _WINDOWS_1254_DISTINGUISHING: frozenset[int] = frozenset(
 # that encoding differs from iso-8859-1 (or windows-1252 in the case of
 # windows-1254).
 _DEMOTION_CANDIDATES: dict[str, frozenset[int]] = {
-    "iso-8859-10": _ISO_8859_10_DISTINGUISHING,
-    "iso-8859-14": _ISO_8859_14_DISTINGUISHING,
-    "windows-1254": _WINDOWS_1254_DISTINGUISHING,
+    "ISO-8859-10": _ISO_8859_10_DISTINGUISHING,
+    "ISO-8859-14": _ISO_8859_14_DISTINGUISHING,
+    "Windows-1254": _WINDOWS_1254_DISTINGUISHING,
 }
 
 # Bytes where KOI8-T maps to Tajik-specific Cyrillic letters but KOI8-R
@@ -370,12 +370,12 @@ def _promote_koi8t(
     box-drawing characters.  If any of these bytes appear, KOI8-T is the
     better match.
     """
-    if not results or results[0].encoding != "koi8-r":
+    if not results or results[0].encoding != "KOI8-R":
         return results
     # Check if KOI8-T is anywhere in the results
     koi8t_idx = None
     for i, r in enumerate(results):
-        if r.encoding == "koi8-t":
+        if r.encoding == "KOI8-T":
             koi8t_idx = i
             break
     if koi8t_idx is None:

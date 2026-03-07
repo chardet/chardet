@@ -16,35 +16,35 @@ def test_empty_input():
 def test_bom_detected():
     data = b"\xef\xbb\xbfHello"
     result = run_pipeline(data, EncodingEra.ALL)
-    assert result[0].encoding == "utf-8-sig"
+    assert result[0].encoding == "UTF-8-SIG"
     assert result[0].confidence == 1.0
 
 
 def test_bom_utf16_le():
     data = b"\xff\xfe" + "Hello world".encode("utf-16-le")
     result = run_pipeline(data, EncodingEra.ALL)
-    assert result[0].encoding == "utf-16-le"
+    assert result[0].encoding == "UTF-16-LE"
     assert result[0].confidence == 1.0
 
 
 def test_bom_utf16_be():
     data = b"\xfe\xff" + "Hello world".encode("utf-16-be")
     result = run_pipeline(data, EncodingEra.ALL)
-    assert result[0].encoding == "utf-16-be"
+    assert result[0].encoding == "UTF-16-BE"
     assert result[0].confidence == 1.0
 
 
 def test_bom_utf32_le():
     data = b"\xff\xfe\x00\x00" + "Hello world".encode("utf-32-le")
     result = run_pipeline(data, EncodingEra.ALL)
-    assert result[0].encoding == "utf-32-le"
+    assert result[0].encoding == "UTF-32-LE"
     assert result[0].confidence == 1.0
 
 
 def test_bom_utf32_be():
     data = b"\x00\x00\xfe\xff" + "Hello world".encode("utf-32-be")
     result = run_pipeline(data, EncodingEra.ALL)
-    assert result[0].encoding == "utf-32-be"
+    assert result[0].encoding == "UTF-32-BE"
     assert result[0].confidence == 1.0
 
 
@@ -52,7 +52,7 @@ def test_utf16_le_no_bom():
     """UTF-16-LE without a BOM should be detected via null-byte patterns."""
     data = "Hello world, this is a test of UTF-16 detection.".encode("utf-16-le")
     result = run_pipeline(data, EncodingEra.ALL)
-    assert result[0].encoding == "utf-16-le"
+    assert result[0].encoding == "UTF-16-LE"
     assert result[0].confidence == 0.95
 
 
@@ -60,7 +60,7 @@ def test_utf16_be_no_bom():
     """UTF-16-BE without a BOM should be detected via null-byte patterns."""
     data = "Hello world, this is a test of UTF-16 detection.".encode("utf-16-be")
     result = run_pipeline(data, EncodingEra.ALL)
-    assert result[0].encoding == "utf-16-be"
+    assert result[0].encoding == "UTF-16-BE"
     assert result[0].confidence == 0.95
 
 
@@ -68,7 +68,7 @@ def test_utf32_le_no_bom():
     """UTF-32-LE without a BOM should be detected via null-byte patterns."""
     data = "Hello world, this is a test.".encode("utf-32-le")
     result = run_pipeline(data, EncodingEra.ALL)
-    assert result[0].encoding == "utf-32-le"
+    assert result[0].encoding == "UTF-32-LE"
     assert result[0].confidence == 0.95
 
 
@@ -76,7 +76,7 @@ def test_utf32_be_no_bom():
     """UTF-32-BE without a BOM should be detected via null-byte patterns."""
     data = "Hello world, this is a test.".encode("utf-32-be")
     result = run_pipeline(data, EncodingEra.ALL)
-    assert result[0].encoding == "utf-32-be"
+    assert result[0].encoding == "UTF-32-BE"
     assert result[0].confidence == 0.95
 
 
@@ -103,7 +103,7 @@ def test_binary_content():
 def test_xml_charset_declaration():
     data = b'<?xml version="1.0" encoding="iso-8859-1"?><root>Hello</root>'
     result = run_pipeline(data, EncodingEra.ALL)
-    assert result[0].encoding == "iso-8859-1"
+    assert result[0].encoding == "ISO-8859-1"
 
 
 def test_max_bytes_truncation():
@@ -148,13 +148,13 @@ def test_demote_niche_latin():
     from chardet.pipeline.orchestrator import _demote_niche_latin
 
     results = [
-        DetectionResult("iso-8859-10", 0.90, None),
-        DetectionResult("windows-1252", 0.85, None),
+        DetectionResult("ISO-8859-10", 0.90, None),
+        DetectionResult("Windows-1252", 0.85, None),
     ]
     # Data with only bytes shared between iso-8859-10 and iso-8859-1
     data = bytes([0xE9, 0xF6, 0xFC])  # é ö ü in both encodings
     demoted = _demote_niche_latin(data, results)
-    assert demoted[0].encoding == "windows-1252"
+    assert demoted[0].encoding == "Windows-1252"
 
 
 def test_demote_niche_latin_no_demote_when_distinguishing():
@@ -162,13 +162,13 @@ def test_demote_niche_latin_no_demote_when_distinguishing():
     from chardet.pipeline.orchestrator import _demote_niche_latin
 
     results = [
-        DetectionResult("iso-8859-10", 0.90, None),
-        DetectionResult("windows-1252", 0.85, None),
+        DetectionResult("ISO-8859-10", 0.90, None),
+        DetectionResult("Windows-1252", 0.85, None),
     ]
     # 0xA1 differs between iso-8859-10 and iso-8859-1
     data = bytes([0xA1, 0xE9, 0xF6])
     demoted = _demote_niche_latin(data, results)
-    assert demoted[0].encoding == "iso-8859-10"
+    assert demoted[0].encoding == "ISO-8859-10"
 
 
 def test_promote_koi8t_with_tajik_bytes():
@@ -176,13 +176,13 @@ def test_promote_koi8t_with_tajik_bytes():
     from chardet.pipeline.orchestrator import _promote_koi8t
 
     results = [
-        DetectionResult("koi8-r", 0.90, "ru"),
-        DetectionResult("koi8-t", 0.88, "tg"),
+        DetectionResult("KOI8-R", 0.90, "ru"),
+        DetectionResult("KOI8-T", 0.88, "tg"),
     ]
     # 0x80 is a Tajik-specific byte in KOI8-T
     data = bytes([0x41, 0x80, 0x42])
     promoted = _promote_koi8t(data, results)
-    assert promoted[0].encoding == "koi8-t"
+    assert promoted[0].encoding == "KOI8-T"
 
 
 def test_promote_koi8t_no_promote_without_tajik_bytes():
@@ -190,20 +190,20 @@ def test_promote_koi8t_no_promote_without_tajik_bytes():
     from chardet.pipeline.orchestrator import _promote_koi8t
 
     results = [
-        DetectionResult("koi8-r", 0.90, "ru"),
-        DetectionResult("koi8-t", 0.88, "tg"),
+        DetectionResult("KOI8-R", 0.90, "ru"),
+        DetectionResult("KOI8-T", 0.88, "tg"),
     ]
     # Only Cyrillic-range bytes shared between KOI8-R and KOI8-T
     data = bytes([0xC0, 0xC1, 0xC2])
     promoted = _promote_koi8t(data, results)
-    assert promoted[0].encoding == "koi8-r"
+    assert promoted[0].encoding == "KOI8-R"
 
 
 def test_fill_language_produces_language():
     """_fill_language should fill in language for single-language encodings."""
     from chardet.pipeline.orchestrator import _fill_language
 
-    results = [DetectionResult("koi8-r", 0.90, None)]
+    results = [DetectionResult("KOI8-R", 0.90, None)]
     filled = _fill_language(b"test data", results)
     assert filled[0].language is not None
 
@@ -241,12 +241,12 @@ def test_demote_niche_latin_iso_8859_14():
     from chardet.pipeline.orchestrator import _demote_niche_latin
 
     results = [
-        DetectionResult("iso-8859-14", 0.90, None),
-        DetectionResult("windows-1252", 0.85, None),
+        DetectionResult("ISO-8859-14", 0.90, None),
+        DetectionResult("Windows-1252", 0.85, None),
     ]
     data = bytes([0xC0, 0xC1, 0xC2])
     demoted = _demote_niche_latin(data, results)
-    assert demoted[0].encoding == "windows-1252"
+    assert demoted[0].encoding == "Windows-1252"
 
 
 def test_demote_niche_latin_windows_1254():
@@ -254,12 +254,12 @@ def test_demote_niche_latin_windows_1254():
     from chardet.pipeline.orchestrator import _demote_niche_latin
 
     results = [
-        DetectionResult("windows-1254", 0.90, None),
-        DetectionResult("windows-1252", 0.85, None),
+        DetectionResult("Windows-1254", 0.90, None),
+        DetectionResult("Windows-1252", 0.85, None),
     ]
     data = bytes([0xC0, 0xC1, 0xE9])
     demoted = _demote_niche_latin(data, results)
-    assert demoted[0].encoding == "windows-1252"
+    assert demoted[0].encoding == "Windows-1252"
 
 
 def test_fallback_when_no_valid_candidates(monkeypatch: pytest.MonkeyPatch):
