@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import struct
+from collections.abc import Callable
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -203,127 +204,105 @@ def test_roundtrip_matches_load_models(tmp_path: Path) -> None:
     assert loaded == production_dicts
 
 
-def test_load_models_empty_file():
+@pytest.fixture
+def mock_models_bin():
+    """Clear the model cache and provide a helper to mock models.bin content.
+
+    Yields a callable ``set_data(raw_bytes)`` that configures the mock to
+    return *raw_bytes* from ``models.bin``.  The original ``_MODEL_CACHE``
+    is restored on teardown.
+    """
+    import chardet.models as mod
+
+    original = mod._MODEL_CACHE
+    mod._MODEL_CACHE = None
+    mock_ref = MagicMock()
+
+    def set_data(data: bytes) -> None:
+        mock_ref.read_bytes.return_value = data
+
+    with patch.object(
+        mod.importlib.resources,
+        "files",
+        return_value=MagicMock(joinpath=MagicMock(return_value=mock_ref)),
+    ):
+        yield set_data
+
+    mod._MODEL_CACHE = original
+
+
+def test_load_models_empty_file(mock_models_bin: Callable[[bytes], None]) -> None:
     """Empty models.bin should emit RuntimeWarning and return empty dict."""
-    import chardet.models as mod
-
-    original = mod._MODEL_CACHE
-    try:
-        mod._MODEL_CACHE = None
-        mock_ref = MagicMock()
-        mock_ref.read_bytes.return_value = b""
-        with (
-            patch.object(
-                mod.importlib.resources,
-                "files",
-                return_value=MagicMock(joinpath=MagicMock(return_value=mock_ref)),
-            ),
-            pytest.warns(RuntimeWarning, match="models.bin is empty"),
-        ):
-            result = mod.load_models()
-        assert result == {}
-    finally:
-        mod._MODEL_CACHE = original
+    mock_models_bin(b"")
+    with pytest.warns(RuntimeWarning, match="models.bin is empty"):
+        result = load_models()
+    assert result == {}
 
 
-def test_load_models_num_encodings_exceeds_limit():
+def test_load_models_num_encodings_exceeds_limit(
+    mock_models_bin: Callable[[bytes], None],
+) -> None:
     """num_encodings > 10000 should raise ValueError."""
-    import chardet.models as mod
-
-    original = mod._MODEL_CACHE
-    try:
-        mod._MODEL_CACHE = None
-        mock_ref = MagicMock()
-        mock_ref.read_bytes.return_value = struct.pack("!I", 10001)
-        with (
-            patch.object(
-                mod.importlib.resources,
-                "files",
-                return_value=MagicMock(joinpath=MagicMock(return_value=mock_ref)),
-            ),
-            pytest.raises(ValueError, match="num_encodings=10001 exceeds limit"),
-        ):
-            mod.load_models()
-    finally:
-        mod._MODEL_CACHE = original
+    mock_models_bin(struct.pack("!I", 10001))
+    with pytest.raises(ValueError, match="num_encodings=10001 exceeds limit"):
+        load_models()
 
 
-def test_load_models_name_len_exceeds_limit():
+def test_load_models_name_len_exceeds_limit(
+    mock_models_bin: Callable[[bytes], None],
+) -> None:
     """name_len > 256 should raise ValueError."""
-    import chardet.models as mod
-
-    original = mod._MODEL_CACHE
-    try:
-        mod._MODEL_CACHE = None
-        data = struct.pack("!I", 1)  # num_encodings=1
-        data += struct.pack("!I", 300)  # name_len=300
-        mock_ref = MagicMock()
-        mock_ref.read_bytes.return_value = data
-        with (
-            patch.object(
-                mod.importlib.resources,
-                "files",
-                return_value=MagicMock(joinpath=MagicMock(return_value=mock_ref)),
-            ),
-            pytest.raises(ValueError, match="name_len=300 exceeds 256"),
-        ):
-            mod.load_models()
-    finally:
-        mod._MODEL_CACHE = original
+    data = struct.pack("!I", 1)  # num_encodings=1
+    data += struct.pack("!I", 300)  # name_len=300
+    mock_models_bin(data)
+    with pytest.raises(ValueError, match="name_len=300 exceeds 256"):
+        load_models()
 
 
-def test_load_models_num_entries_exceeds_limit():
+def test_load_models_num_entries_exceeds_limit(
+    mock_models_bin: Callable[[bytes], None],
+) -> None:
     """num_entries > 65536 should raise ValueError."""
-    import chardet.models as mod
-
-    original = mod._MODEL_CACHE
-    try:
-        mod._MODEL_CACHE = None
-        name = b"test/enc"
-        data = struct.pack("!I", 1)  # num_encodings=1
-        data += struct.pack("!I", len(name)) + name  # name
-        data += struct.pack("!I", 70000)  # num_entries=70000
-        mock_ref = MagicMock()
-        mock_ref.read_bytes.return_value = data
-        with (
-            patch.object(
-                mod.importlib.resources,
-                "files",
-                return_value=MagicMock(joinpath=MagicMock(return_value=mock_ref)),
-            ),
-            pytest.raises(ValueError, match="num_entries=70000 exceeds 65536"),
-        ):
-            mod.load_models()
-    finally:
-        mod._MODEL_CACHE = original
+    name = b"test/enc"
+    data = struct.pack("!I", 1)  # num_encodings=1
+    data += struct.pack("!I", len(name)) + name  # name
+    data += struct.pack("!I", 70000)  # num_entries=70000
+    mock_models_bin(data)
+    with pytest.raises(ValueError, match="num_entries=70000 exceeds 65536"):
+        load_models()
 
 
-def test_load_models_truncated_data():
-    """Truncated model data should raise ValueError (struct.error wrapped)."""
-    import chardet.models as mod
+def test_load_models_truncated_data(mock_models_bin: Callable[[bytes], None]) -> None:
+    """Truncated model data should raise ValueError."""
+    name = b"test/enc"
+    data = struct.pack("!I", 1)  # num_encodings=1
+    data += struct.pack("!I", len(name)) + name  # name
+    data += struct.pack("!I", 2)  # num_entries=2
+    data += struct.pack("!BBB", 65, 66, 200)  # entry 1 (valid)
+    # entry 2 is missing — truncated
+    mock_models_bin(data)
+    with pytest.raises(ValueError, match=r"corrupt models\.bin"):
+        load_models()
 
-    original = mod._MODEL_CACHE
-    try:
-        mod._MODEL_CACHE = None
-        name = b"test/enc"
-        data = struct.pack("!I", 1)  # num_encodings=1
-        data += struct.pack("!I", len(name)) + name  # name
-        data += struct.pack("!I", 2)  # num_entries=2
-        data += struct.pack("!BBB", 65, 66, 200)  # entry 1 (valid)
-        # entry 2 is missing — truncated
-        mock_ref = MagicMock()
-        mock_ref.read_bytes.return_value = data
-        with (
-            patch.object(
-                mod.importlib.resources,
-                "files",
-                return_value=MagicMock(joinpath=MagicMock(return_value=mock_ref)),
-            ),
-            pytest.raises(ValueError, match=r"corrupt models\.bin"),
-        ):
-            mod.load_models()
-    finally:
-        mod._MODEL_CACHE = original
+
+def test_load_models_truncated_header(mock_models_bin: Callable[[bytes], None]) -> None:
+    """Data truncated mid-header should raise ValueError (struct.error wrapped)."""
+    # num_encodings=1 but no more data — struct.unpack_from will fail
+    mock_models_bin(struct.pack("!I", 1))
+    with pytest.raises(ValueError, match=r"corrupt models\.bin"):
+        load_models()
+
+
+def test_load_models_invalid_utf8_name(
+    mock_models_bin: Callable[[bytes], None],
+) -> None:
+    """Invalid UTF-8 in model name should raise ValueError (UnicodeDecodeError wrapped)."""
+    invalid_name = b"\xff\xfe"  # not valid UTF-8
+    data = struct.pack("!I", 1)  # num_encodings=1
+    data += struct.pack("!I", len(invalid_name)) + invalid_name  # name
+    mock_models_bin(data)
+    with pytest.raises(ValueError, match=r"corrupt models\.bin"):
+        load_models()
 
 
 def test_score_with_profile_fallback_norm():
