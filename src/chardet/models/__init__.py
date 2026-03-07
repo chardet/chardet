@@ -36,6 +36,63 @@ for _enc in REGISTRY.values():
             _SINGLE_LANG_MAP[_alias] = _enc.languages[0]
 
 
+def _parse_models_bin(
+    data: bytes,
+) -> tuple[dict[str, bytearray], dict[str, float]]:
+    """Parse the binary models.bin format into model tables and L2 norms.
+
+    :param data: Raw bytes of models.bin (must be non-empty).
+    :returns: A ``(models, norms)`` tuple.
+    :raises ValueError: If the data is corrupt or truncated.
+    """
+    models: dict[str, bytearray] = {}
+    norms: dict[str, float] = {}
+    _sqrt = math.sqrt
+    _unpack_u32 = _unpack_uint32
+    _iter_bbb = _iter_3bytes
+    try:
+        offset = 0
+        (num_encodings,) = _unpack_u32(data, offset)
+        offset += 4
+
+        if num_encodings > 10_000:
+            msg = f"corrupt models.bin: num_encodings={num_encodings} exceeds limit"
+            raise ValueError(msg)
+
+        for _ in range(num_encodings):
+            (name_len,) = _unpack_u32(data, offset)
+            offset += 4
+            if name_len > 256:
+                msg = f"corrupt models.bin: name_len={name_len} exceeds 256"
+                raise ValueError(msg)
+            name = data[offset : offset + name_len].decode("utf-8")
+            offset += name_len
+            (num_entries,) = _unpack_u32(data, offset)
+            offset += 4
+            if num_entries > 65536:
+                msg = f"corrupt models.bin: num_entries={num_entries} exceeds 65536"
+                raise ValueError(msg)
+
+            table = bytearray(65536)
+            sq_sum = 0
+            expected_bytes = num_entries * 3
+            chunk = data[offset : offset + expected_bytes]
+            if len(chunk) != expected_bytes:
+                msg = f"corrupt models.bin: truncated entry data for {name!r}"
+                raise ValueError(msg)
+            offset += expected_bytes
+            for b1, b2, weight in _iter_bbb(chunk):
+                table[(b1 << 8) | b2] = weight
+                sq_sum += weight * weight
+            models[name] = table
+            norms[name] = _sqrt(sq_sum)
+    except (struct.error, UnicodeDecodeError) as e:
+        msg = f"corrupt models.bin: {e}"
+        raise ValueError(msg) from e
+
+    return models, norms
+
+
 def load_models() -> dict[str, bytearray]:
     """Load all bigram models from the bundled models.bin file.
 
@@ -55,8 +112,6 @@ def load_models() -> dict[str, bytearray]:
         # No re-check: mypyc type-narrows _MODEL_CACHE to None after the
         # outer check, so a re-read here would hit a TypeError under mypyc.
         # Worst case two threads both build on first call (idempotent).
-        models: dict[str, bytearray] = {}
-        norms: dict[str, float] = {}
         ref = importlib.resources.files("chardet.models").joinpath("models.bin")
         data = ref.read_bytes()
 
@@ -67,49 +122,11 @@ def load_models() -> dict[str, bytearray]:
                 RuntimeWarning,
                 stacklevel=2,
             )
-            _MODEL_NORMS = norms
-            _MODEL_CACHE = models
-            return models
+            _MODEL_NORMS = {}
+            _MODEL_CACHE = {}
+            return _MODEL_CACHE
 
-        _sqrt = math.sqrt
-        _unpack_u32 = _unpack_uint32
-        _iter_bbb = _iter_3bytes
-        try:
-            offset = 0
-            (num_encodings,) = _unpack_u32(data, offset)
-            offset += 4
-
-            if num_encodings > 10_000:
-                msg = f"corrupt models.bin: num_encodings={num_encodings} exceeds limit"
-                raise ValueError(msg)
-
-            for _ in range(num_encodings):
-                (name_len,) = _unpack_u32(data, offset)
-                offset += 4
-                if name_len > 256:
-                    msg = f"corrupt models.bin: name_len={name_len} exceeds 256"
-                    raise ValueError(msg)
-                name = data[offset : offset + name_len].decode("utf-8")
-                offset += name_len
-                (num_entries,) = _unpack_u32(data, offset)
-                offset += 4
-                if num_entries > 65536:
-                    msg = f"corrupt models.bin: num_entries={num_entries} exceeds 65536"
-                    raise ValueError(msg)
-
-                table = bytearray(65536)
-                sq_sum = 0
-                chunk = data[offset : offset + num_entries * 3]
-                offset += num_entries * 3
-                for b1, b2, weight in _iter_bbb(chunk):
-                    table[(b1 << 8) | b2] = weight
-                    sq_sum += weight * weight
-                models[name] = table
-                norms[name] = _sqrt(sq_sum)
-        except (struct.error, UnicodeDecodeError) as e:
-            msg = f"corrupt models.bin: {e}"
-            raise ValueError(msg) from e
-
+        models, norms = _parse_models_bin(data)
         _MODEL_NORMS = norms
         _MODEL_CACHE = models
         return models
