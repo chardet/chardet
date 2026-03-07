@@ -918,12 +918,12 @@ def run_comparison(  # noqa: PLR0913
     print("STARTUP & MEMORY (isolated subprocesses)")
     print("=" * 100)
     print(
-        f"  {'':>{max_label}}  {'import time':>12}  {'1st detect':>12}  "
+        f"  {'':>{max_label}}  {'import (ms)':>12}  {'1st detect (ms)':>16}  "
         f"{'traced import':>14} {'traced peak':>14}  "
         f"{'RSS before':>12} {'RSS after':>12}"
     )
     print(
-        f"  {'-' * max_label}  {'-' * 12}  {'-' * 12}  "
+        f"  {'-' * max_label}  {'-' * 12}  {'-' * 16}  "
         f"{'-' * 14} {'-' * 14}  {'-' * 12} {'-' * 12}"
     )
     for label in detector_labels:
@@ -931,8 +931,8 @@ def run_comparison(  # noqa: PLR0913
         first_detect = first_detect_times.get(label, 0.0)
         print(
             f"  {label:<{max_label}} "
-            f"{import_times[label]:>11.3f}s  "
-            f"{first_detect:>11.3f}s  "
+            f"{import_times[label] * 1000:>11.1f}ms  "
+            f"{first_detect * 1000:>15.1f}ms  "
             f"{_format_bytes(sub['traced_import']):>14} "
             f"{_format_bytes(sub['traced_peak']):>14}  "
             f"{_format_bytes(sub['rss_before']):>12} "
