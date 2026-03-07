@@ -11,7 +11,7 @@ def test_utf8_text_valid_under_utf8():
     candidates = get_candidates(EncodingEra.ALL)
     valid = filter_by_validity(data, candidates)
     valid_names = {e.name for e in valid}
-    assert "utf-8" in valid_names
+    assert "UTF-8" in valid_names
 
 
 def test_latin1_text_invalid_under_strict_multibyte():
@@ -27,7 +27,7 @@ def test_shift_jis_text_valid_under_shift_jis():
     candidates = get_candidates(EncodingEra.ALL)
     valid = filter_by_validity(data, candidates)
     valid_names = {e.name for e in valid}
-    assert "Shift_JIS_2004" in valid_names
+    assert "Shift-JIS-2004" in valid_names
 
 
 def test_eliminates_impossible_encodings():

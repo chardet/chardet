@@ -51,7 +51,7 @@ ENCODING_LANG_MAP: dict[str, list[str]] = {
 # utf-8 is language-agnostic but we train it on ALL languages for
 # language detection (Tier 3 fallback in the pipeline).
 _ALL_LANGS = sorted({lang for enc in REGISTRY.values() for lang in enc.languages})
-ENCODING_LANG_MAP["utf-8"] = _ALL_LANGS
+ENCODING_LANG_MAP["UTF-8"] = _ALL_LANGS
 
 # CulturaX dataset on Hugging Face
 CULTURAX_DATASET = "uonlp/CulturaX"

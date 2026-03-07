@@ -8,7 +8,7 @@ def test_valid_utf8_with_multibyte():
     data = "Héllo wörld café".encode()
     result = detect_utf8(data)
     assert result is not None
-    assert result.encoding == "utf-8"
+    assert result.encoding == "UTF-8"
     assert result.confidence >= 0.9
 
 
@@ -16,14 +16,14 @@ def test_valid_utf8_chinese():
     data = "你好世界".encode()
     result = detect_utf8(data)
     assert result is not None
-    assert result.encoding == "utf-8"
+    assert result.encoding == "UTF-8"
 
 
 def test_valid_utf8_emoji():
     data = "Hello 🌍🌎🌏".encode()
     result = detect_utf8(data)
     assert result is not None
-    assert result.encoding == "utf-8"
+    assert result.encoding == "UTF-8"
 
 
 def test_pure_ascii_returns_none():

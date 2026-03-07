@@ -10,7 +10,7 @@ from chardet.registry import REGISTRY, EncodingInfo, get_candidates, lookup_enco
 
 
 def test_encoding_info_is_frozen():
-    info = REGISTRY["ascii"]
+    info = REGISTRY["ASCII"]
     assert isinstance(info, EncodingInfo)
     with pytest.raises(AttributeError):
         info.name = "something"  # type: ignore[misc]
@@ -25,7 +25,7 @@ def test_registry_has_entries():
 
 
 def test_registry_utf8_is_modern_web():
-    assert EncodingEra.MODERN_WEB in REGISTRY["utf-8"].era
+    assert EncodingEra.MODERN_WEB in REGISTRY["UTF-8"].era
 
 
 def test_registry_iso_8859_1_is_legacy_iso():
@@ -39,7 +39,7 @@ def test_registry_cp037_is_mainframe():
 
 
 def test_registry_macroman_is_legacy_mac():
-    assert EncodingEra.LEGACY_MAC in REGISTRY["MacRoman"].era
+    assert EncodingEra.LEGACY_MAC in REGISTRY["Mac-Roman"].era
 
 
 def test_registry_cp437_is_dos():
@@ -64,12 +64,12 @@ def test_get_candidates_all_returns_everything():
 def test_get_candidates_combined_eras():
     combined = get_candidates(EncodingEra.MODERN_WEB | EncodingEra.LEGACY_ISO)
     names = {e.name for e in combined}
-    assert "utf-8" in names
+    assert "UTF-8" in names
     assert "ISO-8859-1" in names
 
 
 def test_multibyte_encodings_flagged():
-    assert REGISTRY["Shift_JIS_2004"].is_multibyte is True
+    assert REGISTRY["Shift-JIS-2004"].is_multibyte is True
     assert REGISTRY["ISO-8859-1"].is_multibyte is False
 
 
@@ -106,7 +106,7 @@ def test_languages_field_exists():
 
 def test_single_language_encodings():
     """Spot-check single-language encodings."""
-    assert REGISTRY["Shift_JIS_2004"].languages == ("ja",)
+    assert REGISTRY["Shift-JIS-2004"].languages == ("ja",)
     assert REGISTRY["EUC-KR"].languages == ("ko",)
     assert REGISTRY["GB18030"].languages == ("zh",)
     assert REGISTRY["CP273"].languages == ("de",)
@@ -123,17 +123,17 @@ def test_multi_language_encodings():
 
 def test_language_agnostic_encodings():
     """Unicode and ASCII encodings have empty languages tuple."""
-    assert REGISTRY["ascii"].languages == ()
-    assert REGISTRY["utf-8"].languages == ()
-    assert REGISTRY["utf-7"].languages == ()
+    assert REGISTRY["ASCII"].languages == ()
+    assert REGISTRY["UTF-8"].languages == ()
+    assert REGISTRY["UTF-7"].languages == ()
     assert REGISTRY["UTF-16"].languages == ()
 
 
 def test_utf7_in_registry():
     """utf-7 is in the registry as LEGACY_REGIONAL (disabled by browsers since ~2020)."""
-    assert "utf-7" in REGISTRY
-    assert EncodingEra.LEGACY_REGIONAL in REGISTRY["utf-7"].era
-    assert EncodingEra.MODERN_WEB not in REGISTRY["utf-7"].era
+    assert "UTF-7" in REGISTRY
+    assert EncodingEra.LEGACY_REGIONAL in REGISTRY["UTF-7"].era
+    assert EncodingEra.MODERN_WEB not in REGISTRY["UTF-7"].era
 
 
 # === Task 1: big5 -> big5hkscs ===
@@ -141,7 +141,7 @@ def test_utf7_in_registry():
 
 def test_big5_family_uses_broadest_superset():
     """big5hkscs is the primary name; big5 is an alias."""
-    entry = REGISTRY["Big5HKSCS"]
+    entry = REGISTRY["Big5-HKSCS"]
     assert entry.python_codec == "big5hkscs"
     assert "big5" in entry.aliases
     assert "big5-tw" in entry.aliases
@@ -183,7 +183,7 @@ def test_euc_jp_family_uses_broadest_superset():
 
 def test_shift_jis_family_uses_broadest_superset():
     """shift_jis_2004 is the primary name; shift_jis is an alias."""
-    entry = REGISTRY["Shift_JIS_2004"]
+    entry = REGISTRY["Shift-JIS-2004"]
     assert entry.python_codec == "shift_jis_2004"
     assert "shift_jis" in entry.aliases
     assert "sjis" in entry.aliases
@@ -274,9 +274,9 @@ def test_lookup_encoding_canonical():
 
 def test_lookup_encoding_alias():
     """lookup_encoding resolves aliases to canonical names."""
-    assert lookup_encoding("us-ascii") == "ascii"
-    assert lookup_encoding("utf8") == "utf-8"
-    assert lookup_encoding("big5") == "Big5HKSCS"
+    assert lookup_encoding("us-ascii") == "ASCII"
+    assert lookup_encoding("utf8") == "UTF-8"
+    assert lookup_encoding("big5") == "Big5-HKSCS"
     assert lookup_encoding("gb2312") == "GB18030"
 
 
@@ -290,8 +290,8 @@ def test_lookup_encoding_unknown():
     assert lookup_encoding("not-a-real-encoding") is None
 
 
-def test_lookup_encoding_lowercase_preserved():
-    """Encodings that stay lowercase keep their casing."""
-    assert lookup_encoding("ASCII") == "ascii"
-    assert lookup_encoding("UTF-8") == "utf-8"
-    assert lookup_encoding("UTF-7") == "utf-7"
+def test_lookup_encoding_uppercase_preserved():
+    """Encodings use uppercase canonical names."""
+    assert lookup_encoding("ASCII") == "ASCII"
+    assert lookup_encoding("UTF-8") == "UTF-8"
+    assert lookup_encoding("UTF-7") == "UTF-7"

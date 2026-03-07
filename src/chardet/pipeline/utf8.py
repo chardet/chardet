@@ -94,4 +94,4 @@ def detect_utf8(data: bytes) -> DetectionResult | None:
         _MAX_CONFIDENCE,
         _BASE_CONFIDENCE + confidence_range * min(mb_ratio * _MB_RATIO_SCALE, 1.0),
     )
-    return DetectionResult(encoding="utf-8", confidence=confidence, language=None)
+    return DetectionResult(encoding="UTF-8", confidence=confidence, language=None)

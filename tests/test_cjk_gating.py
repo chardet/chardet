@@ -13,12 +13,12 @@ from chardet.pipeline.orchestrator import run_pipeline
 _CJK_ENCODINGS = frozenset(
     {
         "GB18030",
-        "Big5HKSCS",
+        "Big5-HKSCS",
         "CP932",
         "CP949",
         "EUC-JIS-2004",
         "EUC-KR",
-        "Shift_JIS_2004",
+        "Shift-JIS-2004",
         "Johab",
         "HZ-GB-2312",
         "ISO-2022-JP-2",
@@ -45,7 +45,7 @@ def test_real_cjk_still_detected():
     """Real CJK text should still be detected as a CJK encoding."""
     data = "これはテストです。日本語のテキストです。".encode("shift_jis")
     result = run_pipeline(data, EncodingEra.ALL)
-    assert result[0].encoding in {"Shift_JIS_2004", "CP932"}
+    assert result[0].encoding in {"Shift-JIS-2004", "CP932"}
 
 
 def test_real_chinese_still_detected():

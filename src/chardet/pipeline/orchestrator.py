@@ -38,7 +38,7 @@ _BINARY_RESULT = DetectionResult(
 )
 # UTF-8 is the default encoding for empty input, matching web standards
 # (HTML5 default encoding is UTF-8).
-_EMPTY_RESULT = DetectionResult(encoding="utf-8", confidence=0.10, language=None)
+_EMPTY_RESULT = DetectionResult(encoding="UTF-8", confidence=0.10, language=None)
 # windows-1252 is the most common single-byte encoding on the web and the
 # HTTP/1.1 default charset — used when no encoding can be determined.
 _FALLBACK_RESULT = DetectionResult(
@@ -402,7 +402,7 @@ def _to_utf8(data: bytes, encoding: str) -> bytes | None:
     filtering for the detected encoding; any residual invalid bytes are
     irrelevant for language scoring.
     """
-    if encoding == "utf-8":
+    if encoding == "UTF-8":
         return data
     try:
         return data.decode(encoding, errors="ignore").encode(
@@ -434,13 +434,13 @@ def _fill_language(
                     profile = BigramProfile(data)
                 _, lang = score_best_language(data, result.encoding, profile=profile)
             # Tier 3: decode to UTF-8, score against UTF-8 language models
-            if lang is None and data and has_model_variants("utf-8"):
+            if lang is None and data and has_model_variants("UTF-8"):
                 utf8_data = _to_utf8(data, result.encoding)
                 if utf8_data:
-                    if utf8_profile is None or result.encoding != "utf-8":
+                    if utf8_profile is None or result.encoding != "UTF-8":
                         utf8_profile = BigramProfile(utf8_data)
                     _, lang = score_best_language(
-                        utf8_data, "utf-8", profile=utf8_profile
+                        utf8_data, "UTF-8", profile=utf8_profile
                     )
             if lang is not None:
                 filled.append(

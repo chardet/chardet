@@ -18,7 +18,7 @@ def _get_encoding(name: str):
 def test_shift_jis_scores_high_on_shift_jis_data():
     data = "こんにちは世界".encode("shift_jis")
     score = compute_structural_score(
-        data, _get_encoding("Shift_JIS_2004"), PipelineContext()
+        data, _get_encoding("Shift-JIS-2004"), PipelineContext()
     )
     assert score > 0.7
 
@@ -35,7 +35,7 @@ def test_shift_jis_scores_low_on_euc_jp_data():
     ctx = PipelineContext()
     data = "こんにちは世界".encode("euc-jp")
     euc_score = compute_structural_score(data, _get_encoding("EUC-JIS-2004"), ctx)
-    sjis_score = compute_structural_score(data, _get_encoding("Shift_JIS_2004"), ctx)
+    sjis_score = compute_structural_score(data, _get_encoding("Shift-JIS-2004"), ctx)
     assert euc_score > sjis_score
 
 
@@ -54,7 +54,7 @@ def test_gb18030_scores_high_on_chinese_data():
 def test_big5_scores_high_on_big5_data():
     data = "你好世界".encode("big5")
     score = compute_structural_score(
-        data, _get_encoding("Big5HKSCS"), PipelineContext()
+        data, _get_encoding("Big5-HKSCS"), PipelineContext()
     )
     assert score > 0.7
 
@@ -68,15 +68,15 @@ def test_single_byte_encoding_returns_zero():
 
 def test_empty_data_returns_zero():
     score = compute_structural_score(
-        b"", _get_encoding("Shift_JIS_2004"), PipelineContext()
+        b"", _get_encoding("Shift-JIS-2004"), PipelineContext()
     )
     assert score == 0.0
 
 
 def test_big5hkscs_scores_high_on_big5_data():
-    data = "你好世界測試資料".encode("Big5HKSCS")
+    data = "你好世界測試資料".encode("Big5-HKSCS")
     score = compute_structural_score(
-        data, _get_encoding("Big5HKSCS"), PipelineContext()
+        data, _get_encoding("Big5-HKSCS"), PipelineContext()
     )
     assert score > 0.7
 
@@ -90,9 +90,9 @@ def test_euc_jis_2004_scores_high_on_euc_jp_data():
 
 
 def test_shift_jis_2004_scores_high_on_shift_jis_data():
-    data = "こんにちは世界テスト".encode("Shift_JIS_2004")
+    data = "こんにちは世界テスト".encode("Shift-JIS-2004")
     score = compute_structural_score(
-        data, _get_encoding("Shift_JIS_2004"), PipelineContext()
+        data, _get_encoding("Shift-JIS-2004"), PipelineContext()
     )
     assert score > 0.7
 
@@ -127,7 +127,7 @@ def test_euc_jp_ss3_invalid_trail():
 def test_multibyte_byte_coverage_all_ascii():
     """All-ASCII data should return 0.0 coverage for a multibyte encoding."""
     data = b"Hello world plain ASCII"
-    enc = _get_encoding("Shift_JIS_2004")
+    enc = _get_encoding("Shift-JIS-2004")
     coverage = compute_multibyte_byte_coverage(
         data, enc, PipelineContext(), non_ascii_count=0
     )
@@ -137,7 +137,7 @@ def test_multibyte_byte_coverage_all_ascii():
 def test_lead_byte_diversity_empty_data():
     """Empty data should return 0 diversity."""
     diversity = compute_lead_byte_diversity(
-        b"", _get_encoding("Shift_JIS_2004"), PipelineContext()
+        b"", _get_encoding("Shift-JIS-2004"), PipelineContext()
     )
     assert diversity == 0
 

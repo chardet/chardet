@@ -47,14 +47,14 @@ def normalize_encoding_name(name: str) -> str:
 # chardet test-suite expected values use these names, so the superset
 # mapping is needed for accuracy evaluation only.
 SUPERSETS: dict[str, frozenset[str]] = {
-    "ascii": frozenset({"utf-8", "Windows-1252"}),
+    "ASCII": frozenset({"UTF-8", "Windows-1252"}),
     "TIS-620": frozenset({"ISO-8859-11", "CP874"}),
     "ISO-8859-11": frozenset({"CP874"}),
     "GB2312": frozenset({"GB18030"}),
     "GBK": frozenset({"GB18030"}),
-    "Big5": frozenset({"Big5HKSCS", "CP950"}),
-    "Shift_JIS": frozenset({"CP932", "Shift_JIS_2004"}),
-    "Shift-JISX0213": frozenset({"Shift_JIS_2004"}),
+    "Big5": frozenset({"Big5-HKSCS", "CP950"}),
+    "Shift_JIS": frozenset({"CP932", "Shift-JIS-2004"}),
+    "Shift-JISX0213": frozenset({"Shift-JIS-2004"}),
     "EUC-JP": frozenset({"EUC-JIS-2004"}),
     "EUC-JISX0213": frozenset({"EUC-JIS-2004"}),
     "EUC-KR": frozenset({"CP949"}),
@@ -80,7 +80,7 @@ SUPERSETS: dict[str, frozenset[str]] = {
 # etc. treat these ISO subsets as their Windows counterparts).
 # Values use display-cased names (e.g. "Windows-1252") to match chardet 6.x output.
 PREFERRED_SUPERSET: dict[str, str] = {
-    "ascii": "Windows-1252",
+    "ASCII": "Windows-1252",
     "EUC-KR": "CP949",
     "ISO-8859-1": "Windows-1252",
     "ISO-8859-2": "Windows-1250",

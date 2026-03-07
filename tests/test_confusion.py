@@ -62,11 +62,11 @@ def test_bigram_rescore_returns_valid_result():
 def test_resolve_confusion_groups_no_change_when_unrelated():
     """Unrelated encodings should not be reordered by confusion resolution."""
     results = [
-        DetectionResult(encoding="utf-8", confidence=0.95, language=None),
+        DetectionResult(encoding="UTF-8", confidence=0.95, language=None),
         DetectionResult(encoding="koi8-r", confidence=0.80, language="Russian"),
     ]
     resolved = resolve_confusion_groups(b"Hello world", results)
-    assert resolved[0].encoding == "utf-8"
+    assert resolved[0].encoding == "UTF-8"
 
 
 def test_resolve_confusion_groups_preserves_all_results():
@@ -130,7 +130,7 @@ def test_load_confusion_data_corrupt_file():
 
 def test_resolve_confusion_groups_single_result():
     """A single result should pass through unchanged."""
-    results = [DetectionResult(encoding="utf-8", confidence=0.95, language=None)]
+    results = [DetectionResult(encoding="UTF-8", confidence=0.95, language=None)]
     resolved = resolve_confusion_groups(b"Hello", results)
     assert resolved is results
 
@@ -154,7 +154,7 @@ def test_resolve_confusion_groups_none_encoding():
     """When top result has encoding=None (binary), skip confusion resolution."""
     results = [
         DetectionResult(encoding=None, confidence=0.95, language=None),
-        DetectionResult(encoding="utf-8", confidence=0.90, language=None),
+        DetectionResult(encoding="UTF-8", confidence=0.90, language=None),
     ]
     resolved = resolve_confusion_groups(b"Hello", results)
     assert resolved is results

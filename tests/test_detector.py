@@ -124,7 +124,7 @@ def test_reset_allows_new_detection():
     detector.reset()
     detector.feed("Héllo wörld café".encode())
     detector.close()
-    assert detector.result["encoding"] == "utf-8"
+    assert detector.result["encoding"] == "UTF-8"
 
 
 # -- Equivalence tests: UniversalDetector must match detect() --

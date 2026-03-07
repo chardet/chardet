@@ -7,16 +7,16 @@ from chardet.pipeline import DetectionResult, PipelineContext
 
 
 def test_detection_result_fields():
-    r = DetectionResult(encoding="utf-8", confidence=0.99, language="en")
-    assert r.encoding == "utf-8"
+    r = DetectionResult(encoding="UTF-8", confidence=0.99, language="en")
+    assert r.encoding == "UTF-8"
     assert r.confidence == 0.99
     assert r.language == "en"
 
 
 def test_detection_result_to_dict():
-    r = DetectionResult(encoding="utf-8", confidence=0.99, language=None)
+    r = DetectionResult(encoding="UTF-8", confidence=0.99, language=None)
     d = r.to_dict()
-    assert d == {"encoding": "utf-8", "confidence": 0.99, "language": None}
+    assert d == {"encoding": "UTF-8", "confidence": 0.99, "language": None}
 
 
 def test_detection_result_none():
@@ -27,9 +27,9 @@ def test_detection_result_none():
 def test_detection_result_is_frozen():
     import dataclasses
 
-    r = DetectionResult(encoding="utf-8", confidence=0.99, language=None)
+    r = DetectionResult(encoding="UTF-8", confidence=0.99, language=None)
     with pytest.raises(dataclasses.FrozenInstanceError):
-        r.encoding = "ascii"
+        r.encoding = "ASCII"
 
 
 def test_pipeline_context_defaults():

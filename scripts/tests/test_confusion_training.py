@@ -18,11 +18,11 @@ def test_compute_confusion_groups_finds_ebcdic():
     groups = compute_confusion_groups(threshold=0.80)
     cp1140_group = None
     for group in groups:
-        if "cp1140" in group:
+        if "CP1140" in group:
             cp1140_group = group
             break
-    assert cp1140_group is not None, "cp1140 should be in a confusion group"
-    assert "cp500" in cp1140_group, "cp500 should be in the same group as cp1140"
+    assert cp1140_group is not None, "CP1140 should be in a confusion group"
+    assert "CP500" in cp1140_group, "CP500 should be in the same group as CP1140"
 
 
 def test_compute_confusion_groups_finds_dos():
@@ -30,11 +30,11 @@ def test_compute_confusion_groups_finds_dos():
     groups = compute_confusion_groups(threshold=0.80)
     cp437_group = None
     for group in groups:
-        if "cp437" in group:
+        if "CP437" in group:
             cp437_group = group
             break
     assert cp437_group is not None
-    assert "cp865" in cp437_group
+    assert "CP865" in cp437_group
 
 
 def test_unrelated_encodings_not_grouped():
@@ -42,14 +42,14 @@ def test_unrelated_encodings_not_grouped():
     groups = compute_confusion_groups(threshold=0.80)
     for group in groups:
         # KOI8-R (Cyrillic) should never be grouped with cp437 (DOS Latin)
-        assert not ("koi8-r" in group and "cp437" in group)
+        assert not ("KOI8-R" in group and "CP437" in group)
 
 
 def test_distinguishing_map_cp1140_cp500():
     """cp1140 and cp500 should have exactly 8 distinguishing bytes."""
     maps = compute_distinguishing_maps(threshold=0.80)
     pair_key = (
-        ("cp1140", "cp500") if ("cp1140", "cp500") in maps else ("cp500", "cp1140")
+        ("CP1140", "CP500") if ("CP1140", "CP500") in maps else ("CP500", "CP1140")
     )
     assert pair_key in maps
     diff_bytes, _categories = maps[pair_key]

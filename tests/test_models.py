@@ -19,9 +19,9 @@ from chardet.models import (
 def test_enc_index_resolves_aliases() -> None:
     index = get_enc_index()
     # Models keyed by old names should be accessible under new primary names
-    assert "Big5HKSCS" in index
+    assert "Big5-HKSCS" in index
     assert "EUC-JIS-2004" in index
-    assert "Shift_JIS_2004" in index
+    assert "Shift-JIS-2004" in index
     assert "CP1140" in index
 
 

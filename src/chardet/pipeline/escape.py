@@ -250,7 +250,7 @@ def detect_escape_encoding(data: bytes) -> DetectionResult | None:
     # Data with any byte > 0x7F cannot be UTF-7.
     if has_plus and max(data) < 0x80 and _has_valid_utf7_sequences(data):
         return DetectionResult(
-            encoding="utf-7",
+            encoding="UTF-7",
             confidence=DETERMINISTIC_CONFIDENCE,
             language=None,
         )

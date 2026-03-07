@@ -94,15 +94,15 @@ def test_is_correct_superset_reversed():
 
 
 def test_apply_legacy_rename_ascii():
-    d = {"encoding": "ascii", "confidence": 1.0, "language": None}
+    d = {"encoding": "ASCII", "confidence": 1.0, "language": None}
     apply_legacy_rename(d)
     assert d["encoding"] == "Windows-1252"
 
 
 def test_apply_legacy_rename_no_match():
-    d = {"encoding": "utf-8", "confidence": 1.0, "language": None}
+    d = {"encoding": "UTF-8", "confidence": 1.0, "language": None}
     apply_legacy_rename(d)
-    assert d["encoding"] == "utf-8"
+    assert d["encoding"] == "UTF-8"
 
 
 def test_apply_legacy_rename_none():

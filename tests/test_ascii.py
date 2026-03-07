@@ -6,12 +6,12 @@ from chardet.pipeline.ascii import detect_ascii
 
 def test_pure_ascii():
     result = detect_ascii(b"Hello, world! 123")
-    assert result == DetectionResult("ascii", 1.0, None)
+    assert result == DetectionResult("ASCII", 1.0, None)
 
 
 def test_ascii_with_common_whitespace():
     result = detect_ascii(b"Hello\n\tworld\r\n")
-    assert result == DetectionResult("ascii", 1.0, None)
+    assert result == DetectionResult("ASCII", 1.0, None)
 
 
 def test_high_byte_not_ascii():
@@ -31,13 +31,13 @@ def test_empty_input():
 
 def test_single_ascii_byte():
     result = detect_ascii(b"A")
-    assert result == DetectionResult("ascii", 1.0, None)
+    assert result == DetectionResult("ASCII", 1.0, None)
 
 
 def test_all_printable_ascii():
     data = bytes(range(0x20, 0x7F))
     result = detect_ascii(data)
-    assert result == DetectionResult("ascii", 1.0, None)
+    assert result == DetectionResult("ASCII", 1.0, None)
 
 
 def test_null_byte_not_ascii():

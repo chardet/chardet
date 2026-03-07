@@ -36,7 +36,7 @@ def test_score_candidates_empty_candidates():
 
 def test_score_candidates_small_set_no_pool():
     candidates = tuple(
-        e for e in get_candidates(EncodingEra.MODERN_WEB) if e.name == "utf-8"
+        e for e in get_candidates(EncodingEra.MODERN_WEB) if e.name == "UTF-8"
     )
     results = score_candidates(b"Hello", candidates)
     assert len(results) <= len(candidates)

@@ -10,7 +10,7 @@ from chardet.pipeline.orchestrator import run_pipeline
 
 def test_empty_input():
     result = run_pipeline(b"", EncodingEra.MODERN_WEB)
-    assert result == [DetectionResult("utf-8", 0.10, None)]
+    assert result == [DetectionResult("UTF-8", 0.10, None)]
 
 
 def test_bom_detected():
@@ -82,14 +82,14 @@ def test_utf32_be_no_bom():
 
 def test_pure_ascii():
     result = run_pipeline(b"Hello world 123", EncodingEra.ALL)
-    assert result[0].encoding == "ascii"
+    assert result[0].encoding == "ASCII"
     assert result[0].confidence == 1.0
 
 
 def test_utf8_multibyte():
     data = "Héllo wörld café".encode()
     result = run_pipeline(data, EncodingEra.ALL)
-    assert result[0].encoding == "utf-8"
+    assert result[0].encoding == "UTF-8"
     assert result[0].confidence >= 0.9
 
 
@@ -109,7 +109,7 @@ def test_xml_charset_declaration():
 def test_max_bytes_truncation():
     data = b"Hello" * 100_000
     result = run_pipeline(data, EncodingEra.ALL, max_bytes=100)
-    assert result[0].encoding == "ascii"
+    assert result[0].encoding == "ASCII"
     assert result[0].confidence == 1.0
 
 
@@ -232,7 +232,7 @@ def test_to_utf8_passthrough():
     from chardet.pipeline.orchestrator import _to_utf8
 
     data = b"Hello \xc3\xa9"
-    result = _to_utf8(data, "utf-8")
+    result = _to_utf8(data, "UTF-8")
     assert result is data
 
 

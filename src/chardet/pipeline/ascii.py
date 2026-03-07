@@ -20,4 +20,4 @@ def detect_ascii(data: bytes) -> DetectionResult | None:
         return None
     if data.translate(None, _ALLOWED_ASCII):
         return None  # Non-allowed bytes remain
-    return DetectionResult(encoding="ascii", confidence=1.0, language=None)
+    return DetectionResult(encoding="ASCII", confidence=1.0, language=None)

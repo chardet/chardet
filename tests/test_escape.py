@@ -89,7 +89,7 @@ def test_utf7_basic() -> None:
     data = "Hello, 世界".encode("utf-7")
     result = detect_escape_encoding(data)
     assert result is not None
-    assert result.encoding == "utf-7"
+    assert result.encoding == "UTF-7"
     assert result.confidence == 0.95
 
 
@@ -98,7 +98,7 @@ def test_utf7_shifted_sequence() -> None:
     data = b"Hello +AGkAbgB0AGUAbgBzAGU-"
     result = detect_escape_encoding(data)
     assert result is not None
-    assert result.encoding == "utf-7"
+    assert result.encoding == "UTF-7"
 
 
 def test_utf7_literal_plus() -> None:
@@ -178,7 +178,7 @@ def test_utf7_multi_paragraph_document() -> None:
     data = "".join(parts).encode("utf-7")
     result = detect_escape_encoding(data)
     assert result is not None
-    assert result.encoding == "utf-7"
+    assert result.encoding == "UTF-7"
 
 
 def test_utf7_mixed_ascii_and_shifted() -> None:
@@ -188,7 +188,7 @@ def test_utf7_mixed_ascii_and_shifted() -> None:
     data = text.encode("utf-7")
     result = detect_escape_encoding(data)
     assert result is not None
-    assert result.encoding == "utf-7"
+    assert result.encoding == "UTF-7"
 
 
 def test_utf7_consecutive_shifted_sequences() -> None:
@@ -197,7 +197,7 @@ def test_utf7_consecutive_shifted_sequences() -> None:
     data = text.encode("utf-7")
     result = detect_escape_encoding(data)
     assert result is not None
-    assert result.encoding == "utf-7"
+    assert result.encoding == "UTF-7"
 
 
 def test_iso2022_jp_base_returns_jp2() -> None:
@@ -343,4 +343,4 @@ def test_utf7_rejects_hex_hash_in_requirements_file() -> None:
         b"4bafdea31b1a83b6eff5dac6cedcff073cb984f6\n"
     )
     result = detect(data)
-    assert result["encoding"] != "utf-7"
+    assert result["encoding"] != "UTF-7"
