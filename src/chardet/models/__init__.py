@@ -13,6 +13,9 @@ import warnings
 
 from chardet.registry import REGISTRY
 
+_unpack_uint32 = struct.Struct(">I").unpack_from
+_iter_3bytes = struct.Struct(">BBB").iter_unpack
+
 #: Weight applied to non-ASCII bigrams during profile construction.
 #: Imported by pipeline/confusion.py for focused bigram re-scoring.
 NON_ASCII_BIGRAM_WEIGHT: int = 8
@@ -69,9 +72,11 @@ def load_models() -> dict[str, bytearray]:
             return models
 
         _sqrt = math.sqrt
+        _unpack_u32 = _unpack_uint32
+        _iter_bbb = _iter_3bytes
         try:
             offset = 0
-            (num_encodings,) = struct.unpack_from("!I", data, offset)
+            (num_encodings,) = _unpack_u32(data, offset)
             offset += 4
 
             if num_encodings > 10_000:
@@ -79,14 +84,14 @@ def load_models() -> dict[str, bytearray]:
                 raise ValueError(msg)
 
             for _ in range(num_encodings):
-                (name_len,) = struct.unpack_from("!I", data, offset)
+                (name_len,) = _unpack_u32(data, offset)
                 offset += 4
                 if name_len > 256:
                     msg = f"corrupt models.bin: name_len={name_len} exceeds 256"
                     raise ValueError(msg)
                 name = data[offset : offset + name_len].decode("utf-8")
                 offset += name_len
-                (num_entries,) = struct.unpack_from("!I", data, offset)
+                (num_entries,) = _unpack_u32(data, offset)
                 offset += 4
                 if num_entries > 65536:
                     msg = f"corrupt models.bin: num_entries={num_entries} exceeds 65536"
@@ -94,9 +99,9 @@ def load_models() -> dict[str, bytearray]:
 
                 table = bytearray(65536)
                 sq_sum = 0
-                for _ in range(num_entries):
-                    b1, b2, weight = struct.unpack_from("!BBB", data, offset)
-                    offset += 3
+                chunk = data[offset : offset + num_entries * 3]
+                offset += num_entries * 3
+                for b1, b2, weight in _iter_bbb(chunk):
                     table[(b1 << 8) | b2] = weight
                     sq_sum += weight * weight
                 models[name] = table
