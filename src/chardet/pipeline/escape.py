@@ -210,20 +210,20 @@ def detect_escape_encoding(data: bytes) -> DetectionResult | None:
         # JIS X 0213 designation -> modern Japanese branch
         if b"\x1b$(O" in data or b"\x1b$(P" in data:
             return DetectionResult(
-                encoding="iso2022-jp-2004",
+                encoding="ISO-2022-JP-2004",
                 confidence=DETERMINISTIC_CONFIDENCE,
                 language="ja",
             )
         # Half-width katakana SI/SO markers (0x0E / 0x0F)
         if b"\x0e" in data and b"\x0f" in data:
             return DetectionResult(
-                encoding="iso2022-jp-ext",
+                encoding="ISO-2022-JP-EXT",
                 confidence=DETERMINISTIC_CONFIDENCE,
                 language="ja",
             )
         # Multinational designations or base codes -> broadest multinational
         return DetectionResult(
-            encoding="iso2022-jp-2",
+            encoding="ISO-2022-JP-2",
             confidence=DETERMINISTIC_CONFIDENCE,
             language="ja",
         )
@@ -231,7 +231,7 @@ def detect_escape_encoding(data: bytes) -> DetectionResult | None:
     # ISO-2022-KR: ESC sequence for KS C 5601
     if has_esc and b"\x1b$)C" in data:
         return DetectionResult(
-            encoding="iso-2022-kr",
+            encoding="ISO-2022-KR",
             confidence=DETERMINISTIC_CONFIDENCE,
             language="ko",
         )
@@ -240,7 +240,7 @@ def detect_escape_encoding(data: bytes) -> DetectionResult | None:
     # Require valid GB2312 byte pairs (0x21-0x7E range) between ~{ and ~} markers.
     if has_tilde and b"~{" in data and b"~}" in data and _has_valid_hz_regions(data):
         return DetectionResult(
-            encoding="hz-gb-2312",
+            encoding="HZ-GB-2312",
             confidence=DETERMINISTIC_CONFIDENCE,
             language="zh",
         )

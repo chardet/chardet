@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-import codecs
 import re
 
 from chardet.pipeline import DETERMINISTIC_CONFIDENCE, DetectionResult
+from chardet.registry import lookup_encoding
 
 _SCAN_LIMIT = 4096
 
@@ -18,23 +18,6 @@ _HTML5_CHARSET_RE = re.compile(
 _HTML4_CONTENT_TYPE_RE = re.compile(
     rb"""<meta[^>]+content\s*=\s*['"][^'"]*charset=([^\s'">;]+)""", re.IGNORECASE
 )
-
-
-def _normalize_encoding(name: bytes) -> str | None:
-    """Validate encoding name via codecs and return the lowercased original name.
-
-    We use ``codecs.lookup()`` to verify the encoding is recognized by Python,
-    but return the original (lowercased) name rather than the codec's canonical
-    name so that common aliases like ``iso-8859-1`` and ``windows-1252`` are
-    preserved as-is.
-    """
-    try:
-        text = name.decode("ascii").strip().lower()
-        codecs.lookup(text)  # validate only
-    except (LookupError, UnicodeDecodeError, ValueError):
-        return None
-    else:
-        return text
 
 
 def detect_markup_charset(data: bytes) -> DetectionResult | None:
@@ -57,7 +40,11 @@ def detect_markup_charset(data: bytes) -> DetectionResult | None:
     for pattern in (_XML_ENCODING_RE, _HTML5_CHARSET_RE, _HTML4_CONTENT_TYPE_RE):
         match = pattern.search(head)
         if match:
-            encoding = _normalize_encoding(match.group(1))
+            try:
+                raw_name = match.group(1).decode("ascii").strip()
+            except (UnicodeDecodeError, ValueError):
+                continue
+            encoding = lookup_encoding(raw_name)
             if encoding is not None and _validate_bytes(data, encoding):
                 return DetectionResult(
                     encoding=encoding,

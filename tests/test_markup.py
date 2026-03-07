@@ -8,7 +8,7 @@ def test_xml_encoding_declaration():
     data = b'<?xml version="1.0" encoding="iso-8859-1"?><root/>'
     result = detect_markup_charset(data)
     assert result is not None
-    assert result.encoding == "iso-8859-1"
+    assert result.encoding == "ISO-8859-1"
     assert result.confidence < 1.0
 
 
@@ -27,7 +27,7 @@ def test_html4_content_type():
     )
     result = detect_markup_charset(data)
     assert result is not None
-    assert result.encoding == "windows-1252"
+    assert result.encoding == "Windows-1252"
 
 
 def test_no_markup():
@@ -44,7 +44,7 @@ def test_xml_single_quotes():
     data = b"<?xml version='1.0' encoding='shift_jis'?><root/>"
     result = detect_markup_charset(data)
     assert result is not None
-    assert result.encoding == "shift_jis"
+    assert result.encoding == "Shift_JIS_2004"
 
 
 def test_case_insensitive_meta():
@@ -79,7 +79,7 @@ def test_valid_charset_declaration_accepted():
     data = b'<meta charset="shift_jis">' + "日本語テスト".encode("shift_jis")
     result = detect_markup_charset(data)
     assert result is not None
-    assert result.encoding == "shift_jis"
+    assert result.encoding == "Shift_JIS_2004"
 
 
 def test_charset_within_scan_limit_found():

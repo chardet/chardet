@@ -90,7 +90,7 @@ def _check_utf32(data: bytes) -> DetectionResult | None:
             text = data.decode("utf-32-be")
             if _looks_like_text(text):
                 return DetectionResult(
-                    encoding="utf-32-be",
+                    encoding="UTF-32-BE",
                     confidence=DETERMINISTIC_CONFIDENCE,
                     language=None,
                 )
@@ -107,7 +107,7 @@ def _check_utf32(data: bytes) -> DetectionResult | None:
             text = data.decode("utf-32-le")
             if _looks_like_text(text):
                 return DetectionResult(
-                    encoding="utf-32-le",
+                    encoding="UTF-32-LE",
                     confidence=DETERMINISTIC_CONFIDENCE,
                     language=None,
                 )
@@ -150,9 +150,9 @@ def _check_utf16(data: bytes) -> DetectionResult | None:
 
     candidates: list[tuple[str, float]] = []
     if le_frac >= _UTF16_MIN_NULL_FRACTION:
-        candidates.append(("utf-16-le", le_frac))
+        candidates.append(("UTF-16-LE", le_frac))
     if be_frac >= _UTF16_MIN_NULL_FRACTION:
-        candidates.append(("utf-16-be", be_frac))
+        candidates.append(("UTF-16-BE", be_frac))
 
     if not candidates:
         return None
