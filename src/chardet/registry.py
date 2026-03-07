@@ -2,11 +2,102 @@
 
 from __future__ import annotations
 
+import codecs
 import dataclasses
 import threading
 from types import MappingProxyType
+from typing import Literal
 
 from chardet.enums import EncodingEra
+
+EncodingName = Literal[
+    "ascii",
+    "big5hkscs",
+    "cp1006",
+    "cp1026",
+    "cp1125",
+    "cp1140",
+    "cp273",
+    "cp424",
+    "cp437",
+    "cp500",
+    "cp720",
+    "cp737",
+    "cp775",
+    "cp850",
+    "cp852",
+    "cp855",
+    "cp856",
+    "cp857",
+    "cp858",
+    "cp860",
+    "cp861",
+    "cp862",
+    "cp863",
+    "cp864",
+    "cp865",
+    "cp866",
+    "cp869",
+    "cp874",
+    "cp875",
+    "cp932",
+    "cp949",
+    "euc-jis-2004",
+    "euc-kr",
+    "gb18030",
+    "hp-roman8",
+    "hz-gb-2312",
+    "iso-2022-kr",
+    "iso-8859-1",
+    "iso-8859-10",
+    "iso-8859-13",
+    "iso-8859-14",
+    "iso-8859-15",
+    "iso-8859-16",
+    "iso-8859-2",
+    "iso-8859-3",
+    "iso-8859-4",
+    "iso-8859-5",
+    "iso-8859-6",
+    "iso-8859-7",
+    "iso-8859-8",
+    "iso-8859-9",
+    "iso2022-jp-2",
+    "iso2022-jp-2004",
+    "iso2022-jp-ext",
+    "johab",
+    "koi8-r",
+    "koi8-t",
+    "koi8-u",
+    "kz-1048",
+    "mac-cyrillic",
+    "mac-greek",
+    "mac-iceland",
+    "mac-latin2",
+    "mac-roman",
+    "mac-turkish",
+    "ptcp154",
+    "shift_jis_2004",
+    "tis-620",
+    "utf-16",
+    "utf-16-be",
+    "utf-16-le",
+    "utf-32",
+    "utf-32-be",
+    "utf-32-le",
+    "utf-7",
+    "utf-8",
+    "utf-8-sig",
+    "windows-1250",
+    "windows-1251",
+    "windows-1252",
+    "windows-1253",
+    "windows-1254",
+    "windows-1255",
+    "windows-1256",
+    "windows-1257",
+    "windows-1258",
+]
 
 # Shared language tuples — used by multiple EncodingInfo entries below.
 _WESTERN = (
@@ -776,3 +867,48 @@ _REGISTRY_ENTRIES = (
 REGISTRY: MappingProxyType[str, EncodingInfo] = MappingProxyType(
     {e.name: e for e in _REGISTRY_ENTRIES}
 )
+
+_LOOKUP_CACHE: dict[str, EncodingName] | None = None
+_LOOKUP_CACHE_LOCK = threading.Lock()
+
+
+def _build_lookup_cache() -> dict[str, EncodingName]:
+    """Build a case-insensitive lookup table from all known encoding names."""
+    cache: dict[str, EncodingName] = {}
+    for entry in REGISTRY.values():
+        cache[entry.name.lower()] = entry.name  # type: ignore[assignment]
+    for entry in REGISTRY.values():
+        for alias in entry.aliases:
+            cache.setdefault(alias.lower(), entry.name)  # type: ignore[assignment]
+    codec_to_name: dict[str, EncodingName] = {}
+    for entry in REGISTRY.values():
+        try:
+            codec_name = codecs.lookup(entry.python_codec).name
+            codec_to_name.setdefault(codec_name, entry.name)  # type: ignore[assignment]
+        except LookupError:
+            pass
+    cache.update({k: v for k, v in codec_to_name.items() if k not in cache})
+    return cache
+
+
+def lookup_encoding(name: str) -> EncodingName | None:
+    """Convert an encoding name string to the canonical EncodingName.
+
+    Handles arbitrary casing, aliases, and Python codec names.
+
+    :param name: Any encoding name string.
+    :returns: The canonical :data:`EncodingName`, or ``None`` if unknown.
+    """
+    global _LOOKUP_CACHE  # noqa: PLW0603
+    if _LOOKUP_CACHE is None:
+        with _LOOKUP_CACHE_LOCK:
+            if _LOOKUP_CACHE is None:
+                _LOOKUP_CACHE = _build_lookup_cache()
+    result = _LOOKUP_CACHE.get(name.lower())
+    if result is not None:
+        return result
+    try:
+        codec_name = codecs.lookup(name).name
+        return _LOOKUP_CACHE.get(codec_name)
+    except LookupError:
+        return None

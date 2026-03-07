@@ -6,7 +6,7 @@ from types import MappingProxyType
 import pytest
 
 from chardet.enums import EncodingEra
-from chardet.registry import REGISTRY, EncodingInfo, get_candidates
+from chardet.registry import REGISTRY, EncodingInfo, get_candidates, lookup_encoding
 
 
 def test_encoding_info_is_frozen():
@@ -249,3 +249,49 @@ def test_tis620_has_iso8859_11_alias():
     entry = REGISTRY["tis-620"]
     assert "iso-8859-11" in entry.aliases
     assert "tis620" in entry.aliases
+
+
+def test_encoding_name_literal_matches_registry():
+    """Every registry key must be a valid EncodingName literal value."""
+    from typing import get_args
+
+    from chardet.registry import EncodingName
+
+    literal_values = set(get_args(EncodingName))
+    registry_keys = set(REGISTRY.keys())
+    assert literal_values == registry_keys, (
+        f"Mismatch: in Literal not in REGISTRY: {literal_values - registry_keys}, "
+        f"in REGISTRY not in Literal: {registry_keys - literal_values}"
+    )
+
+
+def test_lookup_encoding_canonical():
+    """lookup_encoding returns the canonical name for known encodings."""
+    assert lookup_encoding("windows-1252") == "windows-1252"
+    assert lookup_encoding("WINDOWS-1252") == "windows-1252"
+    assert lookup_encoding("Windows-1252") == "windows-1252"
+
+
+def test_lookup_encoding_alias():
+    """lookup_encoding resolves aliases to canonical names."""
+    assert lookup_encoding("us-ascii") == "ascii"
+    assert lookup_encoding("utf8") == "utf-8"
+    assert lookup_encoding("big5") == "big5hkscs"
+    assert lookup_encoding("gb2312") == "gb18030"
+
+
+def test_lookup_encoding_python_codec():
+    """lookup_encoding resolves Python codec names to canonical names."""
+    assert lookup_encoding("cp1252") == "windows-1252"
+
+
+def test_lookup_encoding_unknown():
+    """lookup_encoding returns None for unknown encodings."""
+    assert lookup_encoding("not-a-real-encoding") is None
+
+
+def test_lookup_encoding_lowercase_preserved():
+    """Encodings that stay lowercase keep their casing."""
+    assert lookup_encoding("ASCII") == "ascii"
+    assert lookup_encoding("UTF-8") == "utf-8"
+    assert lookup_encoding("UTF-7") == "utf-7"
