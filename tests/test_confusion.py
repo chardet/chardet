@@ -63,7 +63,7 @@ def test_resolve_confusion_groups_no_change_when_unrelated():
     """Unrelated encodings should not be reordered by confusion resolution."""
     results = [
         DetectionResult(encoding="UTF-8", confidence=0.95, language=None),
-        DetectionResult(encoding="koi8-r", confidence=0.80, language="Russian"),
+        DetectionResult(encoding="KOI8-R", confidence=0.80, language="Russian"),
     ]
     resolved = resolve_confusion_groups(b"Hello world", results)
     assert resolved[0].encoding == "UTF-8"

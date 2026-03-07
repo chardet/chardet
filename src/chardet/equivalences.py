@@ -4,7 +4,7 @@ This module defines:
 
 1. **Directional supersets** for accuracy evaluation: detecting a superset
    encoding when the expected encoding is a subset is correct (e.g., detecting
-   utf-8 when expected is ascii), but not the reverse.
+   UTF-8 when expected is ASCII), but not the reverse.
 
 2. **Bidirectional equivalents**: groups of encodings where detecting any
    member when another member was expected is considered correct.  This
