@@ -21,7 +21,7 @@ from chardet.equivalences import (
     is_equivalent_detection,
     is_language_equivalent,
 )
-from chardet.registry import REGISTRY
+from chardet.registry import REGISTRY, lookup_encoding
 
 # ---------------------------------------------------------------------------
 # Known accuracy failures — marked xfail so they don't block CI but are
@@ -125,12 +125,9 @@ def _encoding_era(name: str | None) -> EncodingEra:
     """Look up the encoding era for a test-data encoding name."""
     if name is None:
         return EncodingEra.ALL
-    if name in REGISTRY:
-        return REGISTRY[name].era
-    lower = name.lower()
-    for info in REGISTRY.values():
-        if lower in (a.lower() for a in info.aliases):
-            return info.era
+    canonical = lookup_encoding(name)
+    if canonical is not None:
+        return REGISTRY[canonical].era
     return EncodingEra.ALL
 
 
