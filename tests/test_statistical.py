@@ -51,4 +51,4 @@ def test_correct_encoding_scores_highest():
     assert len(results) > 0
     # windows-1251 should be among the top results
     top_names = [r.encoding for r in results[:3]]
-    assert "windows-1251" in top_names
+    assert "Windows-1251" in top_names

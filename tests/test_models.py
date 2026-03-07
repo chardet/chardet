@@ -19,10 +19,10 @@ from chardet.models import (
 def test_enc_index_resolves_aliases() -> None:
     index = get_enc_index()
     # Models keyed by old names should be accessible under new primary names
-    assert "big5hkscs" in index
-    assert "euc-jis-2004" in index
-    assert "shift_jis_2004" in index
-    assert "cp1140" in index
+    assert "Big5HKSCS" in index
+    assert "EUC-JIS-2004" in index
+    assert "Shift_JIS_2004" in index
+    assert "CP1140" in index
 
 
 def test_load_models_returns_dict() -> None:
@@ -44,7 +44,7 @@ def test_model_keys_are_strings() -> None:
 def test_score_best_language_returns_float() -> None:
     """score_best_language should work with plain encoding names (not lang/enc keys)."""
     load_models()
-    score, _ = score_best_language(b"Hello world this is a test", "windows-1252")
+    score, _ = score_best_language(b"Hello world this is a test", "Windows-1252")
     assert isinstance(score, float)
     assert 0.0 < score <= 1.0
 

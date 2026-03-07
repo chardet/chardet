@@ -21,8 +21,8 @@ def test_load_confusion_data():
     maps = load_confusion_data()
     assert len(maps) > 0
     found_ebcdic = any(
-        ("cp1140" in key[0] and "cp500" in key[1])
-        or ("cp500" in key[0] and "cp1140" in key[1])
+        ("CP1140" in key[0] and "CP500" in key[1])
+        or ("CP500" in key[0] and "CP1140" in key[1])
         for key in maps
     )
     assert found_ebcdic
