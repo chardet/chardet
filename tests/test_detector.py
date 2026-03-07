@@ -119,7 +119,7 @@ def test_reset_allows_new_detection():
     detector = UniversalDetector()
     detector.feed(b"\xef\xbb\xbfHello")
     detector.close()
-    assert detector.result["encoding"] == "utf-8-sig"
+    assert detector.result["encoding"] == "UTF-8-SIG"
 
     detector.reset()
     detector.feed("Héllo wörld café".encode())

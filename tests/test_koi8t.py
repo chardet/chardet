@@ -18,8 +18,8 @@ def test_koi8t_with_tajik_bytes() -> None:
     test_file = next(test_dir.iterdir())
     data = test_file.read_bytes()
     result = chardet.detect(data, encoding_era=EncodingEra.ALL)
-    assert result["encoding"] == "koi8-t", (
-        f"Expected koi8-t but got {result['encoding']} "
+    assert result["encoding"] == "KOI8-T", (
+        f"Expected KOI8-T but got {result['encoding']} "
         f"(confidence={result['confidence']:.2f})"
     )
 
@@ -32,4 +32,4 @@ def test_russian_text_stays_koi8r() -> None:
     test_file = next(test_dir.iterdir())
     data = test_file.read_bytes()
     result = chardet.detect(data, encoding_era=EncodingEra.ALL)
-    assert result["encoding"] != "koi8-t", "Russian text should not detect as koi8-t"
+    assert result["encoding"] != "KOI8-T", "Russian text should not detect as KOI8-T"

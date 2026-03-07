@@ -55,8 +55,8 @@ def test_bigram_rescore_returns_valid_result():
         return
     diff_bytes = frozenset({0xD5})
     data = bytes([0x41, 0xD5, 0x42, 0xD5, 0x43])
-    result = resolve_by_bigram_rescore(data, "cp850", "cp858", diff_bytes)
-    assert result in ("cp850", "cp858", None)
+    result = resolve_by_bigram_rescore(data, "CP850", "CP858", diff_bytes)
+    assert result in ("CP850", "CP858", None)
 
 
 def test_resolve_confusion_groups_no_change_when_unrelated():
@@ -72,14 +72,14 @@ def test_resolve_confusion_groups_no_change_when_unrelated():
 def test_resolve_confusion_groups_preserves_all_results():
     """Confusion resolution should preserve all results, only reorder."""
     results = [
-        DetectionResult(encoding="cp1140", confidence=0.95, language="English"),
-        DetectionResult(encoding="cp500", confidence=0.94, language="English"),
-        DetectionResult(encoding="windows-1252", confidence=0.50, language="English"),
+        DetectionResult(encoding="CP1140", confidence=0.95, language="English"),
+        DetectionResult(encoding="CP500", confidence=0.94, language="English"),
+        DetectionResult(encoding="Windows-1252", confidence=0.50, language="English"),
     ]
     resolved = resolve_confusion_groups(bytes(range(256)), results)
     assert len(resolved) == len(results)
     resolved_encs = {r.encoding for r in resolved}
-    assert resolved_encs == {"cp1140", "cp500", "windows-1252"}
+    assert resolved_encs == {"CP1140", "CP500", "Windows-1252"}
 
 
 def test_load_confusion_data_empty_file():
