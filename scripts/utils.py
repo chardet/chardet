@@ -177,14 +177,70 @@ ISO_TO_LANGUAGE: dict[str, str] = {
 }
 
 
+# Mapping from English language names (as returned by chardet ≤6 and
+# charset-normalizer) to ISO 639-1 codes (used by chardet 7+ and test dirs).
+_LANGUAGE_NAME_TO_ISO: dict[str, str] = {
+    "arabic": "ar",
+    "belarusian": "be",
+    "breton": "br",
+    "bulgarian": "bg",
+    "chinese": "zh",
+    "croatian": "hr",
+    "czech": "cs",
+    "danish": "da",
+    "dutch": "nl",
+    "english": "en",
+    "esperanto": "eo",
+    "estonian": "et",
+    "farsi": "fa",
+    "finnish": "fi",
+    "french": "fr",
+    "german": "de",
+    "greek": "el",
+    "hebrew": "he",
+    "hungarian": "hu",
+    "icelandic": "is",
+    "indonesian": "id",
+    "irish": "ga",
+    "italian": "it",
+    "japanese": "ja",
+    "kazakh": "kk",
+    "korean": "ko",
+    "latvian": "lv",
+    "lithuanian": "lt",
+    "macedonian": "mk",
+    "malay": "ms",
+    "maltese": "mt",
+    "norwegian": "no",
+    "polish": "pl",
+    "portuguese": "pt",
+    "romanian": "ro",
+    "russian": "ru",
+    "scottish gaelic": "gd",
+    "serbian": "sr",
+    "slovak": "sk",
+    "slovene": "sl",
+    "spanish": "es",
+    "swedish": "sv",
+    "tajik": "tg",
+    "thai": "th",
+    "turkish": "tr",
+    "ukrainian": "uk",
+    "vietnamese": "vi",
+    "welsh": "cy",
+}
+
+
 def normalize_language(detected_language: str | None) -> str | None:
     """Normalize a detected language to its ISO 639-1 code for comparison.
 
-    Test data directories now use ISO codes directly, so this just lowercases.
+    Handles both ISO codes (chardet 7+) and English names (chardet ≤6,
+    charset-normalizer).
     """
-    if detected_language is None:
+    if not detected_language:
         return None
-    return detected_language.lower()
+    lowered = detected_language.lower().rstrip("—")  # charset-normalizer quirk
+    return _LANGUAGE_NAME_TO_ISO.get(lowered, lowered)
 
 
 def collect_test_files(
