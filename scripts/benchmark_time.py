@@ -115,14 +115,13 @@ def main() -> None:
 
     else:
         t0 = time.perf_counter()
-        from charset_normalizer import from_bytes
+        import charset_normalizer
 
         import_time = time.perf_counter() - t0
 
         def detect(data: bytes) -> tuple[str | None, str | None]:
-            r = from_bytes(data)
-            best = r.best()
-            return (best.encoding if best else None), None
+            r = charset_normalizer.detect(data)
+            return r["encoding"], r["language"]
 
     # Warm-up: first detect() call triggers lazy initialization (model loading,
     # norm computation, etc.).  Time it separately so compare_detectors.py can
