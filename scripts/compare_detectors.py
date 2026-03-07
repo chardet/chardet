@@ -327,9 +327,12 @@ def _has_full_cache(  # noqa: PLR0913
     benchmark_hash: str,
     python_tag: str,
     build_tag: str,
+    *,
+    skip_memory: bool = False,
 ) -> bool:
-    """Return ``True`` if both time and memory cache files exist."""
-    for kind in ("time", "memory"):
+    """Return ``True`` if all required cache files exist."""
+    kinds = ("time",) if skip_memory else ("time", "memory")
+    for kind in kinds:
         fname = _cache_filename(
             detector_type, version, benchmark_hash, python_tag, build_tag, kind
         )
@@ -650,6 +653,7 @@ def run_comparison(  # noqa: PLR0913
     build_tags: dict[str, str] | None = None,
     use_cache: bool = True,
     benchmark_hash: str = "",
+    no_memory: bool = False,
 ) -> None:
     """Run accuracy and performance comparison across detectors.
 
@@ -671,6 +675,8 @@ def run_comparison(  # noqa: PLR0913
         Whether to use cached results.
     benchmark_hash : str
         Hash of benchmark source files for cache invalidation.
+    no_memory : bool
+        Skip memory benchmarks when ``True``.
 
     """
     if detector_versions is None:
@@ -819,9 +825,14 @@ def run_comparison(  # noqa: PLR0913
     total = stats[detectors[0][0]]["total"]
 
     # --- Sequential memory benchmarks (with caching) ---
-    print("Measuring memory (isolated subprocesses)...")
     memory: dict[str, dict] = {}
+    if no_memory:
+        print("Skipping memory benchmarks (--no-memory)")
+    else:
+        print("Measuring memory (isolated subprocesses)...")
     for label, detector_type, python_exe, era in detectors:
+        if no_memory:
+            continue
         version = detector_versions.get(label, "unknown")
         py_tag = python_tags.get(label, "unknown")
         b_tag = build_tags.get(label, "unknown")
@@ -913,37 +924,50 @@ def run_comparison(  # noqa: PLR0913
         )
 
     # -- Startup & memory --
+    section_title = "STARTUP" if no_memory else "STARTUP & MEMORY"
     print()
     print("=" * 100)
-    print("STARTUP & MEMORY (isolated subprocesses)")
+    print(f"{section_title} (isolated subprocesses)")
     print("=" * 100)
-    print(
+    header = (
         f"  {'':>{max_label}}  {'import (ms)':>12}  {'1st detect (ms)':>16}  "
-        f"{'traced import':>14} {'traced peak':>14}  "
-        f"{'RSS before':>12} {'RSS after':>12}"
+        f"{'time to 1st result (ms)':>24}"
     )
-    print(
-        f"  {'-' * max_label}  {'-' * 12}  {'-' * 16}  "
-        f"{'-' * 14} {'-' * 14}  {'-' * 12} {'-' * 12}"
-    )
+    sep = f"  {'-' * max_label}  {'-' * 12}  {'-' * 16}  {'-' * 24}"
+    if not no_memory:
+        header += (
+            f"  {'traced import':>14} {'traced peak':>14}  "
+            f"{'RSS before':>12} {'RSS after':>12}"
+        )
+        sep += f"  {'-' * 14} {'-' * 14}  {'-' * 12} {'-' * 12}"
+    print(header)
+    print(sep)
     for label in detector_labels:
-        sub = memory[label]
         first_detect = first_detect_times.get(label, 0.0)
-        print(
+        row = (
             f"  {label:<{max_label}} "
             f"{import_times[label] * 1000:>11.1f}ms  "
             f"{first_detect * 1000:>15.1f}ms  "
-            f"{_format_bytes(sub['traced_import']):>14} "
-            f"{_format_bytes(sub['traced_peak']):>14}  "
-            f"{_format_bytes(sub['rss_before']):>12} "
-            f"{_format_bytes(sub['rss_after']):>12}"
+            f"{(import_times[label] + first_detect) * 1000:>23.1f}ms"
         )
+        if not no_memory:
+            sub = memory[label]
+            row += (
+                f"  {_format_bytes(sub['traced_import']):>14} "
+                f"{_format_bytes(sub['traced_peak']):>14}  "
+                f"{_format_bytes(sub['rss_before']):>12} "
+                f"{_format_bytes(sub['rss_after']):>12}"
+            )
+        print(row)
     print()
-    print("  traced = tracemalloc (CPython allocations only)")
-    print(
-        "  RSS    = resident set size (all memory incl. C extensions; shared baseline)"
-    )
+    if not no_memory:
+        print("  traced = tracemalloc (CPython allocations only)")
+        print(
+            "  RSS    = resident set size"
+            " (all memory incl. C extensions; shared baseline)"
+        )
     print("  1st detect = time for first file detection (includes lazy initialization)")
+    print("  time to 1st result = import + 1st detect")
     print()
 
     # -- Per-encoding table --
@@ -1156,6 +1180,12 @@ if __name__ == "__main__":
         help="Force re-run, ignoring cached results",
     )
     parser.add_argument(
+        "--no-memory",
+        action="store_true",
+        default=False,
+        help="Skip memory benchmarks (much faster runs)",
+    )
+    parser.add_argument(
         "--pure",
         action="store_true",
         default=False,
@@ -1274,6 +1304,7 @@ if __name__ == "__main__":
             benchmark_hash,
             python_tags[label],
             build_tags[label],
+            skip_memory=args.no_memory,
         ):
             print(f"  {label}: full cache hit, skipping venv creation")
         else:
@@ -1376,6 +1407,7 @@ if __name__ == "__main__":
             build_tags=build_tags,
             use_cache=use_cache,
             benchmark_hash=benchmark_hash,
+            no_memory=args.no_memory,
         )
     finally:
         for label, (venv_dir, _) in venvs.items():
