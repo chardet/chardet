@@ -329,3 +329,32 @@ def test_score_with_profile_all_zeros_model():
     model = bytearray(65536)  # all zeros
     score = score_with_profile(profile, model, model_key="")
     assert score == 0.0
+
+
+def test_enc_index_alias_resolution(monkeypatch: pytest.MonkeyPatch) -> None:
+    """When a model key uses a non-canonical name, the canonical name is added.
+
+    The index should contain both the original key and the canonical name
+    pointing to the same entries.
+    """
+    import chardet.models as mod
+
+    # Reset the index cache so get_enc_index() rebuilds it
+    monkeypatch.setattr(mod, "_ENC_INDEX", None)
+
+    # Create a fake model dict with a non-canonical encoding name.
+    # "utf8" is a non-canonical alias for "UTF-8".
+    fake_model = bytearray(65536)
+    fake_model[(0xC3 << 8) | 0xA9] = 100
+    fake_models = {"French/utf8": fake_model}
+
+    monkeypatch.setattr(mod, "load_models", lambda: fake_models)
+
+    index = mod.get_enc_index()
+
+    # The non-canonical key "utf8" should be in the index
+    assert "utf8" in index
+    # The canonical name "UTF-8" should also be present via alias resolution
+    assert "UTF-8" in index
+    # Both should point to the same entries
+    assert index["UTF-8"] is index["utf8"]

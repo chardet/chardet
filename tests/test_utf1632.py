@@ -481,3 +481,91 @@ def test_text_quality_rejects_many_combining_marks() -> None:
     text = "a\u0300" * 20  # 50% marks
     quality = _text_quality(text)
     assert quality == -1.0
+
+
+# ---------------------------------------------------------------------------
+# UTF-16 tie-breaking: both LE and BE candidates
+# ---------------------------------------------------------------------------
+
+
+def test_utf16_both_candidates_tiebreak() -> None:
+    """When both LE and BE show null patterns, tie-breaking picks the correct one.
+
+    To trigger the tie-breaking path, BOTH endiannesses need >= 3% null
+    bytes in their respective positions.  Mixing ASCII chars (null in odd
+    positions as LE) with U+0100-range chars (null in even positions as LE)
+    puts nulls in both even AND odd byte positions.
+    """
+    # 'A' (U+0041) in LE = 0x41 0x00: even=non-null, odd=null
+    # 'Ā' (U+0100) in LE = 0x00 0x01: even=null, odd=non-null
+    # Mixing them produces nulls at >= 3% in both positions.
+    text = "A\u0100" * 30
+    data = text.encode("utf-16-le")
+    result = detect_utf1632_patterns(data)
+    assert result is not None
+    assert result.encoding in ("UTF-16-LE", "UTF-16-BE")
+    assert result.confidence == DETERMINISTIC_CONFIDENCE
+
+
+def test_utf16_tiebreak_one_side_decode_error() -> None:
+    """When both candidates match but one raises UnicodeDecodeError, the other wins.
+
+    We craft data with nulls in both even and odd positions (triggering both
+    candidates) but include bytes that form an unpaired surrogate in BE,
+    causing BE decode to fail while LE succeeds.
+    """
+    # Base: alternating A (0x41,0x00) and Ā (0x00,0x01) in LE → nulls in both positions
+    base = b"\x41\x00\x00\x01" * 20
+    # 0xD8,0x41 in BE = U+D841 (unpaired high surrogate → decode error)
+    # 0xD8,0x41 in LE = U+41D8 (valid CJK character)
+    surrogate_trap = b"\xd8\x41\x00\x01"
+    data = base + surrogate_trap
+    result = detect_utf1632_patterns(data)
+    assert result is not None
+    assert result.encoding == "UTF-16-LE"
+
+
+# ---------------------------------------------------------------------------
+# Direct _text_quality tests
+# ---------------------------------------------------------------------------
+
+
+def test_text_quality_with_spaces() -> None:
+    """_text_quality should give a bonus for whitespace in text > 20 chars."""
+    from chardet.pipeline.utf1632 import _text_quality
+
+    # Text with spaces and letters, long enough (> 20 chars) to trigger space bonus
+    text = "Hello World this is a test of text quality scoring"
+    quality = _text_quality(text)
+    # Should have letter ratio + ascii bonus + space bonus (0.1)
+    assert quality > 0.5
+
+
+def test_text_quality_ascii_letters() -> None:
+    """_text_quality with all ASCII letters gives high score."""
+    from chardet.pipeline.utf1632 import _text_quality
+
+    text = "abcdefghijklmnopqrstuvwxyz"
+    quality = _text_quality(text)
+    # letters/n = 1.0, ascii_letters/n * 0.5 = 0.5, no space bonus (n > 20 but no spaces)
+    assert quality >= 1.4
+
+
+def test_text_quality_rejects_many_controls() -> None:
+    """_text_quality should return -1.0 for text with >10% control chars."""
+    from chardet.pipeline.utf1632 import _text_quality
+
+    # More than 10% control characters
+    text = "ab\x01\x02\x03\x04\x05\x06\x07\x08"
+    quality = _text_quality(text)
+    assert quality == -1.0
+
+
+def test_text_quality_no_letters() -> None:
+    """_text_quality with digits and punctuation but no letters gives low score."""
+    from chardet.pipeline.utf1632 import _text_quality
+
+    text = "12345!@#$%67890^&*()"
+    quality = _text_quality(text)
+    # No letters, so letter ratio is 0, ascii bonus is 0
+    assert quality < 0.5

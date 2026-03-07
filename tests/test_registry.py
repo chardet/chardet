@@ -295,3 +295,32 @@ def test_lookup_encoding_uppercase_preserved():
     assert lookup_encoding("ASCII") == "ASCII"
     assert lookup_encoding("UTF-8") == "UTF-8"
     assert lookup_encoding("UTF-7") == "UTF-7"
+
+
+def test_lookup_encoding_codecs_fallback():
+    """lookup_encoding falls back to codecs.lookup for Python-specific aliases."""
+    # "latin_1" (with underscore) is not in our alias/name cache but Python's
+    # codecs module knows it and maps it to "iso8859-1", which is in the cache.
+    assert lookup_encoding("latin_1") == "ISO-8859-1"
+
+
+def test_build_lookup_cache_handles_invalid_codec(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """_build_lookup_cache skips entries whose python_codec is unrecognised."""
+    import chardet.registry as reg
+
+    bad_entry = reg.EncodingInfo(
+        name="ASCII",
+        aliases=(),
+        era=EncodingEra.MODERN_WEB,
+        is_multibyte=False,
+        python_codec="no_such_codec_xyz",
+        languages=(),
+    )
+    monkeypatch.setattr(reg, "_REGISTRY_ENTRIES", (bad_entry,))
+    monkeypatch.setattr(reg, "REGISTRY", MappingProxyType({bad_entry.name: bad_entry}))
+
+    # Should not raise — the LookupError is caught
+    cache = reg._build_lookup_cache()
+    assert "ascii" in cache

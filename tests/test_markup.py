@@ -95,3 +95,11 @@ def test_charset_beyond_scan_limit_ignored():
     data = padding + b'<meta charset="utf-8">'
     result = detect_markup_charset(data)
     assert result is None
+
+
+def test_non_ascii_charset_name_ignored():
+    """A charset name containing non-ASCII bytes should be skipped."""
+    # Build a meta tag whose charset value contains a non-ASCII byte (0xff)
+    data = b'<meta charset="' + b"\xff\xfe" + b'">'
+    result = detect_markup_charset(data)
+    assert result is None

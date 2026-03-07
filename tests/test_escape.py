@@ -248,6 +248,12 @@ def test_utf7_short_base64_rejected() -> None:
     assert result is None
 
 
+def test_utf7_b64_rejects_lone_low_surrogate() -> None:
+    """A low surrogate (0xDC00) without a preceding high surrogate is invalid."""
+    # 0xDC00 in UTF-16BE = DC 00, base64 = "3AA"
+    assert not _is_valid_utf7_b64(b"3AA")
+
+
 def test_utf7_b64_rejects_consecutive_high_surrogates() -> None:
     """Two back-to-back high surrogates are invalid UTF-16BE."""
     # 0xD800 0xD801 encoded as UTF-7 base64

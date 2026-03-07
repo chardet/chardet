@@ -5,6 +5,7 @@ from chardet.equivalences import (
     apply_legacy_rename,
     is_correct,
     is_equivalent_detection,
+    is_language_equivalent,
 )
 
 
@@ -151,3 +152,51 @@ def test_is_equivalent_expected_none_detected_none():
 def test_is_equivalent_expected_none_detected_encoding():
     """Binary file expected but encoding detected -> not equivalent."""
     assert is_equivalent_detection(b"\x00\x01", None, "utf-8") is False
+
+
+# ---------------------------------------------------------------------------
+# is_language_equivalent tests
+# ---------------------------------------------------------------------------
+
+
+def test_language_equivalent_exact_match():
+    """Identical language codes are equivalent."""
+    assert is_language_equivalent("ru", "ru") is True
+
+
+def test_language_equivalent_east_slavic_group():
+    """Languages in the East Slavic + Bulgarian group are equivalent."""
+    assert is_language_equivalent("uk", "ru") is True
+    assert is_language_equivalent("ru", "bg") is True
+    assert is_language_equivalent("bg", "be") is True
+
+
+def test_language_equivalent_scandinavian_group():
+    """Scandinavian languages are equivalent."""
+    assert is_language_equivalent("no", "da") is True
+    assert is_language_equivalent("da", "sv") is True
+    assert is_language_equivalent("sv", "no") is True
+
+
+def test_language_equivalent_malay_indonesian():
+    """Malay and Indonesian are equivalent."""
+    assert is_language_equivalent("ms", "id") is True
+    assert is_language_equivalent("id", "ms") is True
+
+
+def test_language_equivalent_czech_slovak():
+    """Czech and Slovak are equivalent."""
+    assert is_language_equivalent("sk", "cs") is True
+    assert is_language_equivalent("cs", "sk") is True
+
+
+def test_language_equivalent_non_equivalent():
+    """Languages in different groups are not equivalent."""
+    assert is_language_equivalent("ru", "da") is False
+    assert is_language_equivalent("sk", "sv") is False
+
+
+def test_language_equivalent_unknown_language():
+    """Unknown language code returns False."""
+    assert is_language_equivalent("xx", "yy") is False
+    assert is_language_equivalent("en", "fr") is False

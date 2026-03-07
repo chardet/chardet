@@ -199,6 +199,20 @@ def test_promote_koi8t_no_promote_without_tajik_bytes():
     assert promoted[0].encoding == "KOI8-R"
 
 
+def test_promote_koi8t_returns_early_when_koi8t_absent():
+    """When KOI8-R is first but KOI8-T is not in results, return unchanged."""
+    from chardet.pipeline.orchestrator import _promote_koi8t
+
+    results = [
+        DetectionResult("KOI8-R", 0.90, "ru"),
+        DetectionResult("Windows-1251", 0.85, "ru"),
+    ]
+    data = bytes([0x80, 0xC0, 0xC1])  # 0x80 is Tajik-specific but KOI8-T absent
+    returned = _promote_koi8t(data, results)
+    assert returned is results  # same object, unchanged
+    assert returned[0].encoding == "KOI8-R"
+
+
 def test_fill_language_produces_language():
     """_fill_language should fill in language for single-language encodings."""
     from chardet.pipeline.orchestrator import _fill_language
