@@ -210,11 +210,12 @@ def mock_models_bin():
 
     Yields a callable ``set_data(raw_bytes)`` that configures the mock to
     return *raw_bytes* from ``models.bin``.  The original ``_MODEL_CACHE``
-    is restored on teardown.
+    and ``_MODEL_NORMS`` are restored on teardown.
     """
     import chardet.models as mod
 
-    original = mod._MODEL_CACHE
+    original_cache = mod._MODEL_CACHE
+    original_norms = mod._MODEL_NORMS
     mod._MODEL_CACHE = None
     mock_ref = MagicMock()
 
@@ -228,7 +229,8 @@ def mock_models_bin():
     ):
         yield set_data
 
-    mod._MODEL_CACHE = original
+    mod._MODEL_CACHE = original_cache
+    mod._MODEL_NORMS = original_norms
 
 
 def test_load_models_empty_file(mock_models_bin: Callable[[bytes], None]) -> None:
