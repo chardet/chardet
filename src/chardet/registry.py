@@ -6,7 +6,7 @@ import codecs
 import dataclasses
 import threading
 from types import MappingProxyType
-from typing import Literal
+from typing import Literal, cast
 
 from chardet.enums import EncodingEra
 
@@ -883,15 +883,15 @@ def _build_lookup_cache() -> dict[str, EncodingName]:
     """Build a case-insensitive lookup table from all known encoding names."""
     cache: dict[str, EncodingName] = {}
     for entry in REGISTRY.values():
-        cache[entry.name.lower()] = entry.name  # type: ignore[assignment]
+        cache[entry.name.lower()] = cast("EncodingName", entry.name)
     for entry in REGISTRY.values():
         for alias in entry.aliases:
-            cache.setdefault(alias.lower(), entry.name)  # type: ignore[assignment]
+            cache.setdefault(alias.lower(), cast("EncodingName", entry.name))
     codec_to_name: dict[str, EncodingName] = {}
     for entry in REGISTRY.values():
         try:
             codec_name = codecs.lookup(entry.python_codec).name
-            codec_to_name.setdefault(codec_name, entry.name)  # type: ignore[assignment]
+            codec_to_name.setdefault(codec_name, cast("EncodingName", entry.name))
         except LookupError:
             pass
     cache.update({k: v for k, v in codec_to_name.items() if k not in cache})
