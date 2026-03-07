@@ -25,8 +25,10 @@ Defined in `registry.py`. Contains all 86 canonical encoding names in display
 casing (e.g., `"Windows-1252"`, `"KOI8-R"`, `"ISO-8859-7"`). Type checkers
 flag invalid encoding name strings at check time.
 
-Lowercase names that stay lowercase: `"ascii"`, `"utf-7"`, `"utf-8"` (matching
-chardet 5.x output).
+All names use consistent uppercase display casing (e.g., `"ASCII"`, `"UTF-7"`,
+`"UTF-8"`). No lowercase exceptions — a single consistent convention is simpler
+than maintaining special cases. Compound names use hyphens as separators
+(e.g., `"Big5-HKSCS"`, `"Shift-JIS-2004"`, `"Mac-Roman"`).
 
 UTF-16/32 endian variants remain distinct entries (`"UTF-16-LE"`, `"UTF-16-BE"`,
 etc.) since chardet 5.x returns endian-specific names for BOM-less detection.
@@ -72,12 +74,12 @@ modules:
 - `pipeline/bom.py` — `"UTF-32-BE"`, `"UTF-32-LE"`, `"UTF-8-SIG"`,
   `"UTF-16-BE"`, `"UTF-16-LE"`
 - `pipeline/escape.py` — `"ISO-2022-JP-2"`, `"ISO-2022-JP-2004"`,
-  `"ISO-2022-JP-EXT"`, `"ISO-2022-KR"`, `"HZ-GB-2312"`, `"utf-7"`
-- `pipeline/ascii.py` — `"ascii"`
-- `pipeline/utf8.py` — `"utf-8"`
+  `"ISO-2022-JP-EXT"`, `"ISO-2022-KR"`, `"HZ-GB-2312"`, `"UTF-7"`
+- `pipeline/ascii.py` — `"ASCII"`
+- `pipeline/utf8.py` — `"UTF-8"`
 - `pipeline/utf1632.py` — `"UTF-16-LE"`, `"UTF-16-BE"`, `"UTF-32-LE"`,
   `"UTF-32-BE"`
-- `pipeline/orchestrator.py` — `"utf-8"`, `"Windows-1252"`, string
+- `pipeline/orchestrator.py` — `"UTF-8"`, `"Windows-1252"`, string
   comparisons like `"KOI8-R"`, `"KOI8-T"`
 
 ### Equivalence mappings

@@ -11,7 +11,7 @@ import struct
 import threading
 import warnings
 
-from chardet.registry import REGISTRY
+from chardet.registry import REGISTRY, lookup_encoding
 
 _unpack_uint32 = struct.Struct(">I").unpack_from
 _iter_3bytes = struct.Struct(">BBB").iter_unpack
@@ -27,13 +27,11 @@ _MODEL_CACHE_LOCK = threading.Lock()
 _ENC_INDEX: dict[str, list[tuple[str | None, bytearray, str]]] | None = None
 _ENC_INDEX_LOCK = threading.Lock()
 # Encodings that map to exactly one language, derived from the registry.
-# Includes aliases so that e.g. "big5" resolves the same as "big5hkscs".
+# Keyed by canonical name only — callers always use canonical names.
 _SINGLE_LANG_MAP: dict[str, str] = {}
 for _enc in REGISTRY.values():
     if len(_enc.languages) == 1:
         _SINGLE_LANG_MAP[_enc.name] = _enc.languages[0]
-        for _alias in _enc.aliases:
-            _SINGLE_LANG_MAP[_alias] = _enc.languages[0]
 
 
 def _parse_models_bin(
@@ -146,15 +144,12 @@ def get_enc_index() -> dict[str, list[tuple[str | None, bytearray, str]]]:
             lang, enc = key.split("/", 1)
             index.setdefault(enc, []).append((lang, model, key))
 
-        # Resolve aliases: if a model key matches a registry alias but not
-        # the primary name, copy the entry under the primary name.
-        alias_to_primary: dict[str, str] = {}
-        for entry in REGISTRY.values():
-            for alias in entry.aliases:
-                alias_to_primary[alias] = entry.name
-        for alias, primary in alias_to_primary.items():
-            if alias in index and primary not in index:
-                index[primary] = index[alias]
+        # Resolve aliases: if a model key uses a non-canonical name,
+        # copy the entry under the canonical name.
+        for enc_name in list(index):
+            canonical = lookup_encoding(enc_name)
+            if canonical is not None and canonical not in index:
+                index[canonical] = index[enc_name]
 
         _ENC_INDEX = index
         return index

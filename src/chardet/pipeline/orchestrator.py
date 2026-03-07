@@ -305,7 +305,9 @@ def _score_structural_candidates(
     relative ranking among candidates.  ``run_pipeline`` clamps all
     confidence values to [0.0, 1.0] before returning to callers.
     """
-    enc_lookup = {e.name: e for e in valid_candidates if e.is_multibyte}
+    enc_lookup: dict[str, EncodingInfo] = {
+        e.name: e for e in valid_candidates if e.is_multibyte
+    }
     valid_mb = tuple(
         enc_lookup[name] for name, _sc in structural_scores if name in enc_lookup
     )

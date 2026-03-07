@@ -2,6 +2,14 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
+> **Implementation note:** During implementation, the naming convention was
+> refined beyond this plan. All encoding names now use consistent uppercase
+> display casing with no lowercase exceptions (`"ASCII"`, `"UTF-7"`, `"UTF-8"`
+> instead of the originally planned lowercase). Compound names use hyphens
+> as separators (`"Big5-HKSCS"`, `"Shift-JIS-2004"`, `"Mac-Roman"` instead of
+> `"Big5HKSCS"`, `"Shift_JIS_2004"`, `"MacRoman"`). See the updated design
+> document for the final convention.
+
 **Goal:** Replace chardet's two-name system (lowercase internal + display-cased external) with a single canonical display-cased representation used everywhere, fixing issue #337 (inconsistent encoding name casing).
 
 **Architecture:** Define an `EncodingName` Literal type in `registry.py` with all 86 canonical display-cased names. Change every `EncodingInfo.name` to display casing. Add `lookup_encoding()` to convert arbitrary input to canonical names. Update all pipeline stages, equivalence mappings, model keys, and tests to use canonical names.
