@@ -123,9 +123,8 @@ def main() -> None:
             r = charset_normalizer.detect(data)
             return r["encoding"], r["language"]
 
-    # Warm-up: first detect() call triggers lazy initialization (model loading,
-    # norm computation, etc.).  Time it separately so compare_detectors.py can
-    # report it as "1st detect".
+    # Warm-up: first detect() call may trigger lazy initialization.
+    # Time it separately so compare_detectors.py can report it as "1st detect".
     t_warmup = time.perf_counter()
     detect(b"Hello, world!")
     first_detect_time = time.perf_counter() - t_warmup
