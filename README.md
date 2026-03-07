@@ -12,21 +12,21 @@ Python 3.10+, zero runtime dependencies, works on PyPy.
 
 ## Why chardet 7.0?
 
-**98.1% accuracy** on 2,510 test files. **43x faster** than chardet 6.0.0
-and **6.8x faster** than
+**98.2% accuracy** on 2,510 test files. **46x faster** than chardet 6.0.0
+and **4.3x faster** than
 charset-normalizer. **Language
 detection** for every result. **MIT licensed.**
 
-|                        | chardet 7.0 (mypyc) | chardet 7.0 (pure) | chardet 6.0.0 | [charset-normalizer] |
-| ---------------------- | :-----------------: | :----------------: | :-----------: | :------------------: |
-| Accuracy (2,510 files) |      **98.1%**      |     **98.1%**      |     88.2%     |        78.5%         |
-| Speed                  |   **546 files/s**   |  **383 files/s**   |  13 files/s   |      80 files/s      |
-| Language detection     |      **95.1%**      |     **95.1%**      |       --      |          --          |
-| Peak memory            |    **26.2 MiB**     |    **26.3 MiB**    |   29.5 MiB    |      101.2 MiB       |
-| Streaming detection    |       **yes**       |      **yes**       |      yes      |          no          |
-| Encoding era filtering |       **yes**       |      **yes**       |      no       |          no          |
-| Supported encodings    |         99          |         99         |      84       |          99          |
-| License                |         MIT         |        MIT         |     LGPL      |         MIT          |
+|                        | chardet 7.0.2 (mypyc) | chardet 7.0.2 (pure) | chardet 6.0.0 | [charset-normalizer] |
+| ---------------------- | :--------------------: | :------------------: | :-----------: | :------------------: |
+| Accuracy (2,510 files) |       **98.2%**        |      **98.2%**       |     88.2%     |        84.2%         |
+| Speed                  |    **555 files/s**     |   **370 files/s**    |  12 files/s   |     130 files/s      |
+| Language detection     |       **95.1%**        |      **95.1%**       |     40.0%     |        59.0%         |
+| Peak memory            |     **26.2 MiB**       |    **26.3 MiB**      |   29.5 MiB    |      101.2 MiB       |
+| Streaming detection    |        **yes**         |       **yes**        |      yes      |          no          |
+| Encoding era filtering |        **yes**         |       **yes**        |      no       |          no          |
+| Supported encodings    |          99            |         99           |      84       |          99          |
+| License                |          MIT           |         MIT          |     LGPL      |         MIT          |
 
 [charset-normalizer]: https://github.com/jawah/charset_normalizer
 
@@ -123,8 +123,8 @@ cat somefile.txt | chardetect
 
 - **MIT license** (previous versions were LGPL)
 - **Ground-up rewrite** — 12-stage detection pipeline using BOM detection, structural probing, byte validity filtering, and bigram statistical models
-- **43x faster** than chardet 6.0.0 with mypyc (**30x** pure Python), **6.8x faster** than charset-normalizer
-- **98.1% accuracy** — +9.9pp vs chardet 6.0.0, +19.6pp vs charset-normalizer
+- **46x faster** than chardet 6.0.0 with mypyc (**31x** pure Python), **4.3x faster** than charset-normalizer
+- **98.2% accuracy** — +10.0pp vs chardet 6.0.0, +14.0pp vs charset-normalizer
 - **Language detection** — 95.1% accuracy across 49 languages, returned with every result
 - **99 encodings** — full coverage including EBCDIC, Mac, DOS, and Baltic/Central European families
 - **`EncodingEra` filtering** — scope detection to modern web encodings, legacy ISO/Mac/DOS, mainframe, or all
