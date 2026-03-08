@@ -25,7 +25,7 @@ def _assert_detection(
     era: EncodingEra = EncodingEra.ALL,
 ) -> None:
     """Assert that chardet detects the expected encoding (or an equivalent)."""
-    result = chardet.detect(data, encoding_era=era)
+    result = chardet.detect(data, encoding_era=era, should_rename_legacy=True)
     detected = result["encoding"]
     assert is_correct(expected, detected) or is_equivalent_detection(
         data, expected, detected

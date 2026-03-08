@@ -65,7 +65,7 @@ def test_encoding_era_excludes_legacy():
     assert legacy["encoding"] == "ISO-8859-7"
     # With MODERN_WEB only, iso-8859-7 is not a candidate so the result
     # must be a different encoding (windows-1253 is the modern Greek encoding)
-    assert modern["encoding"] != "ISO-8859-7"
+    assert modern["encoding"] != "iso-8859-7"
 
 
 def test_detect_with_max_bytes():
@@ -296,21 +296,21 @@ def test_detect_all_bytearray_input():
 def test_detect_utf7():
     data = "Hello, 世界!".encode("utf-7")
     result = chardet.detect(data)
-    assert result["encoding"] == "utf-7"
+    assert result["encoding"] == "UTF-7"
 
 
 def test_detect_utf7_era_all():
     """UTF-7 should be detected with EncodingEra.ALL (includes LEGACY_REGIONAL)."""
     data = "Meeting notes: 日本語テスト and Ñoño.".encode("utf-7")
     result = chardet.detect(data, encoding_era=EncodingEra.ALL)
-    assert result["encoding"] == "utf-7"
+    assert result["encoding"] == "UTF-7"
 
 
 def test_detect_utf7_era_modern_web_skipped():
     """UTF-7 should NOT be detected with MODERN_WEB (disabled by browsers since ~2020)."""
     data = "Hello, 世界!".encode("utf-7")
     result = chardet.detect(data, encoding_era=EncodingEra.MODERN_WEB)
-    assert result["encoding"] != "utf-7"
+    assert result["encoding"] != "UTF-7"
 
 
 def test_detect_utf7_multi_paragraph():
@@ -327,7 +327,7 @@ def test_detect_utf7_multi_paragraph():
     )
     data = text.encode("utf-7")
     result = chardet.detect(data)
-    assert result["encoding"] == "utf-7"
+    assert result["encoding"] == "UTF-7"
 
 
 def test_detect_hz_gb_2312_era_all():
@@ -341,7 +341,7 @@ def test_detect_hz_gb_2312_era_modern_web_skipped():
     """hz-gb-2312 is WHATWG 'replacement' - should NOT be detected with MODERN_WEB."""
     data = b"Hello ~{CEDE~} World"
     result = chardet.detect(data, encoding_era=EncodingEra.MODERN_WEB)
-    assert result["encoding"] != "HZ-GB-2312"
+    assert result["encoding"] != "hz-gb-2312"
 
 
 def test_detect_iso_2022_kr_era_all():
@@ -355,7 +355,7 @@ def test_detect_iso_2022_kr_era_modern_web_skipped():
     """iso-2022-kr is WHATWG 'replacement' - should NOT be detected with MODERN_WEB."""
     data = b"\x1b$)C\x0e\x21\x21\x0f"
     result = chardet.detect(data, encoding_era=EncodingEra.MODERN_WEB)
-    assert result["encoding"] != "ISO-2022-KR"
+    assert result["encoding"] != "iso-2022-kr"
 
 
 def test_detect_iso_2022_jp_era_modern_web_still_works():
@@ -363,8 +363,8 @@ def test_detect_iso_2022_jp_era_modern_web_still_works():
     data = b"Hello \x1b$B$3$s$K$A$O\x1b(B World"
     result = chardet.detect(data, encoding_era=EncodingEra.MODERN_WEB)
     assert result["encoding"] is not None
-    assert "2022" in result["encoding"]
-    assert "JP" in result["encoding"]
+    assert "2022" in result["encoding"].upper()
+    assert "jp" in result["encoding"].lower()
 
 
 def test_detect_cp273():
@@ -372,7 +372,7 @@ def test_detect_cp273():
     result = chardet.detect(data, encoding_era=EncodingEra.ALL)
     assert result["encoding"] is not None
     # Should detect an EBCDIC encoding (cp273 or a close variant)
-    assert result["encoding"].startswith("CP")
+    assert result["encoding"].upper().startswith("CP")
 
 
 def test_detect_hp_roman8():

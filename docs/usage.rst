@@ -146,18 +146,33 @@ same name in both modes.
    * - Big5-HKSCS
      - ``Big5``
      - ``Big5-HKSCS``
+   * - CP855
+     - ``IBM855``
+     - ``CP855``
+   * - CP866
+     - ``IBM866``
+     - ``CP866``
    * - EUC-JIS-2004
      - ``EUC-JP``
      - ``EUC-JIS-2004``
    * - EUC-KR
      - ``EUC-KR``
      - ``CP949``
+   * - GB18030
+     - ``GB2312``
+     - ``GB18030``
    * - ISO-2022-JP-2
      - ``ISO-2022-JP``
      - ``ISO-2022-JP-2``
    * - ISO-8859-1
      - ``ISO-8859-1``
      - ``Windows-1252``
+   * - ISO-8859-11
+     - ``ISO-8859-11``
+     - ``CP874``
+   * - ISO-8859-13
+     - ``ISO-8859-13``
+     - ``Windows-1257``
    * - ISO-8859-2
      - ``ISO-8859-2``
      - ``Windows-1250``
@@ -176,12 +191,9 @@ same name in both modes.
    * - ISO-8859-9
      - ``ISO-8859-9``
      - ``Windows-1254``
-   * - ISO-8859-11
-     - ``ISO-8859-11``
-     - ``CP874``
-   * - ISO-8859-13
-     - ``ISO-8859-13``
-     - ``Windows-1257``
+   * - KZ-1048
+     - ``KZ1048``
+     - ``KZ-1048``
    * - Mac-Cyrillic
      - ``MacCyrillic``
      - ``Mac-Cyrillic``
@@ -206,51 +218,9 @@ same name in both modes.
    * - TIS-620
      - ``TIS-620``
      - ``CP874``
-   * - UTF-7
-     - ``utf-7``
-     - ``UTF-7``
    * - UTF-8
      - ``utf-8``
      - ``UTF-8``
-   * - UTF-16-BE
-     - ``utf-16be``
-     - ``UTF-16-BE``
-   * - UTF-16-LE
-     - ``utf-16le``
-     - ``UTF-16-LE``
-   * - UTF-32-BE
-     - ``utf-32be``
-     - ``UTF-32-BE``
-   * - UTF-32-LE
-     - ``utf-32le``
-     - ``UTF-32-LE``
-   * - Windows-1250
-     - ``windows-1250``
-     - ``Windows-1250``
-   * - Windows-1251
-     - ``windows-1251``
-     - ``Windows-1251``
-   * - Windows-1252
-     - ``windows-1252``
-     - ``Windows-1252``
-   * - Windows-1253
-     - ``windows-1253``
-     - ``Windows-1253``
-   * - Windows-1254
-     - ``windows-1254``
-     - ``Windows-1254``
-   * - Windows-1255
-     - ``windows-1255``
-     - ``Windows-1255``
-   * - Windows-1256
-     - ``windows-1256``
-     - ``Windows-1256``
-   * - Windows-1257
-     - ``windows-1257``
-     - ``Windows-1257``
-   * - Windows-1258
-     - ``windows-1258``
-     - ``Windows-1258``
 
 Limiting Bytes
 --------------
