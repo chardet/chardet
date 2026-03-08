@@ -128,7 +128,6 @@ _LEGACY_NAMES: dict[str, str] = {
     "CP855": "IBM855",
     "CP866": "IBM866",
     "EUC-JIS-2004": "EUC-JP",
-    "GB18030": "GB2312",
     "ISO-2022-JP-2": "ISO-2022-JP",
     "Mac-Cyrillic": "MacCyrillic",
     "Mac-Roman": "MacRoman",

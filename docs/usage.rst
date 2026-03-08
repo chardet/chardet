@@ -158,9 +158,6 @@ same name in both modes.
    * - EUC-KR
      - ``EUC-KR``
      - ``CP949``
-   * - GB18030
-     - ``GB2312``
-     - ``GB18030``
    * - ISO-2022-JP-2
      - ``ISO-2022-JP``
      - ``ISO-2022-JP-2``
