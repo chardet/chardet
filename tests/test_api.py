@@ -167,6 +167,16 @@ def test_rename_legacy_detector_false():
     assert det.result["encoding"] == "ascii"
 
 
+def test_compat_names_eucjp():
+    """Compat mode maps EUC-JIS-2004 back to EUC-JP."""
+    text = (
+        "東京は日本の首都です。人口は約1400万人で、世界最大の都市圏を形成しています。"
+    )
+    data = text.encode("euc_jp")
+    result = chardet.detect(data, should_rename_legacy=False)
+    assert result["encoding"] == "EUC-JP"
+
+
 # --- ignore_threshold tests ---
 
 

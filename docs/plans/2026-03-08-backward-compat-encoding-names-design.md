@@ -41,14 +41,19 @@ through unchanged.
 | `EUC-JIS-2004`      | `EUC-JP`            |
 | `ISO-2022-JP-2`     | `ISO-2022-JP`       |
 | `Mac-Cyrillic`      | `MacCyrillic`       |
+| `Mac-Greek`         | `MacGreek`          |
+| `Mac-Iceland`       | `MacIceland`        |
+| `Mac-Latin2`        | `MacLatin2`         |
 | `Mac-Roman`         | `MacRoman`          |
+| `Mac-Turkish`       | `MacTurkish`        |
 | `Shift-JIS-2004`    | `SHIFT_JIS`         |
+| `UTF-7`             | `utf-7`             |
 | `UTF-8`             | `utf-8`             |
+| `UTF-16-BE`         | `utf-16be`          |
 | `UTF-16-LE`         | `utf-16le`          |
 | `UTF-32-BE`         | `utf-32be`          |
 | `UTF-32-LE`         | `utf-32le`          |
-| `UTF-7`             | `utf-7`             |
-| `Windows-*`         | `windows-*`         |
+| `Windows-125x`      | `windows-125x`      |
 
 Bare `"UTF-16"` and `"UTF-32"` are NOT in the mapping because (a) our pipeline
 never produces them (it always returns with endianness), and (b) chardet 5.x
