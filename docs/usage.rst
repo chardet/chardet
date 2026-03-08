@@ -145,16 +145,16 @@ same name in both modes.
      - ``Windows-1252``
    * - Big5-HKSCS
      - ``Big5``
-     - ``Big5``
+     - ``Big5-HKSCS``
    * - EUC-JIS-2004
      - ``EUC-JP``
-     - ``EUC-JP``
+     - ``EUC-JIS-2004``
    * - EUC-KR
      - ``EUC-KR``
      - ``CP949``
    * - ISO-2022-JP-2
      - ``ISO-2022-JP``
-     - ``ISO-2022-JP``
+     - ``ISO-2022-JP-2``
    * - ISO-8859-1
      - ``ISO-8859-1``
      - ``Windows-1252``
@@ -184,25 +184,25 @@ same name in both modes.
      - ``Windows-1257``
    * - Mac-Cyrillic
      - ``MacCyrillic``
-     - ``MacCyrillic``
+     - ``Mac-Cyrillic``
    * - Mac-Greek
      - ``MacGreek``
-     - ``MacGreek``
+     - ``Mac-Greek``
    * - Mac-Iceland
      - ``MacIceland``
-     - ``MacIceland``
+     - ``Mac-Iceland``
    * - Mac-Latin2
      - ``MacLatin2``
-     - ``MacLatin2``
+     - ``Mac-Latin2``
    * - Mac-Roman
      - ``MacRoman``
-     - ``MacRoman``
+     - ``Mac-Roman``
    * - Mac-Turkish
      - ``MacTurkish``
-     - ``MacTurkish``
+     - ``Mac-Turkish``
    * - Shift-JIS-2004
      - ``SHIFT_JIS``
-     - ``SHIFT_JIS``
+     - ``Shift-JIS-2004``
    * - TIS-620
      - ``TIS-620``
      - ``CP874``
