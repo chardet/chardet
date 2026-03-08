@@ -161,7 +161,11 @@ def test_detect(
 ) -> None:
     """Detect encoding of a single test file and verify correctness."""
     data = test_file_path.read_bytes()
-    result = chardet.detect(data, encoding_era=EncodingEra.ALL)
+    # Use should_rename_legacy=True so the accuracy test sees canonical names
+    # with ISO→Windows superset remapping, not chardet 5.x compat names.
+    result = chardet.detect(
+        data, encoding_era=EncodingEra.ALL, should_rename_legacy=True
+    )
     detected = result["encoding"]
 
     # Binary files: expect encoding=None
@@ -203,7 +207,7 @@ def test_detect_era_filtered(
     """Detect encoding using only the expected encoding's own era."""
     era = _encoding_era(expected_encoding)
     data = test_file_path.read_bytes()
-    result = chardet.detect(data, encoding_era=era)
+    result = chardet.detect(data, encoding_era=era, should_rename_legacy=True)
     detected = result["encoding"]
 
     # Binary files: expect encoding=None
