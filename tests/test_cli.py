@@ -20,7 +20,7 @@ def test_cli_detects_file(tmp_path: Path):
         text=True,
     )
     assert result.returncode == 0
-    assert "windows-1252" in result.stdout.lower()
+    assert "ascii" in result.stdout.lower()
 
 
 def test_cli_detects_utf8_file(tmp_path: Path):
@@ -42,7 +42,7 @@ def test_cli_stdin():
         capture_output=True,
     )
     assert result.returncode == 0
-    assert "windows-1252" in result.stdout.decode().lower()
+    assert "ascii" in result.stdout.decode().lower()
 
 
 def test_cli_version():
@@ -68,7 +68,7 @@ def test_cli_minimal_flag(tmp_path: Path):
         text=True,
     )
     assert result.returncode == 0
-    assert result.stdout.strip() == "Windows-1252"
+    assert result.stdout.strip() == "ascii"
 
 
 def test_cli_multiple_files(tmp_path: Path):

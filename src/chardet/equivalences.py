@@ -15,6 +15,11 @@ This module defines:
 3. **Preferred superset mapping** for the ``should_rename_legacy`` API option:
    replaces detected ISO/subset encoding names with their Windows/CP superset
    equivalents that modern software actually uses.
+
+4. **Legacy compatibility names** for the default ``should_rename_legacy=False``
+   mode: maps canonical display-cased names back to the names chardet 5.x
+   returned, preserving backward compatibility for callers that compare
+   encoding strings directly.
 """
 
 from __future__ import annotations
@@ -109,6 +114,57 @@ def apply_legacy_rename(
     enc = result.get("encoding")
     if isinstance(enc, str):
         result["encoding"] = PREFERRED_SUPERSET.get(enc, enc)
+    return result
+
+
+# Mapping from canonical display-cased names to the names chardet 5.x/6.x
+# returned.  Only entries that differ are listed; unlisted names pass through
+# unchanged (they are either new encodings with no legacy equivalent, or
+# already match the old name exactly).
+_LEGACY_NAMES: dict[str, str] = {
+    "ASCII": "ascii",
+    "Big5-HKSCS": "Big5",
+    "EUC-JIS-2004": "EUC-JP",
+    "ISO-2022-JP-2": "ISO-2022-JP",
+    "Mac-Cyrillic": "MacCyrillic",
+    "Mac-Greek": "MacGreek",
+    "Mac-Iceland": "MacIceland",
+    "Mac-Latin2": "MacLatin2",
+    "Mac-Roman": "MacRoman",
+    "Mac-Turkish": "MacTurkish",
+    "Shift-JIS-2004": "SHIFT_JIS",
+    "UTF-16-BE": "utf-16be",
+    "UTF-16-LE": "utf-16le",
+    "UTF-32-BE": "utf-32be",
+    "UTF-32-LE": "utf-32le",
+    "UTF-7": "utf-7",
+    "UTF-8": "utf-8",
+    "Windows-1250": "windows-1250",
+    "Windows-1251": "windows-1251",
+    "Windows-1252": "windows-1252",
+    "Windows-1253": "windows-1253",
+    "Windows-1254": "windows-1254",
+    "Windows-1255": "windows-1255",
+    "Windows-1256": "windows-1256",
+    "Windows-1257": "windows-1257",
+    "Windows-1258": "windows-1258",
+}
+
+
+def apply_compat_names(
+    result: DetectionDict,
+) -> DetectionDict:
+    """Convert canonical encoding names to chardet 5.x compatible names.
+
+    Modifies the ``"encoding"`` value in *result* in-place and returns *result*
+    for fluent chaining.
+
+    :param result: A detection result dict containing an ``"encoding"`` key.
+    :returns: The same *result* dict, modified in-place.
+    """
+    enc = result.get("encoding")
+    if isinstance(enc, str):
+        result["encoding"] = _LEGACY_NAMES.get(enc, enc)
     return result
 
 

@@ -111,19 +111,20 @@ Available eras (can be combined with ``|``):
 Legacy Renaming
 ---------------
 
-By default, chardet remaps legacy encoding names to their modern
-equivalents (e.g., ``"gb2312"`` becomes ``"gb18030"``). Set
-``should_rename_legacy=False`` to get the raw detection name:
+By default, chardet returns encoding names compatible with chardet 5.x/6.x
+(e.g., ``"utf-8"``, ``"ascii"``, ``"SHIFT_JIS"``).  Set
+``should_rename_legacy=True`` to get canonical display-cased names and remap
+legacy ISO encodings to their modern Windows superset equivalents:
 
 .. code-block:: python
 
-   # Default: legacy names are remapped
+   # Default: chardet 5.x compatible names
    chardet.detect(data)
-   # {'encoding': 'gb18030', ...}
+   # {'encoding': 'ascii', ...}
 
-   # Disable renaming to get the original detection name
-   chardet.detect(data, should_rename_legacy=False)
-   # {'encoding': 'gb2312', ...}
+   # Enable modern naming + superset remapping
+   chardet.detect(data, should_rename_legacy=True)
+   # {'encoding': 'Windows-1252', ...}
 
 This applies to :func:`~chardet.detect`, :func:`~chardet.detect_all`,
 and :class:`~chardet.UniversalDetector`.
