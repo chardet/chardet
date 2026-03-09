@@ -64,7 +64,11 @@ SUPERSETS: dict[str, frozenset[str]] = {
     "EUC-JISX0213": frozenset({"EUC-JIS-2004"}),
     "EUC-KR": frozenset({"CP949"}),
     "CP037": frozenset({"CP1140"}),
-    # ISO-2022-JP subsets: any branch variant is acceptable
+    # ISO-2022-JP subsets: any branch variant is acceptable.
+    # ISO2022-JP-1 and ISO2022-JP-3 use Python codec names (no hyphen between
+    # "ISO" and "2022") because they appear as expected values in the test suite,
+    # not as canonical chardet output.  They are consumed through
+    # _NORMALIZED_SUPERSETS which normalizes via codecs.lookup().
     "ISO-2022-JP": frozenset({"ISO-2022-JP-2", "ISO-2022-JP-2004", "ISO-2022-JP-EXT"}),
     "ISO2022-JP-1": frozenset({"ISO-2022-JP-2", "ISO-2022-JP-EXT"}),
     "ISO2022-JP-3": frozenset({"ISO-2022-JP-2004"}),

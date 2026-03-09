@@ -362,9 +362,12 @@ def test_detect_iso_2022_jp_era_modern_web_still_works():
     """ISO-2022-JP is NOT in WHATWG 'replacement' - should still be detected with MODERN_WEB."""
     data = b"Hello \x1b$B$3$s$K$A$O\x1b(B World"
     result = chardet.detect(data, encoding_era=EncodingEra.MODERN_WEB)
-    assert result["encoding"] is not None
-    assert "2022" in result["encoding"].upper()
-    assert "jp" in result["encoding"].lower()
+    assert result["encoding"] in {
+        "ISO-2022-JP",
+        "ISO-2022-JP-2",
+        "ISO-2022-JP-2004",
+        "ISO-2022-JP-EXT",
+    }
 
 
 def test_detect_cp273():
