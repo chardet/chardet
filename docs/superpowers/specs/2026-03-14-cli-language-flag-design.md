@@ -41,7 +41,9 @@ and tests can all import from a single location. Add `"und": "Undetermined"`
 to the dict.
 
 Update `scripts/utils.py` to import `ISO_TO_LANGUAGE` from `chardet._utils`
-instead of defining its own copy.
+instead of defining its own copy. The derived `_LANGUAGE_NAME_TO_ISO` dict and
+`normalize_language()` function remain in `scripts/utils.py` since they are
+only used by scripts and tests, not the CLI.
 
 ### 2. Update `src/chardet/cli.py`
 
@@ -49,14 +51,16 @@ instead of defining its own copy.
 - Update `_print_result()` to accept a `language: bool` parameter.
 - When `language=True`:
   - Read `result["language"]`, defaulting to `"und"` if `None`.
-  - Look up the display name from `ISO_TO_LANGUAGE` (title-cased).
+  - Look up the display name via `ISO_TO_LANGUAGE.get(iso, iso).title()`.
+    If the code is not in the dict, use the raw code as the display name.
   - Format output per the table above.
+- Argparse help text: `"Include detected language in output"`.
 
 ### 3. Update `tests/test_cli.py`
 
 Add tests for:
 - `--language` flag with normal output (file and stdin)
-- `--language` + `--minimal` flag
+- `--language` + `--minimal` flag (file and stdin)
 - `-l` short form
 - `None` language → `und (Undetermined)` output
 
