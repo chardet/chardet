@@ -192,3 +192,116 @@ def test_cli_stdin_success_in_process(
     main([])
     captured = capsys.readouterr()
     assert "with confidence" in captured.out
+
+
+def test_cli_language_flag(tmp_path: Path, capsys: pytest.CaptureFixture[str]):
+    """--language should include language code and name in output."""
+    f = tmp_path / "test.txt"
+    f.write_bytes("Héllo wörld café résumé naïve".encode())
+    main(["--language", str(f)])
+    captured = capsys.readouterr()
+    assert "with confidence" in captured.out
+    # Should contain a language code and parenthesized name in the output
+    assert "(" in captured.out
+    assert ")" in captured.out
+
+
+def test_cli_language_short_flag(tmp_path: Path, capsys: pytest.CaptureFixture[str]):
+    """-l should work as short form of --language."""
+    f = tmp_path / "test.txt"
+    f.write_bytes("Héllo wörld café résumé naïve".encode())
+    main(["-l", str(f)])
+    captured = capsys.readouterr()
+    assert "(" in captured.out
+    assert "with confidence" in captured.out
+
+
+def test_cli_language_minimal(tmp_path: Path, capsys: pytest.CaptureFixture[str]):
+    """--language + --minimal should print encoding and language code."""
+    f = tmp_path / "test.txt"
+    f.write_bytes("Héllo wörld café résumé naïve".encode())
+    main(["--minimal", "--language", str(f)])
+    captured = capsys.readouterr()
+    parts = captured.out.strip().split()
+    # Should be exactly two tokens: encoding and language code
+    assert len(parts) == 2
+    assert "with confidence" not in captured.out
+    assert "(" not in captured.out
+
+
+def test_cli_language_minimal_stdin(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+):
+    """--language + --minimal on stdin should print encoding and language code."""
+    import io
+
+    fake_stdin = io.TextIOWrapper(io.BytesIO("Héllo wörld café résumé naïve".encode()))
+    monkeypatch.setattr(sys, "stdin", fake_stdin)
+    main(["--minimal", "--language"])
+    captured = capsys.readouterr()
+    parts = captured.out.strip().split()
+    assert len(parts) == 2
+    assert "with confidence" not in captured.out
+
+
+def test_cli_language_none_shows_und(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+):
+    """When language is None, should display 'und (Undetermined)'."""
+    f = tmp_path / "test.txt"
+    f.write_bytes(b"Hello world")
+    monkeypatch.setattr(
+        chardet,
+        "detect",
+        lambda *_a, **_kw: {"encoding": "ascii", "confidence": 1.0, "language": None},
+    )
+    main(["--language", str(f)])
+    captured = capsys.readouterr()
+    assert "und (Undetermined)" in captured.out
+
+
+def test_cli_language_none_minimal_shows_und(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+):
+    """When language is None with --minimal, should display 'encoding und'."""
+    f = tmp_path / "test.txt"
+    f.write_bytes(b"Hello world")
+    monkeypatch.setattr(
+        chardet,
+        "detect",
+        lambda *_a, **_kw: {"encoding": "ascii", "confidence": 1.0, "language": None},
+    )
+    main(["--minimal", "--language", str(f)])
+    captured = capsys.readouterr()
+    assert captured.out.strip() == "ascii und"
+
+
+def test_cli_language_stdin(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+):
+    """--language on stdin should include language in output."""
+    import io
+
+    fake_stdin = io.TextIOWrapper(io.BytesIO("Héllo wörld café résumé naïve".encode()))
+    monkeypatch.setattr(sys, "stdin", fake_stdin)
+    main(["--language"])
+    captured = capsys.readouterr()
+    assert "with confidence" in captured.out
+    assert "(" in captured.out
+
+
+def test_cli_without_language_flag_unchanged(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+):
+    """Without --language, output should not contain language info."""
+    f = tmp_path / "test.txt"
+    f.write_bytes("Héllo wörld café résumé naïve".encode())
+    main([str(f)])
+    captured = capsys.readouterr()
+    assert "with confidence" in captured.out
+    # No parenthesized language name
+    assert "(" not in captured.out
