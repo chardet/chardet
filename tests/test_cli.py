@@ -1,6 +1,7 @@
 # tests/test_cli.py
 from __future__ import annotations
 
+import io
 import subprocess
 import sys
 from pathlib import Path
@@ -152,8 +153,6 @@ def test_cli_detection_failure_on_stdin(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ):
     """Detection exception on stdin should print error and exit 1."""
-    import io
-
     fake_stdin = io.TextIOWrapper(io.BytesIO(b"Hello"))
     monkeypatch.setattr(sys, "stdin", fake_stdin)
     monkeypatch.setattr(
@@ -185,8 +184,6 @@ def test_cli_stdin_success_in_process(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ):
     """Stdin detection success path should print result (in-process)."""
-    import io
-
     fake_stdin = io.TextIOWrapper(io.BytesIO(b"Hello world"))
     monkeypatch.setattr(sys, "stdin", fake_stdin)
     main([])
@@ -233,8 +230,6 @@ def test_cli_language_minimal_stdin(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ):
     """--language + --minimal on stdin should print encoding and language code."""
-    import io
-
     fake_stdin = io.TextIOWrapper(io.BytesIO("Héllo wörld café résumé naïve".encode()))
     monkeypatch.setattr(sys, "stdin", fake_stdin)
     main(["--minimal", "--language"])
@@ -284,8 +279,6 @@ def test_cli_language_stdin(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ):
     """--language on stdin should include language in output."""
-    import io
-
     fake_stdin = io.TextIOWrapper(io.BytesIO("Héllo wörld café résumé naïve".encode()))
     monkeypatch.setattr(sys, "stdin", fake_stdin)
     main(["--language"])
