@@ -9,6 +9,8 @@ import sys
 import tempfile
 from pathlib import Path
 
+from chardet._utils import ISO_TO_LANGUAGE
+
 _TEST_DATA_REPO = "https://github.com/chardet/test-data.git"
 _REF_FILE = ".test-data-ref"
 
@@ -142,59 +144,6 @@ def format_bytes(n: int) -> str:
     if n >= 1 << 10:
         return f"{n / (1 << 10):.1f} KiB"
     return f"{n} B"
-
-
-ISO_TO_LANGUAGE: dict[str, str] = {
-    "ar": "arabic",
-    "be": "belarusian",
-    "bg": "bulgarian",
-    "br": "breton",
-    "cs": "czech",
-    "cy": "welsh",
-    "da": "danish",
-    "de": "german",
-    "el": "greek",
-    "en": "english",
-    "eo": "esperanto",
-    "es": "spanish",
-    "et": "estonian",
-    "fa": "farsi",
-    "fi": "finnish",
-    "fr": "french",
-    "ga": "irish",
-    "gd": "gaelic",
-    "he": "hebrew",
-    "hr": "croatian",
-    "hu": "hungarian",
-    "id": "indonesian",
-    "is": "icelandic",
-    "it": "italian",
-    "ja": "japanese",
-    "kk": "kazakh",
-    "ko": "korean",
-    "lt": "lithuanian",
-    "lv": "latvian",
-    "mk": "macedonian",
-    "ms": "malay",
-    "mt": "maltese",
-    "nl": "dutch",
-    "no": "norwegian",
-    "pl": "polish",
-    "pt": "portuguese",
-    "ro": "romanian",
-    "ru": "russian",
-    "sk": "slovak",
-    "sl": "slovene",
-    "sr": "serbian",
-    "sv": "swedish",
-    "tg": "tajik",
-    "th": "thai",
-    "tr": "turkish",
-    "uk": "ukrainian",
-    "ur": "urdu",
-    "vi": "vietnamese",
-    "zh": "chinese",
-}
 
 
 # Mapping from English language names (as returned by chardet ≤6 and
