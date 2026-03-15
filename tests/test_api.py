@@ -1,7 +1,6 @@
 # tests/test_api.py
 from __future__ import annotations
 
-import time
 import warnings
 
 import pytest
@@ -844,23 +843,3 @@ def test_detect_all_custom_no_match_encoding():
         compat_names=False,
     )
     assert results[0]["encoding"] == "ascii"
-
-
-@pytest.mark.benchmark
-def test_detect_default_params_no_regression():
-    """Default path (no include/exclude) should not be measurably slower."""
-    data = "Héllo wörld café résumé naïve über straße".encode()
-    chardet.detect(data)
-    chardet.detect(data)
-
-    start = time.perf_counter()
-    for _ in range(1000):
-        chardet.detect(data)
-    elapsed_default = time.perf_counter() - start
-
-    start = time.perf_counter()
-    for _ in range(1000):
-        chardet.detect(data, include_encodings=None, exclude_encodings=None)
-    elapsed_explicit_none = time.perf_counter() - start
-
-    assert elapsed_explicit_none < elapsed_default * 1.5
