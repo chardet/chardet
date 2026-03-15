@@ -80,9 +80,19 @@ Example: `encoding_era=MODERN_WEB, include_encodings={"cp1252", "iso8859-1"}`
 returns only `cp1252` because `iso8859-1` is `LEGACY_ISO`, not `MODERN_WEB`.
 
 **Overlap:** If `include_encodings` and `exclude_encodings` overlap, the
-filters work naturally — the intersection produces no candidates and the
-caller receives `DetectionResult(encoding=None, confidence=0.0,
-language=None)`.
+filters work naturally — early-exit results are filtered out, no statistical
+candidates survive, and the fallback is itself filtered, so the caller
+ultimately receives `DetectionResult(encoding=None, confidence=0.0,
+language=None)` (with a warning about the filtered fallback).
+
+**Interaction with `prefer_superset` / `compat_names`:**
+`include_encodings` and `exclude_encodings` operate on canonical pipeline
+names (e.g., `"iso8859-1"`, `"cp1252"`), *before* any post-pipeline cosmetic
+transforms. `prefer_superset` and `compat_names` are applied after detection
+and do not affect filtering. For example,
+`include_encodings={"iso8859-1"}, prefer_superset=True` will detect
+`iso8859-1` (passes the include filter), then rename it to `Windows-1252`
+in the output.
 
 ### Candidate Filtering (`get_candidates()`)
 
@@ -99,7 +109,9 @@ def get_candidates(
 
 Filters are applied in order: era, include, exclude. The function stays
 `@functools.cache`d — `frozenset` and `None` are both hashable, and users
-calling `detect()` in a loop with the same filters will hit the cache.
+calling `detect()` in a loop with the same filters will hit the cache. The
+cache grows with distinct `(era, include, exclude)` combinations; in
+practice this is bounded by how many unique filter sets a program uses.
 
 ### Early-Exit Stage Gating
 
@@ -136,9 +148,21 @@ next stage rather than returning.
 This applies to: BOM (1a), UTF-16/32 patterns (1a+), escape sequences (1b),
 markup charset (1c), ASCII (1d), UTF-8 (1e).
 
+The escape sequence stage already has an existing era gate (checking
+`encoding_era & enc_info.era`). That era gate is preserved;
+`_is_filtered_out()` is applied as an additional check on top. The other
+early-exit stages do not currently check `encoding_era` — extending era
+gating to all early-exit stages is out of scope for this change.
+
 **Binary detection** (`encoding=None, confidence=1.0`) is **not** subject to
 encoding filters, as it represents the absence of text encoding rather than
 a specific encoding.
+
+**Post-processing invariant:** The post-processing stages
+(`resolve_confusion_groups`, `_demote_niche_latin`, `_promote_koi8t`) only
+reorder existing results — they never introduce encodings that were not
+already in the candidate set. This means the include/exclude filters applied
+at `get_candidates()` are respected through the entire pipeline.
 
 ### Fallback and Empty Results
 
