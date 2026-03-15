@@ -59,6 +59,28 @@ def main(argv: list[str] | None = None) -> None:
         help="Encoding era filter",
     )
     parser.add_argument(
+        "-i",
+        "--include-encodings",
+        default=None,
+        help="Comma-separated list of encodings to consider",
+    )
+    parser.add_argument(
+        "-x",
+        "--exclude-encodings",
+        default=None,
+        help="Comma-separated list of encodings to exclude",
+    )
+    parser.add_argument(
+        "--fallback-encoding",
+        default="cp1252",
+        help="Encoding to return when detection is inconclusive (default: cp1252)",
+    )
+    parser.add_argument(
+        "--empty-encoding",
+        default="utf-8",
+        help="Encoding to return for empty input (default: utf-8)",
+    )
+    parser.add_argument(
         "--version", action="version", version=f"chardet {chardet.__version__}"
     )
 
@@ -66,6 +88,17 @@ def main(argv: list[str] | None = None) -> None:
 
     era = (
         EncodingEra[args.encoding_era.upper()] if args.encoding_era else EncodingEra.ALL
+    )
+
+    include = (
+        [s.strip() for s in args.include_encodings.split(",")]
+        if args.include_encodings
+        else None
+    )
+    exclude = (
+        [s.strip() for s in args.exclude_encodings.split(",")]
+        if args.exclude_encodings
+        else None
     )
 
     if args.files:
@@ -79,7 +112,14 @@ def main(argv: list[str] | None = None) -> None:
                 errors += 1
                 continue
             try:
-                result = chardet.detect(data, encoding_era=era)
+                result = chardet.detect(
+                    data,
+                    encoding_era=era,
+                    include_encodings=include,
+                    exclude_encodings=exclude,
+                    fallback_encoding=args.fallback_encoding,
+                    empty_encoding=args.empty_encoding,
+                )
             except Exception as e:  # noqa: BLE001
                 print(f"chardetect: {filepath}: detection failed: {e}", file=sys.stderr)
                 errors += 1
@@ -92,7 +132,14 @@ def main(argv: list[str] | None = None) -> None:
     else:
         data = sys.stdin.buffer.read(DEFAULT_MAX_BYTES)
         try:
-            result = chardet.detect(data, encoding_era=era)
+            result = chardet.detect(
+                data,
+                encoding_era=era,
+                include_encodings=include,
+                exclude_encodings=exclude,
+                fallback_encoding=args.fallback_encoding,
+                empty_encoding=args.empty_encoding,
+            )
         except Exception as e:  # noqa: BLE001
             print(f"chardetect: stdin: detection failed: {e}", file=sys.stderr)
             sys.exit(1)

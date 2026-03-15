@@ -298,3 +298,60 @@ def test_cli_without_language_flag_unchanged(
     assert "with confidence" in captured.out
     # No parenthesized language name
     assert "(" not in captured.out
+
+
+def test_cli_include_encodings(tmp_path: Path, capsys: pytest.CaptureFixture[str]):
+    f = tmp_path / "test.txt"
+    f.write_bytes(b"Hello world")
+    main(["-i", "utf-8,ascii", str(f)])
+    captured = capsys.readouterr()
+    assert "with confidence" in captured.out
+
+
+def test_cli_exclude_encodings(tmp_path: Path, capsys: pytest.CaptureFixture[str]):
+    f = tmp_path / "test.txt"
+    f.write_bytes(b"Hello world")
+    main(["-x", "ascii", "--minimal", str(f)])
+    captured = capsys.readouterr()
+    assert captured.out.strip().lower() != "ascii"
+
+
+def test_cli_include_long_flag(tmp_path: Path, capsys: pytest.CaptureFixture[str]):
+    f = tmp_path / "test.txt"
+    f.write_bytes(b"Hello world")
+    main(["--include-encodings", "utf-8,ascii", str(f)])
+    captured = capsys.readouterr()
+    assert "with confidence" in captured.out
+
+
+def test_cli_exclude_long_flag(tmp_path: Path, capsys: pytest.CaptureFixture[str]):
+    f = tmp_path / "test.txt"
+    f.write_bytes(b"Hello world")
+    main(["--exclude-encodings", "ascii", str(f)])
+    captured = capsys.readouterr()
+    assert "with confidence" in captured.out
+
+
+def test_cli_fallback_encoding(tmp_path: Path, capsys: pytest.CaptureFixture[str]):
+    f = tmp_path / "test.txt"
+    f.write_bytes(b"Hello world")
+    main(["--fallback-encoding", "ascii", str(f)])
+    captured = capsys.readouterr()
+    assert "with confidence" in captured.out
+
+
+def test_cli_empty_encoding(tmp_path: Path, capsys: pytest.CaptureFixture[str]):
+    f = tmp_path / "test.txt"
+    f.write_bytes(b"")
+    main(["--empty-encoding", "ascii", str(f)])
+    captured = capsys.readouterr()
+    assert "ascii" in captured.out.lower()
+
+
+def test_cli_include_with_spaces(tmp_path: Path, capsys: pytest.CaptureFixture[str]):
+    """Comma-separated values with spaces should be stripped."""
+    f = tmp_path / "test.txt"
+    f.write_bytes(b"Hello world")
+    main(["-i", "utf-8, ascii", str(f)])
+    captured = capsys.readouterr()
+    assert "with confidence" in captured.out
