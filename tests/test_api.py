@@ -8,7 +8,6 @@ import pytest
 import chardet
 from chardet.detector import UniversalDetector
 from chardet.enums import EncodingEra, LanguageFilter
-from chardet.pipeline.orchestrator import _is_filtered_out
 from chardet.registry import get_candidates, normalize_encodings
 
 
@@ -606,33 +605,6 @@ def test_get_candidates_none_defaults_unchanged():
     result_default = get_candidates(EncodingEra.MODERN_WEB)
     result_explicit = get_candidates(EncodingEra.MODERN_WEB, None, None)
     assert result_default == result_explicit
-
-
-# --- _is_filtered_out tests ---
-
-
-def test_is_filtered_out_none_encoding():
-    assert _is_filtered_out(None, frozenset({"utf-8"}), None) is False
-
-
-def test_is_filtered_out_in_include():
-    assert _is_filtered_out("utf-8", frozenset({"utf-8"}), None) is False
-
-
-def test_is_filtered_out_not_in_include():
-    assert _is_filtered_out("cp1252", frozenset({"utf-8"}), None) is True
-
-
-def test_is_filtered_out_in_exclude():
-    assert _is_filtered_out("utf-8", None, frozenset({"utf-8"})) is True
-
-
-def test_is_filtered_out_not_in_exclude():
-    assert _is_filtered_out("cp1252", None, frozenset({"utf-8"})) is False
-
-
-def test_is_filtered_out_both_none():
-    assert _is_filtered_out("utf-8", None, None) is False
 
 
 # --- include/exclude/fallback/empty integration tests ---

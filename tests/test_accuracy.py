@@ -105,6 +105,7 @@ _KNOWN_ERA_FILTERED_FAILURES: frozenset[str] = frozenset(
         "cp1006-ur/culturax_00001.txt",
         "cp1006-ur/culturax_00002.txt",
         "gb2312-zh/_mozilla_bug171813_text.html",
+        "iso-8859-2-hu/torokorszag.blogspot.com.xml",
         "iso-8859-10-fi/culturax_00002.txt",
         "iso-8859-13-et/culturax_00002.txt",
         "iso-8859-15-ga/culturax_mC4_63469.txt",
@@ -112,7 +113,6 @@ _KNOWN_ERA_FILTERED_FAILURES: frozenset[str] = frozenset(
         "iso-8859-16-ro/_ude_1.txt",
         "macroman-da/culturax_mC4_83469.txt",
         "macroman-fi/culturax_mC4_80362.txt",
-        "utf-8-en/finnish-utf-8-latin-1-confusion.html",
     }
 )
 

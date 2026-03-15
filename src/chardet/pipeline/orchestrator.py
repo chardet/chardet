@@ -33,7 +33,7 @@ from chardet.pipeline.structural import (
 from chardet.pipeline.utf8 import detect_utf8
 from chardet.pipeline.utf1632 import detect_utf1632_patterns
 from chardet.pipeline.validity import filter_by_validity
-from chardet.registry import REGISTRY, EncodingInfo, get_candidates
+from chardet.registry import EncodingInfo, get_candidates
 
 _BINARY_RESULT = DetectionResult(
     encoding=None, confidence=DETERMINISTIC_CONFIDENCE, language=None
@@ -179,23 +179,9 @@ _KOI8_T_DISTINGUISHING: frozenset[int] = frozenset(
 )
 
 
-def _is_filtered_out(
-    encoding: str | None,
-    include_encodings: frozenset[str] | None,
-    exclude_encodings: frozenset[str] | None,
-) -> bool:
-    """Check if an encoding should be filtered out by include/exclude sets."""
-    if encoding is None:
-        return False
-    if include_encodings is not None and encoding not in include_encodings:
-        return True
-    return exclude_encodings is not None and encoding in exclude_encodings
-
-
 def _make_fallback_or_none(
     encoding: str,
-    include_encodings: frozenset[str] | None,
-    exclude_encodings: frozenset[str] | None,
+    allowed: frozenset[str],
     param_name: str,
 ) -> list[DetectionResult]:
     """Return a low-confidence result for *encoding*, or ``encoding=None`` if filtered out.
@@ -203,7 +189,7 @@ def _make_fallback_or_none(
     ``stacklevel=5`` targets the public caller:
     detect() -> run_pipeline() -> _run_pipeline_core() -> _make_fallback_or_none().
     """
-    if _is_filtered_out(encoding, include_encodings, exclude_encodings):
+    if encoding not in allowed:
         warnings.warn(
             f"{param_name} {encoding!r} is excluded by "
             f"include_encodings/exclude_encodings; returning encoding=None",
@@ -507,43 +493,40 @@ def _run_pipeline_core(  # noqa: PLR0913
     ctx = PipelineContext()
     data = data[:max_bytes]
 
-    def filtered_out(encoding: str | None) -> bool:
-        return _is_filtered_out(encoding, include_encodings, exclude_encodings)
+    # Build candidate set once — used for both early-exit gating and
+    # statistical scoring.  The set incorporates encoding_era, include, and
+    # exclude filters so all pipeline stages are gated consistently.
+    candidates = get_candidates(encoding_era, include_encodings, exclude_encodings)
+    allowed: frozenset[str] = frozenset(enc.name for enc in candidates)
 
     if not data:
         return _make_fallback_or_none(
-            empty_input_encoding,
-            include_encodings,
-            exclude_encodings,
-            "empty_input_encoding",
+            empty_input_encoding, allowed, "empty_input_encoding"
         )
 
     # Stage 1a: BOM detection (runs first — BOMs are definitive and
     # UTF-16/32 data looks binary due to null bytes)
     bom_result = detect_bom(data)
-    if bom_result is not None and not filtered_out(bom_result.encoding):
+    if bom_result is not None and bom_result.encoding in allowed:
         return [bom_result]
 
     # Stage 1a+: UTF-16/32 null-byte pattern detection (for files without
     # BOMs — must run before binary detection since these encodings contain
     # many null bytes that would trigger the binary check)
     utf1632_result = detect_utf1632_patterns(data)
-    if utf1632_result is not None and not filtered_out(utf1632_result.encoding):
+    if utf1632_result is not None and utf1632_result.encoding in allowed:
         return [utf1632_result]
 
     # Escape-sequence encodings (ISO-2022, HZ-GB-2312, UTF-7): must run
     # before binary detection (ESC is a control byte) and before ASCII
     # detection (HZ-GB-2312 uses only printable ASCII plus tildes).
-    # Gate the result on encoding_era so that deprecated encodings like
-    # UTF-7 (disabled by browsers since ~2020 as an XSS vector) are only
-    # returned when the caller's era filter includes them.
     escape_result = detect_escape_encoding(data)
-    if escape_result is not None and escape_result.encoding is not None:
-        enc_info = REGISTRY.get(escape_result.encoding)
-        if (enc_info is None or encoding_era & enc_info.era) and not filtered_out(
-            escape_result.encoding
-        ):
-            return [escape_result]
+    if (
+        escape_result is not None
+        and escape_result.encoding is not None
+        and escape_result.encoding in allowed
+    ):
+        return [escape_result]
 
     # Pre-check UTF-8 to prevent false binary classification.  Valid UTF-8
     # with multi-byte sequences can contain control bytes (e.g. ESC for ANSI
@@ -553,7 +536,7 @@ def _run_pipeline_core(  # noqa: PLR0913
     utf8_precheck = detect_utf8(data)
 
     # Stage 0: Binary detection (skip when data is valid multi-byte UTF-8)
-    # Binary detection (encoding=None) is NOT gated by include/exclude.
+    # Binary detection (encoding=None) is NOT gated by filters.
     if utf8_precheck is None and is_binary(data, max_bytes=max_bytes):
         return [_BINARY_RESULT]
 
@@ -561,35 +544,30 @@ def _run_pipeline_core(  # noqa: PLR0913
     # declarations like <?xml encoding="iso-8859-1"?> are honoured even
     # when the bytes happen to be pure ASCII or valid UTF-8).
     markup_result = detect_markup_charset(data)
-    if markup_result is not None and not filtered_out(markup_result.encoding):
+    if markup_result is not None and markup_result.encoding in allowed:
         return [markup_result]
 
     # Stage 1c: ASCII
     ascii_result = detect_ascii(data)
-    if ascii_result is not None and not filtered_out(ascii_result.encoding):
+    if ascii_result is not None and ascii_result.encoding in allowed:
         return [ascii_result]
 
     # Stage 1d: UTF-8 structural validation (use pre-computed result)
-    if utf8_precheck is not None and not filtered_out(utf8_precheck.encoding):
+    if utf8_precheck is not None and utf8_precheck.encoding in allowed:
         return [utf8_precheck]
 
     # Stage 2a: Byte validity filtering
-    candidates = get_candidates(encoding_era, include_encodings, exclude_encodings)
     valid_candidates = filter_by_validity(data, candidates)
 
     if not valid_candidates:
-        return _make_fallback_or_none(
-            no_match_encoding, include_encodings, exclude_encodings, "no_match_encoding"
-        )
+        return _make_fallback_or_none(no_match_encoding, allowed, "no_match_encoding")
 
     # Gate: eliminate CJK multi-byte candidates that lack genuine
     # multi-byte structure.  Cache structural scores for Stage 2b.
     valid_candidates = _gate_cjk_candidates(data, valid_candidates, ctx)
 
     if not valid_candidates:
-        return _make_fallback_or_none(
-            no_match_encoding, include_encodings, exclude_encodings, "no_match_encoding"
-        )
+        return _make_fallback_or_none(no_match_encoding, allowed, "no_match_encoding")
 
     # Stage 2b: Structural probing for multi-byte encodings
     # Reuse scores already computed during the CJK gate above.
@@ -616,9 +594,7 @@ def _run_pipeline_core(  # noqa: PLR0913
     # Stage 3: Statistical scoring for all remaining candidates
     results = list(score_candidates(data, tuple(valid_candidates)))
     if not results:
-        return _make_fallback_or_none(
-            no_match_encoding, include_encodings, exclude_encodings, "no_match_encoding"
-        )
+        return _make_fallback_or_none(no_match_encoding, allowed, "no_match_encoding")
 
     return _postprocess_results(data, results)
 
