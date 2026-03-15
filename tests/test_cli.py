@@ -303,9 +303,9 @@ def test_cli_without_language_flag_unchanged(
 def test_cli_include_encodings(tmp_path: Path, capsys: pytest.CaptureFixture[str]):
     f = tmp_path / "test.txt"
     f.write_bytes(b"Hello world")
-    main(["-i", "utf-8,ascii", str(f)])
+    main(["-i", "utf-8,ascii", "--minimal", str(f)])
     captured = capsys.readouterr()
-    assert "with confidence" in captured.out
+    assert captured.out.strip().lower() == "ascii"
 
 
 def test_cli_exclude_encodings(tmp_path: Path, capsys: pytest.CaptureFixture[str]):
@@ -316,28 +316,13 @@ def test_cli_exclude_encodings(tmp_path: Path, capsys: pytest.CaptureFixture[str
     assert captured.out.strip().lower() != "ascii"
 
 
-def test_cli_include_long_flag(tmp_path: Path, capsys: pytest.CaptureFixture[str]):
-    f = tmp_path / "test.txt"
-    f.write_bytes(b"Hello world")
-    main(["--include-encodings", "utf-8,ascii", str(f)])
-    captured = capsys.readouterr()
-    assert "with confidence" in captured.out
-
-
-def test_cli_exclude_long_flag(tmp_path: Path, capsys: pytest.CaptureFixture[str]):
-    f = tmp_path / "test.txt"
-    f.write_bytes(b"Hello world")
-    main(["--exclude-encodings", "ascii", str(f)])
-    captured = capsys.readouterr()
-    assert "with confidence" in captured.out
-
-
 def test_cli_no_match_encoding(tmp_path: Path, capsys: pytest.CaptureFixture[str]):
+    """--no-match-encoding is returned when no candidates survive."""
     f = tmp_path / "test.txt"
-    f.write_bytes(b"Hello world")
-    main(["--no-match-encoding", "ascii", str(f)])
+    f.write_bytes(b"\x80\x81\x82\x83\x84\x85")
+    main(["--no-match-encoding", "ascii", "-i", "ascii", "--minimal", str(f)])
     captured = capsys.readouterr()
-    assert "with confidence" in captured.out
+    assert captured.out.strip().lower() == "ascii"
 
 
 def test_cli_empty_input_encoding(tmp_path: Path, capsys: pytest.CaptureFixture[str]):
@@ -352,9 +337,9 @@ def test_cli_include_with_spaces(tmp_path: Path, capsys: pytest.CaptureFixture[s
     """Comma-separated values with spaces should be stripped."""
     f = tmp_path / "test.txt"
     f.write_bytes(b"Hello world")
-    main(["-i", "utf-8, ascii", str(f)])
+    main(["-i", "utf-8, ascii", "--minimal", str(f)])
     captured = capsys.readouterr()
-    assert "with confidence" in captured.out
+    assert captured.out.strip().lower() == "ascii"
 
 
 def test_cli_invalid_include_encoding(

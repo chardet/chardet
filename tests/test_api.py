@@ -649,28 +649,21 @@ def test_detect_exclude_encodings_removes():
     """exclude_encodings prevents specific encodings from being returned."""
     data = b"Hello world"
     result = chardet.detect(data, exclude_encodings=["ascii"], compat_names=False)
-    assert result["encoding"] != "ascii"
+    assert result["encoding"] == "cp1252"
 
 
 def test_detect_exclude_bom_result():
     """Excluding utf-8-sig should suppress BOM detection and fall through."""
     data = b"\xef\xbb\xbfHello world"
     result = chardet.detect(data, exclude_encodings=["utf-8-sig"], compat_names=False)
-    assert result["encoding"] != "utf-8-sig"
+    assert result["encoding"] == "utf-8"
 
 
 def test_detect_include_filters_bom():
     """include_encodings should filter BOM results too."""
     data = b"\xef\xbb\xbfHello world"
     result = chardet.detect(data, include_encodings=["cp1252"], compat_names=False)
-    assert result["encoding"] != "utf-8-sig"
-
-
-def test_detect_exclude_ascii_early_exit():
-    """Excluding ascii should suppress ASCII early-exit."""
-    data = b"Hello world"
-    result = chardet.detect(data, exclude_encodings=["ascii"], compat_names=False)
-    assert result["encoding"] != "ascii"
+    assert result["encoding"] == "cp1252"
 
 
 def test_detect_custom_no_match_encoding():
@@ -730,6 +723,7 @@ def test_detect_all_with_include():
         ignore_threshold=True,
         compat_names=False,
     )
+    assert len(results) >= 1
     encodings = {r["encoding"] for r in results}
     assert encodings <= {"cp1252", "cp1251", None}
 
@@ -790,14 +784,14 @@ def test_detector_include_encodings():
     det = UniversalDetector(include_encodings=["cp1252"], compat_names=False)
     det.feed(b"Hello world, this is enough ASCII data for detection. " * 2)
     result = det.close()
-    assert result["encoding"] != "ascii"
+    assert result["encoding"] == "cp1252"
 
 
 def test_detector_exclude_encodings():
     det = UniversalDetector(exclude_encodings=["ascii"], compat_names=False)
     det.feed(b"Hello world, this is enough ASCII data for detection. " * 2)
     result = det.close()
-    assert result["encoding"] != "ascii"
+    assert result["encoding"] == "cp437"
 
 
 def test_detector_custom_empty_input_encoding():
