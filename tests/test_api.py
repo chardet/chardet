@@ -643,3 +643,151 @@ def test_is_filtered_out_not_in_exclude():
 
 def test_is_filtered_out_both_none():
     assert _is_filtered_out("utf-8", None, None) is False
+
+
+# --- include/exclude/fallback/empty integration tests ---
+
+
+def test_detect_include_encodings_narrows():
+    """include_encodings limits detection to specified encodings."""
+    data = "Héllo wörld café résumé naïve".encode()
+    result = chardet.detect(data, include_encodings=["cp1252"], compat_names=False)
+    assert result["encoding"] == "cp1252"
+
+
+def test_detect_exclude_encodings_removes():
+    """exclude_encodings prevents specific encodings from being returned."""
+    data = b"Hello world"
+    result = chardet.detect(data, exclude_encodings=["ascii"], compat_names=False)
+    assert result["encoding"] != "ascii"
+
+
+def test_detect_exclude_bom_result():
+    """Excluding utf-8-sig should suppress BOM detection and fall through."""
+    data = b"\xef\xbb\xbfHello world"
+    result = chardet.detect(data, exclude_encodings=["utf-8-sig"], compat_names=False)
+    assert result["encoding"] != "utf-8-sig"
+
+
+def test_detect_include_filters_bom():
+    """include_encodings should filter BOM results too."""
+    data = b"\xef\xbb\xbfHello world"
+    result = chardet.detect(data, include_encodings=["cp1252"], compat_names=False)
+    assert result["encoding"] != "utf-8-sig"
+
+
+def test_detect_exclude_ascii_early_exit():
+    """Excluding ascii should suppress ASCII early-exit."""
+    data = b"Hello world"
+    result = chardet.detect(data, exclude_encodings=["ascii"], compat_names=False)
+    assert result["encoding"] != "ascii"
+
+
+def test_detect_custom_fallback_encoding():
+    """Custom fallback_encoding is used when no candidates survive."""
+    data = b"\x80\x81\x82\x83\x84\x85"
+    result = chardet.detect(
+        data,
+        include_encodings=["ascii"],
+        fallback_encoding="ascii",
+        compat_names=False,
+    )
+    # Data has non-ASCII bytes so ascii won't pass byte-validity;
+    # pipeline falls back to the specified fallback_encoding.
+    # "ascii" is in include_encodings so it is NOT filtered out.
+    assert result["encoding"] == "ascii"
+
+
+def test_detect_custom_empty_encoding():
+    """Custom empty_encoding is used for empty input."""
+    result = chardet.detect(b"", empty_encoding="ascii", compat_names=False)
+    assert result["encoding"] == "ascii"
+
+
+def test_detect_filtered_fallback_warns():
+    """Warning emitted when fallback_encoding is filtered out."""
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        result = chardet.detect(
+            b"",
+            include_encodings=["cp1252"],
+            compat_names=False,
+        )
+        # Default empty_encoding is utf-8, which is not in include_encodings
+        user_warnings = [x for x in w if issubclass(x.category, UserWarning)]
+        assert len(user_warnings) >= 1
+        assert result["encoding"] is None
+        assert result["confidence"] == 0.0
+
+
+def test_detect_binary_unaffected_by_filters():
+    """Binary detection (encoding=None) is not subject to filters."""
+    data = b"\x00" * 100
+    result = chardet.detect(
+        data,
+        include_encodings=["utf-8"],
+        compat_names=False,
+    )
+    assert result["encoding"] is None
+
+
+def test_detect_all_with_include():
+    """detect_all respects include_encodings."""
+    data = "Héllo wörld café résumé naïve".encode()
+    results = chardet.detect_all(
+        data,
+        include_encodings=["cp1252", "cp1251"],
+        ignore_threshold=True,
+        compat_names=False,
+    )
+    encodings = {r["encoding"] for r in results}
+    assert encodings <= {"cp1252", "cp1251", None}
+
+
+def test_detect_unknown_include_raises():
+    with pytest.raises(ValueError, match="Unknown encoding"):
+        chardet.detect(b"Hello", include_encodings=["not-a-real-encoding"])
+
+
+def test_detect_unknown_exclude_raises():
+    with pytest.raises(ValueError, match="Unknown encoding"):
+        chardet.detect(b"Hello", exclude_encodings=["not-a-real-encoding"])
+
+
+def test_detect_unknown_fallback_raises():
+    with pytest.raises(ValueError, match="Unknown encoding"):
+        chardet.detect(b"Hello", fallback_encoding="not-real")
+
+
+def test_detect_unknown_empty_raises():
+    with pytest.raises(ValueError, match="Unknown encoding"):
+        chardet.detect(b"Hello", empty_encoding="not-real")
+
+
+def test_detect_all_with_exclude():
+    """detect_all respects exclude_encodings."""
+    data = "Héllo wörld café résumé naïve".encode()
+    results = chardet.detect_all(
+        data,
+        exclude_encodings=["utf-8"],
+        ignore_threshold=True,
+        compat_names=False,
+    )
+    encodings = {r["encoding"] for r in results}
+    assert "utf-8" not in encodings
+
+
+def test_detect_include_exclude_overlap():
+    """Overlapping include and exclude yields encoding=None."""
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        result = chardet.detect(
+            b"Hello",
+            include_encodings=["ascii"],
+            exclude_encodings=["ascii"],
+            compat_names=False,
+        )
+        assert result["encoding"] is None
+        assert result["confidence"] == 0.0
+        user_warnings = [x for x in w if issubclass(x.category, UserWarning)]
+        assert len(user_warnings) >= 1
