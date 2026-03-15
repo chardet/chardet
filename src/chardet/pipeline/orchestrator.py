@@ -182,6 +182,19 @@ _KOI8_T_DISTINGUISHING: frozenset[int] = frozenset(
 )
 
 
+def _is_filtered_out(
+    encoding: str | None,
+    include_encodings: frozenset[str] | None,
+    exclude_encodings: frozenset[str] | None,
+) -> bool:
+    """Check if an encoding should be filtered out by include/exclude sets."""
+    if encoding is None:
+        return False
+    if include_encodings is not None and encoding not in include_encodings:
+        return True
+    return exclude_encodings is not None and encoding in exclude_encodings
+
+
 def _should_demote(encoding: str, data: bytes) -> bool:
     """Return True if encoding is a demotion candidate with no distinguishing bytes.
 
