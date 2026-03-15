@@ -7,7 +7,7 @@ import pytest
 
 import chardet
 from chardet.enums import EncodingEra, LanguageFilter
-from chardet.registry import normalize_encodings
+from chardet.registry import get_candidates, normalize_encodings
 
 
 def test_detect_returns_dict():
@@ -562,3 +562,56 @@ def test_normalize_encodings_unknown_raises():
 def test_normalize_encodings_empty_iterable():
     result = normalize_encodings([], "include_encodings")
     assert result == frozenset()
+
+
+def test_get_candidates_include_only():
+    result = get_candidates(
+        EncodingEra.ALL,
+        include_encodings=frozenset({"utf-8", "cp1252"}),
+    )
+    names = {e.name for e in result}
+    assert names == {"utf-8", "cp1252"}
+
+
+def test_get_candidates_exclude_only():
+    result = get_candidates(
+        EncodingEra.ALL,
+        exclude_encodings=frozenset({"utf-8"}),
+    )
+    names = {e.name for e in result}
+    assert "utf-8" not in names
+    assert len(names) > 50
+
+
+def test_get_candidates_include_and_exclude():
+    result = get_candidates(
+        EncodingEra.ALL,
+        include_encodings=frozenset({"utf-8", "cp1252", "cp1251"}),
+        exclude_encodings=frozenset({"cp1252"}),
+    )
+    names = {e.name for e in result}
+    assert names == {"utf-8", "cp1251"}
+
+
+def test_get_candidates_include_intersects_era():
+    result = get_candidates(
+        EncodingEra.MODERN_WEB,
+        include_encodings=frozenset({"cp1252", "iso8859-1"}),
+    )
+    names = {e.name for e in result}
+    assert names == {"cp1252"}
+
+
+def test_get_candidates_all_filtered_returns_empty():
+    result = get_candidates(
+        EncodingEra.ALL,
+        include_encodings=frozenset({"cp1252"}),
+        exclude_encodings=frozenset({"cp1252"}),
+    )
+    assert result == ()
+
+
+def test_get_candidates_none_defaults_unchanged():
+    result_default = get_candidates(EncodingEra.MODERN_WEB)
+    result_explicit = get_candidates(EncodingEra.MODERN_WEB, None, None)
+    assert result_default == result_explicit

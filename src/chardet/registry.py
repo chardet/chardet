@@ -137,13 +137,26 @@ class EncodingInfo:
 
 
 @functools.cache
-def get_candidates(era: EncodingEra) -> tuple[EncodingInfo, ...]:
-    """Return registry entries matching the given era filter.
+def get_candidates(
+    era: EncodingEra,
+    include_encodings: frozenset[str] | None = None,
+    exclude_encodings: frozenset[str] | None = None,
+) -> tuple[EncodingInfo, ...]:
+    """Return registry entries matching the given filters.
+
+    Filters are applied in order: era, include, exclude.
 
     :param era: Bit flags specifying which encoding eras to include.
+    :param include_encodings: If not ``None``, only return encodings in this set.
+    :param exclude_encodings: If not ``None``, exclude encodings in this set.
     :returns: A tuple of matching :class:`EncodingInfo` entries.
     """
-    return tuple(enc for enc in REGISTRY.values() if enc.era & era)
+    candidates = (enc for enc in REGISTRY.values() if enc.era & era)
+    if include_encodings is not None:
+        candidates = (enc for enc in candidates if enc.name in include_encodings)
+    if exclude_encodings is not None:
+        candidates = (enc for enc in candidates if enc.name not in exclude_encodings)
+    return tuple(candidates)
 
 
 # Era assignments match chardet 6.0.0's chardet/metadata/charsets.py
