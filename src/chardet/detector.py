@@ -21,7 +21,7 @@ from chardet.equivalences import (
 )
 from chardet.pipeline import DetectionDict, DetectionResult
 from chardet.pipeline.orchestrator import run_pipeline
-from chardet.registry import lookup_encoding, normalize_encodings
+from chardet.registry import normalize_encodings, validate_encoding
 
 _NONE_RESULT = DetectionResult(encoding=None, confidence=0.0, language=None)
 
@@ -108,16 +108,10 @@ class UniversalDetector:
         self._exclude_encodings = normalize_encodings(
             exclude_encodings, "exclude_encodings"
         )
-        fb = lookup_encoding(fallback_encoding)
-        if fb is None:
-            msg = f"Unknown encoding {fallback_encoding!r} in fallback_encoding"
-            raise ValueError(msg)
-        self._fallback_encoding = fb
-        em = lookup_encoding(empty_encoding)
-        if em is None:
-            msg = f"Unknown encoding {empty_encoding!r} in empty_encoding"
-            raise ValueError(msg)
-        self._empty_encoding = em
+        self._fallback_encoding = validate_encoding(
+            fallback_encoding, "fallback_encoding"
+        )
+        self._empty_encoding = validate_encoding(empty_encoding, "empty_encoding")
         self._buffer = bytearray()
         self._done = False
         self._closed = False

@@ -18,7 +18,7 @@ from chardet.enums import EncodingEra, LanguageFilter
 from chardet.equivalences import apply_compat_names, apply_preferred_superset
 from chardet.pipeline import DetectionDict, DetectionResult
 from chardet.pipeline.orchestrator import run_pipeline
-from chardet.registry import lookup_encoding, normalize_encodings
+from chardet.registry import normalize_encodings, validate_encoding
 
 __all__ = [
     "DEFAULT_MAX_BYTES",
@@ -77,14 +77,8 @@ def detect(  # noqa: PLR0913
     prefer_superset = _resolve_prefer_superset(should_rename_legacy, prefer_superset)
     inc = normalize_encodings(include_encodings, "include_encodings")
     exc = normalize_encodings(exclude_encodings, "exclude_encodings")
-    fb = lookup_encoding(fallback_encoding)
-    if fb is None:
-        msg = f"Unknown encoding {fallback_encoding!r} in fallback_encoding"
-        raise ValueError(msg)
-    em = lookup_encoding(empty_encoding)
-    if em is None:
-        msg = f"Unknown encoding {empty_encoding!r} in empty_encoding"
-        raise ValueError(msg)
+    fb = validate_encoding(fallback_encoding, "fallback_encoding")
+    em = validate_encoding(empty_encoding, "empty_encoding")
     data = byte_str if isinstance(byte_str, bytes) else bytes(byte_str)
     results = run_pipeline(
         data,
@@ -153,14 +147,8 @@ def detect_all(  # noqa: PLR0913
     prefer_superset = _resolve_prefer_superset(should_rename_legacy, prefer_superset)
     inc = normalize_encodings(include_encodings, "include_encodings")
     exc = normalize_encodings(exclude_encodings, "exclude_encodings")
-    fb = lookup_encoding(fallback_encoding)
-    if fb is None:
-        msg = f"Unknown encoding {fallback_encoding!r} in fallback_encoding"
-        raise ValueError(msg)
-    em = lookup_encoding(empty_encoding)
-    if em is None:
-        msg = f"Unknown encoding {empty_encoding!r} in empty_encoding"
-        raise ValueError(msg)
+    fb = validate_encoding(fallback_encoding, "fallback_encoding")
+    em = validate_encoding(empty_encoding, "empty_encoding")
     data = byte_str if isinstance(byte_str, bytes) else bytes(byte_str)
     results = run_pipeline(
         data,

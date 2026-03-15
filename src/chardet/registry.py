@@ -816,6 +816,21 @@ def lookup_encoding(name: str) -> EncodingName | None:
     return None
 
 
+def validate_encoding(name: str, param_name: str) -> str:
+    """Validate and normalize a single encoding name.
+
+    :param name: The encoding name to validate.
+    :param param_name: Parameter name for error messages.
+    :returns: The canonical encoding name.
+    :raises ValueError: If the encoding name is unknown.
+    """
+    canonical = lookup_encoding(name)
+    if canonical is None:
+        msg = f"Unknown encoding {name!r} in {param_name}"
+        raise ValueError(msg)
+    return canonical
+
+
 def normalize_encodings(
     encodings: Iterable[str] | None,
     param_name: str,
@@ -829,11 +844,4 @@ def normalize_encodings(
     """
     if encodings is None:
         return None
-    result: set[str] = set()
-    for name in encodings:
-        canonical = lookup_encoding(name)
-        if canonical is None:
-            msg = f"Unknown encoding {name!r} in {param_name}"
-            raise ValueError(msg)
-        result.add(canonical)
-    return frozenset(result)
+    return frozenset(validate_encoding(name, param_name) for name in encodings)
