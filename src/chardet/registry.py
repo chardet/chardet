@@ -816,7 +816,7 @@ def lookup_encoding(name: str) -> EncodingName | None:
     return None
 
 
-def validate_encoding(name: str, param_name: str) -> str:
+def _validate_encoding(name: str, param_name: str) -> str:
     """Validate and normalize a single encoding name.
 
     :param name: The encoding name to validate.
@@ -844,4 +844,4 @@ def normalize_encodings(
     """
     if encodings is None:
         return None
-    return frozenset(validate_encoding(name, param_name) for name in encodings)
+    return frozenset(_validate_encoding(name, param_name) for name in encodings)

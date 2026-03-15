@@ -18,7 +18,7 @@ from chardet.enums import EncodingEra, LanguageFilter
 from chardet.equivalences import apply_compat_names, apply_preferred_superset
 from chardet.pipeline import DetectionDict, DetectionResult
 from chardet.pipeline.orchestrator import run_pipeline
-from chardet.registry import normalize_encodings, validate_encoding
+from chardet.registry import _validate_encoding, normalize_encodings
 
 __all__ = [
     "DEFAULT_MAX_BYTES",
@@ -77,8 +77,8 @@ def detect(  # noqa: PLR0913
     prefer_superset = _resolve_prefer_superset(should_rename_legacy, prefer_superset)
     inc = normalize_encodings(include_encodings, "include_encodings")
     exc = normalize_encodings(exclude_encodings, "exclude_encodings")
-    fb = validate_encoding(fallback_encoding, "fallback_encoding")
-    em = validate_encoding(empty_encoding, "empty_encoding")
+    fb = _validate_encoding(fallback_encoding, "fallback_encoding")
+    em = _validate_encoding(empty_encoding, "empty_encoding")
     data = byte_str if isinstance(byte_str, bytes) else bytes(byte_str)
     results = run_pipeline(
         data,
@@ -147,8 +147,8 @@ def detect_all(  # noqa: PLR0913
     prefer_superset = _resolve_prefer_superset(should_rename_legacy, prefer_superset)
     inc = normalize_encodings(include_encodings, "include_encodings")
     exc = normalize_encodings(exclude_encodings, "exclude_encodings")
-    fb = validate_encoding(fallback_encoding, "fallback_encoding")
-    em = validate_encoding(empty_encoding, "empty_encoding")
+    fb = _validate_encoding(fallback_encoding, "fallback_encoding")
+    em = _validate_encoding(empty_encoding, "empty_encoding")
     data = byte_str if isinstance(byte_str, bytes) else bytes(byte_str)
     results = run_pipeline(
         data,
