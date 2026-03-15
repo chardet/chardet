@@ -830,6 +830,46 @@ def test_detector_unknown_include_raises():
         UniversalDetector(include_encodings=["not-real"])
 
 
+def test_detector_unknown_exclude_raises():
+    from chardet.detector import UniversalDetector
+
+    with pytest.raises(ValueError, match="Unknown encoding"):
+        UniversalDetector(exclude_encodings=["not-real"])
+
+
+def test_detector_unknown_fallback_raises():
+    from chardet.detector import UniversalDetector
+
+    with pytest.raises(ValueError, match="Unknown encoding"):
+        UniversalDetector(fallback_encoding="not-real")
+
+
+def test_detector_unknown_empty_raises():
+    from chardet.detector import UniversalDetector
+
+    with pytest.raises(ValueError, match="Unknown encoding"):
+        UniversalDetector(empty_encoding="not-real")
+
+
+def test_detect_all_custom_empty_encoding():
+    """detect_all respects empty_encoding."""
+    result = chardet.detect_all(b"", empty_encoding="ascii", compat_names=False)
+    assert result[0]["encoding"] == "ascii"
+
+
+def test_detect_all_custom_fallback_encoding():
+    """detect_all respects fallback_encoding."""
+    data = b"\x80\x81\x82\x83\x84\x85"
+    results = chardet.detect_all(
+        data,
+        include_encodings=["ascii"],
+        fallback_encoding="ascii",
+        ignore_threshold=True,
+        compat_names=False,
+    )
+    assert results[0]["encoding"] == "ascii"
+
+
 def test_detect_default_params_no_regression():
     """Default path (no include/exclude) should not be measurably slower."""
     data = "Héllo wörld café résumé naïve über straße".encode()

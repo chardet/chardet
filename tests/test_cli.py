@@ -355,3 +355,15 @@ def test_cli_include_with_spaces(tmp_path: Path, capsys: pytest.CaptureFixture[s
     main(["-i", "utf-8, ascii", str(f)])
     captured = capsys.readouterr()
     assert "with confidence" in captured.out
+
+
+def test_cli_invalid_include_encoding(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+):
+    """Invalid encoding name in -i should report detection failure."""
+    f = tmp_path / "test.txt"
+    f.write_bytes(b"Hello")
+    with pytest.raises(SystemExit, match="1"):
+        main(["-i", "not-a-real-encoding", str(f)])
+    captured = capsys.readouterr()
+    assert "detection failed" in captured.err
