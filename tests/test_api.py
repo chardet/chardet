@@ -7,6 +7,7 @@ import warnings
 import pytest
 
 import chardet
+from chardet.detector import UniversalDetector
 from chardet.enums import EncodingEra, LanguageFilter
 from chardet.pipeline.orchestrator import _is_filtered_out
 from chardet.registry import get_candidates, normalize_encodings
@@ -152,8 +153,6 @@ def test_rename_legacy_detect_all_false():
 
 def test_rename_legacy_detector():
     """UniversalDetector applies rename on close()."""
-    from chardet.detector import UniversalDetector
-
     det = UniversalDetector(should_rename_legacy=True)
     det.feed(b"Hello world, this is enough ASCII data for detection. " * 2)
     det.close()
@@ -162,8 +161,6 @@ def test_rename_legacy_detector():
 
 def test_rename_legacy_detector_false():
     """UniversalDetector with False returns chardet 5.x compat name."""
-    from chardet.detector import UniversalDetector
-
     det = UniversalDetector(should_rename_legacy=False)
     det.feed(b"Hello world, this is enough ASCII data for detection. " * 2)
     det.close()
@@ -211,8 +208,6 @@ def test_ignore_threshold_fallback():
 
 def test_lang_filter_warning():
     """Non-ALL lang_filter emits DeprecationWarning."""
-    from chardet.detector import UniversalDetector
-
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("always")
         UniversalDetector(lang_filter=LanguageFilter.CJK)
@@ -223,8 +218,6 @@ def test_lang_filter_warning():
 
 def test_lang_filter_all_no_warning():
     """ALL lang_filter does not warn."""
-    from chardet.detector import UniversalDetector
-
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("always")
         UniversalDetector(lang_filter=LanguageFilter.ALL)
@@ -497,8 +490,6 @@ def test_detect_all_prefer_superset() -> None:
 
 def test_detector_compat_names() -> None:
     """UniversalDetector respects compat_names parameter."""
-    from chardet.detector import UniversalDetector
-
     det = UniversalDetector(compat_names=True)
     det.feed(b"Hello world, this is enough ASCII data for detection. " * 2)
     det.close()
@@ -507,8 +498,6 @@ def test_detector_compat_names() -> None:
 
 def test_detector_prefer_superset() -> None:
     """UniversalDetector respects prefer_superset parameter."""
-    from chardet.detector import UniversalDetector
-
     det = UniversalDetector(prefer_superset=True)
     det.feed(b"Hello world, this is enough ASCII data for detection. " * 2)
     det.close()
@@ -517,8 +506,6 @@ def test_detector_prefer_superset() -> None:
 
 def test_detector_should_rename_legacy_deprecation() -> None:
     """UniversalDetector's should_rename_legacy emits DeprecationWarning."""
-    from chardet.detector import UniversalDetector
-
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("always")
         UniversalDetector(should_rename_legacy=True)
@@ -536,8 +523,6 @@ def test_universaldetector_compat_import() -> None:
         dep = [x for x in w if issubclass(x.category, DeprecationWarning)]
         assert len(dep) == 1
         assert "universaldetector" in str(dep[0].message)
-
-    from chardet.detector import UniversalDetector
 
     assert CompatUD is UniversalDetector
 
@@ -798,8 +783,6 @@ def test_detect_include_exclude_overlap():
 
 
 def test_detector_include_encodings():
-    from chardet.detector import UniversalDetector
-
     det = UniversalDetector(include_encodings=["cp1252"], compat_names=False)
     det.feed(b"Hello world, this is enough ASCII data for detection. " * 2)
     result = det.close()
@@ -807,8 +790,6 @@ def test_detector_include_encodings():
 
 
 def test_detector_exclude_encodings():
-    from chardet.detector import UniversalDetector
-
     det = UniversalDetector(exclude_encodings=["ascii"], compat_names=False)
     det.feed(b"Hello world, this is enough ASCII data for detection. " * 2)
     result = det.close()
@@ -816,37 +797,27 @@ def test_detector_exclude_encodings():
 
 
 def test_detector_custom_empty_encoding():
-    from chardet.detector import UniversalDetector
-
     det = UniversalDetector(empty_encoding="ascii", compat_names=False)
     result = det.close()
     assert result["encoding"] == "ascii"
 
 
 def test_detector_unknown_include_raises():
-    from chardet.detector import UniversalDetector
-
     with pytest.raises(ValueError, match="Unknown encoding"):
         UniversalDetector(include_encodings=["not-real"])
 
 
 def test_detector_unknown_exclude_raises():
-    from chardet.detector import UniversalDetector
-
     with pytest.raises(ValueError, match="Unknown encoding"):
         UniversalDetector(exclude_encodings=["not-real"])
 
 
 def test_detector_unknown_fallback_raises():
-    from chardet.detector import UniversalDetector
-
     with pytest.raises(ValueError, match="Unknown encoding"):
         UniversalDetector(fallback_encoding="not-real")
 
 
 def test_detector_unknown_empty_raises():
-    from chardet.detector import UniversalDetector
-
     with pytest.raises(ValueError, match="Unknown encoding"):
         UniversalDetector(empty_encoding="not-real")
 
