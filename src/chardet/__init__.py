@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
+
 from chardet._utils import (
     _DEFAULT_CHUNK_SIZE,
     DEFAULT_MAX_BYTES,
@@ -16,6 +18,7 @@ from chardet.enums import EncodingEra, LanguageFilter
 from chardet.equivalences import apply_compat_names, apply_preferred_superset
 from chardet.pipeline import DetectionDict, DetectionResult
 from chardet.pipeline.orchestrator import run_pipeline
+from chardet.registry import lookup_encoding, normalize_encodings
 
 __all__ = [
     "DEFAULT_MAX_BYTES",
@@ -40,6 +43,10 @@ def detect(  # noqa: PLR0913
     *,
     prefer_superset: bool = False,
     compat_names: bool = True,
+    include_encodings: Iterable[str] | None = None,
+    exclude_encodings: Iterable[str] | None = None,
+    fallback_encoding: str = "cp1252",
+    empty_encoding: str = "utf-8",
 ) -> DetectionDict:
     """Detect the encoding of the given byte string.
 
@@ -54,14 +61,40 @@ def detect(  # noqa: PLR0913
     :param compat_names: If ``True`` (default), return encoding names
         compatible with chardet 5.x/6.x.  If ``False``, return raw Python
         codec names.
+    :param include_encodings: If given, restrict detection to only these
+        encodings (names or aliases).
+    :param exclude_encodings: If given, remove these encodings from the
+        candidate set.
+    :param fallback_encoding: Encoding to return when no candidate survives
+        the pipeline.  Defaults to ``"cp1252"``.
+    :param empty_encoding: Encoding to return for empty input.  Defaults to
+        ``"utf-8"``.
     :returns: A dictionary with keys ``"encoding"``, ``"confidence"``, and
         ``"language"``.
     """
     _warn_deprecated_chunk_size(chunk_size)
     _validate_max_bytes(max_bytes)
     prefer_superset = _resolve_prefer_superset(should_rename_legacy, prefer_superset)
+    inc = normalize_encodings(include_encodings, "include_encodings")
+    exc = normalize_encodings(exclude_encodings, "exclude_encodings")
+    fb = lookup_encoding(fallback_encoding)
+    if fb is None:
+        msg = f"Unknown encoding {fallback_encoding!r} in fallback_encoding"
+        raise ValueError(msg)
+    em = lookup_encoding(empty_encoding)
+    if em is None:
+        msg = f"Unknown encoding {empty_encoding!r} in empty_encoding"
+        raise ValueError(msg)
     data = byte_str if isinstance(byte_str, bytes) else bytes(byte_str)
-    results = run_pipeline(data, encoding_era, max_bytes=max_bytes)
+    results = run_pipeline(
+        data,
+        encoding_era,
+        max_bytes=max_bytes,
+        include_encodings=inc,
+        exclude_encodings=exc,
+        fallback_encoding=fb,
+        empty_encoding=em,
+    )
     result = results[0].to_dict()
     if prefer_superset:
         apply_preferred_superset(result)
@@ -80,6 +113,10 @@ def detect_all(  # noqa: PLR0913
     *,
     prefer_superset: bool = False,
     compat_names: bool = True,
+    include_encodings: Iterable[str] | None = None,
+    exclude_encodings: Iterable[str] | None = None,
+    fallback_encoding: str = "cp1252",
+    empty_encoding: str = "utf-8",
 ) -> list[DetectionDict]:
     """Detect all possible encodings of the given byte string.
 
@@ -101,13 +138,39 @@ def detect_all(  # noqa: PLR0913
     :param compat_names: If ``True`` (default), return encoding names
         compatible with chardet 5.x/6.x.  If ``False``, return raw Python
         codec names.
+    :param include_encodings: If given, restrict detection to only these
+        encodings (names or aliases).
+    :param exclude_encodings: If given, remove these encodings from the
+        candidate set.
+    :param fallback_encoding: Encoding to return when no candidate survives
+        the pipeline.  Defaults to ``"cp1252"``.
+    :param empty_encoding: Encoding to return for empty input.  Defaults to
+        ``"utf-8"``.
     :returns: A list of dictionaries, sorted by descending confidence.
     """
     _warn_deprecated_chunk_size(chunk_size)
     _validate_max_bytes(max_bytes)
     prefer_superset = _resolve_prefer_superset(should_rename_legacy, prefer_superset)
+    inc = normalize_encodings(include_encodings, "include_encodings")
+    exc = normalize_encodings(exclude_encodings, "exclude_encodings")
+    fb = lookup_encoding(fallback_encoding)
+    if fb is None:
+        msg = f"Unknown encoding {fallback_encoding!r} in fallback_encoding"
+        raise ValueError(msg)
+    em = lookup_encoding(empty_encoding)
+    if em is None:
+        msg = f"Unknown encoding {empty_encoding!r} in empty_encoding"
+        raise ValueError(msg)
     data = byte_str if isinstance(byte_str, bytes) else bytes(byte_str)
-    results = run_pipeline(data, encoding_era, max_bytes=max_bytes)
+    results = run_pipeline(
+        data,
+        encoding_era,
+        max_bytes=max_bytes,
+        include_encodings=inc,
+        exclude_encodings=exc,
+        fallback_encoding=fb,
+        empty_encoding=em,
+    )
     dicts = [r.to_dict() for r in results]
     if not ignore_threshold:
         filtered = [d for d in dicts if d["confidence"] > MINIMUM_THRESHOLD]
