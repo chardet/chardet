@@ -791,3 +791,39 @@ def test_detect_include_exclude_overlap():
         assert result["confidence"] == 0.0
         user_warnings = [x for x in w if issubclass(x.category, UserWarning)]
         assert len(user_warnings) >= 1
+
+
+# --- UniversalDetector include/exclude/fallback/empty tests ---
+
+
+def test_detector_include_encodings():
+    from chardet.detector import UniversalDetector
+
+    det = UniversalDetector(include_encodings=["cp1252"], compat_names=False)
+    det.feed(b"Hello world, this is enough ASCII data for detection. " * 2)
+    result = det.close()
+    assert result["encoding"] != "ascii"
+
+
+def test_detector_exclude_encodings():
+    from chardet.detector import UniversalDetector
+
+    det = UniversalDetector(exclude_encodings=["ascii"], compat_names=False)
+    det.feed(b"Hello world, this is enough ASCII data for detection. " * 2)
+    result = det.close()
+    assert result["encoding"] != "ascii"
+
+
+def test_detector_custom_empty_encoding():
+    from chardet.detector import UniversalDetector
+
+    det = UniversalDetector(empty_encoding="ascii", compat_names=False)
+    result = det.close()
+    assert result["encoding"] == "ascii"
+
+
+def test_detector_unknown_include_raises():
+    from chardet.detector import UniversalDetector
+
+    with pytest.raises(ValueError, match="Unknown encoding"):
+        UniversalDetector(include_encodings=["not-real"])

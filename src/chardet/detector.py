@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import warnings
+from collections.abc import Iterable
 from types import MappingProxyType
 from typing import ClassVar
 
@@ -20,6 +21,7 @@ from chardet.equivalences import (
 )
 from chardet.pipeline import DetectionDict, DetectionResult
 from chardet.pipeline.orchestrator import run_pipeline
+from chardet.registry import lookup_encoding, normalize_encodings
 
 _NONE_RESULT = DetectionResult(encoding=None, confidence=0.0, language=None)
 
@@ -56,6 +58,10 @@ class UniversalDetector:
         *,
         prefer_superset: bool = False,
         compat_names: bool = True,
+        include_encodings: Iterable[str] | None = None,
+        exclude_encodings: Iterable[str] | None = None,
+        fallback_encoding: str = "cp1252",
+        empty_encoding: str = "utf-8",
     ) -> None:
         """Initialize the detector.
 
@@ -72,6 +78,14 @@ class UniversalDetector:
         :param compat_names: If ``True`` (default), return encoding names
             compatible with chardet 5.x/6.x.  If ``False``, return raw Python
             codec names.
+        :param include_encodings: If given, restrict detection to only these
+            encodings (names or aliases).
+        :param exclude_encodings: If given, remove these encodings from the
+            candidate set.
+        :param fallback_encoding: Encoding to return when no candidate
+            survives the pipeline.  Defaults to ``"cp1252"``.
+        :param empty_encoding: Encoding to return for empty input.  Defaults
+            to ``"utf-8"``.
         """
         if lang_filter != LanguageFilter.ALL:
             warnings.warn(
@@ -88,6 +102,22 @@ class UniversalDetector:
         _validate_max_bytes(max_bytes)
         self._encoding_era = encoding_era
         self._max_bytes = max_bytes
+        self._include_encodings = normalize_encodings(
+            include_encodings, "include_encodings"
+        )
+        self._exclude_encodings = normalize_encodings(
+            exclude_encodings, "exclude_encodings"
+        )
+        fb = lookup_encoding(fallback_encoding)
+        if fb is None:
+            msg = f"Unknown encoding {fallback_encoding!r} in fallback_encoding"
+            raise ValueError(msg)
+        self._fallback_encoding = fb
+        em = lookup_encoding(empty_encoding)
+        if em is None:
+            msg = f"Unknown encoding {empty_encoding!r} in empty_encoding"
+            raise ValueError(msg)
+        self._empty_encoding = em
         self._buffer = bytearray()
         self._done = False
         self._closed = False
@@ -126,7 +156,15 @@ class UniversalDetector:
         if not self._closed:
             self._closed = True
             data = bytes(self._buffer)
-            results = run_pipeline(data, self._encoding_era, max_bytes=self._max_bytes)
+            results = run_pipeline(
+                data,
+                self._encoding_era,
+                max_bytes=self._max_bytes,
+                include_encodings=self._include_encodings,
+                exclude_encodings=self._exclude_encodings,
+                fallback_encoding=self._fallback_encoding,
+                empty_encoding=self._empty_encoding,
+            )
             self._result = results[0]
             self._done = True
         return self.result
