@@ -200,15 +200,15 @@ def _make_fallback_or_none(
 ) -> list[DetectionResult]:
     """Return a low-confidence result for *encoding*, or ``encoding=None`` if filtered out.
 
-    ``stacklevel=4`` targets the public caller: detect() -> run_pipeline()
-    -> _run_pipeline_core() -> _make_fallback_or_none().
+    ``stacklevel=5`` targets the public caller:
+    detect() -> run_pipeline() -> _run_pipeline_core() -> _make_fallback_or_none().
     """
     if _is_filtered_out(encoding, include_encodings, exclude_encodings):
         warnings.warn(
             f"{param_name} {encoding!r} is excluded by "
             f"include_encodings/exclude_encodings; returning encoding=None",
             UserWarning,
-            stacklevel=4,
+            stacklevel=5,
         )
         return [_NONE_RESULT]
     return [DetectionResult(encoding=encoding, confidence=0.10, language=None)]
@@ -500,8 +500,8 @@ def _run_pipeline_core(  # noqa: PLR0913
     *,
     include_encodings: frozenset[str] | None = None,
     exclude_encodings: frozenset[str] | None = None,
-    fallback_encoding: str = "cp1252",
-    empty_encoding: str = "utf-8",
+    no_match_encoding: str = "cp1252",
+    empty_input_encoding: str = "utf-8",
 ) -> list[DetectionResult]:
     """Core pipeline logic. Returns list of results sorted by confidence."""
     ctx = PipelineContext()
@@ -510,14 +510,13 @@ def _run_pipeline_core(  # noqa: PLR0913
     def filtered_out(encoding: str | None) -> bool:
         return _is_filtered_out(encoding, include_encodings, exclude_encodings)
 
-    def fallback_or_none(param_name: str) -> list[DetectionResult]:
-        enc = fallback_encoding if param_name == "fallback_encoding" else empty_encoding
-        return _make_fallback_or_none(
-            enc, include_encodings, exclude_encodings, param_name
-        )
-
     if not data:
-        return fallback_or_none("empty_encoding")
+        return _make_fallback_or_none(
+            empty_input_encoding,
+            include_encodings,
+            exclude_encodings,
+            "empty_input_encoding",
+        )
 
     # Stage 1a: BOM detection (runs first — BOMs are definitive and
     # UTF-16/32 data looks binary due to null bytes)
@@ -579,14 +578,18 @@ def _run_pipeline_core(  # noqa: PLR0913
     valid_candidates = filter_by_validity(data, candidates)
 
     if not valid_candidates:
-        return fallback_or_none("fallback_encoding")
+        return _make_fallback_or_none(
+            no_match_encoding, include_encodings, exclude_encodings, "no_match_encoding"
+        )
 
     # Gate: eliminate CJK multi-byte candidates that lack genuine
     # multi-byte structure.  Cache structural scores for Stage 2b.
     valid_candidates = _gate_cjk_candidates(data, valid_candidates, ctx)
 
     if not valid_candidates:
-        return fallback_or_none("fallback_encoding")
+        return _make_fallback_or_none(
+            no_match_encoding, include_encodings, exclude_encodings, "no_match_encoding"
+        )
 
     # Stage 2b: Structural probing for multi-byte encodings
     # Reuse scores already computed during the CJK gate above.
@@ -613,7 +616,9 @@ def _run_pipeline_core(  # noqa: PLR0913
     # Stage 3: Statistical scoring for all remaining candidates
     results = list(score_candidates(data, tuple(valid_candidates)))
     if not results:
-        return fallback_or_none("fallback_encoding")
+        return _make_fallback_or_none(
+            no_match_encoding, include_encodings, exclude_encodings, "no_match_encoding"
+        )
 
     return _postprocess_results(data, results)
 
@@ -625,8 +630,8 @@ def run_pipeline(  # noqa: PLR0913
     *,
     include_encodings: frozenset[str] | None = None,
     exclude_encodings: frozenset[str] | None = None,
-    fallback_encoding: str = "cp1252",
-    empty_encoding: str = "utf-8",
+    no_match_encoding: str = "cp1252",
+    empty_input_encoding: str = "utf-8",
 ) -> list[DetectionResult]:
     """Run the full detection pipeline.
 
@@ -635,8 +640,8 @@ def run_pipeline(  # noqa: PLR0913
     :param max_bytes: Maximum number of bytes to process.
     :param include_encodings: If not ``None``, only return these encodings.
     :param exclude_encodings: If not ``None``, never return these encodings.
-    :param fallback_encoding: Encoding returned when no candidate survives.
-    :param empty_encoding: Encoding returned for empty input.
+    :param no_match_encoding: Encoding returned when no candidate survives.
+    :param empty_input_encoding: Encoding returned for empty input.
     :returns: A list of :class:`DetectionResult` sorted by confidence descending.
     """
     results = _run_pipeline_core(
@@ -645,8 +650,8 @@ def run_pipeline(  # noqa: PLR0913
         max_bytes,
         include_encodings=include_encodings,
         exclude_encodings=exclude_encodings,
-        fallback_encoding=fallback_encoding,
-        empty_encoding=empty_encoding,
+        no_match_encoding=no_match_encoding,
+        empty_input_encoding=empty_input_encoding,
     )
     # Language scoring uses only the first 2 KB — bigrams converge quickly
     # and this keeps Tier 3 (language-model scoring) fast even on large inputs.

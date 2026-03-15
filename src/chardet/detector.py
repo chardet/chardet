@@ -60,8 +60,8 @@ class UniversalDetector:
         compat_names: bool = True,
         include_encodings: Iterable[str] | None = None,
         exclude_encodings: Iterable[str] | None = None,
-        fallback_encoding: str = "cp1252",
-        empty_encoding: str = "utf-8",
+        no_match_encoding: str = "cp1252",
+        empty_input_encoding: str = "utf-8",
     ) -> None:
         """Initialize the detector.
 
@@ -82,10 +82,10 @@ class UniversalDetector:
             encodings (names or aliases).
         :param exclude_encodings: If given, remove these encodings from the
             candidate set.
-        :param fallback_encoding: Encoding to return when no candidate
+        :param no_match_encoding: Encoding to return when no candidate
             survives the pipeline.  Defaults to ``"cp1252"``.
-        :param empty_encoding: Encoding to return for empty input.  Defaults
-            to ``"utf-8"``.
+        :param empty_input_encoding: Encoding to return for empty input.
+            Defaults to ``"utf-8"``.
         """
         if lang_filter != LanguageFilter.ALL:
             warnings.warn(
@@ -108,10 +108,12 @@ class UniversalDetector:
         self._exclude_encodings = normalize_encodings(
             exclude_encodings, "exclude_encodings"
         )
-        self._fallback_encoding = _validate_encoding(
-            fallback_encoding, "fallback_encoding"
+        self._no_match_encoding = _validate_encoding(
+            no_match_encoding, "no_match_encoding"
         )
-        self._empty_encoding = _validate_encoding(empty_encoding, "empty_encoding")
+        self._empty_input_encoding = _validate_encoding(
+            empty_input_encoding, "empty_input_encoding"
+        )
         self._buffer = bytearray()
         self._done = False
         self._closed = False
@@ -156,8 +158,8 @@ class UniversalDetector:
                 max_bytes=self._max_bytes,
                 include_encodings=self._include_encodings,
                 exclude_encodings=self._exclude_encodings,
-                fallback_encoding=self._fallback_encoding,
-                empty_encoding=self._empty_encoding,
+                no_match_encoding=self._no_match_encoding,
+                empty_input_encoding=self._empty_input_encoding,
             )
             self._result = results[0]
             self._done = True

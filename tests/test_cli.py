@@ -332,18 +332,18 @@ def test_cli_exclude_long_flag(tmp_path: Path, capsys: pytest.CaptureFixture[str
     assert "with confidence" in captured.out
 
 
-def test_cli_fallback_encoding(tmp_path: Path, capsys: pytest.CaptureFixture[str]):
+def test_cli_no_match_encoding(tmp_path: Path, capsys: pytest.CaptureFixture[str]):
     f = tmp_path / "test.txt"
     f.write_bytes(b"Hello world")
-    main(["--fallback-encoding", "ascii", str(f)])
+    main(["--no-match-encoding", "ascii", str(f)])
     captured = capsys.readouterr()
     assert "with confidence" in captured.out
 
 
-def test_cli_empty_encoding(tmp_path: Path, capsys: pytest.CaptureFixture[str]):
+def test_cli_empty_input_encoding(tmp_path: Path, capsys: pytest.CaptureFixture[str]):
     f = tmp_path / "test.txt"
     f.write_bytes(b"")
-    main(["--empty-encoding", "ascii", str(f)])
+    main(["--empty-input-encoding", "ascii", str(f)])
     captured = capsys.readouterr()
     assert "ascii" in captured.out.lower()
 

@@ -547,8 +547,13 @@ def test_normalize_encodings_unknown_raises():
 
 
 def test_normalize_encodings_empty_iterable():
-    result = normalize_encodings([], "include_encodings")
-    assert result == frozenset()
+    with pytest.raises(ValueError, match="must not be empty"):
+        normalize_encodings([], "include_encodings")
+
+
+def test_detect_empty_include_raises():
+    with pytest.raises(ValueError, match="must not be empty"):
+        chardet.detect(b"Hello", include_encodings=[])
 
 
 def test_get_candidates_include_only():
@@ -669,29 +674,29 @@ def test_detect_exclude_ascii_early_exit():
     assert result["encoding"] != "ascii"
 
 
-def test_detect_custom_fallback_encoding():
-    """Custom fallback_encoding is used when no candidates survive."""
+def test_detect_custom_no_match_encoding():
+    """Custom no_match_encoding is used when no candidates survive."""
     data = b"\x80\x81\x82\x83\x84\x85"
     result = chardet.detect(
         data,
         include_encodings=["ascii"],
-        fallback_encoding="ascii",
+        no_match_encoding="ascii",
         compat_names=False,
     )
     # Data has non-ASCII bytes so ascii won't pass byte-validity;
-    # pipeline falls back to the specified fallback_encoding.
+    # pipeline falls back to the specified no_match_encoding.
     # "ascii" is in include_encodings so it is NOT filtered out.
     assert result["encoding"] == "ascii"
 
 
-def test_detect_custom_empty_encoding():
-    """Custom empty_encoding is used for empty input."""
-    result = chardet.detect(b"", empty_encoding="ascii", compat_names=False)
+def test_detect_custom_empty_input_encoding():
+    """Custom empty_input_encoding is used for empty input."""
+    result = chardet.detect(b"", empty_input_encoding="ascii", compat_names=False)
     assert result["encoding"] == "ascii"
 
 
-def test_detect_filtered_fallback_warns():
-    """Warning emitted when fallback_encoding is filtered out."""
+def test_detect_filtered_no_match_warns():
+    """Warning emitted when no_match_encoding is filtered out."""
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("always")
         result = chardet.detect(
@@ -699,7 +704,7 @@ def test_detect_filtered_fallback_warns():
             include_encodings=["cp1252"],
             compat_names=False,
         )
-        # Default empty_encoding is utf-8, which is not in include_encodings
+        # Default empty_input_encoding is utf-8, which is not in include_encodings
         user_warnings = [x for x in w if issubclass(x.category, UserWarning)]
         assert len(user_warnings) >= 1
         assert result["encoding"] is None
@@ -740,14 +745,14 @@ def test_detect_unknown_exclude_raises():
         chardet.detect(b"Hello", exclude_encodings=["not-a-real-encoding"])
 
 
-def test_detect_unknown_fallback_raises():
+def test_detect_unknown_no_match_raises():
     with pytest.raises(ValueError, match="Unknown encoding"):
-        chardet.detect(b"Hello", fallback_encoding="not-real")
+        chardet.detect(b"Hello", no_match_encoding="not-real")
 
 
-def test_detect_unknown_empty_raises():
+def test_detect_unknown_empty_input_raises():
     with pytest.raises(ValueError, match="Unknown encoding"):
-        chardet.detect(b"Hello", empty_encoding="not-real")
+        chardet.detect(b"Hello", empty_input_encoding="not-real")
 
 
 def test_detect_all_with_exclude():
@@ -796,8 +801,8 @@ def test_detector_exclude_encodings():
     assert result["encoding"] != "ascii"
 
 
-def test_detector_custom_empty_encoding():
-    det = UniversalDetector(empty_encoding="ascii", compat_names=False)
+def test_detector_custom_empty_input_encoding():
+    det = UniversalDetector(empty_input_encoding="ascii", compat_names=False)
     result = det.close()
     assert result["encoding"] == "ascii"
 
@@ -812,35 +817,36 @@ def test_detector_unknown_exclude_raises():
         UniversalDetector(exclude_encodings=["not-real"])
 
 
-def test_detector_unknown_fallback_raises():
+def test_detector_unknown_no_match_raises():
     with pytest.raises(ValueError, match="Unknown encoding"):
-        UniversalDetector(fallback_encoding="not-real")
+        UniversalDetector(no_match_encoding="not-real")
 
 
-def test_detector_unknown_empty_raises():
+def test_detector_unknown_empty_input_raises():
     with pytest.raises(ValueError, match="Unknown encoding"):
-        UniversalDetector(empty_encoding="not-real")
+        UniversalDetector(empty_input_encoding="not-real")
 
 
-def test_detect_all_custom_empty_encoding():
-    """detect_all respects empty_encoding."""
-    result = chardet.detect_all(b"", empty_encoding="ascii", compat_names=False)
+def test_detect_all_custom_empty_input_encoding():
+    """detect_all respects empty_input_encoding."""
+    result = chardet.detect_all(b"", empty_input_encoding="ascii", compat_names=False)
     assert result[0]["encoding"] == "ascii"
 
 
-def test_detect_all_custom_fallback_encoding():
-    """detect_all respects fallback_encoding."""
+def test_detect_all_custom_no_match_encoding():
+    """detect_all respects no_match_encoding."""
     data = b"\x80\x81\x82\x83\x84\x85"
     results = chardet.detect_all(
         data,
         include_encodings=["ascii"],
-        fallback_encoding="ascii",
+        no_match_encoding="ascii",
         ignore_threshold=True,
         compat_names=False,
     )
     assert results[0]["encoding"] == "ascii"
 
 
+@pytest.mark.benchmark
 def test_detect_default_params_no_regression():
     """Default path (no include/exclude) should not be measurably slower."""
     data = "Héllo wörld café résumé naïve über straße".encode()

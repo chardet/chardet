@@ -136,7 +136,7 @@ class EncodingInfo:
     languages: tuple[str, ...]
 
 
-@functools.cache
+@functools.lru_cache(maxsize=256)
 def get_candidates(
     era: EncodingEra,
     include_encodings: frozenset[str] | None = None,
@@ -844,4 +844,8 @@ def normalize_encodings(
     """
     if encodings is None:
         return None
-    return frozenset(_validate_encoding(name, param_name) for name in encodings)
+    result = frozenset(_validate_encoding(name, param_name) for name in encodings)
+    if not result:
+        msg = f"{param_name} must not be empty; omit the argument or pass None to disable filtering"
+        raise ValueError(msg)
+    return result

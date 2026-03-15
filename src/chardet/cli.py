@@ -71,12 +71,12 @@ def main(argv: list[str] | None = None) -> None:
         help="Comma-separated list of encodings to exclude",
     )
     parser.add_argument(
-        "--fallback-encoding",
+        "--no-match-encoding",
         default="cp1252",
         help="Encoding to return when detection is inconclusive (default: cp1252)",
     )
     parser.add_argument(
-        "--empty-encoding",
+        "--empty-input-encoding",
         default="utf-8",
         help="Encoding to return for empty input (default: utf-8)",
     )
@@ -117,8 +117,8 @@ def main(argv: list[str] | None = None) -> None:
                     encoding_era=era,
                     include_encodings=include,
                     exclude_encodings=exclude,
-                    fallback_encoding=args.fallback_encoding,
-                    empty_encoding=args.empty_encoding,
+                    no_match_encoding=args.no_match_encoding,
+                    empty_input_encoding=args.empty_input_encoding,
                 )
             except Exception as e:  # noqa: BLE001
                 print(f"chardetect: {filepath}: detection failed: {e}", file=sys.stderr)
@@ -137,8 +137,8 @@ def main(argv: list[str] | None = None) -> None:
                 encoding_era=era,
                 include_encodings=include,
                 exclude_encodings=exclude,
-                fallback_encoding=args.fallback_encoding,
-                empty_encoding=args.empty_encoding,
+                no_match_encoding=args.no_match_encoding,
+                empty_input_encoding=args.empty_input_encoding,
             )
         except Exception as e:  # noqa: BLE001
             print(f"chardetect: stdin: detection failed: {e}", file=sys.stderr)

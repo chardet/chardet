@@ -45,8 +45,8 @@ def detect(  # noqa: PLR0913
     compat_names: bool = True,
     include_encodings: Iterable[str] | None = None,
     exclude_encodings: Iterable[str] | None = None,
-    fallback_encoding: str = "cp1252",
-    empty_encoding: str = "utf-8",
+    no_match_encoding: str = "cp1252",
+    empty_input_encoding: str = "utf-8",
 ) -> DetectionDict:
     """Detect the encoding of the given byte string.
 
@@ -65,29 +65,29 @@ def detect(  # noqa: PLR0913
         encodings (names or aliases).
     :param exclude_encodings: If given, remove these encodings from the
         candidate set.
-    :param fallback_encoding: Encoding to return when no candidate survives
+    :param no_match_encoding: Encoding to return when no candidate survives
         the pipeline.  Defaults to ``"cp1252"``.
-    :param empty_encoding: Encoding to return for empty input.  Defaults to
-        ``"utf-8"``.
+    :param empty_input_encoding: Encoding to return for empty input.  Defaults
+        to ``"utf-8"``.
     :returns: A dictionary with keys ``"encoding"``, ``"confidence"``, and
         ``"language"``.
     """
     _warn_deprecated_chunk_size(chunk_size)
     _validate_max_bytes(max_bytes)
     prefer_superset = _resolve_prefer_superset(should_rename_legacy, prefer_superset)
-    inc = normalize_encodings(include_encodings, "include_encodings")
-    exc = normalize_encodings(exclude_encodings, "exclude_encodings")
-    fb = _validate_encoding(fallback_encoding, "fallback_encoding")
-    em = _validate_encoding(empty_encoding, "empty_encoding")
+    include = normalize_encodings(include_encodings, "include_encodings")
+    exclude = normalize_encodings(exclude_encodings, "exclude_encodings")
+    no_match = _validate_encoding(no_match_encoding, "no_match_encoding")
+    empty = _validate_encoding(empty_input_encoding, "empty_input_encoding")
     data = byte_str if isinstance(byte_str, bytes) else bytes(byte_str)
     results = run_pipeline(
         data,
         encoding_era,
         max_bytes=max_bytes,
-        include_encodings=inc,
-        exclude_encodings=exc,
-        fallback_encoding=fb,
-        empty_encoding=em,
+        include_encodings=include,
+        exclude_encodings=exclude,
+        no_match_encoding=no_match,
+        empty_input_encoding=empty,
     )
     result = results[0].to_dict()
     if prefer_superset:
@@ -109,8 +109,8 @@ def detect_all(  # noqa: PLR0913
     compat_names: bool = True,
     include_encodings: Iterable[str] | None = None,
     exclude_encodings: Iterable[str] | None = None,
-    fallback_encoding: str = "cp1252",
-    empty_encoding: str = "utf-8",
+    no_match_encoding: str = "cp1252",
+    empty_input_encoding: str = "utf-8",
 ) -> list[DetectionDict]:
     """Detect all possible encodings of the given byte string.
 
@@ -136,28 +136,28 @@ def detect_all(  # noqa: PLR0913
         encodings (names or aliases).
     :param exclude_encodings: If given, remove these encodings from the
         candidate set.
-    :param fallback_encoding: Encoding to return when no candidate survives
+    :param no_match_encoding: Encoding to return when no candidate survives
         the pipeline.  Defaults to ``"cp1252"``.
-    :param empty_encoding: Encoding to return for empty input.  Defaults to
-        ``"utf-8"``.
+    :param empty_input_encoding: Encoding to return for empty input.  Defaults
+        to ``"utf-8"``.
     :returns: A list of dictionaries, sorted by descending confidence.
     """
     _warn_deprecated_chunk_size(chunk_size)
     _validate_max_bytes(max_bytes)
     prefer_superset = _resolve_prefer_superset(should_rename_legacy, prefer_superset)
-    inc = normalize_encodings(include_encodings, "include_encodings")
-    exc = normalize_encodings(exclude_encodings, "exclude_encodings")
-    fb = _validate_encoding(fallback_encoding, "fallback_encoding")
-    em = _validate_encoding(empty_encoding, "empty_encoding")
+    include = normalize_encodings(include_encodings, "include_encodings")
+    exclude = normalize_encodings(exclude_encodings, "exclude_encodings")
+    no_match = _validate_encoding(no_match_encoding, "no_match_encoding")
+    empty = _validate_encoding(empty_input_encoding, "empty_input_encoding")
     data = byte_str if isinstance(byte_str, bytes) else bytes(byte_str)
     results = run_pipeline(
         data,
         encoding_era,
         max_bytes=max_bytes,
-        include_encodings=inc,
-        exclude_encodings=exc,
-        fallback_encoding=fb,
-        empty_encoding=em,
+        include_encodings=include,
+        exclude_encodings=exclude,
+        no_match_encoding=no_match,
+        empty_input_encoding=empty,
     )
     dicts = [r.to_dict() for r in results]
     if not ignore_threshold:
