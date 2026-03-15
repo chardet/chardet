@@ -7,6 +7,7 @@ import pytest
 
 import chardet
 from chardet.enums import EncodingEra, LanguageFilter
+from chardet.registry import normalize_encodings
 
 
 def test_detect_returns_dict():
@@ -537,3 +538,27 @@ def test_universaldetector_compat_import() -> None:
     from chardet.detector import UniversalDetector
 
     assert CompatUD is UniversalDetector
+
+
+def test_normalize_encodings_none_returns_none():
+    assert normalize_encodings(None, "include_encodings") is None
+
+
+def test_normalize_encodings_valid_names():
+    result = normalize_encodings(["utf-8", "cp1252"], "include_encodings")
+    assert result == frozenset({"utf-8", "cp1252"})
+
+
+def test_normalize_encodings_aliases():
+    result = normalize_encodings(["windows-1252", "EUC-JP"], "include_encodings")
+    assert result == frozenset({"cp1252", "euc_jis_2004"})
+
+
+def test_normalize_encodings_unknown_raises():
+    with pytest.raises(ValueError, match="Unknown encoding 'not-real'"):
+        normalize_encodings(["utf-8", "not-real"], "include_encodings")
+
+
+def test_normalize_encodings_empty_iterable():
+    result = normalize_encodings([], "include_encodings")
+    assert result == frozenset()

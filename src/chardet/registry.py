@@ -5,6 +5,7 @@ from __future__ import annotations
 import codecs
 import dataclasses
 import functools
+from collections.abc import Iterable
 from types import MappingProxyType
 from typing import Literal
 
@@ -800,3 +801,26 @@ def lookup_encoding(name: str) -> EncodingName | None:
     if codec_name != lowered:
         return lookup_encoding(codec_name)
     return None
+
+
+def normalize_encodings(
+    encodings: Iterable[str] | None,
+    param_name: str,
+) -> frozenset[str] | None:
+    """Normalize an iterable of encoding names to canonical forms.
+
+    :param encodings: Encoding names to normalize, or ``None``.
+    :param param_name: Parameter name for error messages.
+    :returns: A frozenset of canonical encoding names, or ``None``.
+    :raises ValueError: If any encoding name is unknown.
+    """
+    if encodings is None:
+        return None
+    result: set[str] = set()
+    for name in encodings:
+        canonical = lookup_encoding(name)
+        if canonical is None:
+            msg = f"Unknown encoding {name!r} in {param_name}"
+            raise ValueError(msg)
+        result.add(canonical)
+    return frozenset(result)
