@@ -46,9 +46,12 @@ _MIN_PRINTABLE_FRACTION = 0.7
 # non-null bytes.  15% is generous — separator data is typically 1-5%.
 _NULL_SEPARATOR_MAX_FRACTION = 0.15
 
-# Bytes allowed in the "all-ASCII remainder" check for the null-separator
-# guard: printable ASCII (0x20-0x7E) plus tab, newline, carriage return.
-_ASCII_TEXT_BYTES: frozenset[int] = frozenset([0x09, 0x0A, 0x0D, *range(0x20, 0x7F)])
+# Bytes allowed in the null-separator guard: null (0x00), printable ASCII
+# (0x20-0x7E), tab, newline, carriage return.  Same character set as
+# ``_ALLOWED_ASCII`` in ``ascii.py`` plus the null byte itself.
+# Uses ``bytes`` for C-level ``bytes.translate`` (matching the pattern in
+# ``binary.py`` and ``ascii.py``).
+_NULL_SEPARATOR_ALLOWED: bytes = bytes([0x00, 0x09, 0x0A, 0x0D, *range(0x20, 0x7F)])
 
 
 def _is_null_separator_pattern(data: bytes, null_frac: float) -> bool:
@@ -68,7 +71,7 @@ def _is_null_separator_pattern(data: bytes, null_frac: float) -> bool:
     """
     if null_frac >= _NULL_SEPARATOR_MAX_FRACTION:
         return False
-    return all(b == 0 or b in _ASCII_TEXT_BYTES for b in data)
+    return not data.translate(None, _NULL_SEPARATOR_ALLOWED)
 
 
 def detect_utf1632_patterns(data: bytes) -> DetectionResult | None:
