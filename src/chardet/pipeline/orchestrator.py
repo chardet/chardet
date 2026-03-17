@@ -535,9 +535,20 @@ def _run_pipeline_core(  # noqa: PLR0913
     # markup) so that explicit charset declarations still take precedence.
     utf8_precheck = detect_utf8(data)
 
-    # Stage 0: Binary detection (skip when data is valid multi-byte UTF-8)
+    # Pre-check ASCII to prevent false binary classification.  ASCII text
+    # with null byte separators (e.g. find -print0 output) would exceed the
+    # binary threshold due to the null bytes.  Like the UTF-8 precheck, we
+    # compute the result now but return it at the normal position (after
+    # markup) so explicit charset declarations still take precedence.
+    ascii_precheck = detect_ascii(data)
+
+    # Stage 0: Binary detection (skip when data is valid UTF-8 or ASCII)
     # Binary detection (encoding=None) is NOT gated by filters.
-    if utf8_precheck is None and is_binary(data, max_bytes=max_bytes):
+    if (
+        utf8_precheck is None
+        and ascii_precheck is None
+        and is_binary(data, max_bytes=max_bytes)
+    ):
         return [_BINARY_RESULT]
 
     # Stage 1b: Markup charset extraction (before ASCII/UTF-8 so explicit
@@ -547,10 +558,9 @@ def _run_pipeline_core(  # noqa: PLR0913
     if markup_result is not None and markup_result.encoding in allowed:
         return [markup_result]
 
-    # Stage 1c: ASCII
-    ascii_result = detect_ascii(data)
-    if ascii_result is not None and ascii_result.encoding in allowed:
-        return [ascii_result]
+    # Stage 1c: ASCII (use pre-computed result)
+    if ascii_precheck is not None and ascii_precheck.encoding in allowed:
+        return [ascii_precheck]
 
     # Stage 1d: UTF-8 structural validation (use pre-computed result)
     if utf8_precheck is not None and utf8_precheck.encoding in allowed:

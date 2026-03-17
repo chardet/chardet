@@ -438,3 +438,34 @@ class TestNoCrash:
         # Just verify it doesn't crash; any result is acceptable
         assert isinstance(result, dict)
         assert "encoding" in result
+
+
+# =========================================================================
+# NULL SEPARATOR ISSUES
+# =========================================================================
+
+
+class TestNullSeparators:
+    """ASCII text with null byte separators."""
+
+    def test_issue_346_null_separated_ascii(self) -> None:
+        """Issue #346: Null-separated ASCII detected as utf-16-be."""
+        data = (
+            b"master:README.md\x002\x00For support slack to #kodiak-support\n"
+            b"master:support.txt\x001\x00For support slack to #kodiak-support\n"
+        )
+        result = chardet.detect(data)
+        assert result["encoding"] == "ascii"
+        assert result["confidence"] == 0.99
+
+    def test_find_print0_output(self) -> None:
+        """Find -print0 style output should be detected as ASCII."""
+        data = (
+            b"/home/user/documents/report.txt\x00"
+            b"/home/user/documents/notes.txt\x00"
+            b"/home/user/downloads/image.png\x00"
+            b"/home/user/music/song.mp3\x00"
+        )
+        result = chardet.detect(data)
+        assert result["encoding"] == "ascii"
+        assert result["confidence"] == 0.99
