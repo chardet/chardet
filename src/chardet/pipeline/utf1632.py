@@ -11,7 +11,7 @@ annotations.
 
 import unicodedata
 
-from chardet.pipeline import DETERMINISTIC_CONFIDENCE, DetectionResult
+from chardet.pipeline import ASCII_TEXT_BYTES, DETERMINISTIC_CONFIDENCE, DetectionResult
 
 # How many bytes to sample for pattern analysis
 _SAMPLE_SIZE = 4096
@@ -46,12 +46,9 @@ _MIN_PRINTABLE_FRACTION = 0.7
 # non-null bytes.  15% is generous — separator data is typically 1-5%.
 _NULL_SEPARATOR_MAX_FRACTION = 0.15
 
-# Bytes allowed in the null-separator guard: null (0x00), printable ASCII
-# (0x20-0x7E), tab, newline, carriage return.  Same character set as
-# ``_ALLOWED_ASCII`` in ``ascii.py`` plus the null byte itself.
-# Uses ``bytes`` for C-level ``bytes.translate`` (matching the pattern in
-# ``binary.py`` and ``ascii.py``).
-_NULL_SEPARATOR_ALLOWED: bytes = bytes([0x00, 0x09, 0x0A, 0x0D, *range(0x20, 0x7F)])
+# ASCII_TEXT_BYTES plus the null byte — used by the null-separator guard
+# to check whether non-null bytes are all printable ASCII.
+_NULL_SEPARATOR_ALLOWED: bytes = b"\x00" + ASCII_TEXT_BYTES
 
 
 def _is_null_separator_pattern(data: bytes, null_frac: float) -> bool:

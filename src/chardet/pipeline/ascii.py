@@ -2,12 +2,7 @@
 
 from __future__ import annotations
 
-from chardet.pipeline import DetectionResult
-
-# Allowed ASCII bytes: tab (0x09), newline (0x0A), carriage return (0x0D),
-# and printable ASCII (0x20-0x7E).  bytes.translate deletes these from the
-# input; if anything remains, the data is not pure ASCII.
-_ALLOWED_ASCII: bytes = bytes([0x09, 0x0A, 0x0D, *range(0x20, 0x7F)])
+from chardet.pipeline import ASCII_TEXT_BYTES, DetectionResult
 
 # Maximum fraction of null bytes to still classify data as ASCII.
 # Null-separated CLI output (find -print0, git ls-tree -z) typically has
@@ -28,7 +23,7 @@ def detect_ascii(data: bytes) -> DetectionResult | None:
     """
     if not data:
         return None
-    remainder = data.translate(None, _ALLOWED_ASCII)
+    remainder = data.translate(None, ASCII_TEXT_BYTES)
     if not remainder:
         return DetectionResult(encoding="ascii", confidence=1.0, language=None)
     # Check if the only non-allowed bytes are null separators
