@@ -22,13 +22,17 @@ Two targeted fixes plus a pipeline reorder.
 
 **File**: `src/chardet/pipeline/utf1632.py`
 
-In `_check_utf16`, after identifying candidates by null-fraction but before decode/accept, add a guard:
+In `_check_utf16`, for each candidate identified by null-fraction, add a guard before decode/accept:
 
 - If the null fraction in the candidate position is below a threshold (target: ~15%) AND the non-null bytes are all printable ASCII plus common whitespace (`\t`, `\n`, `\r`), reject the UTF-16 candidate.
+
+This guard must apply in **both** code paths of `_check_utf16`: the single-candidate path (lines 161-173) and the dual-candidate path (lines 176-197). The cleanest approach is to filter candidates in the candidate-building loop (lines 151-155) before the branching logic.
 
 **Rationale**: Real UTF-16 of Latin text has ~50% nulls in alternating positions. CJK UTF-16 has fewer nulls but the non-null bytes are NOT printable ASCII (CJK characters have non-zero bytes in both positions of each code unit). The combined check (low null fraction + all-ASCII remainder) uniquely identifies null-separator data without affecting real UTF-16 detection.
 
 **Threshold**: Start at 15%. Real UTF-16 of mixed Latin/CJK text with the lowest null fraction we've seen in the test suite is ~4.5% (CJK-heavy), but that data has non-ASCII non-null bytes. The guard only fires when non-null bytes are all ASCII, so the threshold can be generous.
+
+**Note**: This module is compiled with mypyc. Any new helper functions must be mypyc-compatible, and `from __future__ import annotations` must NOT be added.
 
 ### Site 2: Null-tolerant ASCII detection
 
@@ -36,9 +40,10 @@ In `_check_utf16`, after identifying candidates by null-fraction but before deco
 
 Extend `detect_ascii` to handle data where the only non-standard bytes are `\x00`:
 
-1. First, check if data contains any bytes outside `{ASCII printable + \t + \n + \r + \x00}`. If so, return `None` (not ASCII).
-2. If the only non-standard bytes are nulls, check the null fraction. If below a threshold (target: ~10%), return `DetectionResult(encoding="ascii", confidence=0.99, language=None)`.
-3. Above the threshold, return `None` — the data is probably genuinely binary.
+1. First, try the existing fast path: `data.translate(None, _ALLOWED_ASCII)`. If nothing remains, return pure ASCII at confidence 1.0 (unchanged behavior).
+2. If non-allowed bytes remain, check whether they are ALL `\x00`. The existing `_ALLOWED_ASCII` table does not include `\x00`, so this is a simple check on the remainder bytes.
+3. If the only non-allowed bytes are nulls and the null fraction is below a threshold (target: ~10%), return `DetectionResult(encoding="ascii", confidence=0.99, language=None)`.
+4. Otherwise return `None` — the data has non-ASCII bytes or too many nulls.
 
 **Confidence 0.99**: Distinguishes "ASCII with null separators" from "pure ASCII" (confidence 1.0), giving consumers a signal that something slightly unusual is present without undermining the detection.
 
@@ -48,15 +53,20 @@ Extend `detect_ascii` to handle data where the only non-standard bytes are `\x00
 
 **File**: `src/chardet/pipeline/orchestrator.py`
 
-Move the ASCII check to run before binary detection, paralleling the existing UTF-8 precheck pattern. The pipeline order becomes:
-
-```
-BOM → UTF-16/32 → Escape → UTF-8 precheck → ASCII precheck → Binary → Markup → ...
-```
+Compute the ASCII result before binary detection so it can prevent false binary rejection, paralleling the existing UTF-8 precheck pattern.
 
 **Rationale**: Just as valid UTF-8 with control bytes (e.g., ANSI escape codes) would be falsely rejected by binary detection, valid ASCII with null separators would be falsely rejected. The precheck pattern already exists for UTF-8; extending it to ASCII is a clean parallel.
 
-**Implementation**: Compute `ascii_precheck = detect_ascii(data)` alongside the existing `utf8_precheck = detect_utf8(data)`, before the binary detection call. Use the result to skip binary detection when ASCII is detected, and return it at the normal ASCII position in the pipeline (after markup, so explicit charset declarations still take precedence).
+**Implementation**: Compute `ascii_precheck = detect_ascii(data)` alongside the existing `utf8_precheck = detect_utf8(data)`, before the binary detection call. The binary detection guard becomes:
+
+```python
+if utf8_precheck is None and ascii_precheck is None and is_binary(data, ...):
+    return [_BINARY_RESULT]
+```
+
+The ASCII precheck result is **returned** at the same position ASCII currently occupies (after markup), so explicit charset declarations still take precedence. The computation order and the return order are different — this matches the existing UTF-8 precheck pattern exactly.
+
+**Note**: `UniversalDetector` delegates to `run_pipeline()`, so these changes propagate to the streaming interface automatically. No changes needed in `detector.py`.
 
 ## Thresholds to validate experimentally
 
@@ -69,7 +79,7 @@ Both thresholds must be validated against the full accuracy test suite (`test_ac
 
 ## Testing
 
-- **Unit test**: the exact byte string from issue #346 should return `{"encoding": "ascii", "confidence": 0.99, "language": ""}`
+- **Unit test**: the exact byte string from issue #346 should return `encoding="ascii"` with `confidence=0.99` (the public API converts `language=None` to `""` in the dict)
 - **Unit test**: `find -print0` style output (null-separated file paths) should return ASCII
 - **Unit test**: real UTF-16-BE data (with and without BOM) should still be detected correctly
 - **Unit test**: data with high null fraction (>10%) should NOT return ASCII
