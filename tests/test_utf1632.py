@@ -569,3 +569,52 @@ def test_text_quality_no_letters() -> None:
     quality = _text_quality(text)
     # No letters, so letter ratio is 0, ascii bonus is 0
     assert quality < 0.5
+
+
+# ---------------------------------------------------------------------------
+# Null-separator guard: sparse nulls in ASCII should NOT trigger UTF-16
+# ---------------------------------------------------------------------------
+
+
+def test_null_separated_ascii_not_utf16() -> None:
+    """ASCII with null byte separators should not be detected as UTF-16.
+
+    Regression test for chardet/chardet#346.
+    """
+    data = (
+        b"master:README.md\x002\x00For support slack to #kodiak-support\n"
+        b"master:support.txt\x001\x00For support slack to #kodiak-support\n"
+    )
+    result = detect_utf1632_patterns(data)
+    assert result is None
+
+
+def test_null_separated_paths_not_utf16() -> None:
+    """Find -print0 style output should not be detected as UTF-16."""
+    data = (
+        b"/home/user/documents/report.txt\x00"
+        b"/home/user/documents/notes.txt\x00"
+        b"/home/user/downloads/image.png\x00"
+        b"/home/user/music/song.mp3\x00"
+    )
+    result = detect_utf1632_patterns(data)
+    assert result is None
+
+
+def test_real_utf16_be_still_detected() -> None:
+    """Real UTF-16-BE text must still be detected after the guard is added."""
+    text = "The quick brown fox jumps over the lazy dog."
+    data = text.encode("utf-16-be")
+    result = detect_utf1632_patterns(data)
+    assert result is not None
+    assert result.encoding == "utf-16-be"
+    assert result.confidence == DETERMINISTIC_CONFIDENCE
+
+
+def test_real_utf16_le_cjk_still_detected() -> None:
+    """CJK UTF-16-LE must still be detected (low null fraction but non-ASCII non-null bytes)."""
+    text = "This document: \u4f60\u597d\u4e16\u754c\uff0c\u6b22\u8fce\u6765\u5230\u8fd9\u91cc\u3002"
+    data = text.encode("utf-16-le")
+    result = detect_utf1632_patterns(data)
+    assert result is not None
+    assert result.encoding == "utf-16-le"
