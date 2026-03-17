@@ -11,8 +11,9 @@ _ALLOWED_ASCII: bytes = bytes([0x09, 0x0A, 0x0D, *range(0x20, 0x7F)])
 
 # Maximum fraction of null bytes to still classify data as ASCII.
 # Null-separated CLI output (find -print0, git ls-tree -z) typically has
-# 1-5% nulls.  10% provides margin while excluding genuinely binary data.
-_MAX_NULL_FRACTION = 0.10
+# 1-3.5% nulls.  5% covers all realistic cases while staying well below
+# the UTF-16 guard threshold (15%).
+_MAX_NULL_FRACTION = 0.05
 
 
 def detect_ascii(data: bytes) -> DetectionResult | None:

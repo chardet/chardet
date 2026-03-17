@@ -47,7 +47,7 @@ def test_null_byte_not_ascii():
 
 
 def test_ascii_with_sparse_null_separators():
-    """ASCII with null separators below 10% threshold → confidence 0.99."""
+    """ASCII with null separators below 5% threshold → confidence 0.99."""
     data = (
         b"master:README.md\x002\x00For support slack to #kodiak-support\n"
         b"master:support.txt\x001\x00For support slack to #kodiak-support\n"
@@ -73,21 +73,21 @@ def test_ascii_with_null_separated_paths():
 
 
 def test_ascii_with_null_at_boundary():
-    """Exactly 10% nulls (1 in 10 bytes) is at the threshold — still ASCII."""
-    result = detect_ascii(b"Hello\x00wrld")  # 1/10 = 10%
+    """Exactly 5% nulls (1 in 20 bytes) is at the threshold — still ASCII."""
+    result = detect_ascii(b"abcdefghij\x00klmnopqrs")  # 1/20 = 5%
     assert result is not None
     assert result.encoding == "ascii"
     assert result.confidence == 0.99
 
 
 def test_ascii_with_null_just_above_boundary():
-    """Just above 10% nulls → not ASCII."""
-    result = detect_ascii(b"Hell\x00wrld")  # 1/9 = 11.1%
+    """Just above 5% nulls → not ASCII."""
+    result = detect_ascii(b"abcdefghij\x00klmnopqr")  # 1/19 = 5.26%
     assert result is None
 
 
 def test_ascii_with_high_null_fraction():
-    """More than 10% null bytes → not ASCII."""
+    """More than 5% null bytes → not ASCII."""
     # 5 nulls in 15 bytes = 33%
     data = b"ab\x00cd\x00ef\x00gh\x00ij\x00"
     result = detect_ascii(data)
