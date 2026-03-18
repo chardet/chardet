@@ -210,7 +210,7 @@ build-frontend = "build[uv]"
 test-command = "python -c \"import chardet; print(chardet.detect(b'hello world'))\""
 
 [tool.cibuildwheel.linux]
-archs = ["x86_64", "aarch64"]
+archs = ["x86_64", "aarch64", "riscv64"]
 
 [tool.cibuildwheel.macos]
 archs = ["x86_64", "arm64"]

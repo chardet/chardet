@@ -52,7 +52,7 @@ jobs:
         if: runner.os == 'Linux'
         uses: docker/setup-qemu-action@v3
         with:
-          platforms: arm64
+          platforms: arm64,riscv64
       - uses: astral-sh/setup-uv@v7
       - uses: pypa/cibuildwheel@v3.3
         env:
