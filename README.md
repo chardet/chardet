@@ -2,11 +2,11 @@
 
 Universal character encoding detector.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License: 0BSD](https://img.shields.io/badge/License-0BSD-blue.svg)](LICENSE)
 [![Documentation](https://readthedocs.org/projects/chardet/badge/?version=latest)](https://chardet.readthedocs.io)
 [![codecov](https://codecov.io/github/chardet/chardet/branch/main/graph/badge.svg?token=m5ZQrMd3vk)](https://codecov.io/github/chardet/chardet)
 
-chardet 7.0 is a ground-up, MIT-licensed rewrite of [chardet](https://github.com/chardet/chardet).
+chardet 7.0 is a ground-up, 0BSD-licensed rewrite of [chardet](https://github.com/chardet/chardet).
 Same package name, same public API — drop-in replacement for chardet 5.x/6.x, just much faster and more accurate.
 Python 3.10+, zero runtime dependencies, works on PyPy.
 
@@ -15,7 +15,7 @@ Python 3.10+, zero runtime dependencies, works on PyPy.
 **98.2% accuracy** on 2,510 test files. **44x faster** than chardet 6.0.0
 and **4.1x faster** than
 charset-normalizer. **Language
-detection** for every result. **MIT licensed.**
+detection** for every result. **0BSD licensed.**
 
 |                        | chardet 7.1.0 (mypyc) | chardet 7.1.0 (pure) | chardet 6.0.0 | [charset-normalizer] |
 | ---------------------- | :--------------------: | :------------------: | :-----------: | :------------------: |
@@ -26,7 +26,7 @@ detection** for every result. **MIT licensed.**
 | Streaming detection    |        **yes**         |       **yes**        |      yes      |          no          |
 | Encoding era filtering |        **yes**         |       **yes**        |      no       |          no          |
 | Supported encodings    |          99            |         99           |      84       |          99          |
-| License                |          MIT           |         MIT          |     LGPL      |         MIT          |
+| License                |          0BSD          |         0BSD         |     LGPL      |         MIT          |
 
 [charset-normalizer]: https://github.com/jawah/charset_normalizer
 
@@ -140,7 +140,7 @@ cat somefile.txt | chardetect
 
 ## What's New in 7.0
 
-- **MIT license** (previous versions were LGPL)
+- **0BSD license** (previous versions were LGPL)
 - **Ground-up rewrite** — 12-stage detection pipeline using BOM detection, structural probing, byte validity filtering, and bigram statistical models
 - **42x faster** than chardet 6.0.0 with mypyc (**34x** pure Python), **4.2x faster** than charset-normalizer
 - **98.2% accuracy** — +10.0pp vs chardet 6.0.0, +14.0pp vs charset-normalizer
@@ -157,4 +157,4 @@ Full documentation is available at [chardet.readthedocs.io](https://chardet.read
 
 ## License
 
-[MIT](LICENSE)
+[0BSD](LICENSE)

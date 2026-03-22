@@ -1,6 +1,15 @@
 Changelog
 =========
 
+7.3.0
+-------------------
+
+- **0BSD license** — the project license has been changed from MIT to
+  `0BSD <https://opensource.org/license/0bsd>`_, a maximally permissive
+  license with no attribution requirement. All 7.x releases are
+  retroactively 0BSD licensed as of this release.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_)
+
 7.2.0 (2026-03-17)
 -------------------
 
@@ -135,14 +144,14 @@ Changelog
 7.0.0 (2026-03-02)
 -------------------
 
-Ground-up, MIT-licensed rewrite of chardet
+Ground-up, 0BSD-licensed rewrite of chardet
 (`Dan Blanchard <https://github.com/dan-blanchard>`_,
 `#322 <https://github.com/chardet/chardet/pull/322>`_). Same package name,
 same public API — drop-in replacement for chardet 5.x/6.x.
 
 **Highlights:**
 
-- **MIT license** (previous versions were LGPL)
+- **0BSD license** (previous versions were LGPL)
 - **96.8% accuracy** on 2,179 test files (+2.3pp vs chardet 6.0.0,
   +7.7pp vs charset-normalizer)
 - **41x faster** than chardet 6.0.0 with mypyc (**28x** pure Python),

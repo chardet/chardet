@@ -1,4 +1,4 @@
-"""Universal character encoding detector — MIT-licensed rewrite."""
+"""Universal character encoding detector — 0BSD-licensed rewrite."""
 
 from __future__ import annotations
 

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-MIT-licensed, ground-up rewrite of chardet (the Python character encoding detector). Drop-in replacement for chardet 6.x — same package name, same public API. Zero runtime dependencies, Python 3.10+, must work on PyPy.
+0BSD-licensed, ground-up rewrite of chardet (the Python character encoding detector). Drop-in replacement for chardet 6.x — same package name, same public API. Zero runtime dependencies, Python 3.10+, must work on PyPy.
 
 ### Versioning
 

@@ -2,7 +2,7 @@
 name = "chardet"
 dynamic = ["version"]
 description = "Universal character encoding detector"
-license = "MIT"
+license = "0BSD"
 readme = "README.md"
 keywords = ["encoding", "charset", "detection", "unicode", "chardet"]
 requires-python = ">=3.10"
@@ -14,7 +14,7 @@ maintainers = [
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
+
     "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
