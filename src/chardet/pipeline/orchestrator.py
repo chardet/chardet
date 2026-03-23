@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import dataclasses
 import warnings
 
 from chardet._utils import DEFAULT_MAX_BYTES
@@ -341,7 +340,9 @@ def _score_structural_candidates(
         coverage = ctx.mb_coverage.get(r.encoding, 0.0) if r.encoding else 0.0
         if coverage >= 0.95:
             boosted.append(
-                dataclasses.replace(r, confidence=r.confidence * (1 + coverage))
+                DetectionResult(
+                    r.encoding, r.confidence * (1 + coverage), r.language, r.mime_type
+                )
             )
         else:
             boosted.append(r)
@@ -473,7 +474,9 @@ def _fill_metadata(
             )
 
         if lang != result.language or mime != result.mime_type:
-            filled.append(dataclasses.replace(result, language=lang, mime_type=mime))
+            filled.append(
+                DetectionResult(result.encoding, result.confidence, lang, mime)
+            )
         else:
             filled.append(result)
     return filled
@@ -665,7 +668,7 @@ def run_pipeline(  # noqa: PLR0913
     # stages may boost confidence above 1.0 for ranking purposes (e.g.
     # CJK byte-coverage boost), but callers expect a probability-like value.
     return [
-        dataclasses.replace(r, confidence=min(r.confidence, 1.0))
+        DetectionResult(r.encoding, min(r.confidence, 1.0), r.language, r.mime_type)
         if r.confidence > 1.0
         else r
         for r in results
