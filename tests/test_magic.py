@@ -89,3 +89,97 @@ def test_detect_magic_tar_too_short() -> None:
     """Data shorter than offset 257 + signature should not match TAR."""
     result = detect_magic(b"\x00" * 200 + b"ustar\x00")
     assert result is None
+
+
+def _make_zip_local_entry(filename: bytes, content: bytes = b"") -> bytes:
+    """Build a minimal ZIP local file header + content (no compression)."""
+    import struct
+
+    return (
+        struct.pack(
+            "<4sHHHHHIIIHH",
+            b"PK\x03\x04",  # signature
+            20,  # version needed
+            0,  # flags
+            0,  # compression (store)
+            0,  # mod time
+            0,  # mod date
+            0,  # crc32
+            len(content),  # compressed size
+            len(content),  # uncompressed size
+            len(filename),  # filename length
+            0,  # extra field length
+        )
+        + filename
+        + content
+    )
+
+
+class TestOOXMLDetection:
+    """Test Office Open XML sub-detection within ZIP files."""
+
+    def test_xlsx_detected(self) -> None:
+        data = _make_zip_local_entry(b"[Content_Types].xml") + _make_zip_local_entry(
+            b"xl/workbook.xml"
+        )
+        result = detect_magic(data)
+        assert result is not None
+        assert result.mime_type == (
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
+    def test_docx_detected(self) -> None:
+        data = _make_zip_local_entry(b"[Content_Types].xml") + _make_zip_local_entry(
+            b"word/document.xml"
+        )
+        result = detect_magic(data)
+        assert result is not None
+        assert result.mime_type == (
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        )
+
+    def test_pptx_detected(self) -> None:
+        data = _make_zip_local_entry(b"[Content_Types].xml") + _make_zip_local_entry(
+            b"ppt/presentation.xml"
+        )
+        result = detect_magic(data)
+        assert result is not None
+        assert result.mime_type == (
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+        )
+
+    def test_plain_zip_no_content_types(self) -> None:
+        """ZIP without [Content_Types].xml is plain ZIP."""
+        data = _make_zip_local_entry(b"readme.txt", b"hello")
+        result = detect_magic(data)
+        assert result is not None
+        assert result.mime_type == "application/zip"
+
+    def test_ooxml_with_rels_first(self) -> None:
+        """OOXML where _rels/.rels comes before xl/ — still detected."""
+        data = (
+            _make_zip_local_entry(b"_rels/.rels")
+            + _make_zip_local_entry(b"[Content_Types].xml")
+            + _make_zip_local_entry(b"xl/workbook.xml")
+        )
+        result = detect_magic(data)
+        assert result is not None
+        assert result.mime_type == (
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
+    def test_zip_no_ooxml_entries_falls_back(self) -> None:
+        """ZIP with only non-OOXML entries is plain ZIP."""
+        data = _make_zip_local_entry(b"readme.txt", b"hello") + _make_zip_local_entry(
+            b"data.csv", b"a,b,c"
+        )
+        result = detect_magic(data)
+        assert result is not None
+        assert result.mime_type == "application/zip"
+
+    def test_truncated_zip_is_still_zip(self) -> None:
+        """ZIP header with too little data for OOXML check is plain ZIP."""
+        data = b"PK\x03\x04" + b"\x00" * 8
+        result = detect_magic(data)
+        assert result is not None
+        assert result.mime_type == "application/zip"

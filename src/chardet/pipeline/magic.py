@@ -21,8 +21,7 @@ _MAGIC_NUMBERS: tuple[tuple[bytes, str], ...] = (
     (b"OggS", "audio/ogg"),
     (b"fLaC", "audio/flac"),
     (b"\x1a\x45\xdf\xa3", "video/webm"),
-    # Archives
-    (b"PK\x03\x04", "application/zip"),
+    # Archives (ZIP handled separately below for OOXML sub-detection)
     (b"\x1f\x8b", "application/gzip"),
     (b"BZh", "application/x-bzip2"),
     (b"\xfd7zXZ\x00", "application/x-xz"),
@@ -57,11 +56,56 @@ _RIFF_SUBTYPES: dict[bytes, str] = {
     b"AVI ": "video/x-msvideo",
 }
 
+# ZIP / Office Open XML — scan the first 4 KB for local file headers
+# whose filenames start with xl/, word/, or ppt/.  Many ZIP generators
+# (including Excel) set the data-descriptor flag on every entry, making
+# sequential header walking impossible without decompression.  Instead
+# we search for PK\x03\x04 signatures and validate the filename field.
+_ZIP_SIGNATURE = b"PK\x03\x04"
+_OOXML_SCAN_LIMIT = 4096
+# Map OOXML root directory prefixes to MIME types
+_OOXML_PREFIXES: tuple[tuple[bytes, str], ...] = (
+    (b"xl/", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
+    (
+        b"word/",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ),
+    (
+        b"ppt/",
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    ),
+)
+
 # MP4/MOV ftyp box — "ftyp" at offset 4
 _FTYP_MARKER = b"ftyp"
 _FTYP_OFFSET = 4
 # Major brands that indicate audio rather than video
 _AUDIO_FTYP_BRANDS: frozenset[bytes] = frozenset({b"M4A ", b"M4B ", b"F4A "})
+
+
+def _classify_zip(data: bytes) -> str:
+    """Classify a ZIP file as plain ZIP or a specific OOXML type.
+
+    Scans for local file header signatures within the first
+    ``_OOXML_SCAN_LIMIT`` bytes and checks each entry's filename
+    for OOXML directory prefixes.
+    """
+    scan = data[:_OOXML_SCAN_LIMIT]
+    offset = 0
+    while True:
+        idx = scan.find(_ZIP_SIGNATURE, offset)
+        if idx == -1 or len(scan) < idx + 30:
+            break
+        name_len = int.from_bytes(scan[idx + 26 : idx + 28], "little")
+        name_start = idx + 30
+        if len(scan) < name_start + name_len:
+            break
+        name = scan[name_start : name_start + name_len]
+        for ooxml_prefix, mime in _OOXML_PREFIXES:
+            if name.startswith(ooxml_prefix):
+                return mime
+        offset = name_start + name_len
+    return "application/zip"
 
 
 def _make_result(mime: str) -> DetectionResult:
@@ -92,6 +136,10 @@ def detect_magic(data: bytes) -> DetectionResult | None:
         subtype = _RIFF_SUBTYPES.get(data[8:12])
         if subtype is not None:
             return _make_result(subtype)
+
+    # ZIP / Office Open XML detection
+    if data.startswith(_ZIP_SIGNATURE):
+        return _make_result(_classify_zip(data))
 
     # Fixed-offset magic numbers (all at offset 0)
     for prefix, mime in _MAGIC_NUMBERS:

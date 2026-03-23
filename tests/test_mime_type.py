@@ -134,7 +134,7 @@ def test_none_none_files_have_correct_mime_types() -> None:
         "sample-1.mp4": "video/mp4",
         "sample-1.png": "image/png",
         "sample-1.webp": "image/webp",
-        "sample-1.xlsx": "application/zip",
+        "sample-1.xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         "sample-2.png": "image/png",
         "sample-3.png": "image/png",
     }
