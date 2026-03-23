@@ -10,7 +10,7 @@ from chardet.pipeline.orchestrator import run_pipeline
 
 def test_empty_input():
     result = run_pipeline(b"", EncodingEra.MODERN_WEB)
-    assert result == [DetectionResult("utf-8", 0.10, None)]
+    assert result == [DetectionResult("utf-8", 0.10, None, "text/plain")]
 
 
 def test_bom_detected():

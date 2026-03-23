@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 import warnings
 
 from chardet._utils import DEFAULT_MAX_BYTES
@@ -23,6 +24,7 @@ from chardet.pipeline.binary import is_binary
 from chardet.pipeline.bom import detect_bom
 from chardet.pipeline.confusion import resolve_confusion_groups
 from chardet.pipeline.escape import detect_escape_encoding
+from chardet.pipeline.magic import detect_magic
 from chardet.pipeline.markup import detect_markup_charset
 from chardet.pipeline.statistical import score_candidates
 from chardet.pipeline.structural import (
@@ -36,7 +38,10 @@ from chardet.pipeline.validity import filter_by_validity
 from chardet.registry import EncodingInfo, get_candidates
 
 _BINARY_RESULT = DetectionResult(
-    encoding=None, confidence=DETERMINISTIC_CONFIDENCE, language=None
+    encoding=None,
+    confidence=DETERMINISTIC_CONFIDENCE,
+    language=None,
+    mime_type="application/octet-stream",
 )
 _NONE_RESULT = DetectionResult(encoding=None, confidence=0.0, language=None)
 # Threshold at which a CJK structural score is confident enough to trigger
@@ -336,11 +341,7 @@ def _score_structural_candidates(
         coverage = ctx.mb_coverage.get(r.encoding, 0.0) if r.encoding else 0.0
         if coverage >= 0.95:
             boosted.append(
-                DetectionResult(
-                    encoding=r.encoding,
-                    confidence=r.confidence * (1 + coverage),
-                    language=r.language,
-                )
+                dataclasses.replace(r, confidence=r.confidence * (1 + coverage))
             )
         else:
             boosted.append(r)
@@ -457,15 +458,27 @@ def _fill_language(
                         utf8_data, "utf-8", profile=utf8_profile
                     )
             if lang is not None:
-                filled.append(
-                    DetectionResult(
-                        encoding=result.encoding,
-                        confidence=result.confidence,
-                        language=lang,
-                    )
-                )
+                filled.append(dataclasses.replace(result, language=lang))
                 continue
         filled.append(result)
+    return filled
+
+
+def _fill_mime_types(results: list[DetectionResult]) -> list[DetectionResult]:
+    """Fill in ``mime_type`` for results that don't have one set by a stage.
+
+    Text results (``encoding is not None``) default to ``"text/plain"``.
+    Binary results (``encoding is None``) default to ``"application/octet-stream"``.
+    """
+    filled: list[DetectionResult] = []
+    for r in results:
+        if r.mime_type is None:
+            mime = (
+                "text/plain" if r.encoding is not None else "application/octet-stream"
+            )
+            filled.append(dataclasses.replace(r, mime_type=mime))
+        else:
+            filled.append(r)
     return filled
 
 
@@ -527,6 +540,12 @@ def _run_pipeline_core(  # noqa: PLR0913
         and escape_result.encoding in allowed
     ):
         return [escape_result]
+
+    # Magic number detection for known binary formats — runs before
+    # UTF-8/ASCII prechecks to avoid unnecessary analysis on binary data.
+    magic_result = detect_magic(data)
+    if magic_result is not None:
+        return [magic_result]
 
     # Pre-check UTF-8 to prevent false binary classification.  Valid UTF-8
     # with multi-byte sequences can contain control bytes (e.g. ESC for ANSI
@@ -642,6 +661,7 @@ def run_pipeline(  # noqa: PLR0913
     # Language scoring uses only the first 2 KB — bigrams converge quickly
     # and this keeps Tier 3 (language-model scoring) fast even on large inputs.
     results = _fill_language(data[:_LANG_SCORE_MAX_BYTES], results)
+    results = _fill_mime_types(results)
     if not results:  # pragma: no cover
         msg = "pipeline must always return at least one result"
         raise RuntimeError(msg)
@@ -649,7 +669,7 @@ def run_pipeline(  # noqa: PLR0913
     # stages may boost confidence above 1.0 for ranking purposes (e.g.
     # CJK byte-coverage boost), but callers expect a probability-like value.
     return [
-        DetectionResult(r.encoding, min(r.confidence, 1.0), r.language)
+        dataclasses.replace(r, confidence=min(r.confidence, 1.0))
         if r.confidence > 1.0
         else r
         for r in results
