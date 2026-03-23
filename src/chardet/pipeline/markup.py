@@ -50,6 +50,7 @@ def _detect_pep263(data: bytes) -> DetectionResult | None:
                 encoding=encoding,
                 confidence=DETERMINISTIC_CONFIDENCE,
                 language=None,
+                mime_type="text/x-python",
             )
     return None
 
@@ -81,10 +82,12 @@ def detect_markup_charset(data: bytes) -> DetectionResult | None:
                 continue
             encoding = lookup_encoding(raw_name)
             if encoding is not None and _validate_bytes(data, encoding):
+                mime_type = "text/xml" if pattern is _XML_ENCODING_RE else "text/html"
                 return DetectionResult(
                     encoding=encoding,
                     confidence=DETERMINISTIC_CONFIDENCE,
                     language=None,
+                    mime_type=mime_type,
                 )
 
     return _detect_pep263(data)
