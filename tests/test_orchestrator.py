@@ -213,12 +213,12 @@ def test_promote_koi8t_returns_early_when_koi8t_absent():
     assert returned[0].encoding == "koi8-r"
 
 
-def test_fill_language_produces_language():
-    """_fill_language should fill in language for single-language encodings."""
-    from chardet.pipeline.orchestrator import _fill_language
+def test_fill_metadata_produces_language():
+    """_fill_metadata should fill in language for single-language encodings."""
+    from chardet.pipeline.orchestrator import _fill_metadata
 
     results = [DetectionResult("koi8-r", 0.90, None)]
-    filled = _fill_language(b"test data", results)
+    filled = _fill_metadata(b"test data", results)
     assert filled[0].language is not None
 
 

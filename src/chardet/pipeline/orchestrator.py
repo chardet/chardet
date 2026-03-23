@@ -427,20 +427,26 @@ def _to_utf8(data: bytes, encoding: str) -> bytes | None:
         return None
 
 
-def _fill_language(
+def _fill_metadata(
     data: bytes, results: list[DetectionResult]
 ) -> list[DetectionResult]:
-    """Fill in language for results missing it.
+    """Fill in language and mime_type for results missing them.
+
+    **Language** (only for text results where ``encoding is not None``):
 
     Tier 1: single-language encodings via hardcoded map (instant).
     Tier 2: multi-language encodings via statistical bigram scoring (lazy).
     Tier 3: decode to UTF-8, score against UTF-8 language models (universal fallback).
+
+    **MIME type**: text results default to ``"text/plain"``, binary results
+    (``encoding is None``) default to ``"application/octet-stream"``.
     """
     filled: list[DetectionResult] = []
     profile: BigramProfile | None = None
     utf8_profile: BigramProfile | None = None
     for result in results:
-        if result.language is None and result.encoding is not None:
+        lang = result.language
+        if lang is None and result.encoding is not None:
             # Tier 1: single-language encoding
             lang = infer_language(result.encoding)
             # Tier 2: statistical scoring for multi-language encodings
@@ -457,28 +463,19 @@ def _fill_language(
                     _, lang = score_best_language(
                         utf8_data, "utf-8", profile=utf8_profile
                     )
-            if lang is not None:
-                filled.append(dataclasses.replace(result, language=lang))
-                continue
-        filled.append(result)
-    return filled
 
-
-def _fill_mime_types(results: list[DetectionResult]) -> list[DetectionResult]:
-    """Fill in ``mime_type`` for results that don't have one set by a stage.
-
-    Text results (``encoding is not None``) default to ``"text/plain"``.
-    Binary results (``encoding is None``) default to ``"application/octet-stream"``.
-    """
-    filled: list[DetectionResult] = []
-    for r in results:
-        if r.mime_type is None:
+        mime = result.mime_type
+        if mime is None:
             mime = (
-                "text/plain" if r.encoding is not None else "application/octet-stream"
+                "text/plain"
+                if result.encoding is not None
+                else "application/octet-stream"
             )
-            filled.append(dataclasses.replace(r, mime_type=mime))
+
+        if lang != result.language or mime != result.mime_type:
+            filled.append(dataclasses.replace(result, language=lang, mime_type=mime))
         else:
-            filled.append(r)
+            filled.append(result)
     return filled
 
 
@@ -660,8 +657,7 @@ def run_pipeline(  # noqa: PLR0913
     )
     # Language scoring uses only the first 2 KB — bigrams converge quickly
     # and this keeps Tier 3 (language-model scoring) fast even on large inputs.
-    results = _fill_language(data[:_LANG_SCORE_MAX_BYTES], results)
-    results = _fill_mime_types(results)
+    results = _fill_metadata(data[:_LANG_SCORE_MAX_BYTES], results)
     if not results:  # pragma: no cover
         msg = "pipeline must always return at least one result"
         raise RuntimeError(msg)
