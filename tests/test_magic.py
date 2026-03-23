@@ -20,18 +20,35 @@ from chardet.pipeline.magic import detect_magic
         (b"BM" + b"\x00" * 12, "image/bmp"),
         (b"MM\x00\x2a" + b"\x00" * 8, "image/tiff"),
         (b"II\x2a\x00" + b"\x00" * 8, "image/tiff"),
+        (b"8BPS" + b"\x00" * 8, "image/vnd.adobe.photoshop"),
+        (b"qoif" + b"\x00" * 8, "image/qoi"),
         (b"\x00\x00\x01\x00" + b"\x00" * 8, "image/x-icon"),
-        (b"\x00\x00\x00\x1cftyp" + b"avif" + b"\x00" * 16, "image/avif"),
+        # JPEG XL container (12-byte signature)
+        (
+            b"\x00\x00\x00\x0c\x4a\x58\x4c\x20\x0d\x0a\x87\x0a" + b"\x00" * 8,
+            "image/jxl",
+        ),
+        # JPEG XL codestream (2-byte signature)
+        (b"\xff\x0a" + b"\x00" * 8, "image/jxl"),
+        # ftyp-based images (AVIF, HEIC)
+        (b"\x00\x00\x00\x1cftyp" + b"avif" + b"\x00" * 16, "image/heif"),
+        (b"\x00\x00\x00\x1cftyp" + b"heic" + b"\x00" * 16, "image/heif"),
+        (b"\x00\x00\x00\x1cftyp" + b"heix" + b"\x00" * 16, "image/heif"),
+        (b"\x00\x00\x00\x1cftyp" + b"mif1" + b"\x00" * 16, "image/heif"),
         # Audio/Video
         (b"ID3" + b"\x00" * 10, "audio/mpeg"),
+        (b"MThd" + b"\x00" * 10, "audio/midi"),
         (b"\x00\x00\x00\x1cftypMSNV" + b"\x00" * 16, "video/mp4"),
         (b"\x00\x00\x00\x18ftypisom" + b"\x00" * 12, "video/mp4"),
         (b"\x00\x00\x00\x18ftypmp42" + b"\x00" * 12, "video/mp4"),
         (b"\x00\x00\x00\x20ftypM4A " + b"\x00" * 20, "audio/mp4"),
+        (b"\x00\x00\x00\x14ftypqt  " + b"\x00" * 8, "video/quicktime"),
         (b"OggS" + b"\x00" * 10, "audio/ogg"),
         (b"fLaC" + b"\x00" * 10, "audio/flac"),
         (b"RIFF\x00\x00\x00\x00WAVE", "audio/wav"),
         (b"RIFF\x00\x00\x00\x00AVI ", "video/x-msvideo"),
+        (b"FORM\x00\x00\x00\x00AIFF", "audio/aiff"),
+        (b"FORM\x00\x00\x00\x00AIFC", "audio/aiff"),
         (b"\x1a\x45\xdf\xa3" + b"\x00" * 8, "video/webm"),
         # Archives
         (b"PK\x03\x04" + b"\x00" * 8, "application/zip"),
@@ -45,11 +62,14 @@ from chardet.pipeline.magic import detect_magic
         # TAR at offset 257
         (b"\x00" * 257 + b"ustar\x00" + b"\x00" * 8, "application/x-tar"),
         (b"\x00" * 257 + b"ustar " + b"\x00" * 8, "application/x-tar"),
-        # Documents
+        # Documents / Data
         (b"%PDF-" + b"\x00" * 8, "application/pdf"),
-        (b"\x00asm" + b"\x00" * 8, "application/wasm"),
         (b"SQLite format 3\x00" + b"\x00" * 8, "application/x-sqlite3"),
-        # Executables
+        (b"ARROW1" + b"\x00" * 8, "application/x-apache-arrow-file"),
+        (b"PAR1" + b"\x00" * 8, "application/x-parquet"),
+        (b"\x00asm" + b"\x00" * 8, "application/wasm"),
+        # Executables / Bytecode
+        (b"dex\n" + b"\x00" * 8, "application/vnd.android.dex"),
         (b"\x7fELF" + b"\x00" * 8, "application/x-elf"),
         (b"\xfe\xed\xfa\xce" + b"\x00" * 8, "application/x-mach-binary"),
         (b"\xfe\xed\xfa\xcf" + b"\x00" * 8, "application/x-mach-binary"),
@@ -59,6 +79,7 @@ from chardet.pipeline.magic import detect_magic
         # Fonts
         (b"wOFF" + b"\x00" * 8, "font/woff"),
         (b"wOF2" + b"\x00" * 8, "font/woff2"),
+        (b"OTTO" + b"\x00" * 8, "font/otf"),
     ],
     ids=lambda p: p if isinstance(p, str) else None,
 )

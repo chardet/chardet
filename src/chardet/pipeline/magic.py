@@ -6,6 +6,7 @@ from chardet.pipeline import DetectionResult
 
 # (prefix_bytes, mime_type) — longest prefix first to avoid shorter prefixes
 # shadowing longer ones. All entries match at offset 0.
+# Formats with sub-type logic (ftyp, RIFF, FORM, ZIP) are handled separately.
 _MAGIC_NUMBERS: tuple[tuple[bytes, str], ...] = (
     # Images
     (b"\x89PNG\r\n\x1a\n", "image/png"),
@@ -13,15 +14,25 @@ _MAGIC_NUMBERS: tuple[tuple[bytes, str], ...] = (
     (b"GIF89a", "image/gif"),
     (b"MM\x00\x2a", "image/tiff"),
     (b"II\x2a\x00", "image/tiff"),
+    (b"8BPS", "image/vnd.adobe.photoshop"),
+    (b"qoif", "image/qoi"),
     (b"BM", "image/bmp"),
     (b"\xff\xd8\xff", "image/jpeg"),
+    # JPEG XL: 12-byte container signature (must precede the 2-byte codestream)
+    (
+        b"\x00\x00\x00\x0c\x4a\x58\x4c\x20\x0d\x0a\x87\x0a",
+        "image/jxl",
+    ),
+    # JPEG XL: 2-byte codestream signature
+    (b"\xff\x0a", "image/jxl"),
     (b"\x00\x00\x01\x00", "image/x-icon"),
     # Audio/Video
     (b"ID3", "audio/mpeg"),
+    (b"MThd", "audio/midi"),
     (b"OggS", "audio/ogg"),
     (b"fLaC", "audio/flac"),
     (b"\x1a\x45\xdf\xa3", "video/webm"),
-    # Archives (ZIP handled separately below for OOXML sub-detection)
+    # Archives (ZIP handled separately below for subtype detection)
     (b"\x1f\x8b", "application/gzip"),
     (b"BZh", "application/x-bzip2"),
     (b"\xfd7zXZ\x00", "application/x-xz"),
@@ -29,20 +40,25 @@ _MAGIC_NUMBERS: tuple[tuple[bytes, str], ...] = (
     (b"Rar!\x1a\x07\x01\x00", "application/vnd.rar"),
     (b"Rar!\x1a\x07\x00", "application/vnd.rar"),
     (b"\x28\xb5\x2f\xfd", "application/zstd"),
-    # Documents
+    # Documents / Data
     (b"%PDF-", "application/pdf"),
-    (b"\x00asm", "application/wasm"),
     (b"SQLite format 3\x00", "application/x-sqlite3"),
-    # Executables
+    (b"ARROW1", "application/x-apache-arrow-file"),
+    (b"PAR1", "application/x-parquet"),
+    (b"\x00asm", "application/wasm"),
+    # Executables / Bytecode (note: \xca\xfe\xba\xbe is shared by Java class
+    # files and Mach-O fat binaries, so we skip it to avoid ambiguity)
+    (b"dex\n", "application/vnd.android.dex"),
     (b"\x7fELF", "application/x-elf"),
     (b"\xfe\xed\xfa\xce", "application/x-mach-binary"),
     (b"\xfe\xed\xfa\xcf", "application/x-mach-binary"),
     (b"\xce\xfa\xed\xfe", "application/x-mach-binary"),
     (b"\xcf\xfa\xed\xfe", "application/x-mach-binary"),
     (b"MZ", "application/vnd.microsoft.portable-executable"),
-    # Fonts
+    # Fonts (OTF before TTF — TTF signature \x00\x01\x00\x00 conflicts with ICO)
     (b"wOFF", "font/woff"),
     (b"wOF2", "font/woff2"),
+    (b"OTTO", "font/otf"),
 )
 
 # TAR archives have "ustar" at offset 257
@@ -54,6 +70,12 @@ _RIFF_SUBTYPES: dict[bytes, str] = {
     b"WEBP": "image/webp",
     b"WAVE": "audio/wav",
     b"AVI ": "video/x-msvideo",
+}
+
+# FORM container subtypes (same layout as RIFF: 4-byte tag, 4-byte size, 4-byte type)
+_FORM_SUBTYPES: dict[bytes, str] = {
+    b"AIFF": "audio/aiff",
+    b"AIFC": "audio/aiff",
 }
 
 # ZIP-based format detection — scan the first 4 KB for local file headers
@@ -100,11 +122,15 @@ _OPENDOCUMENT_MIMES: frozenset[bytes] = frozenset(
     }
 )
 
-# MP4/MOV ftyp box — "ftyp" at offset 4
+# MP4/MOV/HEIC ftyp box — "ftyp" at offset 4
 _FTYP_MARKER = b"ftyp"
 _FTYP_OFFSET = 4
-# Major brands that indicate audio rather than video
-_AUDIO_FTYP_BRANDS: frozenset[bytes] = frozenset({b"M4A ", b"M4B ", b"F4A "})
+# Brand → MIME type for non-video ftyp brands
+_FTYP_IMAGE_BRANDS: frozenset[bytes] = frozenset(
+    {b"avif", b"heic", b"heix", b"mif1", b"msf1"}
+)
+_FTYP_AUDIO_BRANDS: frozenset[bytes] = frozenset({b"M4A ", b"M4B ", b"F4A "})
+_FTYP_QUICKTIME_BRANDS: frozenset[bytes] = frozenset({b"qt  "})
 
 
 def _classify_zip(data: bytes) -> str:
@@ -172,7 +198,7 @@ def detect_magic(data: bytes) -> DetectionResult | None:
     if not data:
         return None
 
-    # Check ftyp box (MP4/MOV/M4A/AVIF) — "ftyp" at offset 4.
+    # Check ftyp box (MP4/MOV/HEIC/AVIF) — "ftyp" at offset 4.
     # Bytes 0-3 are the box size (big-endian uint32).  Valid ftyp boxes
     # have size >= 8 and <= file length.  The upper bound check prevents
     # false positives on text (ASCII bytes 0-3 produce huge box sizes
@@ -181,15 +207,23 @@ def detect_magic(data: bytes) -> DetectionResult | None:
         box_size = int.from_bytes(data[:4], "big")
         if 8 <= box_size <= len(data):
             brand = data[8:12]
-            if brand == b"avif":
-                return _make_result("image/avif")
-            if brand in _AUDIO_FTYP_BRANDS:
+            if brand in _FTYP_IMAGE_BRANDS:
+                return _make_result("image/heif")
+            if brand in _FTYP_AUDIO_BRANDS:
                 return _make_result("audio/mp4")
+            if brand in _FTYP_QUICKTIME_BRANDS:
+                return _make_result("video/quicktime")
             return _make_result("video/mp4")
 
     # RIFF container — check subtype at bytes 8-11
     if data[:4] == b"RIFF" and len(data) >= 12:
         subtype = _RIFF_SUBTYPES.get(data[8:12])
+        if subtype is not None:
+            return _make_result(subtype)
+
+    # FORM container (AIFF) — same layout as RIFF
+    if data[:4] == b"FORM" and len(data) >= 12:
+        subtype = _FORM_SUBTYPES.get(data[8:12])
         if subtype is not None:
             return _make_result(subtype)
 
