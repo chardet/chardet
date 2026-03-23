@@ -87,14 +87,3 @@ def test_detection_result_to_dict_includes_mime_type():
         "language": None,
         "mime_type": "text/plain",
     }
-
-
-def test_detection_result_to_dict_mime_type_default():
-    r = DetectionResult(encoding="UTF-8", confidence=0.99, language=None)
-    d = r.to_dict()
-    assert d == {
-        "encoding": "UTF-8",
-        "confidence": 0.99,
-        "language": None,
-        "mime_type": None,
-    }

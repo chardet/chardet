@@ -139,13 +139,16 @@ def test_none_none_files_have_correct_mime_types() -> None:
         "sample-3.png": "image/png",
     }
 
+    tested = 0
     for filename, expected_mime in expected_mimes.items():
         filepath = none_dir / filename
         if not filepath.exists():
             continue
+        tested += 1
         data = filepath.read_bytes()
         result = chardet.detect(data)
         assert result["encoding"] is None, f"{filename}: expected binary"
         assert result["mime_type"] == expected_mime, (
             f"{filename}: expected mime_type={expected_mime}, got={result['mime_type']}"
         )
+    assert tested > 0, "no test data files found in None-None directory"
