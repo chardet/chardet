@@ -16,12 +16,22 @@ def test_detection_result_fields():
 def test_detection_result_to_dict():
     r = DetectionResult(encoding="UTF-8", confidence=0.99, language=None)
     d = r.to_dict()
-    assert d == {"encoding": "UTF-8", "confidence": 0.99, "language": None}
+    assert d == {
+        "encoding": "UTF-8",
+        "confidence": 0.99,
+        "language": None,
+        "mime_type": None,
+    }
 
 
 def test_detection_result_none():
     r = DetectionResult(encoding=None, confidence=0.0, language=None)
-    assert r.to_dict() == {"encoding": None, "confidence": 0.0, "language": None}
+    assert r.to_dict() == {
+        "encoding": None,
+        "confidence": 0.0,
+        "language": None,
+        "mime_type": None,
+    }
 
 
 def test_detection_result_is_frozen():
@@ -52,3 +62,39 @@ def test_pipeline_context_mb_coverage():
     assert ctx.mb_coverage == {}
     ctx.mb_coverage["shift_jis"] = 0.95
     assert ctx.mb_coverage["shift_jis"] == 0.95
+
+
+def test_detection_result_mime_type_default():
+    r = DetectionResult(encoding="UTF-8", confidence=0.99, language="en")
+    assert r.mime_type is None
+
+
+def test_detection_result_mime_type_explicit():
+    r = DetectionResult(
+        encoding=None, confidence=1.0, language=None, mime_type="image/png"
+    )
+    assert r.mime_type == "image/png"
+
+
+def test_detection_result_to_dict_includes_mime_type():
+    r = DetectionResult(
+        encoding="UTF-8", confidence=0.99, language=None, mime_type="text/plain"
+    )
+    d = r.to_dict()
+    assert d == {
+        "encoding": "UTF-8",
+        "confidence": 0.99,
+        "language": None,
+        "mime_type": "text/plain",
+    }
+
+
+def test_detection_result_to_dict_mime_type_default():
+    r = DetectionResult(encoding="UTF-8", confidence=0.99, language=None)
+    d = r.to_dict()
+    assert d == {
+        "encoding": "UTF-8",
+        "confidence": 0.99,
+        "language": None,
+        "mime_type": None,
+    }
