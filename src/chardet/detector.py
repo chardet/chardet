@@ -19,11 +19,9 @@ from chardet.equivalences import (
     apply_compat_names,
     apply_preferred_superset,
 )
-from chardet.pipeline import DetectionDict, DetectionResult
+from chardet.pipeline import _NONE_RESULT, DetectionDict, DetectionResult
 from chardet.pipeline.orchestrator import run_pipeline
 from chardet.registry import _validate_encoding, normalize_encodings
-
-_NONE_RESULT = DetectionResult(encoding=None, confidence=0.0, language=None)
 
 
 class UniversalDetector:

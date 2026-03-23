@@ -60,6 +60,11 @@ class DetectionResult:
         }
 
 
+#: Sentinel result for "no detection" — used by the orchestrator for
+#: filtered-out fallbacks and by UniversalDetector before close().
+_NONE_RESULT = DetectionResult(encoding=None, confidence=0.0, language=None)
+
+
 @dataclasses.dataclass(slots=True)
 class PipelineContext:
     """Per-run mutable state for a single pipeline invocation.

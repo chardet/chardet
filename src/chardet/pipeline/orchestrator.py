@@ -14,6 +14,7 @@ from chardet.models import (
     score_best_language,
 )
 from chardet.pipeline import (
+    _NONE_RESULT,
     DETERMINISTIC_CONFIDENCE,
     HIGH_BYTES,
     DetectionResult,
@@ -43,7 +44,6 @@ _BINARY_RESULT = DetectionResult(
     language=None,
     mime_type="application/octet-stream",
 )
-_NONE_RESULT = DetectionResult(encoding=None, confidence=0.0, language=None)
 # Threshold at which a CJK structural score is confident enough to trigger
 # combined structural+statistical ranking rather than purely statistical.
 _STRUCTURAL_CONFIDENCE_THRESHOLD = 0.85
