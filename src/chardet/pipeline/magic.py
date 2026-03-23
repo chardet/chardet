@@ -25,7 +25,7 @@ _MAGIC_NUMBERS: tuple[tuple[bytes, str], ...] = (
     ),
     # JPEG XL: 2-byte codestream signature
     (b"\xff\x0a", "image/jxl"),
-    (b"\x00\x00\x01\x00", "image/x-icon"),
+    (b"\x00\x00\x01\x00", "image/x-icon"),  # ICO (not TTF — TTF is \x00\x01\x00\x00)
     # Audio/Video
     (b"ID3", "audio/mpeg"),
     (b"MThd", "audio/midi"),
@@ -46,8 +46,8 @@ _MAGIC_NUMBERS: tuple[tuple[bytes, str], ...] = (
     (b"ARROW1", "application/x-apache-arrow-file"),
     (b"PAR1", "application/x-parquet"),
     (b"\x00asm", "application/wasm"),
-    # Executables / Bytecode (note: \xca\xfe\xba\xbe is shared by Java class
-    # files and Mach-O fat binaries, so we skip it to avoid ambiguity)
+    # Executables / Bytecode (cafebabe handled separately — shared by Java
+    # class files and Mach-O fat binaries, disambiguated by bytes 4-7)
     (b"dex\n", "application/vnd.android.dex"),
     (b"\x7fELF", "application/x-elf"),
     (b"\xfe\xed\xfa\xce", "application/x-mach-binary"),
@@ -55,10 +55,11 @@ _MAGIC_NUMBERS: tuple[tuple[bytes, str], ...] = (
     (b"\xce\xfa\xed\xfe", "application/x-mach-binary"),
     (b"\xcf\xfa\xed\xfe", "application/x-mach-binary"),
     (b"MZ", "application/vnd.microsoft.portable-executable"),
-    # Fonts (OTF before TTF — TTF signature \x00\x01\x00\x00 conflicts with ICO)
+    # Fonts
     (b"wOFF", "font/woff"),
     (b"wOF2", "font/woff2"),
     (b"OTTO", "font/otf"),
+    (b"\x00\x01\x00\x00", "font/ttf"),
 )
 
 # TAR archives have "ustar" at offset 257
@@ -131,6 +132,13 @@ _FTYP_IMAGE_BRANDS: frozenset[bytes] = frozenset(
 )
 _FTYP_AUDIO_BRANDS: frozenset[bytes] = frozenset({b"M4A ", b"M4B ", b"F4A "})
 _FTYP_QUICKTIME_BRANDS: frozenset[bytes] = frozenset({b"qt  "})
+
+# Java class file vs Mach-O fat binary — both start with \xca\xfe\xba\xbe.
+# Bytes 4-7 disambiguate: Mach-O fat stores nfat_arch (big-endian uint32,
+# typically 2-5), while Java class stores minor_version (uint16) +
+# major_version (uint16, 45+ for Java 1.1 through modern Java).
+_CAFEBABE = b"\xca\xfe\xba\xbe"
+_CAFEBABE_MAX_FAT_ARCHES = 20  # no real fat binary exceeds this
 
 
 def _classify_zip(data: bytes) -> str:
@@ -227,9 +235,16 @@ def detect_magic(data: bytes) -> DetectionResult | None:
         if subtype is not None:
             return _make_result(subtype)
 
-    # ZIP / Office Open XML detection
+    # ZIP-based format detection
     if data.startswith(_ZIP_SIGNATURE):
         return _make_result(_classify_zip(data))
+
+    # Java class file vs Mach-O fat binary (both \xca\xfe\xba\xbe)
+    if data[:4] == _CAFEBABE and len(data) >= 8:
+        nfat_arch = int.from_bytes(data[4:8], "big")
+        if nfat_arch <= _CAFEBABE_MAX_FAT_ARCHES:
+            return _make_result("application/x-mach-binary")
+        return _make_result("application/java-vm")
 
     # Fixed-offset magic numbers (all at offset 0)
     for prefix, mime in _MAGIC_NUMBERS:

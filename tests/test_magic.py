@@ -80,6 +80,7 @@ from chardet.pipeline.magic import detect_magic
         (b"wOFF" + b"\x00" * 8, "font/woff"),
         (b"wOF2" + b"\x00" * 8, "font/woff2"),
         (b"OTTO" + b"\x00" * 8, "font/otf"),
+        (b"\x00\x01\x00\x00" + b"\x00" * 8, "font/ttf"),
     ],
     ids=lambda p: p if isinstance(p, str) else None,
 )
@@ -112,6 +113,24 @@ def test_detect_magic_tar_too_short() -> None:
     """Data shorter than offset 257 + signature should not match TAR."""
     result = detect_magic(b"\x00" * 200 + b"ustar\x00")
     assert result is None
+
+
+def test_detect_magic_cafebabe_java_class() -> None:
+    """Java class file: cafebabe with major version >= 45."""
+    # Java 11 = major version 55 (0x0037), minor version 0
+    data = b"\xca\xfe\xba\xbe\x00\x00\x00\x37" + b"\x00" * 8
+    result = detect_magic(data)
+    assert result is not None
+    assert result.mime_type == "application/java-vm"
+
+
+def test_detect_magic_cafebabe_macho_fat() -> None:
+    """Mach-O fat binary: cafebabe with small nfat_arch."""
+    # nfat_arch = 2 (typical universal binary)
+    data = b"\xca\xfe\xba\xbe\x00\x00\x00\x02" + b"\x00" * 8
+    result = detect_magic(data)
+    assert result is not None
+    assert result.mime_type == "application/x-mach-binary"
 
 
 def test_detect_magic_ftyp_text_false_positive() -> None:
