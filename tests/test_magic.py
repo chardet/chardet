@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import struct
+
 import pytest
 
 from chardet.pipeline.magic import detect_magic
@@ -93,8 +95,6 @@ def test_detect_magic_tar_too_short() -> None:
 
 def _make_zip_local_entry(filename: bytes, content: bytes = b"") -> bytes:
     """Build a minimal ZIP local file header + content (no compression)."""
-    import struct
-
     return (
         struct.pack(
             "<4sHHHHHIIIHH",
@@ -276,8 +276,6 @@ class TestZipSubtypeDetection:
 
     def test_zip_entry_name_truncated(self) -> None:
         """ZIP entry with name_len extending past end of data is plain ZIP."""
-        import struct
-
         # Build a header claiming a 100-byte filename, but only provide 5 bytes
         data = (
             struct.pack(
