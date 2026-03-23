@@ -128,7 +128,8 @@ _FTYP_MARKER = b"ftyp"
 _FTYP_OFFSET = 4
 # Brand → MIME type for image ftyp brands
 _FTYP_AVIF_BRANDS: frozenset[bytes] = frozenset({b"avif", b"avis"})
-_FTYP_HEIF_BRANDS: frozenset[bytes] = frozenset({b"heic", b"heix", b"mif1", b"msf1"})
+_FTYP_HEIC_BRANDS: frozenset[bytes] = frozenset({b"heic", b"heix"})
+_FTYP_HEIF_BRANDS: frozenset[bytes] = frozenset({b"mif1", b"msf1"})
 _FTYP_AUDIO_BRANDS: frozenset[bytes] = frozenset({b"M4A ", b"M4B ", b"F4A "})
 _FTYP_QUICKTIME_BRANDS: frozenset[bytes] = frozenset({b"qt  "})
 
@@ -216,6 +217,8 @@ def detect_magic(data: bytes) -> DetectionResult | None:
             brand = data[8:12]
             if brand in _FTYP_AVIF_BRANDS:
                 return _make_result("image/avif")
+            if brand in _FTYP_HEIC_BRANDS:
+                return _make_result("image/heic")
             if brand in _FTYP_HEIF_BRANDS:
                 return _make_result("image/heif")
             if brand in _FTYP_AUDIO_BRANDS:
