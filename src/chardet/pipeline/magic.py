@@ -25,7 +25,10 @@ _MAGIC_NUMBERS: tuple[tuple[bytes, str], ...] = (
     ),
     # JPEG XL: 2-byte codestream signature
     (b"\xff\x0a", "image/jxl"),
-    (b"\x00\x00\x01\x00", "image/x-icon"),  # ICO (not TTF — TTF is \x00\x01\x00\x00)
+    (
+        b"\x00\x00\x01\x00",
+        "image/vnd.microsoft.icon",
+    ),  # ICO (not TTF — TTF is \x00\x01\x00\x00)
     # Audio/Video
     (b"ID3", "audio/mpeg"),
     (b"MThd", "audio/midi"),
@@ -43,8 +46,8 @@ _MAGIC_NUMBERS: tuple[tuple[bytes, str], ...] = (
     # Documents / Data
     (b"%PDF-", "application/pdf"),
     (b"SQLite format 3\x00", "application/x-sqlite3"),
-    (b"ARROW1", "application/x-apache-arrow-file"),
-    (b"PAR1", "application/x-parquet"),
+    (b"ARROW1", "application/vnd.apache.arrow.file"),
+    (b"PAR1", "application/vnd.apache.parquet"),
     (b"\x00asm", "application/wasm"),
     # Executables / Bytecode (cafebabe handled separately — shared by Java
     # class files and Mach-O fat binaries, disambiguated by bytes 4-7)

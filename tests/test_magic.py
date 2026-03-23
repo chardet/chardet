@@ -22,7 +22,7 @@ from chardet.pipeline.magic import detect_magic
         (b"II\x2a\x00" + b"\x00" * 8, "image/tiff"),
         (b"8BPS" + b"\x00" * 8, "image/vnd.adobe.photoshop"),
         (b"qoif" + b"\x00" * 8, "image/qoi"),
-        (b"\x00\x00\x01\x00" + b"\x00" * 8, "image/x-icon"),
+        (b"\x00\x00\x01\x00" + b"\x00" * 8, "image/vnd.microsoft.icon"),
         # JPEG XL container (12-byte signature)
         (
             b"\x00\x00\x00\x0c\x4a\x58\x4c\x20\x0d\x0a\x87\x0a" + b"\x00" * 8,
@@ -65,8 +65,8 @@ from chardet.pipeline.magic import detect_magic
         # Documents / Data
         (b"%PDF-" + b"\x00" * 8, "application/pdf"),
         (b"SQLite format 3\x00" + b"\x00" * 8, "application/x-sqlite3"),
-        (b"ARROW1" + b"\x00" * 8, "application/x-apache-arrow-file"),
-        (b"PAR1" + b"\x00" * 8, "application/x-parquet"),
+        (b"ARROW1" + b"\x00" * 8, "application/vnd.apache.arrow.file"),
+        (b"PAR1" + b"\x00" * 8, "application/vnd.apache.parquet"),
         (b"\x00asm" + b"\x00" * 8, "application/wasm"),
         # Executables / Bytecode
         (b"dex\n" + b"\x00" * 8, "application/vnd.android.dex"),
