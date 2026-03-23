@@ -151,6 +151,13 @@ def _classify_zip(data: bytes) -> str:
     ``_ZIP_SCAN_LIMIT`` bytes.  For each entry, checks the filename
     against known prefixes/suffixes, and for ``mimetype`` entries reads
     the uncompressed content to detect OpenDocument formats.
+
+    **Limitation:** when an entry has the data-descriptor flag (bit 3)
+    set, the compressed size in the header is 0 and we cannot skip past
+    the entry content.  The scan may find spurious PK local file header
+    signatures inside compressed data.  In practice deflate output rarely produces
+    valid ZIP local file headers with recognizable filenames, so false
+    positives are unlikely.
     """
     scan = data[:_ZIP_SCAN_LIMIT]
     offset = 0
