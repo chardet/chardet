@@ -273,3 +273,29 @@ class TestZipSubtypeDetection:
         result = detect_magic(data)
         assert result is not None
         assert result.mime_type == "application/zip"
+
+    def test_zip_entry_name_truncated(self) -> None:
+        """ZIP entry with name_len extending past end of data is plain ZIP."""
+        import struct
+
+        # Build a header claiming a 100-byte filename, but only provide 5 bytes
+        data = (
+            struct.pack(
+                "<4sHHHHHIIIHH",
+                b"PK\x03\x04",
+                20,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                100,  # name_len = 100
+                0,
+            )
+            + b"xl/wo"
+        )  # only 5 bytes of the "filename"
+        result = detect_magic(data)
+        assert result is not None
+        assert result.mime_type == "application/zip"
