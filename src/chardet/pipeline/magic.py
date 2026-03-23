@@ -145,7 +145,16 @@ def _classify_zip(data: bytes) -> str:
                     content = scan[content_start : content_start + content_len]
                     if content in _OPENDOCUMENT_MIMES:
                         return content.decode("ascii")
-        offset = name_start + name_len
+        # Advance past this entry's extra field and content to avoid
+        # matching PK\x03\x04 that appears inside file data.  When the
+        # data-descriptor flag (bit 3) is set, compressed_size in the
+        # header is 0 — we still skip the extra field and hope the next
+        # real header is found by the scan.
+        flags = int.from_bytes(scan[idx + 6 : idx + 8], "little")
+        content_size = (
+            0 if flags & 0x0008 else int.from_bytes(scan[idx + 18 : idx + 22], "little")
+        )
+        offset = name_start + name_len + extra_len + content_size
     return "application/zip"
 
 
@@ -163,14 +172,20 @@ def detect_magic(data: bytes) -> DetectionResult | None:
     if not data:
         return None
 
-    # Check ftyp box (MP4/MOV/M4A/AVIF) — "ftyp" at offset 4
+    # Check ftyp box (MP4/MOV/M4A/AVIF) — "ftyp" at offset 4.
+    # Bytes 0-3 are the box size (big-endian uint32).  Valid ftyp boxes
+    # have size >= 8 and <= file length.  The upper bound check prevents
+    # false positives on text (ASCII bytes 0-3 produce huge box sizes
+    # like 0x54686520 for "The ").
     if len(data) >= 12 and data[_FTYP_OFFSET : _FTYP_OFFSET + 4] == _FTYP_MARKER:
-        brand = data[8:12]
-        if brand == b"avif":
-            return _make_result("image/avif")
-        if brand in _AUDIO_FTYP_BRANDS:
-            return _make_result("audio/mp4")
-        return _make_result("video/mp4")
+        box_size = int.from_bytes(data[:4], "big")
+        if 8 <= box_size <= len(data):
+            brand = data[8:12]
+            if brand == b"avif":
+                return _make_result("image/avif")
+            if brand in _AUDIO_FTYP_BRANDS:
+                return _make_result("audio/mp4")
+            return _make_result("video/mp4")
 
     # RIFF container — check subtype at bytes 8-11
     if data[:4] == b"RIFF" and len(data) >= 12:

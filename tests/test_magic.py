@@ -21,13 +21,13 @@ from chardet.pipeline.magic import detect_magic
         (b"MM\x00\x2a" + b"\x00" * 8, "image/tiff"),
         (b"II\x2a\x00" + b"\x00" * 8, "image/tiff"),
         (b"\x00\x00\x01\x00" + b"\x00" * 8, "image/x-icon"),
-        (b"\x00\x00\x00\x1cftyp" + b"avif" + b"\x00" * 4, "image/avif"),
+        (b"\x00\x00\x00\x1cftyp" + b"avif" + b"\x00" * 16, "image/avif"),
         # Audio/Video
         (b"ID3" + b"\x00" * 10, "audio/mpeg"),
-        (b"\x00\x00\x00\x1cftypMSNV", "video/mp4"),
-        (b"\x00\x00\x00\x18ftypisom", "video/mp4"),
-        (b"\x00\x00\x00\x18ftypmp42", "video/mp4"),
-        (b"\x00\x00\x00\x20ftypM4A ", "audio/mp4"),
+        (b"\x00\x00\x00\x1cftypMSNV" + b"\x00" * 16, "video/mp4"),
+        (b"\x00\x00\x00\x18ftypisom" + b"\x00" * 12, "video/mp4"),
+        (b"\x00\x00\x00\x18ftypmp42" + b"\x00" * 12, "video/mp4"),
+        (b"\x00\x00\x00\x20ftypM4A " + b"\x00" * 20, "audio/mp4"),
         (b"OggS" + b"\x00" * 10, "audio/ogg"),
         (b"fLaC" + b"\x00" * 10, "audio/flac"),
         (b"RIFF\x00\x00\x00\x00WAVE", "audio/wav"),
@@ -90,6 +90,23 @@ def test_detect_magic_truncated_png() -> None:
 def test_detect_magic_tar_too_short() -> None:
     """Data shorter than offset 257 + signature should not match TAR."""
     result = detect_magic(b"\x00" * 200 + b"ustar\x00")
+    assert result is None
+
+
+def test_detect_magic_ftyp_text_false_positive() -> None:
+    """Text containing 'ftyp' at offset 4 should not match as MP4.
+
+    ASCII bytes 0-3 produce a box_size (big-endian uint32) much larger
+    than the data length, so the bounds check rejects it.
+    """
+    result = detect_magic(b"The ftypeface was bold and strong")
+    assert result is None
+
+
+def test_detect_magic_ftyp_ascii_prefix_rejected() -> None:
+    """ASCII characters in bytes 0-3 produce box_size >> len(data)."""
+    # "abcd" = 0x61626364 = ~1.6 billion, far exceeding the 16-byte input
+    result = detect_magic(b"abcdftypisom" + b"\x00" * 4)
     assert result is None
 
 
@@ -249,6 +266,21 @@ class TestZipSubtypeDetection:
         result = detect_magic(data)
         assert result is not None
         assert result.mime_type == "application/vnd.oasis.opendocument.graphics"
+
+    # --- False positive resistance ---
+
+    def test_zip_pk_in_file_content_not_misclassified(self) -> None:
+        """PK signature inside stored file content must not cause false match.
+
+        A plain ZIP containing a data.bin entry whose content includes a
+        fake local file header with an xl/ filename should still be
+        classified as plain ZIP, not XLSX.
+        """
+        fake_header = _make_zip_local_entry(b"xl/workbook.xml")
+        data = _make_zip_local_entry(b"data.bin", content=fake_header)
+        result = detect_magic(data)
+        assert result is not None
+        assert result.mime_type == "application/zip"
 
     # --- Plain ZIP fallbacks ---
 
