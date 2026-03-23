@@ -56,15 +56,17 @@ _RIFF_SUBTYPES: dict[bytes, str] = {
     b"AVI ": "video/x-msvideo",
 }
 
-# ZIP / Office Open XML — scan the first 4 KB for local file headers
-# whose filenames start with xl/, word/, or ppt/.  Many ZIP generators
-# (including Excel) set the data-descriptor flag on every entry, making
-# sequential header walking impossible without decompression.  Instead
-# we search for PK\x03\x04 signatures and validate the filename field.
+# ZIP-based format detection — scan the first 4 KB for local file headers
+# and classify based on entry filenames or content.  Many ZIP generators
+# set the data-descriptor flag on every entry, making sequential header
+# walking impossible without decompression.  Instead we search for
+# PK\x03\x04 signatures and inspect the filename/content fields.
 _ZIP_SIGNATURE = b"PK\x03\x04"
-_OOXML_SCAN_LIMIT = 4096
-# Map OOXML root directory prefixes to MIME types
-_OOXML_PREFIXES: tuple[tuple[bytes, str], ...] = (
+_ZIP_SCAN_LIMIT = 4096
+
+# Filename prefix → MIME type (checked against each entry's filename)
+_ZIP_FILENAME_PREFIXES: tuple[tuple[bytes, str], ...] = (
+    # Office Open XML
     (b"xl/", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
     (
         b"word/",
@@ -74,6 +76,28 @@ _OOXML_PREFIXES: tuple[tuple[bytes, str], ...] = (
         b"ppt/",
         "application/vnd.openxmlformats-officedocument.presentationml.presentation",
     ),
+    # Java
+    (b"META-INF/MANIFEST.MF", "application/java-archive"),
+    # Android
+    (b"AndroidManifest.xml", "application/vnd.android.package-archive"),
+    # EPUB
+    (b"META-INF/container.xml", "application/epub+zip"),
+)
+
+# Filename suffix → MIME type (checked against each entry's filename)
+_ZIP_FILENAME_SUFFIXES: tuple[tuple[bytes, str], ...] = (
+    # Python wheels: entries like "package-1.0.dist-info/WHEEL"
+    (b".dist-info/", "application/x-wheel+zip"),
+)
+
+# OpenDocument MIME types recognized in the "mimetype" entry content.
+_OPENDOCUMENT_MIMES: frozenset[bytes] = frozenset(
+    {
+        b"application/vnd.oasis.opendocument.text",
+        b"application/vnd.oasis.opendocument.spreadsheet",
+        b"application/vnd.oasis.opendocument.presentation",
+        b"application/vnd.oasis.opendocument.graphics",
+    }
 )
 
 # MP4/MOV ftyp box — "ftyp" at offset 4
@@ -84,26 +108,43 @@ _AUDIO_FTYP_BRANDS: frozenset[bytes] = frozenset({b"M4A ", b"M4B ", b"F4A "})
 
 
 def _classify_zip(data: bytes) -> str:
-    """Classify a ZIP file as plain ZIP or a specific OOXML type.
+    """Classify a ZIP file by scanning entry filenames and content.
 
     Scans for local file header signatures within the first
-    ``_OOXML_SCAN_LIMIT`` bytes and checks each entry's filename
-    for OOXML directory prefixes.
+    ``_ZIP_SCAN_LIMIT`` bytes.  For each entry, checks the filename
+    against known prefixes/suffixes, and for ``mimetype`` entries reads
+    the uncompressed content to detect OpenDocument formats.
     """
-    scan = data[:_OOXML_SCAN_LIMIT]
+    scan = data[:_ZIP_SCAN_LIMIT]
     offset = 0
     while True:
         idx = scan.find(_ZIP_SIGNATURE, offset)
         if idx == -1 or len(scan) < idx + 30:
             break
         name_len = int.from_bytes(scan[idx + 26 : idx + 28], "little")
+        extra_len = int.from_bytes(scan[idx + 28 : idx + 30], "little")
         name_start = idx + 30
         if len(scan) < name_start + name_len:
             break
         name = scan[name_start : name_start + name_len]
-        for ooxml_prefix, mime in _OOXML_PREFIXES:
-            if name.startswith(ooxml_prefix):
+        # Check filename prefixes
+        for prefix, mime in _ZIP_FILENAME_PREFIXES:
+            if name.startswith(prefix):
                 return mime
+        # Check filename suffixes
+        for suffix, mime in _ZIP_FILENAME_SUFFIXES:
+            if suffix in name:
+                return mime
+        # OpenDocument: "mimetype" entry with uncompressed content
+        if name == b"mimetype":
+            compression = int.from_bytes(scan[idx + 8 : idx + 10], "little")
+            if compression == 0:  # stored (uncompressed)
+                content_start = name_start + name_len + extra_len
+                content_len = int.from_bytes(scan[idx + 22 : idx + 26], "little")
+                if len(scan) >= content_start + content_len:
+                    content = scan[content_start : content_start + content_len]
+                    if content in _OPENDOCUMENT_MIMES:
+                        return content.decode("ascii")
         offset = name_start + name_len
     return "application/zip"
 

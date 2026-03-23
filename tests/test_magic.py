@@ -115,8 +115,10 @@ def _make_zip_local_entry(filename: bytes, content: bytes = b"") -> bytes:
     )
 
 
-class TestOOXMLDetection:
-    """Test Office Open XML sub-detection within ZIP files."""
+class TestZipSubtypeDetection:
+    """Test ZIP-based format sub-detection."""
+
+    # --- Office Open XML ---
 
     def test_xlsx_detected(self) -> None:
         data = _make_zip_local_entry(b"[Content_Types].xml") + _make_zip_local_entry(
@@ -148,13 +150,6 @@ class TestOOXMLDetection:
             "application/vnd.openxmlformats-officedocument.presentationml.presentation"
         )
 
-    def test_plain_zip_no_content_types(self) -> None:
-        """ZIP without [Content_Types].xml is plain ZIP."""
-        data = _make_zip_local_entry(b"readme.txt", b"hello")
-        result = detect_magic(data)
-        assert result is not None
-        assert result.mime_type == "application/zip"
-
     def test_ooxml_with_rels_first(self) -> None:
         """OOXML where _rels/.rels comes before xl/ — still detected."""
         data = (
@@ -168,8 +163,103 @@ class TestOOXMLDetection:
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 
-    def test_zip_no_ooxml_entries_falls_back(self) -> None:
-        """ZIP with only non-OOXML entries is plain ZIP."""
+    # --- Java JAR ---
+
+    def test_jar_detected(self) -> None:
+        data = _make_zip_local_entry(
+            b"META-INF/MANIFEST.MF", b"Manifest-Version: 1.0\r\n"
+        )
+        result = detect_magic(data)
+        assert result is not None
+        assert result.mime_type == "application/java-archive"
+
+    # --- Android APK ---
+
+    def test_apk_detected(self) -> None:
+        data = _make_zip_local_entry(b"AndroidManifest.xml", b"\x00" * 20)
+        result = detect_magic(data)
+        assert result is not None
+        assert result.mime_type == "application/vnd.android.package-archive"
+
+    # --- EPUB ---
+
+    def test_epub_detected(self) -> None:
+        data = _make_zip_local_entry(
+            b"mimetype", b"application/epub+zip"
+        ) + _make_zip_local_entry(b"META-INF/container.xml")
+        result = detect_magic(data)
+        assert result is not None
+        assert result.mime_type == "application/epub+zip"
+
+    def test_epub_via_container_xml(self) -> None:
+        """EPUB detected by META-INF/container.xml even without mimetype entry."""
+        data = _make_zip_local_entry(b"META-INF/container.xml")
+        result = detect_magic(data)
+        assert result is not None
+        assert result.mime_type == "application/epub+zip"
+
+    # --- Python wheel ---
+
+    def test_wheel_detected(self) -> None:
+        data = _make_zip_local_entry(
+            b"chardet-7.0.0.dist-info/WHEEL", b"Wheel-Version: 1.0\r\n"
+        )
+        result = detect_magic(data)
+        assert result is not None
+        assert result.mime_type == "application/x-wheel+zip"
+
+    def test_wheel_detected_via_metadata(self) -> None:
+        data = _make_zip_local_entry(
+            b"chardet-7.0.0.dist-info/METADATA", b"Name: chardet\r\n"
+        )
+        result = detect_magic(data)
+        assert result is not None
+        assert result.mime_type == "application/x-wheel+zip"
+
+    # --- OpenDocument ---
+
+    def test_odt_detected(self) -> None:
+        data = _make_zip_local_entry(
+            b"mimetype", b"application/vnd.oasis.opendocument.text"
+        )
+        result = detect_magic(data)
+        assert result is not None
+        assert result.mime_type == "application/vnd.oasis.opendocument.text"
+
+    def test_ods_detected(self) -> None:
+        data = _make_zip_local_entry(
+            b"mimetype", b"application/vnd.oasis.opendocument.spreadsheet"
+        )
+        result = detect_magic(data)
+        assert result is not None
+        assert result.mime_type == "application/vnd.oasis.opendocument.spreadsheet"
+
+    def test_odp_detected(self) -> None:
+        data = _make_zip_local_entry(
+            b"mimetype", b"application/vnd.oasis.opendocument.presentation"
+        )
+        result = detect_magic(data)
+        assert result is not None
+        assert result.mime_type == "application/vnd.oasis.opendocument.presentation"
+
+    def test_odg_detected(self) -> None:
+        data = _make_zip_local_entry(
+            b"mimetype", b"application/vnd.oasis.opendocument.graphics"
+        )
+        result = detect_magic(data)
+        assert result is not None
+        assert result.mime_type == "application/vnd.oasis.opendocument.graphics"
+
+    # --- Plain ZIP fallbacks ---
+
+    def test_plain_zip(self) -> None:
+        data = _make_zip_local_entry(b"readme.txt", b"hello")
+        result = detect_magic(data)
+        assert result is not None
+        assert result.mime_type == "application/zip"
+
+    def test_zip_no_matching_entries(self) -> None:
+        """ZIP with only non-matching entries is plain ZIP."""
         data = _make_zip_local_entry(b"readme.txt", b"hello") + _make_zip_local_entry(
             b"data.csv", b"a,b,c"
         )
@@ -178,7 +268,7 @@ class TestOOXMLDetection:
         assert result.mime_type == "application/zip"
 
     def test_truncated_zip_is_still_zip(self) -> None:
-        """ZIP header with too little data for OOXML check is plain ZIP."""
+        """ZIP header with too little data is plain ZIP."""
         data = b"PK\x03\x04" + b"\x00" * 8
         result = detect_magic(data)
         assert result is not None
