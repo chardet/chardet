@@ -31,7 +31,7 @@ from chardet.pipeline.magic import detect_magic
         # JPEG XL codestream (2-byte signature)
         (b"\xff\x0a" + b"\x00" * 8, "image/jxl"),
         # ftyp-based images (AVIF, HEIC)
-        (b"\x00\x00\x00\x1cftyp" + b"avif" + b"\x00" * 16, "image/heif"),
+        (b"\x00\x00\x00\x1cftyp" + b"avif" + b"\x00" * 16, "image/avif"),
         (b"\x00\x00\x00\x1cftyp" + b"heic" + b"\x00" * 16, "image/heif"),
         (b"\x00\x00\x00\x1cftyp" + b"heix" + b"\x00" * 16, "image/heif"),
         (b"\x00\x00\x00\x1cftyp" + b"mif1" + b"\x00" * 16, "image/heif"),
