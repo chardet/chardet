@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import pytest
+from utils import get_data_dir
+
 import chardet
 from chardet.detector import UniversalDetector
 from chardet.pipeline.markup import detect_markup_charset
@@ -116,3 +119,33 @@ def test_universal_detector_pre_close_mime_type() -> None:
     """Before close(), mime_type is None (placeholder result)."""
     det = UniversalDetector()
     assert det.result["mime_type"] is None
+
+
+def test_none_none_files_have_correct_mime_types() -> None:
+    """Binary files in None-None folder should get specific MIME types."""
+    data_dir = get_data_dir()
+    none_dir = data_dir / "None-None"
+    if not none_dir.exists():
+        pytest.skip("test data not available")
+
+    expected_mimes = {
+        "sample-1.gif": "image/gif",
+        "sample-1.jpg": "image/jpeg",
+        "sample-1.mp4": "video/mp4",
+        "sample-1.png": "image/png",
+        "sample-1.webp": "image/webp",
+        "sample-1.xlsx": "application/zip",
+        "sample-2.png": "image/png",
+        "sample-3.png": "image/png",
+    }
+
+    for filename, expected_mime in expected_mimes.items():
+        filepath = none_dir / filename
+        if not filepath.exists():
+            continue
+        data = filepath.read_bytes()
+        result = chardet.detect(data)
+        assert result["encoding"] is None, f"{filename}: expected binary"
+        assert result["mime_type"] == expected_mime, (
+            f"{filename}: expected mime_type={expected_mime}, got={result['mime_type']}"
+        )
