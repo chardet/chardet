@@ -179,10 +179,45 @@ _WINDOWS_1254_DISTINGUISHING: frozenset[int] = frozenset(
 # are absent.  Keyed by encoding name -> frozenset of byte values where
 # that encoding differs from iso-8859-1 (or windows-1252 in the case of
 # windows-1254).
+# Bytes where HP-Roman8 maps to lowercase accented letters but ISO-8859-1
+# maps to uppercase letters.  Real HP-Roman8 text (from HP-UX terminals)
+# contains these bytes; data misdetected as HP-Roman8 typically does not.
+#   {b for b in range(0x80, 0x100)
+#    if (unicodedata.category(bytes([b]).decode('hp-roman8')) == 'Ll'
+#        and unicodedata.category(bytes([b]).decode('iso-8859-1')) == 'Lu')}
+_HP_ROMAN8_DISTINGUISHING: frozenset[int] = frozenset(
+    {
+        0xC0,
+        0xC1,
+        0xC2,
+        0xC3,
+        0xC4,
+        0xC5,
+        0xC6,
+        0xC7,
+        0xC8,
+        0xC9,
+        0xCA,
+        0xCB,
+        0xCC,
+        0xCD,
+        0xCE,
+        0xCF,
+        0xD1,
+        0xD4,
+        0xD5,
+        0xD6,
+        0xD9,
+        0xDD,
+        0xDE,
+    }
+)
+
 _DEMOTION_CANDIDATES: dict[str, frozenset[int]] = {
     "iso8859-10": _ISO_8859_10_DISTINGUISHING,
     "iso8859-14": _ISO_8859_14_DISTINGUISHING,
     "cp1254": _WINDOWS_1254_DISTINGUISHING,
+    "hp-roman8": _HP_ROMAN8_DISTINGUISHING,
 }
 
 # Bytes where KOI8-T maps to Tajik-specific Cyrillic letters but KOI8-R

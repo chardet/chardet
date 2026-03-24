@@ -44,7 +44,7 @@ def test_model_keys_are_strings() -> None:
 def test_score_best_language_returns_float() -> None:
     """score_best_language should work with plain encoding names (not lang/enc keys)."""
     load_models()
-    score, _ = score_best_language(b"Hello world this is a test", "Windows-1252")
+    score, _ = score_best_language(b"Hello world this is a test", "cp1252")
     assert isinstance(score, float)
     assert 0.0 < score <= 1.0
 
