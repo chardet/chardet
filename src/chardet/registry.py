@@ -629,7 +629,7 @@ _REGISTRY_ENTRIES = (
         aliases=("CP437",),
         era=EncodingEra.DOS,
         is_multibyte=False,
-        languages=("en", "fr", "de", "es", "pt", "it", "nl", "da", "sv", "fi"),
+        languages=("en", "fr", "de", "es", "pt", "it", "nl", "da", "sv", "fi", "ga"),
     ),
     EncodingInfo(
         name="cp737",

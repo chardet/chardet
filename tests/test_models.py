@@ -118,6 +118,83 @@ def test_bigram_profile_high_byte_weight() -> None:
 
 
 # ---------------------------------------------------------------------------
+# Model coverage: every test-data encoding-language pair needs a model
+# ---------------------------------------------------------------------------
+
+# Encodings detected by structural pipeline stages (BOM, null-byte patterns,
+# escape sequences, ASCII check) — these do not use bigram models.
+_STRUCTURAL_ENCODINGS: frozenset[str] = frozenset(
+    {
+        "ascii",
+        "utf-8",
+        "utf-8-sig",
+        "utf-7",
+        "utf-16",
+        "utf-16-be",
+        "utf-16-le",
+        "utf-32",
+        "utf-32-be",
+        "utf-32-le",
+        "iso2022_jp_2",
+        "iso2022_jp_2004",
+        "iso2022_jp_ext",
+        "iso2022_kr",
+        "hz",
+    }
+)
+
+
+def _expected_model_pairs() -> set[tuple[str, str]]:
+    """Derive (canonical_encoding, language) pairs from the test data directory.
+
+    Every encoding-language directory that contains test files and uses
+    statistical (bigram) detection should have a corresponding trained model.
+    """
+    from chardet.registry import lookup_encoding  # noqa: PLC0415
+    from scripts.utils import get_data_dir  # noqa: PLC0415
+
+    data_dir = get_data_dir()
+    pairs: set[tuple[str, str]] = set()
+    for d in data_dir.iterdir():
+        if not d.is_dir():
+            continue
+        parts = d.name.rsplit("-", 1)
+        if len(parts) != 2 or parts[0] == "None":
+            continue
+        enc_display, lang = parts
+        canonical = lookup_encoding(enc_display)
+        if canonical is None or canonical in _STRUCTURAL_ENCODINGS:
+            continue
+        if any(f.is_file() for f in d.iterdir()):
+            pairs.add((canonical, lang))
+    return pairs
+
+
+def test_all_test_data_pairs_have_models() -> None:
+    """Every encoding-language pair in the test data should have a bigram model.
+
+    If this test fails, the registry's language associations need updating
+    so that ``scripts/train.py`` builds models for the missing pairs.
+    """
+    index = get_enc_index()
+
+    # Build set of (encoding, language) pairs that have models
+    model_pairs: set[tuple[str, str]] = set()
+    for enc, variants in index.items():
+        for lang, _, _ in variants:
+            model_pairs.add((enc, lang))
+
+    expected = _expected_model_pairs()
+    missing = sorted(expected - model_pairs)
+
+    assert not missing, (
+        f"{len(missing)} test-data encoding-language pairs have no bigram model. "
+        f"Update the language associations in src/chardet/registry.py and retrain.\n"
+        + "\n".join(f"  {enc}-{lang}" for enc, lang in missing)
+    )
+
+
+# ---------------------------------------------------------------------------
 # serialize_models / deserialize_models roundtrip tests
 # ---------------------------------------------------------------------------
 
