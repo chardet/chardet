@@ -258,7 +258,14 @@ def _stream_from_hf(  # noqa: PLR0913
 
 
 def _count_cached_files(cache_dir: Path) -> int:
-    """Count .txt files in a cache directory (for resume_stream_index)."""
+    """Count .txt files in a cache directory (for resume_stream_index).
+
+    Note: this is a lower bound on the actual HF stream position, because
+    excluded articles and short articles (<100 chars) were streamed but not
+    cached. On interrupted-and-resumed downloads, some articles may be
+    re-streamed and re-excluded. This is a performance inefficiency, not a
+    correctness issue — excluded articles are always re-skipped.
+    """
     if not cache_dir.is_dir():
         return 0
     return sum(1 for f in cache_dir.iterdir() if f.suffix == ".txt")
