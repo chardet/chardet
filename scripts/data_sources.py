@@ -195,7 +195,7 @@ def check_cache_validity(cache_dir: Path, exclusions: frozenset[str]) -> bool:
 
 def _stream_from_hf(  # noqa: PLR0913
     dataset: str,
-    config: str,
+    config: str | None,
     split: str,
     text_field: str,
     source_name: str,
@@ -204,6 +204,7 @@ def _stream_from_hf(  # noqa: PLR0913
     exclusions: frozenset[str],
     start_index: int,
     resume_stream_index: int = 0,
+    data_files: dict[str, str] | None = None,
 ) -> tuple[list[str], int]:
     """Stream articles from a HuggingFace dataset, filtering by exclusions.
 
@@ -211,13 +212,21 @@ def _stream_from_hf(  # noqa: PLR0913
     (skip articles before this index). This avoids re-processing articles
     already in cache on incremental downloads.
 
+    ``data_files`` overrides ``config`` when the dataset doesn't support
+    per-language configs (e.g. MADLAD-400 requires data_files glob patterns).
+
     Returns ``(accepted_texts, skipped_count)`` where ``skipped_count`` is the
     number of articles excluded by fingerprint or index.
     """
     from datasets import load_dataset  # noqa: PLC0415
 
     try:
-        ds = load_dataset(dataset, config, split=split, streaming=True)
+        if data_files is not None:
+            ds = load_dataset(
+                dataset, data_files=data_files, split=split, streaming=True
+            )
+        else:
+            ds = load_dataset(dataset, config, split=split, streaming=True)
     except Exception as exc:
         print(f"  WARNING: Could not load {dataset} ({config}): {exc}")
         return [], 0
@@ -305,8 +314,8 @@ def get_madlad_texts(
 
     Returns (texts, skipped_count).
     """
-    config = MADLAD_LANG_MAP.get(lang)
-    if config is None:
+    madlad_lang = MADLAD_LANG_MAP.get(lang)
+    if madlad_lang is None:
         print(f"  MADLAD-400 ({lang}): no language mapping, skipping")
         return [], 0
 
@@ -319,9 +328,10 @@ def get_madlad_texts(
     resume_idx = _count_cached_files(source_cache)
     print(f"  MADLAD-400 ({lang}): have {len(cached)}, need {remaining} more...")
 
+    # MADLAD-400 doesn't support per-language configs; use data_files globs
     new_texts, skipped = _stream_from_hf(
         dataset=MADLAD_DATASET,
-        config=config,
+        config=None,
         split="clean",
         text_field="text",
         source_name="madlad400",
@@ -330,6 +340,9 @@ def get_madlad_texts(
         exclusions=exclusions,
         start_index=len(cached),
         resume_stream_index=resume_idx,
+        data_files={
+            "clean": f"data/{madlad_lang}/{madlad_lang}_clean_*.jsonl.gz",
+        },
     )
 
     result = cached + new_texts
