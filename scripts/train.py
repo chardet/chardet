@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Training script for chardet bigram models.
 
-Downloads text from the CulturaX dataset (uonlp/CulturaX) via Hugging Face,
-encodes text into target encodings, computes byte-pair bigram frequencies, and
-serializes the results into models.bin.
+Downloads text from multiple sources (CulturaX, MADLAD-400, Wikipedia) via
+Hugging Face, encodes text into target encodings, computes byte-pair bigram
+frequencies, and serializes the results into models.bin.
 
 Usage:
     uv run python scripts/train.py
@@ -33,6 +33,9 @@ from confusion_training import (
     compute_distinguishing_maps,
     serialize_confusion_data,
 )
+from data_sources import SourceStats, load_cached_articles
+from data_sources import get_texts as get_texts_multi
+from exclusions import build_exclusion_set
 
 from chardet.registry import REGISTRY
 
@@ -52,9 +55,6 @@ ENCODING_LANG_MAP: dict[str, list[str]] = {
 # language detection (Tier 3 fallback in the pipeline).
 _ALL_LANGS = sorted({lang for enc in REGISTRY.values() for lang in enc.languages})
 ENCODING_LANG_MAP["utf-8"] = _ALL_LANGS
-
-# CulturaX dataset on Hugging Face
-CULTURAX_DATASET = "uonlp/CulturaX"
 
 
 # ---------------------------------------------------------------------------
@@ -305,109 +305,6 @@ def encode_text(text: str, codec_name: str) -> bytes | None:
 
 
 # ---------------------------------------------------------------------------
-# Per-article caching
-# ---------------------------------------------------------------------------
-
-
-def _article_cache_dir(cache_dir: Path, lang: str) -> Path:
-    """Return the per-article cache directory for a language."""
-    return cache_dir / "culturax" / lang
-
-
-def _load_cached_articles(cache_dir: Path, lang: str, max_samples: int) -> list[str]:
-    """Load cached articles from per-file storage."""
-    d = _article_cache_dir(cache_dir, lang)
-    if not d.is_dir():
-        return []
-    texts: list[str] = []
-    for p in sorted(d.iterdir()):
-        if p.suffix != ".txt":
-            continue
-        if len(texts) >= max_samples:
-            break
-        texts.append(p.read_text(encoding="utf-8"))
-    return texts
-
-
-def _save_article(cache_dir: Path, lang: str, index: int, text: str) -> None:
-    """Save a single article to the per-file cache."""
-    d = _article_cache_dir(cache_dir, lang)
-    d.mkdir(parents=True, exist_ok=True)
-    (d / f"{index:06d}.txt").write_text(text, encoding="utf-8")
-
-
-# ---------------------------------------------------------------------------
-# Download
-# ---------------------------------------------------------------------------
-
-# In-memory cache of loaded texts per language
-_lang_text_cache: dict[str, list[str]] = {}
-
-
-def get_texts(
-    lang: str,
-    max_samples: int,
-    cache_dir: Path,
-) -> list[str]:
-    """Download and cache CulturaX texts for a language.
-
-    Articles are cached as individual files so we can incrementally add more
-    samples without re-downloading everything.
-    """
-    if lang in _lang_text_cache and len(_lang_text_cache[lang]) >= max_samples:
-        return _lang_text_cache[lang][:max_samples]
-
-    # Load whatever is already cached
-    cached = _load_cached_articles(cache_dir, lang, max_samples)
-    if len(cached) >= max_samples:
-        _lang_text_cache[lang] = cached
-        return cached[:max_samples]
-
-    # Need to download more
-    needed = max_samples - len(cached)
-    start_index = len(cached)
-    print(f"  Downloading CulturaX ({lang}): have {len(cached)}, need {needed} more...")
-
-    from datasets import load_dataset  # noqa: PLC0415
-
-    try:
-        ds = load_dataset(
-            CULTURAX_DATASET,
-            lang,
-            split="train",
-            streaming=True,
-        )
-    except Exception as e:
-        print(f"  WARNING: Could not load CulturaX for '{lang}': {e}")
-        _lang_text_cache[lang] = cached
-        return cached[:max_samples]
-
-    new_texts: list[str] = []
-    try:
-        # Skip articles we already have
-        for i, example in enumerate(ds):
-            if i < start_index:
-                continue
-            if len(new_texts) >= needed:
-                break
-            text = example.get("text", "")
-            if text and len(text) > 100:
-                _save_article(cache_dir, lang, start_index + len(new_texts), text)
-                new_texts.append(text)
-    except Exception as e:
-        print(f"  WARNING: Error streaming CulturaX for '{lang}': {e}")
-
-    all_texts = cached + new_texts
-    _lang_text_cache[lang] = all_texts
-    if new_texts:
-        print(
-            f"  Cached {len(new_texts)} new articles for '{lang}' "
-            f"(total: {len(all_texts)})"
-        )
-    return all_texts[:max_samples]
-
-
-# ---------------------------------------------------------------------------
 # HTML sample generation
 # ---------------------------------------------------------------------------
 
@@ -549,11 +446,13 @@ def verify_codec(codec_name: str) -> bool:
 
 
 def _count_cached_texts(cache_dir: Path, lang: str) -> int:
-    """Count the number of cached text files for a language."""
-    d = _article_cache_dir(cache_dir, lang)
-    if not d.is_dir():
-        return 0
-    return sum(1 for f in d.iterdir() if f.suffix == ".txt")
+    """Count the number of cached text files for a language across all sources."""
+    total = 0
+    for source in ("culturax", "madlad400", "wikipedia"):
+        d = cache_dir / source / lang
+        if d.is_dir():
+            total += sum(1 for f in d.iterdir() if f.suffix == ".txt")
+    return total
 
 
 def _write_training_metadata(
@@ -593,7 +492,7 @@ def _write_training_metadata(
         lines.append(f"    encoding: {encoding}")
         lines.append(f"    samples_used: {samples_used}")
         lines.append(f"    bigram_entries: {bigram_count}")
-        lines.append("    source: culturax")
+        lines.append("    source: multi")
 
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -630,7 +529,14 @@ def _build_one_model(  # noqa: PLR0913
     # Load texts from disk cache only (never download in workers).
     # The download phase in main() must complete before workers start.
     if lang not in _worker_text_cache:
-        _worker_text_cache[lang] = _load_cached_articles(cache_dir, lang, max_samples)
+        # Load from all source caches (culturax, madlad400, wikipedia)
+        texts: list[str] = []
+        for source in ("culturax", "madlad400", "wikipedia"):
+            source_dir = cache_dir / source / lang
+            texts.extend(load_cached_articles(source_dir, max_samples - len(texts)))
+            if len(texts) >= max_samples:
+                break
+        _worker_text_cache[lang] = texts[:max_samples]
     texts = _worker_text_cache[lang]
 
     if not texts:
@@ -714,6 +620,23 @@ def main() -> None:
         help="Specific encodings to retrain (default: all). "
         "When specified, existing models for other encodings are preserved.",
     )
+    parser.add_argument(
+        "--test-data-dir",
+        default="tests/data/",
+        help="Path to test data directory for building exclusion set",
+    )
+    parser.add_argument(
+        "--skip-test-overlap",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Skip training articles that overlap with test data (default: on)",
+    )
+    parser.add_argument(
+        "--keep-cache",
+        action="store_true",
+        default=False,
+        help="Keep existing cache even if exclusion set has changed",
+    )
     args = parser.parse_args()
     cache_dir = Path(args.cache_dir)
     output_path = Path(args.output)
@@ -737,15 +660,36 @@ def main() -> None:
         all_langs.update(langs)
     sorted_langs = sorted(all_langs)
 
+    # Build exclusion set from test data
+    exclusions: frozenset[str] = frozenset()
+    if args.skip_test_overlap:
+        test_data_path = Path(args.test_data_dir)
+        if test_data_path.is_symlink():
+            test_data_path = test_data_path.resolve()
+        if test_data_path.is_dir():
+            print("=== Building test data exclusion set ===")
+            exclusions = build_exclusion_set(test_data_path)
+            print(f"  {len(exclusions)} unique fingerprints from test data")
+            print()
+        else:
+            print(f"WARNING: test data dir not found: {test_data_path}")
+            print("  Continuing without exclusion filtering.")
+            print()
+
     print(f"Training bigram models for {len(encoding_map)} encodings")
     print(f"Languages needed: {sorted_langs}")
     print(f"Max samples per language: {args.max_samples}")
     print()
 
+    lang_stats: dict[str, SourceStats] = {}
+
     if args.download_workers == 1:
-        print("=== Downloading CulturaX texts (single-threaded) ===")
+        print("=== Downloading texts (single-threaded) ===")
         for lang in sorted_langs:
-            texts = get_texts(lang, args.max_samples, cache_dir)
+            texts, stats = get_texts_multi(
+                lang, args.max_samples, cache_dir, exclusions
+            )
+            lang_stats[lang] = stats
             print(f"  {lang}: {len(texts)} texts")
         print()
     else:
@@ -753,18 +697,21 @@ def main() -> None:
         # HuggingFace streaming iterators can hold connections open and cause the
         # thread pool to hang on shutdown, so we use cancel_futures=True and a
         # per-future timeout to ensure we don't block forever.
-        print(f"=== Downloading CulturaX texts ({args.download_workers} threads) ===")
+        print(f"=== Downloading texts ({args.download_workers} threads) ===")
 
-        def _fetch(lang: str) -> tuple[str, int]:
-            texts = get_texts(lang, args.max_samples, cache_dir)
-            return lang, len(texts)
+        def _fetch(lang: str) -> tuple[str, int, SourceStats]:
+            texts, stats = get_texts_multi(
+                lang, args.max_samples, cache_dir, exclusions
+            )
+            return lang, len(texts), stats
 
         pool = concurrent.futures.ThreadPoolExecutor(
             max_workers=args.download_workers,
         )
         futures = {pool.submit(_fetch, lang): lang for lang in sorted_langs}
         for future in concurrent.futures.as_completed(futures, timeout=600):
-            lang, count = future.result(timeout=60)
+            lang, count, stats = future.result(timeout=60)
+            lang_stats[lang] = stats
             print(f"  {lang}: {count} texts")
         pool.shutdown(wait=False, cancel_futures=True)
         print()

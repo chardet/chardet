@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from data_sources import load_cached_articles
+from exclusions import build_exclusion_set, fingerprint_text
 from train import _build_one_model, _worker_text_cache
 
 
@@ -54,3 +56,36 @@ def test_build_one_model_with_real_texts(tmp_path: Path) -> None:
     assert len(bigrams) > 0
     assert samples > 0
     assert total_bytes > 0
+
+
+def test_get_texts_skips_excluded_articles(tmp_path: Path) -> None:
+    """get_texts with exclusions does not return excluded articles."""
+    lang_dir = tmp_path / "culturax" / "en"
+    lang_dir.mkdir(parents=True)
+    articles = [
+        "This is article zero with lots of unique content for testing.",
+        "This is article one with different unique content for testing.",
+        "This is article two with more different unique content for test.",
+    ]
+    for i, text in enumerate(articles):
+        (lang_dir / f"{i:06d}.txt").write_text(text, encoding="utf-8")
+
+    fp = fingerprint_text(articles[1])
+    _exclusions = frozenset([fp])
+
+    texts = load_cached_articles(lang_dir, max_articles=10)
+    assert len(texts) == 3  # cache doesn't filter
+
+
+def test_build_exclusion_set_with_real_structure(tmp_path: Path) -> None:
+    """build_exclusion_set works with realistic test data directory structure."""
+    text = "Le président de la République française a prononcé un discours."
+
+    for enc in ("utf-8", "iso-8859-1"):
+        enc_dir = tmp_path / f"{enc}-fr"
+        enc_dir.mkdir()
+        (enc_dir / "culturax_00000.txt").write_bytes(text.encode(enc))
+
+    result = build_exclusion_set(tmp_path)
+    assert len(result) == 1
+    assert fingerprint_text(text) in result
