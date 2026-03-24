@@ -420,13 +420,14 @@ def test_get_texts_fills_from_cache(tmp_path: Path) -> None:
     for i in range(5):
         save_article(cx_dir, i, f"CulturaX article {i} with enough content for testing.")
 
-    from data_sources import get_texts, SourceStats
+    from data_sources import get_texts
 
     texts, stats = get_texts("en", 5, tmp_path, frozenset())
     assert len(texts) == 5
     assert stats.culturax == 5
     assert stats.madlad400 == 0
     assert stats.wikipedia == 0
+    assert stats.excluded == 0
 
 
 def test_madlad_lang_map_covers_priority_languages() -> None:
@@ -569,7 +570,8 @@ def _stream_from_hf(
     (skip articles before this index). This avoids re-processing articles
     already in cache on incremental downloads.
 
-    Returns the list of accepted (non-excluded) article texts.
+    Returns ``(accepted_texts, skipped_count)`` where ``skipped_count`` is the
+    number of articles excluded by fingerprint or index.
     """
     from datasets import load_dataset  # noqa: PLC0415
 
@@ -600,7 +602,7 @@ def _stream_from_hf(
 
     if skipped:
         print(f"    Skipped {skipped} excluded articles from {source_name}")
-    return new_texts
+    return new_texts, skipped
 
 
 def _count_cached_files(cache_dir: Path) -> int:
@@ -616,11 +618,14 @@ def get_culturax_texts(
     cache_dir: Path,
     exclusions: frozenset[str],
 ) -> list[str]:
-    """Download CulturaX texts, skipping excluded articles."""
+    """Download CulturaX texts, skipping excluded articles.
+
+    Returns (texts, skipped_count).
+    """
     source_cache = cache_dir / "culturax" / lang
     cached = load_cached_articles(source_cache, needed)
     if len(cached) >= needed:
-        return cached[:needed]
+        return cached[:needed], 0
 
     remaining = needed - len(cached)
     # Resume from where we left off in the HF stream. The cached file count
@@ -629,7 +634,7 @@ def get_culturax_texts(
     resume_idx = _count_cached_files(source_cache)
     print(f"  CulturaX ({lang}): have {len(cached)}, need {remaining} more...")
 
-    new_texts = _stream_from_hf(
+    new_texts, skipped = _stream_from_hf(
         dataset=CULTURAX_DATASET,
         config=lang,
         split="train",
@@ -646,7 +651,7 @@ def get_culturax_texts(
     result = cached + new_texts
     if new_texts:
         print(f"  CulturaX ({lang}): cached {len(new_texts)} new (total: {len(result)})")
-    return result
+    return result, skipped
 
 
 def get_madlad_texts(
@@ -655,22 +660,25 @@ def get_madlad_texts(
     cache_dir: Path,
     exclusions: frozenset[str],
 ) -> list[str]:
-    """Download MADLAD-400 texts, skipping excluded articles."""
+    """Download MADLAD-400 texts, skipping excluded articles.
+
+    Returns (texts, skipped_count).
+    """
     config = MADLAD_LANG_MAP.get(lang)
     if config is None:
         print(f"  MADLAD-400 ({lang}): no language mapping, skipping")
-        return []
+        return [], 0
 
     source_cache = cache_dir / "madlad400" / lang
     cached = load_cached_articles(source_cache, needed)
     if len(cached) >= needed:
-        return cached[:needed]
+        return cached[:needed], 0
 
     remaining = needed - len(cached)
     resume_idx = _count_cached_files(source_cache)
     print(f"  MADLAD-400 ({lang}): have {len(cached)}, need {remaining} more...")
 
-    new_texts = _stream_from_hf(
+    new_texts, skipped = _stream_from_hf(
         dataset=MADLAD_DATASET,
         config=config,
         split="clean",
@@ -687,7 +695,7 @@ def get_madlad_texts(
     result = cached + new_texts
     if new_texts:
         print(f"  MADLAD-400 ({lang}): cached {len(new_texts)} new (total: {len(result)})")
-    return result
+    return result, skipped
 
 
 def get_wikipedia_texts(
@@ -696,22 +704,25 @@ def get_wikipedia_texts(
     cache_dir: Path,
     exclusions: frozenset[str],
 ) -> list[str]:
-    """Download Wikipedia texts, skipping excluded articles."""
+    """Download Wikipedia texts, skipping excluded articles.
+
+    Returns (texts, skipped_count).
+    """
     config = WIKIPEDIA_LANG_MAP.get(lang)
     if config is None:
         print(f"  Wikipedia ({lang}): no language mapping, skipping")
-        return []
+        return [], 0
 
     source_cache = cache_dir / "wikipedia" / lang
     cached = load_cached_articles(source_cache, needed)
     if len(cached) >= needed:
-        return cached[:needed]
+        return cached[:needed], 0
 
     remaining = needed - len(cached)
     resume_idx = _count_cached_files(source_cache)
     print(f"  Wikipedia ({lang}): have {len(cached)}, need {remaining} more...")
 
-    new_texts = _stream_from_hf(
+    new_texts, skipped = _stream_from_hf(
         dataset=WIKIPEDIA_DATASET,
         config=config,
         split="train",
@@ -728,7 +739,7 @@ def get_wikipedia_texts(
     result = cached + new_texts
     if new_texts:
         print(f"  Wikipedia ({lang}): cached {len(new_texts)} new (total: {len(result)})")
-    return result
+    return result, skipped
 
 
 @dataclass
@@ -759,15 +770,18 @@ def get_texts(
     Returns (texts, stats) where stats tracks per-source article counts.
     """
     stats = SourceStats()
-    texts = get_culturax_texts(lang, max_samples, cache_dir, exclusions)
+    texts, skipped = get_culturax_texts(lang, max_samples, cache_dir, exclusions)
     stats.culturax = len(texts)
+    stats.excluded += skipped
     if len(texts) < max_samples:
-        madlad = get_madlad_texts(lang, max_samples - len(texts), cache_dir, exclusions)
+        madlad, skipped = get_madlad_texts(lang, max_samples - len(texts), cache_dir, exclusions)
         stats.madlad400 = len(madlad)
+        stats.excluded += skipped
         texts += madlad
     if len(texts) < max_samples:
-        wiki = get_wikipedia_texts(lang, max_samples - len(texts), cache_dir, exclusions)
+        wiki, skipped = get_wikipedia_texts(lang, max_samples - len(texts), cache_dir, exclusions)
         stats.wikipedia = len(wiki)
+        stats.excluded += skipped
         texts += wiki
     return texts, stats
 ```
