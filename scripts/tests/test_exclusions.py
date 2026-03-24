@@ -120,8 +120,9 @@ def test_is_excluded_not_matching() -> None:
 
 
 def test_is_excluded_culturax_fast_path() -> None:
-    """CulturaX articles at indices 0-19 are always excluded."""
-    exclusions = frozenset()  # empty — no fingerprints
+    """CulturaX articles at indices 0-19 are excluded when exclusions are active."""
+    # Need a non-empty exclusion set to activate filtering
+    exclusions = frozenset(["dummy_fingerprint"])
     assert is_excluded("Any text", exclusions, source="culturax", stream_index=0)
     assert is_excluded("Any text", exclusions, source="culturax", stream_index=19)
     assert not is_excluded("Any text", exclusions, source="culturax", stream_index=20)
@@ -129,6 +130,17 @@ def test_is_excluded_culturax_fast_path() -> None:
 
 def test_is_excluded_fast_path_only_for_culturax() -> None:
     """Index-based fast path does not apply to non-CulturaX sources."""
-    exclusions = frozenset()
+    exclusions = frozenset(["dummy_fingerprint"])
     assert not is_excluded("Any text", exclusions, source="madlad400", stream_index=0)
     assert not is_excluded("Any text", exclusions, source="wikipedia", stream_index=0)
+
+
+def test_is_excluded_empty_exclusions_disables_all_filtering() -> None:
+    """Empty exclusion set disables all filtering, including the fast path.
+
+    This ensures --no-skip-test-overlap fully disables exclusion filtering.
+    """
+    exclusions: frozenset[str] = frozenset()
+    assert not is_excluded("Any text", exclusions, source="culturax", stream_index=0)
+    assert not is_excluded("Any text", exclusions, source="culturax", stream_index=19)
+    assert not is_excluded("Any text", exclusions, source="madlad400", stream_index=0)

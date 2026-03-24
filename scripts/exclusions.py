@@ -105,15 +105,22 @@ def is_excluded(
 ) -> bool:
     """Check whether an article should be excluded from training.
 
-    Uses two mechanisms:
+    When *exclusions* is empty (``--no-skip-test-overlap``), no filtering
+    is performed at all — both the index fast path and content fingerprinting
+    are skipped.
+
+    Otherwise uses two mechanisms:
     1. Index-based fast path: CulturaX articles at indices 0-19 are always
        excluded (the test data generator downloads from these indices).
     2. Content fingerprint: the article's fingerprint is checked against the
        exclusion set. This applies to all sources.
     """
+    if not exclusions:
+        return False
+
     # Fast path: CulturaX indices 0-19 are known test data sources
     if source == "culturax" and stream_index < _CULTURAX_TEST_DATA_MAX_INDEX:
         return True
 
     # Content fingerprint check (applies to all sources)
-    return bool(exclusions and fingerprint_text(text) in exclusions)
+    return fingerprint_text(text) in exclusions
