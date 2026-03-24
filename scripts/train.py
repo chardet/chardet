@@ -460,6 +460,7 @@ def _write_training_metadata(
     models: dict[str, dict[tuple[int, int], int]],
     max_samples: int,
     cache_dir: Path,
+    lang_stats: dict[str, SourceStats],
 ) -> None:
     """Write training metadata YAML alongside models.bin.
 
@@ -492,7 +493,12 @@ def _write_training_metadata(
         lines.append(f"    encoding: {encoding}")
         lines.append(f"    samples_used: {samples_used}")
         lines.append(f"    bigram_entries: {bigram_count}")
-        lines.append("    source: multi")
+        stats = lang_stats.get(lang, SourceStats())
+        lines.append("    sources:")
+        lines.append(f"      culturax: {stats.culturax}")
+        lines.append(f"      madlad400: {stats.madlad400}")
+        lines.append(f"      wikipedia: {stats.wikipedia}")
+        lines.append(f"    test_articles_excluded: {stats.excluded}")
 
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -812,7 +818,9 @@ def main() -> None:
     )
 
     metadata_path = output_path.with_name("training_metadata.yaml")
-    _write_training_metadata(metadata_path, models, args.max_samples, cache_dir)
+    _write_training_metadata(
+        metadata_path, models, args.max_samples, cache_dir, lang_stats
+    )
     print(f"Metadata written: {metadata_path}")
 
     elapsed = time.time() - start_time
