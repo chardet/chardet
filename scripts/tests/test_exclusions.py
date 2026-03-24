@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from exclusions import build_exclusion_set, fingerprint_text
+from exclusions import build_exclusion_set, fingerprint_text, is_excluded
 
 
 def test_fingerprint_text_basic() -> None:
@@ -101,3 +101,34 @@ def test_build_exclusion_set_handles_decode_errors(tmp_path: Path) -> None:
     (enc_dir / "culturax_00000.txt").write_bytes(b"\xff\xfe\xfd\xfc" * 50)
     result = build_exclusion_set(tmp_path)
     assert result == frozenset()
+
+
+def test_is_excluded_by_fingerprint() -> None:
+    """Articles matching a fingerprint are excluded."""
+    text = "This is a test article with unique content for exclusion."
+    fp = fingerprint_text(text)
+    exclusions = frozenset([fp])
+    assert is_excluded(text, exclusions, source="culturax", stream_index=999)
+
+
+def test_is_excluded_not_matching() -> None:
+    """Articles not matching any fingerprint are not excluded."""
+    exclusions = frozenset(["abc123"])
+    assert not is_excluded(
+        "Completely different text", exclusions, source="culturax", stream_index=999
+    )
+
+
+def test_is_excluded_culturax_fast_path() -> None:
+    """CulturaX articles at indices 0-19 are always excluded."""
+    exclusions = frozenset()  # empty — no fingerprints
+    assert is_excluded("Any text", exclusions, source="culturax", stream_index=0)
+    assert is_excluded("Any text", exclusions, source="culturax", stream_index=19)
+    assert not is_excluded("Any text", exclusions, source="culturax", stream_index=20)
+
+
+def test_is_excluded_fast_path_only_for_culturax() -> None:
+    """Index-based fast path does not apply to non-CulturaX sources."""
+    exclusions = frozenset()
+    assert not is_excluded("Any text", exclusions, source="madlad400", stream_index=0)
+    assert not is_excluded("Any text", exclusions, source="wikipedia", stream_index=0)

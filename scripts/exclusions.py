@@ -89,3 +89,31 @@ def build_exclusion_set(test_data_dir: Path) -> frozenset[str]:
             fingerprints.add(fingerprint_text(text))
 
     return frozenset(fingerprints)
+
+
+# Number of CulturaX articles downloaded by the test data generator.
+# All articles at indices 0 through this value minus 1 are potential test data.
+_CULTURAX_TEST_DATA_MAX_INDEX = 20
+
+
+def is_excluded(
+    text: str,
+    exclusions: frozenset[str],
+    *,
+    source: str,
+    stream_index: int,
+) -> bool:
+    """Check whether an article should be excluded from training.
+
+    Uses two mechanisms:
+    1. Index-based fast path: CulturaX articles at indices 0-19 are always
+       excluded (the test data generator downloads from these indices).
+    2. Content fingerprint: the article's fingerprint is checked against the
+       exclusion set. This applies to all sources.
+    """
+    # Fast path: CulturaX indices 0-19 are known test data sources
+    if source == "culturax" and stream_index < _CULTURAX_TEST_DATA_MAX_INDEX:
+        return True
+
+    # Content fingerprint check (applies to all sources)
+    return bool(exclusions and fingerprint_text(text) in exclusions)
