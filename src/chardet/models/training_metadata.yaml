@@ -1,4 +1,4 @@
-training_date: "2026-03-24T17:10:14Z"
+training_date: "2026-03-24T22:35:05Z"
 max_samples: 15000
 models:
   ar/cp1256:
@@ -7,7 +7,7 @@ models:
     samples_used: 15000
     bigram_entries: 845
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -17,7 +17,7 @@ models:
     samples_used: 15000
     bigram_entries: 842
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -27,7 +27,7 @@ models:
     samples_used: 15000
     bigram_entries: 42
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -37,7 +37,7 @@ models:
     samples_used: 15000
     bigram_entries: 844
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -47,7 +47,7 @@ models:
     samples_used: 15000
     bigram_entries: 204
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -57,7 +57,7 @@ models:
     samples_used: 15000
     bigram_entries: 1197
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -67,7 +67,7 @@ models:
     samples_used: 15000
     bigram_entries: 1198
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -77,7 +77,7 @@ models:
     samples_used: 15000
     bigram_entries: 1158
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -87,7 +87,7 @@ models:
     samples_used: 15000
     bigram_entries: 1175
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -97,7 +97,7 @@ models:
     samples_used: 15000
     bigram_entries: 1198
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -107,7 +107,7 @@ models:
     samples_used: 15000
     bigram_entries: 235
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -117,7 +117,7 @@ models:
     samples_used: 15000
     bigram_entries: 874
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -127,7 +127,7 @@ models:
     samples_used: 15000
     bigram_entries: 874
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -137,7 +137,7 @@ models:
     samples_used: 15000
     bigram_entries: 875
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -147,7 +147,7 @@ models:
     samples_used: 15000
     bigram_entries: 875
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -157,7 +157,7 @@ models:
     samples_used: 15000
     bigram_entries: 874
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -167,7 +167,7 @@ models:
     samples_used: 15000
     bigram_entries: 228
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -177,7 +177,7 @@ models:
     samples_used: 15000
     bigram_entries: 874
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -187,7 +187,7 @@ models:
     samples_used: 15000
     bigram_entries: 874
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -197,7 +197,7 @@ models:
     samples_used: 15000
     bigram_entries: 874
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -207,7 +207,7 @@ models:
     samples_used: 15000
     bigram_entries: 874
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -217,7 +217,7 @@ models:
     samples_used: 15000
     bigram_entries: 874
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -227,7 +227,7 @@ models:
     samples_used: 15000
     bigram_entries: 874
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -237,7 +237,7 @@ models:
     samples_used: 15000
     bigram_entries: 874
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -247,7 +247,7 @@ models:
     samples_used: 15000
     bigram_entries: 870
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -257,7 +257,7 @@ models:
     samples_used: 15000
     bigram_entries: 874
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -267,7 +267,7 @@ models:
     samples_used: 15000
     bigram_entries: 874
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -277,7 +277,7 @@ models:
     samples_used: 15000
     bigram_entries: 887
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -287,7 +287,7 @@ models:
     samples_used: 15000
     bigram_entries: 1355
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -297,7 +297,7 @@ models:
     samples_used: 15000
     bigram_entries: 1355
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -307,7 +307,7 @@ models:
     samples_used: 15000
     bigram_entries: 1353
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -317,7 +317,7 @@ models:
     samples_used: 15000
     bigram_entries: 1355
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -327,7 +327,7 @@ models:
     samples_used: 15000
     bigram_entries: 1097
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -337,7 +337,7 @@ models:
     samples_used: 15000
     bigram_entries: 759
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -347,7 +347,7 @@ models:
     samples_used: 15000
     bigram_entries: 758
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -357,7 +357,7 @@ models:
     samples_used: 15000
     bigram_entries: 758
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -367,7 +367,7 @@ models:
     samples_used: 15000
     bigram_entries: 758
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -377,7 +377,7 @@ models:
     samples_used: 15000
     bigram_entries: 758
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -387,7 +387,7 @@ models:
     samples_used: 15000
     bigram_entries: 758
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -397,7 +397,7 @@ models:
     samples_used: 15000
     bigram_entries: 758
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -407,7 +407,7 @@ models:
     samples_used: 15000
     bigram_entries: 763
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -417,7 +417,7 @@ models:
     samples_used: 15000
     bigram_entries: 758
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -427,7 +427,7 @@ models:
     samples_used: 15000
     bigram_entries: 758
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -437,7 +437,7 @@ models:
     samples_used: 15000
     bigram_entries: 776
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -687,7 +687,7 @@ models:
     samples_used: 15000
     bigram_entries: 1326
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -697,7 +697,7 @@ models:
     samples_used: 15000
     bigram_entries: 1313
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -707,7 +707,7 @@ models:
     samples_used: 15000
     bigram_entries: 1325
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -717,7 +717,7 @@ models:
     samples_used: 15000
     bigram_entries: 1326
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -727,7 +727,7 @@ models:
     samples_used: 15000
     bigram_entries: 1324
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -737,7 +737,7 @@ models:
     samples_used: 15000
     bigram_entries: 1324
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -747,7 +747,7 @@ models:
     samples_used: 15000
     bigram_entries: 293
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -867,7 +867,7 @@ models:
     samples_used: 15000
     bigram_entries: 1024
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -877,7 +877,7 @@ models:
     samples_used: 15000
     bigram_entries: 1036
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -997,7 +997,7 @@ models:
     samples_used: 15000
     bigram_entries: 878
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1007,7 +1007,7 @@ models:
     samples_used: 15000
     bigram_entries: 878
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1017,7 +1017,7 @@ models:
     samples_used: 15000
     bigram_entries: 878
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1027,7 +1027,7 @@ models:
     samples_used: 15000
     bigram_entries: 877
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1037,7 +1037,7 @@ models:
     samples_used: 15000
     bigram_entries: 855
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1047,7 +1047,7 @@ models:
     samples_used: 15000
     bigram_entries: 880
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1057,7 +1057,7 @@ models:
     samples_used: 15000
     bigram_entries: 741
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1067,7 +1067,7 @@ models:
     samples_used: 15000
     bigram_entries: 742
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1077,7 +1077,7 @@ models:
     samples_used: 15000
     bigram_entries: 224
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1444,21 +1444,21 @@ models:
   gd/iso8859-14:
     language: gd
     encoding: iso8859-14
-    samples_used: 15000
+    samples_used: 15020
     bigram_entries: 597
     sources:
-      culturax: 0
-      madlad400: 0
+      culturax: 8408
+      madlad400: 6592
       wikipedia: 0
     test_articles_excluded: 0
   gd/utf-8:
     language: gd
     encoding: utf-8
-    samples_used: 15000
+    samples_used: 15020
     bigram_entries: 574
     sources:
-      culturax: 0
-      madlad400: 0
+      culturax: 8408
+      madlad400: 6592
       wikipedia: 0
     test_articles_excluded: 0
   he/cp1255:
@@ -1467,7 +1467,7 @@ models:
     samples_used: 15000
     bigram_entries: 1098
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1477,7 +1477,7 @@ models:
     samples_used: 15000
     bigram_entries: 978
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1487,7 +1487,7 @@ models:
     samples_used: 15000
     bigram_entries: 978
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1497,7 +1497,7 @@ models:
     samples_used: 15000
     bigram_entries: 979
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1507,7 +1507,7 @@ models:
     samples_used: 15000
     bigram_entries: 978
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1517,7 +1517,7 @@ models:
     samples_used: 15000
     bigram_entries: 154
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1527,7 +1527,7 @@ models:
     samples_used: 15000
     bigram_entries: 675
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1537,7 +1537,7 @@ models:
     samples_used: 15000
     bigram_entries: 675
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1547,7 +1547,7 @@ models:
     samples_used: 15000
     bigram_entries: 676
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1557,7 +1557,7 @@ models:
     samples_used: 15000
     bigram_entries: 675
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1567,7 +1567,7 @@ models:
     samples_used: 15000
     bigram_entries: 673
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1577,7 +1577,7 @@ models:
     samples_used: 15000
     bigram_entries: 664
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1587,7 +1587,7 @@ models:
     samples_used: 15000
     bigram_entries: 1244
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1597,7 +1597,7 @@ models:
     samples_used: 15000
     bigram_entries: 1244
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1607,7 +1607,7 @@ models:
     samples_used: 15000
     bigram_entries: 1244
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1617,7 +1617,7 @@ models:
     samples_used: 15000
     bigram_entries: 1244
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1627,7 +1627,7 @@ models:
     samples_used: 15000
     bigram_entries: 1244
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1637,7 +1637,7 @@ models:
     samples_used: 15000
     bigram_entries: 964
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1647,7 +1647,7 @@ models:
     samples_used: 15000
     bigram_entries: 536
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1657,7 +1657,7 @@ models:
     samples_used: 15000
     bigram_entries: 536
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1667,7 +1667,7 @@ models:
     samples_used: 15000
     bigram_entries: 536
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1677,7 +1677,7 @@ models:
     samples_used: 15000
     bigram_entries: 536
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1687,7 +1687,7 @@ models:
     samples_used: 15000
     bigram_entries: 536
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1697,7 +1697,7 @@ models:
     samples_used: 15000
     bigram_entries: 536
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1707,7 +1707,7 @@ models:
     samples_used: 15000
     bigram_entries: 536
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1717,7 +1717,7 @@ models:
     samples_used: 15000
     bigram_entries: 536
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1727,7 +1727,7 @@ models:
     samples_used: 15000
     bigram_entries: 536
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1737,7 +1737,7 @@ models:
     samples_used: 15000
     bigram_entries: 536
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1747,7 +1747,7 @@ models:
     samples_used: 15000
     bigram_entries: 1033
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1757,7 +1757,7 @@ models:
     samples_used: 15000
     bigram_entries: 1033
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1767,7 +1767,7 @@ models:
     samples_used: 15000
     bigram_entries: 1033
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1777,7 +1777,7 @@ models:
     samples_used: 15000
     bigram_entries: 1033
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1787,7 +1787,7 @@ models:
     samples_used: 15000
     bigram_entries: 1033
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1797,7 +1797,7 @@ models:
     samples_used: 15000
     bigram_entries: 1015
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1807,7 +1807,7 @@ models:
     samples_used: 15000
     bigram_entries: 1015
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1817,7 +1817,7 @@ models:
     samples_used: 15000
     bigram_entries: 1033
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1827,7 +1827,7 @@ models:
     samples_used: 15000
     bigram_entries: 1034
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1837,7 +1837,7 @@ models:
     samples_used: 15000
     bigram_entries: 1033
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1847,7 +1847,7 @@ models:
     samples_used: 15000
     bigram_entries: 1015
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1857,7 +1857,7 @@ models:
     samples_used: 15000
     bigram_entries: 906
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1867,7 +1867,7 @@ models:
     samples_used: 15000
     bigram_entries: 828
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1987,7 +1987,7 @@ models:
     samples_used: 15000
     bigram_entries: 3512
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -1997,7 +1997,7 @@ models:
     samples_used: 15000
     bigram_entries: 2787
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2007,7 +2007,7 @@ models:
     samples_used: 15000
     bigram_entries: 2393
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2017,7 +2017,7 @@ models:
     samples_used: 15000
     bigram_entries: 2395
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2027,7 +2027,7 @@ models:
     samples_used: 15000
     bigram_entries: 2399
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2037,7 +2037,7 @@ models:
     samples_used: 15000
     bigram_entries: 3512
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2047,7 +2047,7 @@ models:
     samples_used: 15000
     bigram_entries: 628
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2057,7 +2057,7 @@ models:
     samples_used: 15000
     bigram_entries: 1226
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2067,7 +2067,7 @@ models:
     samples_used: 15000
     bigram_entries: 1211
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2077,7 +2077,7 @@ models:
     samples_used: 15000
     bigram_entries: 291
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2087,7 +2087,7 @@ models:
     samples_used: 15000
     bigram_entries: 2900
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2097,7 +2097,7 @@ models:
     samples_used: 15000
     bigram_entries: 2900
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2107,7 +2107,7 @@ models:
     samples_used: 15000
     bigram_entries: 812
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2117,7 +2117,7 @@ models:
     samples_used: 15000
     bigram_entries: 2074
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2127,7 +2127,7 @@ models:
     samples_used: 15000
     bigram_entries: 922
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2137,7 +2137,7 @@ models:
     samples_used: 15000
     bigram_entries: 944
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2147,7 +2147,7 @@ models:
     samples_used: 15000
     bigram_entries: 944
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2157,7 +2157,7 @@ models:
     samples_used: 15000
     bigram_entries: 944
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2167,7 +2167,7 @@ models:
     samples_used: 15000
     bigram_entries: 944
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2177,7 +2177,7 @@ models:
     samples_used: 15000
     bigram_entries: 895
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2187,7 +2187,7 @@ models:
     samples_used: 15000
     bigram_entries: 908
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2197,7 +2197,7 @@ models:
     samples_used: 15000
     bigram_entries: 908
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2207,7 +2207,7 @@ models:
     samples_used: 15000
     bigram_entries: 908
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2217,7 +2217,7 @@ models:
     samples_used: 15000
     bigram_entries: 905
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2227,7 +2227,7 @@ models:
     samples_used: 15000
     bigram_entries: 806
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2237,7 +2237,7 @@ models:
     samples_used: 15000
     bigram_entries: 699
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2247,7 +2247,7 @@ models:
     samples_used: 15000
     bigram_entries: 699
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2257,7 +2257,7 @@ models:
     samples_used: 15000
     bigram_entries: 650
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2267,7 +2267,7 @@ models:
     samples_used: 15000
     bigram_entries: 699
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2277,7 +2277,7 @@ models:
     samples_used: 15000
     bigram_entries: 699
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2287,7 +2287,7 @@ models:
     samples_used: 15000
     bigram_entries: 184
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2297,7 +2297,7 @@ models:
     samples_used: 15000
     bigram_entries: 673
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2307,7 +2307,7 @@ models:
     samples_used: 15000
     bigram_entries: 673
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2317,7 +2317,7 @@ models:
     samples_used: 15000
     bigram_entries: 673
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2327,7 +2327,7 @@ models:
     samples_used: 15000
     bigram_entries: 673
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2337,7 +2337,7 @@ models:
     samples_used: 15000
     bigram_entries: 673
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2347,7 +2347,7 @@ models:
     samples_used: 15000
     bigram_entries: 673
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2357,7 +2357,7 @@ models:
     samples_used: 15000
     bigram_entries: 673
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2367,7 +2367,7 @@ models:
     samples_used: 15000
     bigram_entries: 673
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2377,7 +2377,7 @@ models:
     samples_used: 15000
     bigram_entries: 673
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2387,7 +2387,7 @@ models:
     samples_used: 15000
     bigram_entries: 680
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2397,7 +2397,7 @@ models:
     samples_used: 15000
     bigram_entries: 974
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2407,7 +2407,7 @@ models:
     samples_used: 15000
     bigram_entries: 964
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2527,7 +2527,7 @@ models:
     samples_used: 15000
     bigram_entries: 802
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2537,7 +2537,7 @@ models:
     samples_used: 15000
     bigram_entries: 802
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2547,7 +2547,7 @@ models:
     samples_used: 15000
     bigram_entries: 802
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2557,7 +2557,7 @@ models:
     samples_used: 15000
     bigram_entries: 802
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2567,7 +2567,7 @@ models:
     samples_used: 15000
     bigram_entries: 802
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2577,7 +2577,7 @@ models:
     samples_used: 15000
     bigram_entries: 803
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2587,7 +2587,7 @@ models:
     samples_used: 15000
     bigram_entries: 802
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2597,7 +2597,7 @@ models:
     samples_used: 15000
     bigram_entries: 802
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2607,7 +2607,7 @@ models:
     samples_used: 15000
     bigram_entries: 802
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2617,7 +2617,7 @@ models:
     samples_used: 15000
     bigram_entries: 802
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2627,7 +2627,7 @@ models:
     samples_used: 15000
     bigram_entries: 798
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2637,7 +2637,7 @@ models:
     samples_used: 15000
     bigram_entries: 1106
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2647,7 +2647,7 @@ models:
     samples_used: 15000
     bigram_entries: 1107
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2657,7 +2657,7 @@ models:
     samples_used: 15000
     bigram_entries: 1106
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2667,7 +2667,7 @@ models:
     samples_used: 15000
     bigram_entries: 1106
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2677,7 +2677,7 @@ models:
     samples_used: 15000
     bigram_entries: 1106
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2687,7 +2687,7 @@ models:
     samples_used: 15000
     bigram_entries: 1077
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2817,7 +2817,7 @@ models:
     samples_used: 15000
     bigram_entries: 714
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2827,7 +2827,7 @@ models:
     samples_used: 15000
     bigram_entries: 715
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2837,7 +2837,7 @@ models:
     samples_used: 15000
     bigram_entries: 680
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2847,7 +2847,7 @@ models:
     samples_used: 15000
     bigram_entries: 715
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2857,7 +2857,7 @@ models:
     samples_used: 15000
     bigram_entries: 718
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2867,7 +2867,7 @@ models:
     samples_used: 15000
     bigram_entries: 1441
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2877,7 +2877,7 @@ models:
     samples_used: 15000
     bigram_entries: 1441
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2887,7 +2887,7 @@ models:
     samples_used: 15000
     bigram_entries: 1415
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2897,7 +2897,7 @@ models:
     samples_used: 15000
     bigram_entries: 1415
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2907,7 +2907,7 @@ models:
     samples_used: 15000
     bigram_entries: 1412
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2917,7 +2917,7 @@ models:
     samples_used: 15000
     bigram_entries: 1441
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2927,7 +2927,7 @@ models:
     samples_used: 15000
     bigram_entries: 259
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2937,7 +2937,7 @@ models:
     samples_used: 15000
     bigram_entries: 1261
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2947,7 +2947,7 @@ models:
     samples_used: 15000
     bigram_entries: 1259
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2957,7 +2957,7 @@ models:
     samples_used: 15000
     bigram_entries: 1149
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2967,7 +2967,7 @@ models:
     samples_used: 15000
     bigram_entries: 1260
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2977,7 +2977,7 @@ models:
     samples_used: 15000
     bigram_entries: 1259
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2987,7 +2987,7 @@ models:
     samples_used: 15000
     bigram_entries: 1167
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -2997,7 +2997,7 @@ models:
     samples_used: 15000
     bigram_entries: 813
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3007,7 +3007,7 @@ models:
     samples_used: 15000
     bigram_entries: 814
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3017,7 +3017,7 @@ models:
     samples_used: 15000
     bigram_entries: 812
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3027,7 +3027,7 @@ models:
     samples_used: 15000
     bigram_entries: 812
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3037,7 +3037,7 @@ models:
     samples_used: 15000
     bigram_entries: 814
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3047,7 +3047,7 @@ models:
     samples_used: 15000
     bigram_entries: 813
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3057,7 +3057,7 @@ models:
     samples_used: 15000
     bigram_entries: 34
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3067,7 +3067,7 @@ models:
     samples_used: 15000
     bigram_entries: 870
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3077,7 +3077,7 @@ models:
     samples_used: 15000
     bigram_entries: 870
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3087,7 +3087,7 @@ models:
     samples_used: 15000
     bigram_entries: 781
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3097,7 +3097,7 @@ models:
     samples_used: 15000
     bigram_entries: 871
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3107,7 +3107,7 @@ models:
     samples_used: 15000
     bigram_entries: 870
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3117,7 +3117,7 @@ models:
     samples_used: 15000
     bigram_entries: 211
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3237,7 +3237,7 @@ models:
     samples_used: 15000
     bigram_entries: 802
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3247,7 +3247,7 @@ models:
     samples_used: 15000
     bigram_entries: 251
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3257,7 +3257,7 @@ models:
     samples_used: 15000
     bigram_entries: 2780
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3267,7 +3267,7 @@ models:
     samples_used: 15000
     bigram_entries: 2780
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3277,7 +3277,7 @@ models:
     samples_used: 15000
     bigram_entries: 114
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3287,7 +3287,7 @@ models:
     samples_used: 15000
     bigram_entries: 1153
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3297,7 +3297,7 @@ models:
     samples_used: 15000
     bigram_entries: 1041
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3307,7 +3307,7 @@ models:
     samples_used: 15000
     bigram_entries: 1153
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3317,7 +3317,7 @@ models:
     samples_used: 15000
     bigram_entries: 1153
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3327,7 +3327,7 @@ models:
     samples_used: 15000
     bigram_entries: 1153
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3337,7 +3337,7 @@ models:
     samples_used: 15000
     bigram_entries: 1153
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3347,7 +3347,7 @@ models:
     samples_used: 15000
     bigram_entries: 1153
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3357,7 +3357,7 @@ models:
     samples_used: 15000
     bigram_entries: 823
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3367,7 +3367,7 @@ models:
     samples_used: 15000
     bigram_entries: 1367
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3377,7 +3377,7 @@ models:
     samples_used: 15000
     bigram_entries: 1391
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3387,7 +3387,7 @@ models:
     samples_used: 15000
     bigram_entries: 1393
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3397,7 +3397,7 @@ models:
     samples_used: 15000
     bigram_entries: 1045
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3407,7 +3407,7 @@ models:
     samples_used: 15000
     bigram_entries: 1367
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3417,7 +3417,7 @@ models:
     samples_used: 15000
     bigram_entries: 1365
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3427,7 +3427,7 @@ models:
     samples_used: 15000
     bigram_entries: 1393
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3437,7 +3437,7 @@ models:
     samples_used: 15000
     bigram_entries: 273
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3447,7 +3447,7 @@ models:
     samples_used: 15000
     bigram_entries: 19
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3457,7 +3457,7 @@ models:
     samples_used: 15000
     bigram_entries: 237
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3467,7 +3467,7 @@ models:
     samples_used: 15000
     bigram_entries: 828
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3477,7 +3477,7 @@ models:
     samples_used: 15000
     bigram_entries: 674
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3487,7 +3487,7 @@ models:
     samples_used: 15000
     bigram_entries: 4957
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3497,7 +3497,7 @@ models:
     samples_used: 15000
     bigram_entries: 5703
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3507,7 +3507,7 @@ models:
     samples_used: 15000
     bigram_entries: 3191
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0
@@ -3517,7 +3517,7 @@ models:
     samples_used: 15000
     bigram_entries: 2516
     sources:
-      culturax: 0
+      culturax: 15000
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 0

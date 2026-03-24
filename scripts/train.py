@@ -532,7 +532,7 @@ def _build_one_model(  # noqa: PLR0913
     codec: str,
     cache_dir: Path,
     max_samples: int,
-    min_weight: int,
+    min_weight: int,  # noqa: ARG001  # kept for call-site compat; normalization moved to main()
 ) -> tuple[str, dict[tuple[int, int], int] | None, int, int]:
     """Build a single bigram model in a (possibly forked) worker process.
 
@@ -578,15 +578,14 @@ def _build_one_model(  # noqa: PLR0913
     if not encoded:
         return (model_key, None, len(all_texts), 0)
 
-    # Compute bigram frequencies
+    # Compute raw bigram frequencies (normalization happens later in main)
     freqs = compute_bigram_frequencies(encoded)
-    bigrams = normalize_and_prune(freqs, min_weight)
 
-    if not bigrams:
+    if not freqs:
         return (model_key, None, len(encoded), sum(len(e) for e in encoded))
 
     total_bytes = sum(len(e) for e in encoded)
-    return (model_key, bigrams, len(encoded), total_bytes)
+    return (model_key, freqs, len(encoded), total_bytes)
 
 
 # ---------------------------------------------------------------------------
@@ -653,6 +652,13 @@ def main() -> None:
         action="store_true",
         default=False,
         help="Keep existing cache even if exclusion set has changed",
+    )
+    parser.add_argument(
+        "--from-raw-cache",
+        action="store_true",
+        default=False,
+        help="Skip download and model building; load raw bigram counts from "
+        "cache and re-run normalization and serialization only",
     )
     args = parser.parse_args()
     cache_dir = Path(args.cache_dir)
@@ -744,72 +750,98 @@ def main() -> None:
         pool.shutdown(wait=False, cancel_futures=True)
         print()
 
-    # Build models for each encoding
-    print(f"=== Building bigram models ({args.build_workers} workers) ===")
-    models: dict[str, dict[tuple[int, int], int]] = {}
-    skipped = []
+    # Build raw bigram frequency models (or load from cache)
+    import pickle  # noqa: PLC0415
 
-    # Pre-verify codecs and collect work items
-    work_items: list[tuple[str, str, str, Path, int, int]] = []
-    for enc_name, langs in sorted(encoding_map.items()):
-        codec = None
-        codec_candidates = [enc_name]
-        normalized = enc_name.replace("-", "").replace("_", "").lower()
-        codec_candidates.append(normalized)
+    raw_cache_path = cache_dir / "raw_bigram_counts.pkl"
 
-        for candidate in codec_candidates:
-            if verify_codec(candidate):
-                codec = candidate
-                break
+    # raw_models: model_key -> raw frequency dict (not yet normalized)
+    raw_models: dict[str, dict[tuple[int, int], int]] = {}
+    skipped: list[str] = []
 
-        if codec is None:
-            print(f"  SKIP {enc_name}: codec not found")
-            skipped.append(enc_name)
-            continue
-
-        work_items.extend(
-            (lang, enc_name, codec, cache_dir, args.max_samples, args.min_weight)
-            for lang in langs
-        )
-
-    if args.build_workers == 1:
-        # Sequential mode (useful for debugging)
-        for item in work_items:
-            key, bigrams, samples, total_bytes = _build_one_model(*item)
-            if bigrams:
-                models[key] = bigrams
-                print(
-                    f"  {key}: {len(bigrams)} bigrams from "
-                    f"{samples} samples ({total_bytes:,} bytes)"
-                )
-            else:
-                print(f"  SKIP {key}: no usable bigrams")
+    if args.from_raw_cache and raw_cache_path.is_file():
+        print("=== Loading raw bigram counts from cache ===")
+        with raw_cache_path.open("rb") as f:
+            raw_models = pickle.load(f)  # noqa: S301
+        print(f"  Loaded {len(raw_models)} raw models from {raw_cache_path}")
+        print()
     else:
-        # Parallel mode
-        with concurrent.futures.ProcessPoolExecutor(
-            max_workers=args.build_workers,
-        ) as pool:
-            futures = {
-                pool.submit(_build_one_model, *item): item[1]  # enc_name for error msg
-                for item in work_items
-            }
-            for future in concurrent.futures.as_completed(futures):
-                try:
-                    key, bigrams, samples, total_bytes = future.result()
-                except Exception as exc:
-                    enc = futures[future]
-                    print(f"  ERROR {enc}: {exc}")
-                    continue
-                if bigrams:
-                    models[key] = bigrams
+        print(f"=== Building bigram models ({args.build_workers} workers) ===")
+
+        # Pre-verify codecs and collect work items
+        work_items: list[tuple[str, str, str, Path, int, int]] = []
+        for enc_name, langs in sorted(encoding_map.items()):
+            codec = None
+            codec_candidates = [enc_name]
+            normalized = enc_name.replace("-", "").replace("_", "").lower()
+            codec_candidates.append(normalized)
+
+            for candidate in codec_candidates:
+                if verify_codec(candidate):
+                    codec = candidate
+                    break
+
+            if codec is None:
+                print(f"  SKIP {enc_name}: codec not found")
+                skipped.append(enc_name)
+                continue
+
+            work_items.extend(
+                (lang, enc_name, codec, cache_dir, args.max_samples, args.min_weight)
+                for lang in langs
+            )
+
+        if args.build_workers == 1:
+            # Sequential mode (useful for debugging)
+            for item in work_items:
+                key, freqs, samples, total_bytes = _build_one_model(*item)
+                if freqs:
+                    raw_models[key] = freqs
                     print(
-                        f"  {key}: {len(bigrams)} bigrams from "
+                        f"  {key}: {len(freqs)} raw bigrams from "
                         f"{samples} samples ({total_bytes:,} bytes)"
                     )
                 else:
                     print(f"  SKIP {key}: no usable bigrams")
+        else:
+            # Parallel mode
+            with concurrent.futures.ProcessPoolExecutor(
+                max_workers=args.build_workers,
+            ) as pool:
+                futures = {
+                    pool.submit(_build_one_model, *item): item[1] for item in work_items
+                }
+                for future in concurrent.futures.as_completed(futures):
+                    try:
+                        key, freqs, samples, total_bytes = future.result()
+                    except Exception as exc:
+                        enc = futures[future]
+                        print(f"  ERROR {enc}: {exc}")
+                        continue
+                    if freqs:
+                        raw_models[key] = freqs
+                        print(
+                            f"  {key}: {len(freqs)} raw bigrams from "
+                            f"{samples} samples ({total_bytes:,} bytes)"
+                        )
+                    else:
+                        print(f"  SKIP {key}: no usable bigrams")
 
-    print()
+        # Cache raw counts for future --from-raw-cache runs
+        print(f"\n  Caching raw bigram counts to {raw_cache_path}")
+        with raw_cache_path.open("wb") as f:
+            pickle.dump(raw_models, f, protocol=pickle.HIGHEST_PROTOCOL)
+        print(f"  Cached {len(raw_models)} raw models")
+        print()
+
+    # Normalize and prune raw counts into final models
+    print("=== Normalizing and pruning ===")
+    models: dict[str, dict[tuple[int, int], int]] = {}
+    for key, freqs in sorted(raw_models.items()):
+        bigrams = normalize_and_prune(freqs, args.min_weight)
+        if bigrams:
+            models[key] = bigrams
+    print(f"  {len(models)} models after normalization")
 
     # Merge with existing models when retraining a subset
     if args.encodings:
