@@ -49,16 +49,25 @@ build a set of content fingerprints from the **raw CulturaX source articles**
 1. Iterate all directories matching `{encoding}-{language}` in the test data dir.
 2. For each file matching `culturax_*`, decode it back to UTF-8 using the
    encoding from the directory name.
-3. **Important:** The decoded text will reflect normalization and substitution
-   applied during test file generation (whitespace collapsing, typographic
-   replacements, etc.). To ensure fingerprints match on both sides, the training
-   script must apply the same `normalize_text()` + `apply_substitutions()`
-   pipeline to each CulturaX/MADLAD/Wikipedia article **before** fingerprinting.
-   Both sides fingerprint the normalized text.
+3. Apply **encoding-neutral normalization only**: collapse repeated whitespace
+   and strip leading/trailing whitespace. Do NOT apply encoding-specific
+   substitutions (`apply_substitutions()`) or encoding-specific normalization
+   (`normalize_text()` with charset parameter) — those transformations are
+   encoding-dependent and would produce different fingerprints for the same
+   source article depending on which encoding directory it appears in.
+   The training side applies the same encoding-neutral normalization to each
+   article before fingerprinting.
 4. Compute a SHA-256 fingerprint of the **first 200 characters** of the
    normalized text. The 200-char prefix handles truncation during test file
    generation (test files may be trimmed to target sizes of 500/2000/5000 bytes).
 5. Store fingerprints in a `frozenset`.
+
+**Note on substitution divergence:** The test-data repo's `substitutions.py` has
+additional substitution tables not present in `train.py` (per-language CP866
+variants, Croatian normalization, Arabic presentation forms, etc.). By using
+encoding-neutral fingerprinting, this divergence does not affect the exclusion
+mechanism. The substitution tables may need to be synchronized separately as a
+future improvement, but that is outside the scope of this spec.
 
 The fingerprint set is typically small. Of the ~1,950 CulturaX test files, many
 are the same source article transcoded to multiple encodings. The unique source
@@ -77,7 +86,8 @@ fingerprints.
 The fingerprint set is checked against **every article from every data source**
 (CulturaX, MADLAD-400, Wikipedia). For each downloaded article:
 
-1. Compute the SHA-256 fingerprint of the first 200 characters.
+1. Apply encoding-neutral normalization (whitespace collapse + strip), then
+   compute the SHA-256 fingerprint of the first 200 characters.
 2. If it matches the exclusion set, skip the article and continue streaming.
 
 For CulturaX specifically, an **index-based fast path** also applies: the test
