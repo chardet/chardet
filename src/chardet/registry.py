@@ -102,20 +102,23 @@ EncodingName = Literal[
 
 # Shared language tuples — used by multiple EncodingInfo entries below.
 _WESTERN = (
-    "en",
-    "fr",
-    "de",
-    "es",
-    "pt",
-    "it",
-    "nl",
+    "br",
+    "cy",
     "da",
-    "sv",
-    "no",
+    "de",
+    "en",
+    "es",
     "fi",
-    "is",
+    "fr",
+    "ga",
     "id",
+    "is",
+    "it",
     "ms",
+    "nl",
+    "no",
+    "pt",
+    "sv",
 )
 _WESTERN_TR = (*_WESTERN, "tr")
 _CYRILLIC = ("ru", "bg", "uk", "sr", "mk", "be")
@@ -339,7 +342,7 @@ _REGISTRY_ENTRIES = (
         aliases=("Windows-1250", "cp1250"),
         era=EncodingEra.MODERN_WEB,
         is_multibyte=False,
-        languages=_CENTRAL_EU,
+        languages=(*_CENTRAL_EU, "sr"),
     ),
     EncodingInfo(
         name="cp1251",
@@ -654,7 +657,7 @@ _REGISTRY_ENTRIES = (
         aliases=("CP852",),
         era=EncodingEra.DOS,
         is_multibyte=False,
-        languages=_CENTRAL_EU_NO_RO,
+        languages=_CENTRAL_EU,
     ),
     EncodingInfo(
         name="cp855",
