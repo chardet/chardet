@@ -1,4 +1,4 @@
-training_date: "2026-03-24T15:06:57Z"
+training_date: "2026-03-24T17:03:57Z"
 max_samples: 15000
 models:
   ar/cp1256:
@@ -171,11 +171,101 @@ models:
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 20
+  br/cp1140:
+    language: br
+    encoding: cp1140
+    samples_used: 15000
+    bigram_entries: 874
+    sources:
+      culturax: 15000
+      madlad400: 0
+      wikipedia: 0
+    test_articles_excluded: 9222
+  br/cp1252:
+    language: br
+    encoding: cp1252
+    samples_used: 15000
+    bigram_entries: 874
+    sources:
+      culturax: 15000
+      madlad400: 0
+      wikipedia: 0
+    test_articles_excluded: 9222
+  br/cp500:
+    language: br
+    encoding: cp500
+    samples_used: 15000
+    bigram_entries: 874
+    sources:
+      culturax: 15000
+      madlad400: 0
+      wikipedia: 0
+    test_articles_excluded: 9222
+  br/cp850:
+    language: br
+    encoding: cp850
+    samples_used: 15000
+    bigram_entries: 874
+    sources:
+      culturax: 15000
+      madlad400: 0
+      wikipedia: 0
+    test_articles_excluded: 9222
+  br/cp858:
+    language: br
+    encoding: cp858
+    samples_used: 15000
+    bigram_entries: 874
+    sources:
+      culturax: 15000
+      madlad400: 0
+      wikipedia: 0
+    test_articles_excluded: 9222
+  br/hp-roman8:
+    language: br
+    encoding: hp-roman8
+    samples_used: 15000
+    bigram_entries: 874
+    sources:
+      culturax: 15000
+      madlad400: 0
+      wikipedia: 0
+    test_articles_excluded: 9222
+  br/iso8859-1:
+    language: br
+    encoding: iso8859-1
+    samples_used: 15000
+    bigram_entries: 874
+    sources:
+      culturax: 15000
+      madlad400: 0
+      wikipedia: 0
+    test_articles_excluded: 9222
   br/iso8859-14:
     language: br
     encoding: iso8859-14
     samples_used: 15000
     bigram_entries: 870
+    sources:
+      culturax: 15000
+      madlad400: 0
+      wikipedia: 0
+    test_articles_excluded: 9222
+  br/iso8859-15:
+    language: br
+    encoding: iso8859-15
+    samples_used: 15000
+    bigram_entries: 874
+    sources:
+      culturax: 15000
+      madlad400: 0
+      wikipedia: 0
+    test_articles_excluded: 9222
+  br/mac-roman:
+    language: br
+    encoding: mac-roman
+    samples_used: 15000
+    bigram_entries: 874
     sources:
       culturax: 15000
       madlad400: 0
@@ -241,11 +331,101 @@ models:
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 20
+  cy/cp1140:
+    language: cy
+    encoding: cp1140
+    samples_used: 15000
+    bigram_entries: 759
+    sources:
+      culturax: 15000
+      madlad400: 0
+      wikipedia: 0
+    test_articles_excluded: 20
+  cy/cp1252:
+    language: cy
+    encoding: cp1252
+    samples_used: 15000
+    bigram_entries: 758
+    sources:
+      culturax: 15000
+      madlad400: 0
+      wikipedia: 0
+    test_articles_excluded: 20
+  cy/cp500:
+    language: cy
+    encoding: cp500
+    samples_used: 15000
+    bigram_entries: 758
+    sources:
+      culturax: 15000
+      madlad400: 0
+      wikipedia: 0
+    test_articles_excluded: 20
+  cy/cp850:
+    language: cy
+    encoding: cp850
+    samples_used: 15000
+    bigram_entries: 758
+    sources:
+      culturax: 15000
+      madlad400: 0
+      wikipedia: 0
+    test_articles_excluded: 20
+  cy/cp858:
+    language: cy
+    encoding: cp858
+    samples_used: 15000
+    bigram_entries: 758
+    sources:
+      culturax: 15000
+      madlad400: 0
+      wikipedia: 0
+    test_articles_excluded: 20
+  cy/hp-roman8:
+    language: cy
+    encoding: hp-roman8
+    samples_used: 15000
+    bigram_entries: 758
+    sources:
+      culturax: 15000
+      madlad400: 0
+      wikipedia: 0
+    test_articles_excluded: 20
+  cy/iso8859-1:
+    language: cy
+    encoding: iso8859-1
+    samples_used: 15000
+    bigram_entries: 758
+    sources:
+      culturax: 15000
+      madlad400: 0
+      wikipedia: 0
+    test_articles_excluded: 20
   cy/iso8859-14:
     language: cy
     encoding: iso8859-14
     samples_used: 15000
     bigram_entries: 763
+    sources:
+      culturax: 15000
+      madlad400: 0
+      wikipedia: 0
+    test_articles_excluded: 20
+  cy/iso8859-15:
+    language: cy
+    encoding: iso8859-15
+    samples_used: 15000
+    bigram_entries: 758
+    sources:
+      culturax: 15000
+      madlad400: 0
+      wikipedia: 0
+    test_articles_excluded: 20
+  cy/mac-roman:
+    language: cy
+    encoding: mac-roman
+    samples_used: 15000
+    bigram_entries: 758
     sources:
       culturax: 15000
       madlad400: 0
@@ -1141,11 +1321,101 @@ models:
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 20
+  ga/cp1140:
+    language: ga
+    encoding: cp1140
+    samples_used: 15000
+    bigram_entries: 702
+    sources:
+      culturax: 15000
+      madlad400: 0
+      wikipedia: 0
+    test_articles_excluded: 20
+  ga/cp1252:
+    language: ga
+    encoding: cp1252
+    samples_used: 15000
+    bigram_entries: 702
+    sources:
+      culturax: 15000
+      madlad400: 0
+      wikipedia: 0
+    test_articles_excluded: 20
+  ga/cp500:
+    language: ga
+    encoding: cp500
+    samples_used: 15000
+    bigram_entries: 702
+    sources:
+      culturax: 15000
+      madlad400: 0
+      wikipedia: 0
+    test_articles_excluded: 20
+  ga/cp850:
+    language: ga
+    encoding: cp850
+    samples_used: 15000
+    bigram_entries: 702
+    sources:
+      culturax: 15000
+      madlad400: 0
+      wikipedia: 0
+    test_articles_excluded: 20
+  ga/cp858:
+    language: ga
+    encoding: cp858
+    samples_used: 15000
+    bigram_entries: 702
+    sources:
+      culturax: 15000
+      madlad400: 0
+      wikipedia: 0
+    test_articles_excluded: 20
+  ga/hp-roman8:
+    language: ga
+    encoding: hp-roman8
+    samples_used: 15000
+    bigram_entries: 702
+    sources:
+      culturax: 15000
+      madlad400: 0
+      wikipedia: 0
+    test_articles_excluded: 20
+  ga/iso8859-1:
+    language: ga
+    encoding: iso8859-1
+    samples_used: 15000
+    bigram_entries: 702
+    sources:
+      culturax: 15000
+      madlad400: 0
+      wikipedia: 0
+    test_articles_excluded: 20
   ga/iso8859-14:
     language: ga
     encoding: iso8859-14
     samples_used: 15000
     bigram_entries: 703
+    sources:
+      culturax: 15000
+      madlad400: 0
+      wikipedia: 0
+    test_articles_excluded: 20
+  ga/iso8859-15:
+    language: ga
+    encoding: iso8859-15
+    samples_used: 15000
+    bigram_entries: 702
+    sources:
+      culturax: 15000
+      madlad400: 0
+      wikipedia: 0
+    test_articles_excluded: 20
+  ga/mac-roman:
+    language: ga
+    encoding: mac-roman
+    samples_used: 15000
+    bigram_entries: 702
     sources:
       culturax: 15000
       madlad400: 0
@@ -2541,6 +2811,16 @@ models:
       madlad400: 0
       wikipedia: 0
     test_articles_excluded: 20
+  ro/cp852:
+    language: ro
+    encoding: cp852
+    samples_used: 15000
+    bigram_entries: 715
+    sources:
+      culturax: 15000
+      madlad400: 0
+      wikipedia: 0
+    test_articles_excluded: 20
   ro/iso8859-16:
     language: ro
     encoding: iso8859-16
@@ -2756,6 +3036,16 @@ models:
     encoding: utf-8
     samples_used: 15000
     bigram_entries: 813
+    sources:
+      culturax: 15000
+      madlad400: 0
+      wikipedia: 0
+    test_articles_excluded: 20
+  sr/cp1250:
+    language: sr
+    encoding: cp1250
+    samples_used: 15000
+    bigram_entries: 34
     sources:
       culturax: 15000
       madlad400: 0
