@@ -43,19 +43,34 @@ overlap regardless of corpus size.
 #### Building the exclusion set
 
 On training startup, scan `tests/data/` (configurable via `--test-data-dir`) to
-build a set of content fingerprints:
+build a set of content fingerprints from the **raw CulturaX source articles**
+(not the encoded test files):
 
 1. Iterate all directories matching `{encoding}-{language}` in the test data dir.
 2. For each file matching `culturax_*`, decode it back to UTF-8 using the
    encoding from the directory name.
-3. Compute a SHA-256 fingerprint of the **first 200 characters** of the decoded
-   text. The 200-char prefix handles truncation during test file generation
-   (test files may be trimmed to target sizes of 500/2000/5000 bytes).
-4. Store fingerprints in a `frozenset`.
+3. **Important:** The decoded text will reflect normalization and substitution
+   applied during test file generation (whitespace collapsing, typographic
+   replacements, etc.). To ensure fingerprints match on both sides, the training
+   script must apply the same `normalize_text()` + `apply_substitutions()`
+   pipeline to each CulturaX/MADLAD/Wikipedia article **before** fingerprinting.
+   Both sides fingerprint the normalized text.
+4. Compute a SHA-256 fingerprint of the **first 200 characters** of the
+   normalized text. The 200-char prefix handles truncation during test file
+   generation (test files may be trimmed to target sizes of 500/2000/5000 bytes).
+5. Store fingerprints in a `frozenset`.
 
-The fingerprint set is typically small (~1,950 CulturaX test files producing
-fewer than 600 unique source articles, since the same article is transcoded to
-multiple encodings).
+The fingerprint set is typically small. Of the ~1,950 CulturaX test files, many
+are the same source article transcoded to multiple encodings. The unique source
+article count is approximately:
+
+- ~550 files named `culturax_00000.txt` through `culturax_00002.txt` (from the
+  first 20 CulturaX articles per language, selected by `generate_test_files.py`)
+- ~1,400 files named `culturax_mC4_*` / `culturax_OSCAR-*` (from earlier test
+  data generation that preserved original source/index metadata)
+
+After deduplication across encodings, this produces a few hundred unique
+fingerprints.
 
 #### Applying exclusions during download
 
@@ -65,12 +80,20 @@ The fingerprint set is checked against **every article from every data source**
 1. Compute the SHA-256 fingerprint of the first 200 characters.
 2. If it matches the exclusion set, skip the article and continue streaming.
 
-For CulturaX specifically, an **index-based fast path** also applies: since both
-the test data generator and training script stream from index 0, articles at
-indices 0-19 are known to overlap and are skipped without content hashing.
-Content hashing serves as verification for these and as the primary mechanism for
-`culturax_mC4_*` / `culturax_OSCAR-*` named test files where the index mapping
-differs.
+For CulturaX specifically, an **index-based fast path** also applies: the test
+data generator (`generate_test_files.py`) downloads the first 20 CulturaX
+articles per language (indices 0-19), selects up to 3 that pass quality gates,
+and names them `culturax_00000.txt` through `culturax_00002.txt`. Note that the
+filename index does NOT correspond to the CulturaX streaming position — the
+generator picks 3 from 20 based on size diversity. However, all 20 source
+articles (indices 0-19) are potential test data, so the fast path skips all of
+them. Content hashing then serves as verification.
+
+For `culturax_mC4_*` / `culturax_OSCAR-*` named test files, the indices
+reference positions far into the CulturaX stream (often >40,000). Since training
+downloads sequentially from index 0 and stops at `--max-samples` (default
+15,000), these high-index articles are almost certainly beyond the training
+range. Content hashing catches them in the unlikely event of overlap.
 
 #### Cache invalidation
 
@@ -79,11 +102,12 @@ sequential index. When the test data exclusion set changes (new test-data versio
 tag), previously cached articles may include now-excluded content. To handle
 this:
 
-- Store the test-data commit hash (or a hash of the exclusion set) in a sentinel
-  file (`data/.test_data_hash`).
-- On startup, compare the current hash against the sentinel. On mismatch, log a
-  warning that the cache may contain excluded articles and recommend
-  re-downloading affected languages (or clearing the cache).
+- Store a hash of the exclusion set in a sentinel file
+  (`data/.exclusion_set_hash`).
+- On startup, compare the current hash against the sentinel. On mismatch,
+  **automatically invalidate and re-download** affected language caches. This is
+  the safe default since retraining is infrequent. A `--keep-cache` flag allows
+  skipping re-download for development/debugging.
 
 ### 2. Supplemental Dataset Integration
 
@@ -135,14 +159,21 @@ def get_texts(lang, max_samples, cache_dir, exclusions):
 
 #### Language code mapping
 
-CulturaX and MADLAD-400 use ISO 639-1 codes directly (matching the registry).
-Wikipedia uses `"20231101.{lang}"` format configs. A small mapping dict handles
-mismatches:
+Each dataset uses slightly different language code conventions. Mapping dicts
+handle mismatches:
 
-- Norwegian: `no` in registry → `no` in CulturaX/MADLAD, `20231101.no` in
-  Wikipedia (Norwegian Bokmal)
-- Other codes are expected to match 1:1; mismatches are logged and the source is
-  skipped for that language.
+- **CulturaX**: ISO 639-1 codes, matching the registry directly.
+- **MADLAD-400**: BCP-47 codes, which are mostly ISO 639-1 but may differ for
+  some languages (e.g., `zh-Hans` vs `zh`). A `MADLAD_LANG_MAP` dict maps
+  registry codes to MADLAD config names. Codes that don't map are logged and
+  skipped.
+- **Wikipedia**: `"20231101.{lang}"` format configs pinned to the November 2023
+  dump. A `WIKIPEDIA_LANG_MAP` dict maps registry codes to Wikipedia config
+  names (e.g., `no` → `20231101.no`). If a language edition doesn't exist in
+  this dump, it is logged and skipped gracefully.
+
+Norwegian: `no` in registry → `no` in CulturaX, `no` in MADLAD-400,
+`20231101.no` in Wikipedia (Norwegian Bokmal).
 
 ### 3. Training Script Changes
 
@@ -232,4 +263,6 @@ evidence of prior overfitting — valuable information that validates this chang
 - Test parametrization, accuracy thresholds, or known-failure lists.
 - The model binary format (`models.bin`).
 - The detection pipeline or public API.
-- The confusion group training (`confusion_training.py`).
+- The confusion group training (`confusion_training.py`) — verified that it does
+  not read from the CulturaX article cache or any HF datasets; it operates on
+  the already-built bigram models.
