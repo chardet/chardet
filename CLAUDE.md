@@ -44,10 +44,14 @@ uv run ruff format .       # format
 ### Training Models
 
 ```bash
-uv run python scripts/train.py   # retrain bigram models from CulturaX/HTML data
+uv run python scripts/train.py   # retrain bigram models from CulturaX/MADLAD-400/Wikipedia data
+uv run python scripts/verify_no_overlap.py  # verify no train/test data overlap
 ```
 
-Training data is cached in `data/` (gitignored). Models are saved to `src/chardet/models/models.bin`.
+Training data is cached in `data/` (gitignored) under `data/culturax/`,
+`data/madlad400/`, and `data/wikipedia/` per language. Models are saved to
+`src/chardet/models/models.bin`. Test data articles are automatically excluded
+from training via content fingerprinting to prevent train/test overlap.
 
 ### Benchmarks & Diagnostics
 

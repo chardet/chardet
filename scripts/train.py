@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
 """Training script for chardet bigram models.
 
-Downloads text from multiple sources (CulturaX, MADLAD-400, Wikipedia) via
-Hugging Face, encodes text into target encodings, computes byte-pair bigram
-frequencies, and serializes the results into models.bin.
+Downloads text from CulturaX, MADLAD-400, and Wikipedia via Hugging Face,
+encodes text into target encodings, computes byte-pair bigram frequencies, and
+serializes the results into models.bin.
+
+Test data articles are automatically excluded from training via content
+fingerprinting (see scripts/exclusions.py). CulturaX is the primary data
+source; MADLAD-400 and Wikipedia fill gaps for low-resource languages.
 
 Usage:
     uv run python scripts/train.py
     uv run python scripts/train.py --max-samples 50000 --encodings koi8-r cp866
+    uv run python scripts/train.py --no-skip-test-overlap  # disable exclusions
 """
 
 from __future__ import annotations
