@@ -22,6 +22,7 @@ import concurrent.futures
 import functools
 import os
 import re
+import shutil
 import signal
 import struct
 import time
@@ -33,7 +34,12 @@ from confusion_training import (
     compute_distinguishing_maps,
     serialize_confusion_data,
 )
-from data_sources import SourceStats, load_cached_articles
+from data_sources import (
+    SourceStats,
+    check_cache_validity,
+    load_cached_articles,
+    write_cache_sentinel,
+)
 from data_sources import get_texts as get_texts_multi
 from exclusions import build_exclusion_set
 
@@ -681,6 +687,17 @@ def main() -> None:
             print(f"WARNING: test data dir not found: {test_data_path}")
             print("  Continuing without exclusion filtering.")
             print()
+
+    # Check cache validity against exclusion set
+    if exclusions and not args.keep_cache:
+        if not check_cache_validity(cache_dir, exclusions):
+            print("  Exclusion set changed — invalidating article caches")
+            for source in ("culturax", "madlad400", "wikipedia"):
+                source_dir = cache_dir / source
+                if source_dir.is_dir():
+                    shutil.rmtree(source_dir)
+                    print(f"    Cleared {source_dir}")
+        write_cache_sentinel(cache_dir, exclusions)
 
     print(f"Training bigram models for {len(encoding_map)} encodings")
     print(f"Languages needed: {sorted_langs}")

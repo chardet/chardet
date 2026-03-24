@@ -8,6 +8,7 @@ HuggingFace -> fingerprint-check -> cache accepted articles.
 from __future__ import annotations
 
 import functools
+import hashlib
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -158,6 +159,33 @@ def save_article(cache_dir: Path, index: int, text: str) -> None:
     """Save a single article to the per-file cache."""
     cache_dir.mkdir(parents=True, exist_ok=True)
     (cache_dir / f"{index:06d}.txt").write_text(text, encoding="utf-8")
+
+
+_SENTINEL_FILE = ".exclusion_set_hash"
+
+
+def _hash_exclusion_set(exclusions: frozenset[str]) -> str:
+    """Compute a deterministic hash of the exclusion set."""
+    combined = "\n".join(sorted(exclusions))
+    return hashlib.sha256(combined.encode("utf-8")).hexdigest()
+
+
+def write_cache_sentinel(cache_dir: Path, exclusions: frozenset[str]) -> None:
+    """Write the exclusion set hash to a sentinel file."""
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    (cache_dir / _SENTINEL_FILE).write_text(
+        _hash_exclusion_set(exclusions) + "\n",
+        encoding="utf-8",
+    )
+
+
+def check_cache_validity(cache_dir: Path, exclusions: frozenset[str]) -> bool:
+    """Check if the cached data matches the current exclusion set."""
+    sentinel = cache_dir / _SENTINEL_FILE
+    if not sentinel.is_file():
+        return False
+    stored = sentinel.read_text(encoding="utf-8").strip()
+    return stored == _hash_exclusion_set(exclusions)
 
 
 # ---------------------------------------------------------------------------
