@@ -579,7 +579,7 @@ def _stream_from_hf(
         ds = load_dataset(dataset, config, split=split, streaming=True)
     except Exception as exc:
         print(f"  WARNING: Could not load {dataset} ({config}): {exc}")
-        return []
+        return [], 0
 
     new_texts: list[str] = []
     skipped = 0
