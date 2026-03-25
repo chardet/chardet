@@ -38,7 +38,7 @@ from chardet.pipeline.structural import (
 from chardet.pipeline.utf8 import detect_utf8
 from chardet.pipeline.utf1632 import detect_utf1632_patterns
 from chardet.pipeline.validity import filter_by_validity
-from chardet.registry import EncodingInfo, get_candidates
+from chardet.registry import REGISTRY, EncodingInfo, get_candidates
 
 _BINARY_RESULT = DetectionResult(
     encoding=None,
@@ -226,6 +226,56 @@ _DEMOTION_CANDIDATES: dict[str, frozenset[int]] = {
 _KOI8_T_DISTINGUISHING: frozenset[int] = frozenset(
     {0x80, 0x81, 0x83, 0x8A, 0x8C, 0x8D, 0x8E, 0x90, 0xA1, 0xA2, 0xA5, 0xB5}
 )
+
+
+# Markup charset declarations that commonly refer to a Windows superset
+# encoding rather than the strict standard encoding.  Japanese web content
+# almost universally declares "Shift_JIS" but actually uses CP932 extensions;
+# similarly, Korean web content declares "EUC-KR" but uses CP949/UHC.
+# When the declared encoding resolves to the base (left), we check whether
+# the superset (right) is a better structural match.
+_MARKUP_SUPERSET_PROMOTIONS: dict[str, str] = {
+    "shift_jis_2004": "cp932",
+    "euc_kr": "cp949",
+}
+
+
+def _try_promote_markup_superset(
+    data: bytes,
+    markup_result: DetectionResult,
+    allowed: frozenset[str],
+) -> DetectionResult:
+    """Promote a markup-declared encoding to its superset when structural evidence supports it.
+
+    If the declared encoding has a known superset, the superset validates the
+    data, and the superset's structural score is materially better, return a
+    new result using the superset encoding.  Otherwise return the original.
+    """
+    if markup_result.encoding is None:
+        return markup_result
+    superset_name = _MARKUP_SUPERSET_PROMOTIONS.get(markup_result.encoding)
+    if superset_name is None or superset_name not in allowed:
+        return markup_result
+    superset_info = REGISTRY.get(superset_name)
+    if superset_info is None:
+        return markup_result
+    # Validate: superset must be able to decode the data
+    try:
+        data.decode(superset_name, errors="strict")
+    except (UnicodeDecodeError, LookupError):
+        return markup_result
+    # Compare structural scores
+    ctx = PipelineContext()
+    base_score = compute_structural_score(data, REGISTRY[markup_result.encoding], ctx)
+    superset_score = compute_structural_score(data, superset_info, ctx)
+    if superset_score > base_score:
+        return DetectionResult(
+            superset_name,
+            markup_result.confidence,
+            markup_result.language,
+            markup_result.mime_type,
+        )
+    return markup_result
 
 
 def _make_fallback_or_none(
@@ -633,6 +683,7 @@ def _run_pipeline_core(  # noqa: PLR0913
     # when the bytes happen to be pure ASCII or valid UTF-8).
     markup_result = detect_markup_charset(data)
     if markup_result is not None and markup_result.encoding in allowed:
+        markup_result = _try_promote_markup_superset(data, markup_result, allowed)
         return [markup_result]
 
     # Stage 1c: ASCII (use pre-computed result)
