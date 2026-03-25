@@ -357,7 +357,15 @@ def normalize_and_prune(
     freqs: dict[tuple[int, int], int],
     min_weight: int,
 ) -> dict[tuple[int, int], int]:
-    """Normalize frequency counts to 0-255 and prune low weights."""
+    """Normalize frequency counts to 0-255 and prune low weights.
+
+    High-byte bigrams (at least one byte >= 0x80) with raw count >= 300 are
+    preserved at minimum weight 1 even when global normalization rounds them
+    to 0.  A count of 300 across ~15K training articles indicates a real
+    language pattern, not noise.  This recovers encoding-diagnostic signal
+    that global normalization crushes because ASCII bigrams dominate by
+    orders of magnitude.
+    """
     if not freqs:
         return {}
 
@@ -370,6 +378,8 @@ def normalize_and_prune(
         weight = int(round(count / max_count * 255))
         if weight >= min_weight:
             result[pair] = weight
+        elif (pair[0] >= 0x80 or pair[1] >= 0x80) and count >= 300:
+            result[pair] = 1
     return result
 
 

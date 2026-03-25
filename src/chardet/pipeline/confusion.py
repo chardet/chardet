@@ -294,16 +294,21 @@ def _find_pair_key(
     return None
 
 
+# Maximum confidence gap from the top result for candidates beyond
+# position 1 to participate in confusion resolution.
+_CONFUSION_BAND = 0.005
+
+
 def resolve_confusion_groups(
     data: bytes,
     results: list[DetectionResult],
 ) -> list[DetectionResult]:
     """Resolve confusion between similar encodings in the top results.
 
-    Compares the top two results. If they form a known confusion pair,
-    it determines which encoding should win by checking the
-    resolve_by_bigram_rescore and resolve_by_category_voting tie-breakers
-    and giving precedence to bigram re-scoring when they disagree.
+    Checks the top result against each candidate within a confidence band.
+    Always checks position 1 (preserving original top-2 behavior); for
+    positions 2+ only checks within the band.  Uses bigram re-scoring
+    with category voting as fallback.
 
     :param data: The raw byte data to examine.
     :param results: Detection results sorted by confidence descending.
@@ -313,23 +318,44 @@ def resolve_confusion_groups(
         return results
 
     top = results[0]
-    second = results[1]
-    if top.encoding is None or second.encoding is None:
+    if top.encoding is None:
         return results
 
     maps = load_confusion_data()
-    pair_key = _find_pair_key(maps, top.encoding, second.encoding)
-    if pair_key is None:
-        return results
+    top_conf = top.confidence
 
-    diff_bytes, categories = maps[pair_key]
-    enc_a, enc_b = pair_key
+    for i in range(1, len(results)):
+        candidate = results[i]
+        if candidate.encoding is None:
+            continue
+        # Always check position 1 (original top-2 behavior).
+        # For positions 2+, only check within the confidence band.
+        if i > 1 and top_conf - candidate.confidence > _CONFUSION_BAND:
+            break
 
-    cat_winner = resolve_by_category_voting(data, enc_a, enc_b, diff_bytes, categories)
-    bigram_winner = resolve_by_bigram_rescore(data, enc_a, enc_b, diff_bytes)
-    winner = bigram_winner if bigram_winner is not None else cat_winner
+        pair_key = _find_pair_key(maps, top.encoding, candidate.encoding)
+        if pair_key is None:
+            continue
 
-    if winner is None or winner == top.encoding:
-        return results
+        diff_bytes, categories = maps[pair_key]
+        enc_a, enc_b = pair_key
 
-    return [second, top, *results[2:]]
+        cat_winner = resolve_by_category_voting(
+            data, enc_a, enc_b, diff_bytes, categories
+        )
+        bigram_winner = resolve_by_bigram_rescore(data, enc_a, enc_b, diff_bytes)
+        winner = bigram_winner if bigram_winner is not None else cat_winner
+
+        if winner is not None and winner == candidate.encoding:
+            # Give the promoted candidate the top result's confidence so
+            # the promotion survives any downstream confidence-based sort.
+            promoted = DetectionResult(
+                candidate.encoding,
+                top.confidence,
+                candidate.language,
+                candidate.mime_type,
+            )
+            rest = [r for j, r in enumerate(results) if j != i]
+            return [promoted, *rest]
+
+    return results

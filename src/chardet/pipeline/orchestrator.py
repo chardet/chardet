@@ -415,13 +415,17 @@ def _demote_niche_latin(
         and _should_demote(results[0].encoding, data)
     ):
         demoted_encoding = results[0].encoding
+        top_conf = results[0].confidence
         for r in results[1:]:
             if r.encoding in _COMMON_LATIN_ENCODINGS:
+                promoted = DetectionResult(
+                    r.encoding, top_conf, r.language, r.mime_type
+                )
                 others = [
                     x for x in results if x.encoding != demoted_encoding and x is not r
                 ]
                 demoted_entries = [x for x in results if x.encoding == demoted_encoding]
-                return [r, *others, *demoted_entries]
+                return [promoted, *others, *demoted_entries]
     return results
 
 
@@ -446,8 +450,15 @@ def _promote_koi8t(
     # Check for Tajik-specific bytes
     if any(b in _KOI8_T_DISTINGUISHING for b in data if b > 0x7F):
         koi8t_result = results[koi8t_idx]
+        top_conf = results[0].confidence
+        promoted = DetectionResult(
+            koi8t_result.encoding,
+            top_conf,
+            koi8t_result.language,
+            koi8t_result.mime_type,
+        )
         others = [r for i, r in enumerate(results) if i != koi8t_idx]
-        return [koi8t_result, *others]
+        return [promoted, *others]
     return results
 
 
