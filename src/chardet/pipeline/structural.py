@@ -230,8 +230,8 @@ def _analyze_cp949(
                 ):
                     valid_count += 1
                     leads.add(b)
-                    if b > 0x7F:
-                        mb += 1
+                    # Lead is always > 0x7F; trail may or may not be
+                    mb += 1
                     if trail > 0x7F:
                         mb += 1
                     i += 2
