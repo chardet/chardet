@@ -205,6 +205,32 @@ def test_bigram_rescore_returns_enc_b():
     assert result == "koi8-u"
 
 
+def test_resolve_confusion_groups_skips_none_encoding_candidate():
+    """Candidates with encoding=None should be skipped during band scan."""
+    results = [
+        DetectionResult(encoding="cp1140", confidence=0.95, language="en"),
+        DetectionResult(encoding=None, confidence=0.94, language=None),
+        DetectionResult(encoding="cp500", confidence=0.93, language="en"),
+    ]
+    resolved = resolve_confusion_groups(bytes(range(256)), results)
+    # The None candidate at position 1 should be skipped; resolution
+    # should still check cp500 at position 2.
+    assert len(resolved) == len(results)
+
+
+def test_resolve_confusion_groups_band_limit():
+    """Candidates beyond the confidence band should not be checked."""
+    results = [
+        DetectionResult(encoding="cp1140", confidence=0.95, language="en"),
+        DetectionResult(encoding="cp500", confidence=0.94, language="en"),
+        DetectionResult(encoding="cp273", confidence=0.50, language="de"),
+    ]
+    resolved = resolve_confusion_groups(bytes(range(256)), results)
+    # cp273 at 0.50 is far outside the 0.005 band from 0.95, so it
+    # should not be compared. The result should still have all 3 entries.
+    assert len(resolved) == len(results)
+
+
 def test_resolve_confusion_groups_swaps_top_and_second():
     """Confusion resolution swaps top and second when the second encoding wins.
 

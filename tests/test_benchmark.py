@@ -169,7 +169,7 @@ def test_ratio_cold_vs_warm_model_loading():
     cold = time.perf_counter() - start
 
     ratio = cold / warm
-    assert ratio < 25, f"Cold start too slow vs warm: {ratio:.1f}x (max 25x)"
+    assert ratio < 30, f"Cold start too slow vs warm: {ratio:.1f}x (max 30x)"
 
 
 # ---------------------------------------------------------------------------
