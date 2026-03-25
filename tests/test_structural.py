@@ -6,6 +6,12 @@ import pytest
 
 from chardet.pipeline import PipelineContext
 from chardet.pipeline.structural import (
+    _analyze_big5,
+    _analyze_big5hkscs,
+    _analyze_cp932,
+    _analyze_cp949,
+    _analyze_euc_kr,
+    _analyze_shift_jis,
     compute_lead_byte_diversity,
     compute_multibyte_byte_coverage,
     compute_structural_score,
@@ -178,3 +184,155 @@ def test_johab_lead_byte_at_end_of_data(pipe_ctx: PipelineContext) -> None:
     data = b"\x84"
     score = compute_structural_score(data, REGISTRY["johab"], pipe_ctx)
     assert score == 0.0
+
+
+def test_cp932_recognizes_extended_lead_bytes() -> None:
+    """CP932 lead bytes 0xF0-0xFC should be recognized by _analyze_cp932."""
+    # 3 pairs using CP932-extended lead bytes with valid trail bytes
+    data = b"\xf0\x40\xf5\x80\xfc\x40"
+    ratio, mb_bytes, diversity = _analyze_cp932(data)
+    assert ratio == 1.0
+    assert diversity == 3
+    # 0xF0 lead=1 mb, 0x40 trail<0x80=0 mb -> 1
+    # 0xF5 lead=1 mb, 0x80 trail>0x7F=1 mb -> 2
+    # 0xFC lead=1 mb, 0x40 trail<0x80=0 mb -> 1
+    assert mb_bytes == 4
+
+
+def test_shift_jis_does_not_recognize_cp932_extended_leads() -> None:
+    """Shift_JIS analyzer should NOT recognize lead bytes 0xF0-0xFC."""
+    data = b"\xf0\x40\xf5\x80\xfc\x40"
+    ratio, mb_bytes, diversity = _analyze_shift_jis(data)
+    assert ratio == 0.0
+    assert mb_bytes == 0
+    assert diversity == 0
+
+
+def test_cp932_half_width_katakana_not_lead_bytes() -> None:
+    """CP932 half-width katakana (0xA1-0xDF) are single bytes, not lead bytes."""
+    # Pure half-width katakana — no valid multibyte pairs expected
+    data = b"\xa1\xa2\xa3\xb0\xdf"
+    ratio, mb_bytes, diversity = _analyze_cp932(data)
+    assert ratio == 0.0
+    assert mb_bytes == 0
+    assert diversity == 0
+
+
+def test_cp932_mb_bytes_low_trail() -> None:
+    """Trail byte < 0x80 counts 1 mb_byte (lead only); >= 0x80 counts 2."""
+    # One pair: lead 0xF0, trail 0x40 (< 0x80) -> mb_bytes = 1
+    low_trail = b"\xf0\x40"
+    _, mb_low, _ = _analyze_cp932(low_trail)
+    assert mb_low == 1
+
+    # One pair: lead 0xF0, trail 0x80 (>= 0x80) -> mb_bytes = 2
+    high_trail = b"\xf0\x80"
+    _, mb_high, _ = _analyze_cp932(high_trail)
+    assert mb_high == 2
+
+
+def test_cp932_standard_range_still_works() -> None:
+    """Standard Shift_JIS range bytes work in both analyzers."""
+    data = b"\x81\x40\x9f\x7e\xe0\x80"
+    sjis_ratio, _, _ = _analyze_shift_jis(data)
+    cp932_ratio, _, _ = _analyze_cp932(data)
+    assert sjis_ratio == 1.0
+    assert cp932_ratio == 1.0
+
+
+def test_cp949_recognizes_uhc_extension_bytes() -> None:
+    """CP949 lead bytes 0x81-0xA0 with ASCII letter trails should be recognized."""
+    # UHC extension: lead 0x81 + trail 0x41 (ASCII 'A'), lead 0x90 + trail 0x61 ('a')
+    data = b"\x81\x41\x90\x61\xa0\x5a"
+    ratio, mb_bytes, diversity = _analyze_cp949(data)
+    assert ratio == 1.0
+    assert diversity == 3
+    # 0x81>0x7F=1, 0x41<0x80=0 -> 1; 0x90>0x7F=1, 0x61<0x80=0 -> 1; 0xA0>0x7F=1, 0x5A<0x80=0 -> 1
+    assert mb_bytes == 3
+
+
+def test_euc_kr_does_not_recognize_uhc_extension() -> None:
+    """EUC-KR analyzer should NOT recognize lead bytes 0x81-0xA0 or ASCII trails."""
+    data = b"\x81\x41\x90\x61\xa0\x5a"
+    ratio, mb_bytes, diversity = _analyze_euc_kr(data)
+    assert ratio == 0.0
+    assert mb_bytes == 0
+    assert diversity == 0
+
+
+def test_cp949_skips_0xc9_lead_byte() -> None:
+    """0xC9 is not a valid CP949/UHC lead byte."""
+    data = b"\xc9\xa1"
+    ratio, mb_bytes, diversity = _analyze_cp949(data)
+    assert ratio == 0.0
+    assert mb_bytes == 0
+    assert diversity == 0
+
+
+def test_cp949_standard_euc_kr_range_still_works() -> None:
+    """Standard EUC-KR range bytes work in both analyzers."""
+    data = b"\xa1\xa1\xb0\xfe\xfd\xa1"
+    euc_ratio, _, _ = _analyze_euc_kr(data)
+    cp949_ratio, _, _ = _analyze_cp949(data)
+    assert euc_ratio == 1.0
+    assert cp949_ratio == 1.0
+
+
+def test_cp949_mb_bytes_ascii_trail() -> None:
+    """Trail byte in ASCII range counts 1 mb_byte (lead only); high trail counts 2."""
+    # Lead 0x81 + trail 0x41 (ASCII) -> mb_bytes = 1
+    ascii_trail = b"\x81\x41"
+    _, mb_low, _ = _analyze_cp949(ascii_trail)
+    assert mb_low == 1
+
+    # Lead 0x81 + trail 0xA1 (high byte) -> mb_bytes = 2
+    high_trail = b"\x81\xa1"
+    _, mb_high, _ = _analyze_cp949(high_trail)
+    assert mb_high == 2
+
+
+def test_big5hkscs_recognizes_extended_lead_bytes() -> None:
+    """Big5-HKSCS lead bytes 0x87-0xA0 and 0xFA-0xFE should be recognized."""
+    # HKSCS extension: leads below Big5's 0xA1 floor and above 0xF9 ceiling
+    data = b"\x87\x40\x90\xa1\xfa\x7e\xfe\xfe"
+    ratio, mb_bytes, diversity = _analyze_big5hkscs(data)
+    assert ratio == 1.0
+    assert diversity == 4
+    # 0x87+0x40: lead=1, trail<0x80=0 -> 1
+    # 0x90+0xA1: lead=1, trail>0x7F=1 -> 2
+    # 0xFA+0x7E: lead=1, trail<0x80=0 -> 1
+    # 0xFE+0xFE: lead=1, trail>0x7F=1 -> 2
+    assert mb_bytes == 6
+
+
+def test_big5_does_not_recognize_hkscs_extension() -> None:
+    """Big5 analyzer should NOT recognize lead bytes 0x87-0xA0 or 0xFA-0xFE."""
+    # Use only HKSCS-extended lead bytes that are outside Big5's 0xA1-0xF9 range,
+    # with ASCII trail bytes so skipped leads don't accidentally form Big5 pairs.
+    data = b"\x87\x41\x90\x42\xfa\x43\xfe\x44"
+    ratio, mb_bytes, diversity = _analyze_big5(data)
+    assert ratio == 0.0
+    assert mb_bytes == 0
+    assert diversity == 0
+
+
+def test_big5hkscs_standard_big5_range_still_works() -> None:
+    """Standard Big5 range bytes work in both analyzers."""
+    data = b"\xa1\x40\xc0\x7e\xf9\xfe"
+    big5_ratio, _, _ = _analyze_big5(data)
+    hkscs_ratio, _, _ = _analyze_big5hkscs(data)
+    assert big5_ratio == 1.0
+    assert hkscs_ratio == 1.0
+
+
+def test_big5hkscs_mb_bytes_low_trail() -> None:
+    """Trail byte < 0x80 counts 1 mb_byte (lead only); >= 0x80 counts 2."""
+    # Lead 0x87 + trail 0x40 -> mb_bytes = 1
+    low_trail = b"\x87\x40"
+    _, mb_low, _ = _analyze_big5hkscs(low_trail)
+    assert mb_low == 1
+
+    # Lead 0x87 + trail 0xA1 -> mb_bytes = 2
+    high_trail = b"\x87\xa1"
+    _, mb_high, _ = _analyze_big5hkscs(high_trail)
+    assert mb_high == 2
