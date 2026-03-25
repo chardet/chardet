@@ -118,34 +118,59 @@ _UNIVERSAL_SUBSTITUTIONS: dict[str, str] = {
 _ARABIC_SUBSTITUTIONS: dict[str, str] = {
     "\u060c": ",",  # ARABIC COMMA
     "\u061b": ";",  # ARABIC SEMICOLON
+    "\u061f": "?",  # ARABIC QUESTION MARK (missing from CP720)
     "\u066a": "%",  # ARABIC PERCENT SIGN
+    # Standard Arabic-Indic digits → Western digits (missing from CP720/ISO-8859-6)
+    "\u0660": "0",
+    "\u0661": "1",
+    "\u0662": "2",
+    "\u0663": "3",
+    "\u0664": "4",
+    "\u0665": "5",
+    "\u0666": "6",
+    "\u0667": "7",
+    "\u0668": "8",
+    "\u0669": "9",
 }
 
-# CP866: Belarusian/Ukrainian/Serbian workaround — historical substitution.
+# CP866: Belarusian/Ukrainian/Serbian/Macedonian workaround.
 # CP866 is a Russian Cyrillic code page.  Other Cyrillic languages have
 # letters not in CP866 that were historically approximated with the
-# closest Russian letter.
+# closest Russian letter (or Latin letter in the case of Serbian ј).
+# Note: Serbians primarily used CP855 (which has all Serbian letters
+# natively) rather than CP866.  These substitutions are plausible
+# approximations for the rare case of Serbian text on CP866 systems.
 _CP866_SUBSTITUTIONS: dict[str, str] = {
     # Ukrainian/Belarusian
-    "\u0456": "\u0438",  # і → и (Ukrainian/Belarusian I → Russian I)
-    "\u0406": "\u0418",  # І → И (uppercase)
-    # Serbian-specific Cyrillic letters → closest Russian equivalents
-    "\u0452": "\u0434",  # ђ (DJE) → д (DE)
-    "\u0402": "\u0414",  # Ђ → Д (uppercase)
-    "\u0458": "\u0439",  # ј (JE) → й (SHORT I — closest single letter)
-    "\u0408": "\u0419",  # Ј → Й (uppercase)
-    "\u0459": "\u043b",  # љ (LJE) → л (EL)
-    "\u0409": "\u041b",  # Љ → Л (uppercase)
-    "\u045a": "\u043d",  # њ (NJE) → н (EN)
-    "\u040a": "\u041d",  # Њ → Н (uppercase)
-    "\u045b": "\u0442",  # ћ (TSHE) → т (TE)
-    "\u040b": "\u0422",  # Ћ → Т (uppercase)
-    "\u045f": "\u0434",  # џ (DZHE) → д (DE)
-    "\u040f": "\u0414",  # Џ → Д (uppercase)
+    "\u0456": "\u0438",  # і → и
+    "\u0406": "\u0418",  # І → И
+    "\u0491": "\u0433",  # ґ → г (reintroduced 1990, missing from Soviet-era CP866)
+    "\u0490": "\u0413",  # Ґ → Г
+    # Serbian-specific Cyrillic → closest Russian/Latin equivalents
+    "\u0452": "\u0434",  # ђ (DJE) → д (DE) — visual base letter
+    "\u0402": "\u0414",  # Ђ → Д
+    "\u0458": "j",  # ј (JE) → Latin j (identical appearance)
+    "\u0408": "J",  # Ј → J
+    "\u0459": "\u043b",  # љ (LJE) → л (EL) — visual base letter
+    "\u0409": "\u041b",  # Љ → Л
+    "\u045a": "\u043d",  # њ (NJE) → н (EN) — visual base letter
+    "\u040a": "\u041d",  # Њ → Н
+    "\u045b": "\u0442",  # ћ (TSHE) → т (TE) — visual base letter
+    "\u040b": "\u0422",  # Ћ → Т
+    "\u045f": "\u0446",  # џ (DZHE) → ц (TSE) — visually more similar than д
+    "\u040f": "\u0426",  # Џ → Ц
+    # Macedonian-specific Cyrillic → closest Russian equivalents
+    "\u0453": "\u0433",  # ѓ (GJE) → г (GHE)
+    "\u0403": "\u0413",  # Ѓ → Г
+    "\u045c": "\u043a",  # ќ (KJE) → к (KA)
+    "\u040c": "\u041a",  # Ќ → К
+    "\u0455": "\u0437",  # ѕ (DZE) → з (ZE) — closest sound
+    "\u0405": "\u0417",  # Ѕ → З
 }
 
 # Farsi-specific letters → closest standard Arabic equivalents for
-# encodings that only support basic Arabic (CP720, ISO-8859-6).
+# encodings that only support basic Arabic (CP720, ISO-8859-6, and
+# CP1256 for FARSI YEH only).
 # These substitutions mirror what Farsi writers historically used when
 # limited to Arabic-only code pages.
 _FARSI_SUBSTITUTIONS: dict[str, str] = {
@@ -166,6 +191,12 @@ _FARSI_SUBSTITUTIONS: dict[str, str] = {
     "\u06f7": "7",
     "\u06f8": "8",
     "\u06f9": "9",
+}
+
+# CP1256 Farsi YEH substitution — CP1256 supports most Farsi letters
+# natively (PEH, TCHEH, JEH, KEHEH, GAF) but NOT Farsi YEH (U+06CC).
+_CP1256_FARSI_SUBSTITUTIONS: dict[str, str] = {
+    "\u06cc": "\u064a",  # ی (FARSI YEH) → ي (YEH) — standard Arabic YEH
 }
 
 # Arabic standard letters → isolated presentation forms for encodings
@@ -365,6 +396,9 @@ def get_substitutions(charset_name: str, langs: list[str]) -> dict[str, str]:
     # Farsi-specific letters for encodings that only support basic Arabic
     if "fa" in langs and upper in ("CP720", "ISO-8859-6"):
         subs.update(_FARSI_SUBSTITUTIONS)
+    # CP1256 supports most Farsi letters but NOT Farsi YEH
+    if "fa" in langs and upper == "CP1256":
+        subs.update(_CP1256_FARSI_SUBSTITUTIONS)
     # Arabic presentation forms for legacy encodings that store positional
     # forms instead of standard Arabic letters
     if upper in ("CP1006", "CP864"):
