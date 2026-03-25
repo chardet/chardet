@@ -121,10 +121,96 @@ _ARABIC_SUBSTITUTIONS: dict[str, str] = {
     "\u066a": "%",  # ARABIC PERCENT SIGN
 }
 
-# CP866: Belarusian/Ukrainian workaround — historical substitution
+# CP866: Belarusian/Ukrainian/Serbian workaround — historical substitution.
+# CP866 is a Russian Cyrillic code page.  Other Cyrillic languages have
+# letters not in CP866 that were historically approximated with the
+# closest Russian letter.
 _CP866_SUBSTITUTIONS: dict[str, str] = {
+    # Ukrainian/Belarusian
     "\u0456": "\u0438",  # і → и (Ukrainian/Belarusian I → Russian I)
     "\u0406": "\u0418",  # І → И (uppercase)
+    # Serbian-specific Cyrillic letters → closest Russian equivalents
+    "\u0452": "\u0434",  # ђ (DJE) → д (DE)
+    "\u0402": "\u0414",  # Ђ → Д (uppercase)
+    "\u0458": "\u0439",  # ј (JE) → й (SHORT I — closest single letter)
+    "\u0408": "\u0419",  # Ј → Й (uppercase)
+    "\u0459": "\u043b",  # љ (LJE) → л (EL)
+    "\u0409": "\u041b",  # Љ → Л (uppercase)
+    "\u045a": "\u043d",  # њ (NJE) → н (EN)
+    "\u040a": "\u041d",  # Њ → Н (uppercase)
+    "\u045b": "\u0442",  # ћ (TSHE) → т (TE)
+    "\u040b": "\u0422",  # Ћ → Т (uppercase)
+    "\u045f": "\u0434",  # џ (DZHE) → д (DE)
+    "\u040f": "\u0414",  # Џ → Д (uppercase)
+}
+
+# Farsi-specific letters → closest standard Arabic equivalents for
+# encodings that only support basic Arabic (CP720, ISO-8859-6).
+# These substitutions mirror what Farsi writers historically used when
+# limited to Arabic-only code pages.
+_FARSI_SUBSTITUTIONS: dict[str, str] = {
+    "\u067e": "\u0628",  # پ (PEH) → ب (BEH) — same shape without dots
+    "\u0686": "\u062c",  # چ (TCHEH) → ج (JEEM) — same base shape
+    "\u0698": "\u0632",  # ژ (JEH) → ز (ZAIN) — same base shape
+    "\u06a9": "\u0643",  # ک (KEHEH) → ك (KAF) — standard Arabic KAF
+    "\u06af": "\u0643",  # گ (GAF) → ك (KAF) — closest available
+    "\u06cc": "\u064a",  # ی (FARSI YEH) → ي (YEH) — standard Arabic YEH
+    # Extended Arabic-Indic digits → Western digits
+    "\u06f0": "0",
+    "\u06f1": "1",
+    "\u06f2": "2",
+    "\u06f3": "3",
+    "\u06f4": "4",
+    "\u06f5": "5",
+    "\u06f6": "6",
+    "\u06f7": "7",
+    "\u06f8": "8",
+    "\u06f9": "9",
+}
+
+# Arabic standard letters → isolated presentation forms for encodings
+# that use presentation forms (CP1006, CP864).  Modern Unicode uses
+# standard Arabic letters (U+0621-U+064A) but these legacy encodings
+# store the positional presentation forms (U+FE70-U+FEFF) instead.
+# Using the isolated form as a catch-all is historically accurate for
+# training data that contains standalone or mixed-context Arabic text.
+_ARABIC_PRESENTATION_FORM_SUBSTITUTIONS: dict[str, str] = {
+    "\u0621": "\ufe80",  # HAMZA
+    "\u0622": "\ufe81",  # ALEF WITH MADDA ABOVE
+    "\u0623": "\ufe83",  # ALEF WITH HAMZA ABOVE
+    "\u0624": "\ufe85",  # WAW WITH HAMZA ABOVE
+    "\u0625": "\ufe87",  # ALEF WITH HAMZA BELOW
+    "\u0626": "\ufe89",  # YEH WITH HAMZA ABOVE
+    "\u0627": "\ufe8d",  # ALEF
+    "\u0628": "\ufe8f",  # BEH
+    "\u0629": "\ufe93",  # TEH MARBUTA
+    "\u062a": "\ufe95",  # TEH
+    "\u062b": "\ufe99",  # THEH
+    "\u062c": "\ufe9d",  # JEEM
+    "\u062d": "\ufea1",  # HAH
+    "\u062e": "\ufea5",  # KHAH
+    "\u062f": "\ufea9",  # DAL
+    "\u0630": "\ufeab",  # THAL
+    "\u0631": "\ufead",  # REH
+    "\u0632": "\ufeaf",  # ZAIN
+    "\u0633": "\ufeb1",  # SEEN
+    "\u0634": "\ufeb5",  # SHEEN
+    "\u0635": "\ufeb9",  # SAD
+    "\u0636": "\ufebd",  # DAD
+    "\u0637": "\ufec1",  # TAH
+    "\u0638": "\ufec5",  # ZAH
+    "\u0639": "\ufec9",  # AIN
+    "\u063a": "\ufecd",  # GHAIN
+    "\u0641": "\ufed1",  # FEH
+    "\u0642": "\ufed5",  # QAF
+    "\u0643": "\ufed9",  # KAF
+    "\u0644": "\ufedd",  # LAM
+    "\u0645": "\ufee1",  # MEEM
+    "\u0646": "\ufee5",  # NOON
+    "\u0647": "\ufee9",  # HEH
+    "\u0648": "\ufeed",  # WAW
+    "\u0649": "\ufeef",  # ALEF MAKSURA
+    "\u064a": "\ufef1",  # YEH
 }
 
 # Romanian: comma-below → cedilla for encodings without modern forms
@@ -276,6 +362,13 @@ def get_substitutions(charset_name: str, langs: list[str]) -> dict[str, str]:
     upper = charset_name.upper()
     if upper in ("CP720", "CP864", "ISO-8859-6"):
         subs.update(_ARABIC_SUBSTITUTIONS)
+    # Farsi-specific letters for encodings that only support basic Arabic
+    if "fa" in langs and upper in ("CP720", "ISO-8859-6"):
+        subs.update(_FARSI_SUBSTITUTIONS)
+    # Arabic presentation forms for legacy encodings that store positional
+    # forms instead of standard Arabic letters
+    if upper in ("CP1006", "CP864"):
+        subs.update(_ARABIC_PRESENTATION_FORM_SUBSTITUTIONS)
     if upper == "CP866":
         subs.update(_CP866_SUBSTITUTIONS)
     # Romanian comma-below → cedilla for all encodings except ISO-8859-16
@@ -285,12 +378,40 @@ def get_substitutions(charset_name: str, langs: list[str]) -> dict[str, str]:
     return subs
 
 
+def _build_fancy_up_map(
+    subs: dict[str, str],
+    codec: str,
+) -> dict[str, str]:
+    """Build a single reverse substitution map: ASCII → fanciest encodable version.
+
+    For each fancy→ASCII mapping in *subs*, check if the fancy character is
+    encodable in *codec*.  If so, add the reverse mapping ``{ASCII: fancy}``.
+
+    When multiple fancy characters map to the same ASCII character (e.g.,
+    both ``\u201c`` and ``\u201d`` map to ``"``), the last encodable one wins.
+    This is acceptable for training — the goal is to create bigrams for at
+    least one fancy variant of each ASCII character.
+
+    Returns a single dict.  Only single-char replacements are reversible.
+    """
+    result: dict[str, str] = {}
+    for fancy_char, ascii_str in subs.items():
+        if len(ascii_str) != 1 or ascii_str == "":
+            continue
+        try:
+            fancy_char.encode(codec, errors="strict")
+        except (UnicodeEncodeError, LookupError):
+            continue
+        result[ascii_str] = fancy_char
+    return result
+
+
 def normalize_text(text: str, charset_name: str) -> str:
     """Clean and normalize text for encoding into a legacy charset."""
     # Collapse repeated whitespace
     text = re.sub(r"(\s)\1+", r"\1", text)
     # Vietnamese decomposition for Windows-1258
-    if charset_name.upper() == "WINDOWS-1258":
+    if charset_name.upper() in ("WINDOWS-1258", "CP1258"):
         nfc = unicodedata.normalize("NFC", text)
         text = "".join(_VIETNAMESE_DECOMPOSITION.get(c, c) for c in nfc)
     return text
@@ -304,12 +425,20 @@ def apply_substitutions(text: str, subs: dict[str, str]) -> str:
     return text
 
 
-def encode_text(text: str, codec_name: str) -> bytes | None:
-    """Encode text into the target encoding, skipping unencodable characters."""
+def encode_text(text: str, codec_name: str, *, strict: bool = False) -> bytes | None:
+    """Encode text into the target encoding.
+
+    When *strict* is False (the default), unencodable characters are silently
+    dropped.  This is appropriate for the ASCII-normalized form where
+    substitutions have already handled most characters.
+
+    When *strict* is True, any unencodable character causes the entire text
+    to be skipped (returns None).  This avoids phantom bigrams from gaps
+    where characters were silently dropped.
+    """
     try:
-        # Use 'ignore' for characters that still can't be encoded after
-        # substitution — these are genuinely outside the charset's repertoire
-        result = text.encode(codec_name, errors="ignore")
+        errors = "strict" if strict else "ignore"
+        result = text.encode(codec_name, errors=errors)
         return result if len(result) > 10 else None
     except (LookupError, UnicodeEncodeError, UnicodeDecodeError):
         return None
