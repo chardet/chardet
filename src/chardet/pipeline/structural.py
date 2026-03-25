@@ -31,7 +31,7 @@ from chardet.registry import EncodingInfo
 def _analyze_shift_jis(
     data: bytes,
 ) -> tuple[float, int, int]:
-    """Single-pass Shift_JIS / CP932 structural analysis.
+    """Single-pass Shift_JIS structural analysis.
 
     Lead bytes: 0x81-0x9F, 0xE0-0xEF
     Trail bytes: 0x40-0x7E, 0x80-0xFC
@@ -47,6 +47,47 @@ def _analyze_shift_jis(
     while i < length:
         b = data[i]
         if (0x81 <= b <= 0x9F) or (0xE0 <= b <= 0xEF):
+            lead_count += 1
+            if i + 1 < length:
+                trail = data[i + 1]
+                if (0x40 <= trail <= 0x7E) or (0x80 <= trail <= 0xFC):
+                    valid_count += 1
+                    leads.add(b)
+                    # Lead is always > 0x7F; trail may or may not be
+                    mb += 1
+                    if trail > 0x7F:
+                        mb += 1
+                    i += 2
+                    continue
+            i += 1
+        else:
+            i += 1
+    ratio = valid_count / lead_count if lead_count > 0 else 0.0
+    return ratio, mb, len(leads)
+
+
+def _analyze_cp932(
+    data: bytes,
+) -> tuple[float, int, int]:
+    """Single-pass CP932 structural analysis.
+
+    Lead bytes: 0x81-0x9F, 0xE0-0xFC
+    Trail bytes: 0x40-0x7E, 0x80-0xFC
+
+    Extends Shift_JIS by raising the lead byte ceiling from 0xEF to 0xFC,
+    covering IBM vendor-defined characters (NEC-selected, IBM extensions).
+
+    Returns (pair_ratio, mb_bytes, lead_diversity).
+    """
+    lead_count = 0
+    valid_count = 0
+    mb = 0
+    leads: set[int] = set()
+    i = 0
+    length = len(data)
+    while i < length:
+        b = data[i]
+        if (0x81 <= b <= 0x9F) or (0xE0 <= b <= 0xFC):
             lead_count += 1
             if i + 1 < length:
                 trail = data[i + 1]
@@ -127,7 +168,7 @@ def _analyze_euc_jp(
 def _analyze_euc_kr(
     data: bytes,
 ) -> tuple[float, int, int]:
-    """Single-pass EUC-KR / CP949 structural analysis.
+    """Single-pass EUC-KR structural analysis.
 
     Lead 0xA1-0xFE; Trail 0xA1-0xFE
 
@@ -149,6 +190,52 @@ def _analyze_euc_kr(
                 mb += 2
                 i += 2
                 continue
+            i += 1
+        else:
+            i += 1
+    ratio = valid_count / lead_count if lead_count > 0 else 0.0
+    return ratio, mb, len(leads)
+
+
+def _analyze_cp949(
+    data: bytes,
+) -> tuple[float, int, int]:
+    """Single-pass CP949 (Unified Hangul Code) structural analysis.
+
+    Lead bytes: 0x81-0xC8, 0xCA-0xFD
+    Trail bytes: 0x41-0x5A, 0x61-0x7A, 0x81-0xFE
+
+    Extends EUC-KR by lowering the lead byte floor from 0xA1 to 0x81 and
+    adding ASCII letter trail ranges plus 0x81-0xA0.  0xC9 is not a valid
+    UHC lead byte.
+
+    Returns (pair_ratio, mb_bytes, lead_diversity).
+    """
+    lead_count = 0
+    valid_count = 0
+    mb = 0
+    leads: set[int] = set()
+    i = 0
+    length = len(data)
+    while i < length:
+        b = data[i]
+        if (0x81 <= b <= 0xC8) or (0xCA <= b <= 0xFD):
+            lead_count += 1
+            if i + 1 < length:
+                trail = data[i + 1]
+                if (
+                    (0x41 <= trail <= 0x5A)
+                    or (0x61 <= trail <= 0x7A)
+                    or (0x81 <= trail <= 0xFE)
+                ):
+                    valid_count += 1
+                    leads.add(b)
+                    if b > 0x7F:
+                        mb += 1
+                    if trail > 0x7F:
+                        mb += 1
+                    i += 2
+                    continue
             i += 1
         else:
             i += 1
@@ -242,6 +329,48 @@ def _analyze_big5(
     return ratio, mb, len(leads)
 
 
+def _analyze_big5hkscs(
+    data: bytes,
+) -> tuple[float, int, int]:
+    """Single-pass Big5-HKSCS structural analysis.
+
+    Lead bytes: 0x87-0xFE
+    Trail bytes: 0x40-0x7E, 0xA1-0xFE
+
+    Extends Big5 by lowering the lead byte floor from 0xA1 to 0x87 and
+    raising the ceiling from 0xF9 to 0xFE.  0x7F and 0x80-0xA0 are not
+    valid Big5/HKSCS trail bytes.
+
+    Returns (pair_ratio, mb_bytes, lead_diversity).
+    """
+    lead_count = 0
+    valid_count = 0
+    mb = 0
+    leads: set[int] = set()
+    i = 0
+    length = len(data)
+    while i < length:
+        b = data[i]
+        if 0x87 <= b <= 0xFE:
+            lead_count += 1
+            if i + 1 < length:
+                trail = data[i + 1]
+                if (0x40 <= trail <= 0x7E) or (0xA1 <= trail <= 0xFE):
+                    valid_count += 1
+                    leads.add(b)
+                    # Lead is always > 0x7F; trail may or may not be
+                    mb += 1
+                    if trail > 0x7F:
+                        mb += 1
+                    i += 2
+                    continue
+            i += 1
+        else:
+            i += 1
+    ratio = valid_count / lead_count if lead_count > 0 else 0.0
+    return ratio, mb, len(leads)
+
+
 def _analyze_johab(
     data: bytes,
 ) -> tuple[float, int, int]:
@@ -286,12 +415,12 @@ def _analyze_johab(
 
 _ANALYZERS: dict[str, Callable[[bytes], tuple[float, int, int]]] = {
     "shift_jis_2004": _analyze_shift_jis,
-    "cp932": _analyze_shift_jis,
+    "cp932": _analyze_cp932,
     "euc_jis_2004": _analyze_euc_jp,
     "euc_kr": _analyze_euc_kr,
-    "cp949": _analyze_euc_kr,
+    "cp949": _analyze_cp949,
     "gb18030": _analyze_gb18030,
-    "big5hkscs": _analyze_big5,
+    "big5hkscs": _analyze_big5hkscs,
     "johab": _analyze_johab,
 }
 
