@@ -336,3 +336,35 @@ def test_big5hkscs_mb_bytes_low_trail() -> None:
     high_trail = b"\x87\xa1"
     _, mb_high, _ = _analyze_big5hkscs(high_trail)
     assert mb_high == 2
+
+
+# ---------------------------------------------------------------------------
+# Lead byte at end of data (fallthrough coverage)
+# ---------------------------------------------------------------------------
+
+
+def test_cp932_lead_byte_at_end_of_data() -> None:
+    """CP932 lead byte at the very end of data should fall through."""
+    data = b"\xf0"
+    ratio, mb_bytes, diversity = _analyze_cp932(data)
+    assert ratio == 0.0
+    assert mb_bytes == 0
+    assert diversity == 0
+
+
+def test_cp949_lead_byte_at_end_of_data() -> None:
+    """CP949 lead byte at the very end of data should fall through."""
+    data = b"\x81"
+    ratio, mb_bytes, diversity = _analyze_cp949(data)
+    assert ratio == 0.0
+    assert mb_bytes == 0
+    assert diversity == 0
+
+
+def test_big5hkscs_lead_byte_at_end_of_data() -> None:
+    """Big5-HKSCS lead byte at the very end of data should fall through."""
+    data = b"\x87"
+    ratio, mb_bytes, diversity = _analyze_big5hkscs(data)
+    assert ratio == 0.0
+    assert mb_bytes == 0
+    assert diversity == 0

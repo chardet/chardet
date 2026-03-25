@@ -256,9 +256,7 @@ def _try_promote_markup_superset(
     superset_name = _MARKUP_SUPERSET_PROMOTIONS.get(markup_result.encoding)
     if superset_name is None or superset_name not in allowed:
         return markup_result
-    superset_info = REGISTRY.get(superset_name)
-    if superset_info is None:
-        return markup_result
+    superset_info = REGISTRY[superset_name]
     # Validate: superset must be able to decode the data
     try:
         data.decode(superset_name, errors="strict")

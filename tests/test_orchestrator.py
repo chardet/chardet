@@ -5,7 +5,7 @@ import pytest
 
 from chardet.enums import EncodingEra
 from chardet.pipeline import DetectionResult
-from chardet.pipeline.orchestrator import run_pipeline
+from chardet.pipeline.orchestrator import _try_promote_markup_superset, run_pipeline
 
 
 def test_empty_input():
@@ -104,6 +104,76 @@ def test_xml_charset_declaration():
     data = b'<?xml version="1.0" encoding="iso-8859-1"?><root>Hello</root>'
     result = run_pipeline(data, EncodingEra.ALL)
     assert result[0].encoding == "iso8859-1"
+
+
+# ---------------------------------------------------------------------------
+# Markup superset promotion
+# ---------------------------------------------------------------------------
+
+
+def test_markup_superset_promotion_shift_jis_to_cp932():
+    """Shift_JIS markup declaration should be promoted to CP932 when CP932-extended bytes are present."""
+    # XML declaring Shift_JIS but containing CP932-only lead byte 0xF0
+    data = (
+        b'<?xml version="1.0" encoding="Shift_JIS"?><root>'
+        + b"\xf0\x40" * 50
+        + b"</root>"
+    )
+    result = run_pipeline(data, EncodingEra.ALL)
+    assert result[0].encoding == "cp932"
+
+
+def test_markup_superset_no_promotion_when_no_extended_bytes():
+    """Shift_JIS markup declaration should NOT be promoted when data only uses standard Shift_JIS bytes."""
+    # Pure standard Shift_JIS range (0x81-0x9F, 0xE0-0xEF leads)
+    data = (
+        b'<?xml version="1.0" encoding="Shift_JIS"?><root>'
+        + b"\x82\xa0" * 50
+        + b"</root>"
+    )
+    result = run_pipeline(data, EncodingEra.ALL)
+    assert result[0].encoding == "shift_jis_2004"
+
+
+def test_markup_superset_no_promotion_for_non_promotable_encoding():
+    """Non-promotable markup declarations should pass through unchanged."""
+    data = b'<?xml version="1.0" encoding="iso-8859-1"?><root>Hello</root>'
+    result = run_pipeline(data, EncodingEra.ALL)
+    assert result[0].encoding == "iso8859-1"
+
+
+def test_markup_superset_promotion_respects_exclude():
+    """Superset promotion should not promote to an excluded encoding."""
+    data = (
+        b'<?xml version="1.0" encoding="Shift_JIS"?><root>'
+        + b"\xf0\x40" * 50
+        + b"</root>"
+    )
+    result = run_pipeline(
+        data,
+        EncodingEra.ALL,
+        exclude_encodings=frozenset({"cp932"}),
+    )
+    assert result[0].encoding == "shift_jis_2004"
+
+
+def test_markup_superset_promotion_none_encoding():
+    """_try_promote_markup_superset should pass through results with encoding=None."""
+    result = DetectionResult(None, 0.95, None, None)
+    allowed = frozenset({"cp932", "shift_jis_2004"})
+    assert _try_promote_markup_superset(b"", result, allowed) is result
+
+
+def test_markup_superset_no_promotion_when_superset_cant_decode():
+    """If superset can't decode the data, don't promote."""
+    # 0x85 0x40 is valid shift_jis_2004 but invalid cp932
+    data = (
+        b'<?xml version="1.0" encoding="Shift_JIS"?><root>'
+        + b"\x85\x40" * 50
+        + b"</root>"
+    )
+    result = run_pipeline(data, EncodingEra.ALL)
+    assert result[0].encoding == "shift_jis_2004"
 
 
 def test_max_bytes_truncation():
