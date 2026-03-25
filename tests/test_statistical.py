@@ -1,7 +1,10 @@
 # tests/test_statistical.py
 from __future__ import annotations
 
+import pytest
+
 from chardet.enums import EncodingEra
+from chardet.models import get_enc_index
 from chardet.pipeline import DetectionResult
 from chardet.pipeline.statistical import score_candidates
 from chardet.registry import get_candidates
@@ -44,11 +47,16 @@ def test_score_candidates_small_set_no_pool():
 
 def test_score_candidates_no_matching_model():
     """Candidates with no statistical model should return an empty list."""
-    # cp273 is an EBCDIC encoding with no bigram model in models.bin,
-    # so score_best_language returns 0.0 for it and it gets filtered out.
-    candidates = tuple(e for e in get_candidates(EncodingEra.ALL) if e.name == "cp273")
-    assert len(candidates) == 1
-    data = b"\xc1\xc2\xc3\xc4\xc5" * 10  # arbitrary EBCDIC-ish bytes
+    # Use an encoding that definitely has no bigram model by filtering to
+    # one that is not in the model index.  Structural encodings (ASCII,
+    # UTF-*) are detected earlier in the pipeline and never reach statistical
+    # scoring, but we can still test that score_candidates handles them.
+    index = get_enc_index()
+    no_model = [e for e in get_candidates(EncodingEra.ALL) if e.name not in index]
+    if not no_model:
+        pytest.skip("All candidates have models — cannot test no-model path")
+    candidates = (no_model[0],)
+    data = b"\xc1\xc2\xc3\xc4\xc5" * 10
     results = score_candidates(data, candidates)
     assert results == []
 
