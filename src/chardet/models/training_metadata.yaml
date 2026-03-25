@@ -1,4 +1,4 @@
-training_date: "2026-03-25T10:09:44Z"
+training_date: "2026-03-25T13:19:46Z"
 max_samples: 15000
 models:
   ar/cp1256:
@@ -15,7 +15,7 @@ models:
     language: ar
     encoding: cp720
     samples_used: 15000
-    bigram_entries: 1658
+    bigram_entries: 1670
     sources:
       culturax: 15000
       madlad400: 0
@@ -25,7 +25,7 @@ models:
     language: ar
     encoding: cp864
     samples_used: 15000
-    bigram_entries: 1383
+    bigram_entries: 1367
     sources:
       culturax: 15000
       madlad400: 0
@@ -1045,7 +1045,7 @@ models:
     language: fa
     encoding: cp1256
     samples_used: 15000
-    bigram_entries: 1416
+    bigram_entries: 1385
     sources:
       culturax: 15000
       madlad400: 0
@@ -1055,7 +1055,7 @@ models:
     language: fa
     encoding: cp720
     samples_used: 15000
-    bigram_entries: 1233
+    bigram_entries: 1240
     sources:
       culturax: 15000
       madlad400: 0
@@ -2255,7 +2255,7 @@ models:
     language: mk
     encoding: cp866
     samples_used: 15000
-    bigram_entries: 1373
+    bigram_entries: 1366
     sources:
       culturax: 15000
       madlad400: 0
@@ -3085,7 +3085,7 @@ models:
     language: sr
     encoding: cp866
     samples_used: 15000
-    bigram_entries: 1710
+    bigram_entries: 1696
     sources:
       culturax: 15000
       madlad400: 0
@@ -3395,7 +3395,7 @@ models:
     language: uk
     encoding: cp866
     samples_used: 15000
-    bigram_entries: 1824
+    bigram_entries: 1823
     sources:
       culturax: 15000
       madlad400: 0
