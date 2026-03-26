@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import struct
+import zlib
 from collections.abc import Callable
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -258,9 +259,58 @@ def test_deserialize_trailing_bytes_raises(tmp_models_path: Path) -> None:
     """File with trailing bytes after valid data should raise ValueError."""
     original = {"utf-8": {(65, 66): 200}}
     serialize_models(original, tmp_models_path)
-    # Append garbage bytes
+    # Append garbage bytes — zlib.decompress raises on trailing garbage
     tmp_models_path.write_bytes(tmp_models_path.read_bytes() + b"\xff\xff")
-    with pytest.raises(ValueError, match="trailing bytes"):
+    with pytest.raises(ValueError, match="Corrupt models file"):
+        deserialize_models(tmp_models_path)
+
+
+def test_serialize_v2_magic(tmp_models_path: Path) -> None:
+    """v2 format should start with CMD2 magic bytes."""
+    original = {"test/enc": {(65, 66): 200, (0xC3, 0xA4): 150}}
+    serialize_models(original, tmp_models_path)
+    data = tmp_models_path.read_bytes()
+    assert data[:4] == b"CMD2"
+
+
+def test_roundtrip_v2_multiple_encodings(tmp_models_path: Path) -> None:
+    """v2 serialize -> deserialize roundtrip with multiple encodings."""
+    original = {
+        "en/utf-8": {(65, 66): 200, (67, 68): 100},
+        "fr/iso-8859-1": {(0xE4, 0x20): 255},
+        "ja/shift_jis": {(0x82, 0xA0): 180, (0x83, 0x41): 90},
+    }
+    serialize_models(original, tmp_models_path)
+    loaded = deserialize_models(tmp_models_path)
+    assert loaded == original
+
+
+def test_deserialize_v2_corrupt_zlib(tmp_models_path: Path) -> None:
+    """Corrupt zlib data in v2 format should raise ValueError."""
+    name = b"test/enc"
+    header = b"CMD2"
+    header += struct.pack("!I", 1)
+    header += struct.pack("!I", len(name)) + name
+    header += struct.pack("!d", 0.0)
+    tmp_models_path.write_bytes(header + b"\xff\xff\xff")  # invalid zlib
+    with pytest.raises(ValueError, match="Corrupt models file"):
+        deserialize_models(tmp_models_path)
+
+
+def test_deserialize_v2_wrong_decompressed_size(tmp_models_path: Path) -> None:
+    """v2 with decompressed size != num_models * 65536 should raise ValueError."""
+    name = b"test/enc"
+    header = b"CMD2"
+    header += struct.pack("!I", 2)  # claim 2 models
+    header += struct.pack("!I", len(name)) + name
+    header += struct.pack("!d", 0.0)
+    name2 = b"test/enc2"
+    header += struct.pack("!I", len(name2)) + name2
+    header += struct.pack("!d", 0.0)
+    # Only 1 model's worth of data
+    blob = zlib.compress(bytes(65536), 9)
+    tmp_models_path.write_bytes(header + blob)
+    with pytest.raises(ValueError, match="decompressed size"):
         deserialize_models(tmp_models_path)
 
 

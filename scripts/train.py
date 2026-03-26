@@ -33,6 +33,7 @@ import shutil
 import signal
 import struct
 import time
+import zlib
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -155,7 +156,7 @@ def normalize_and_prune(
 def deserialize_models(
     input_path: Path,
 ) -> dict[str, dict[tuple[int, int], int]]:
-    """Load existing models from binary format."""
+    """Load existing models from binary format (v1 or v2)."""
     if not input_path.is_file():
         return {}
 
@@ -164,6 +165,16 @@ def deserialize_models(
     if not data:
         return {}
 
+    # Detect format version by magic bytes
+    if data[:4] == b"CMD2":
+        return _deserialize_v2(data)
+    return _deserialize_v1(data)
+
+
+def _deserialize_v1(
+    data: bytes,
+) -> dict[str, dict[tuple[int, int], int]]:
+    """Load models from v1 sparse binary format."""
     models: dict[str, dict[tuple[int, int], int]] = {}
     try:
         offset = 0
@@ -199,24 +210,99 @@ def deserialize_models(
     return models
 
 
+def _deserialize_v2(
+    data: bytes,
+) -> dict[str, dict[tuple[int, int], int]]:
+    """Load models from v2 dense zlib-compressed format."""
+    try:
+        offset = 4  # skip "CMD2" magic
+        (num_models,) = struct.unpack_from("!I", data, offset)
+        offset += 4
+
+        if num_models > 10_000:
+            msg = f"Corrupt models file: num_models={num_models} exceeds limit"
+            raise ValueError(msg)
+
+        names: list[str] = []
+        for _ in range(num_models):
+            (name_len,) = struct.unpack_from("!I", data, offset)
+            offset += 4
+            if name_len > 256:
+                msg = f"Corrupt models file: name_len={name_len} exceeds 256"
+                raise ValueError(msg)
+            name = data[offset : offset + name_len].decode("utf-8")
+            offset += name_len
+            offset += 8  # skip norm (float64), not needed for sparse dict output
+            names.append(name)
+
+        dobj = zlib.decompressobj()
+        blob = dobj.decompress(data[offset:])
+        if dobj.unused_data:
+            msg = f"Corrupt models file: {len(dobj.unused_data)} trailing bytes"
+            raise ValueError(msg)
+        expected_size = num_models * 65536
+        if len(blob) != expected_size:
+            msg = (
+                f"Corrupt models file: decompressed size {len(blob)} "
+                f"!= expected {expected_size}"
+            )
+            raise ValueError(msg)
+
+        models: dict[str, dict[tuple[int, int], int]] = {}
+        for i, name in enumerate(names):
+            base = i * 65536
+            bigrams: dict[tuple[int, int], int] = {}
+            for idx in range(65536):
+                weight = blob[base + idx]
+                if weight > 0:
+                    bigrams[(idx >> 8, idx & 0xFF)] = weight
+            models[name] = bigrams
+
+    except zlib.error as e:
+        msg = f"Corrupt models file: {e}"
+        raise ValueError(msg) from e
+    except (struct.error, UnicodeDecodeError) as e:
+        msg = f"Corrupt models file: {e}"
+        raise ValueError(msg) from e
+
+    return models
+
+
 def serialize_models(
     models: dict[str, dict[tuple[int, int], int]],
     output_path: Path,
 ) -> int:
-    """Serialize all models to binary format. Returns file size."""
+    """Serialize all models to v2 binary format (dense + zlib). Returns file size."""
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    with output_path.open("wb") as f:
-        # Number of encodings
-        f.write(struct.pack("!I", len(models)))
+    sorted_names = sorted(models.keys())
 
-        for name, bigrams in sorted(models.items()):
-            name_bytes = name.encode("utf-8")
-            f.write(struct.pack("!I", len(name_bytes)))
-            f.write(name_bytes)
-            f.write(struct.pack("!I", len(bigrams)))
-            for (b1, b2), weight in sorted(bigrams.items()):
-                f.write(struct.pack("!BBB", b1, b2, weight))
+    # Build header: magic + num_models + per-model name and norm
+    header = b"CMD2"
+    header += struct.pack("!I", len(sorted_names))
+
+    tables = bytearray()
+    for name in sorted_names:
+        bigrams = models[name]
+        name_bytes = name.encode("utf-8")
+
+        # Expand sparse dict to dense 65536-byte table and compute L2 norm
+        table = bytearray(65536)
+        sq_sum = 0
+        for (b1, b2), weight in bigrams.items():
+            table[(b1 << 8) | b2] = weight
+            sq_sum += weight * weight
+        norm = math.sqrt(sq_sum)
+
+        header += struct.pack("!I", len(name_bytes)) + name_bytes
+        header += struct.pack("!d", norm)
+        tables.extend(table)
+
+    compressed = zlib.compress(bytes(tables), 9)
+
+    with output_path.open("wb") as f:
+        f.write(header)
+        f.write(compressed)
 
     return output_path.stat().st_size
 
