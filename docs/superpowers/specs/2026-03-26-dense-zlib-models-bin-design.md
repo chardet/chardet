@@ -19,6 +19,9 @@ Store models pre-expanded as dense 65536-byte tables, then zlib-compress the
 concatenated block. At load time: decompress (in C), slice via `memoryview` —
 no Python iteration.
 
+Norms are pre-computed at training time and stored in the header, eliminating
+L2 norm computation at load time.
+
 ### Benchmarked results
 
 | Metric | Current sparse | Dense + zlib-9 |
@@ -47,15 +50,9 @@ concatenated in the same order as the header entries.
 The `"CMD2"` magic distinguishes v2 from v1 (which starts with a uint32
 model count — never a valid ASCII string).
 
-### IDF embedding
-
-The IDF table (65536 bytes) is appended as an extra entry at the end of the
-compressed tables block, after all model tables. The header includes it as a
-model with a reserved name (`"__idf__"`) and norm 0.0. This eliminates the
-separate `idf.bin` file.
-
-On second thought — keeping `idf.bin` separate is simpler and the 0.1ms
-load cost is negligible. **Keep `idf.bin` as-is.**
+After decompression, validate that `len(blob) == num_models * 65536`.
+Catch `zlib.error` alongside existing `struct.error` / `UnicodeDecodeError`
+handling.
 
 ## Changes
 
@@ -65,11 +62,17 @@ Replace the current sparse writer with:
 
 1. Sort model names.
 2. For each model, expand the sparse `{(b1,b2): weight}` dict to a
-   65536-byte `bytes` table.
+   65536-byte `bytes` table, and compute the L2 norm.
 3. Concatenate all tables into one buffer.
 4. zlib-compress the buffer at level 9.
 5. Write the v2 header (magic, model count, names + norms), then the
    compressed blob.
+
+### `scripts/train.py` — `deserialize_models()`
+
+Update to handle both v1 and v2 formats (magic-byte sniffing). The
+incremental retraining path (`--encodings`) loads existing models via
+`deserialize_models()`, so it must read v2 files.
 
 ### `src/chardet/models/__init__.py` — `_parse_models_bin()`
 
@@ -79,12 +82,18 @@ Replace the current sparse parser with:
    (for development workflows where someone has an old `models.bin`).
 2. Read model names and norms from the header.
 3. `zlib.decompress()` the compressed blob.
-4. `memoryview`-slice the decompressed buffer into per-model views.
-5. Return `dict[str, memoryview]` for models and `dict[str, float]` for norms.
+4. Validate decompressed size equals `num_models * 65536`.
+5. `memoryview`-slice the decompressed buffer into per-model views.
+6. Return `dict[str, memoryview]` for models and `dict[str, float]` for norms.
+
+The decompressed `bytes` object is stored as a module-level cached reference
+via `_load_models_data()` (decorated with `@functools.cache`), ensuring all
+`memoryview` slices remain valid for the process lifetime.
 
 ### Type annotation updates
 
-`bytearray` → `bytes | memoryview` in model-related signatures:
+The v2 parser returns `memoryview` slices; the v1 fallback returns
+`bytearray`. Use `bytearray | memoryview` in model-related signatures:
 
 - `_parse_models_bin()` return type
 - `_load_models_data()` return type
@@ -92,7 +101,8 @@ Replace the current sparse parser with:
 - `_build_enc_index()` parameter and return types
 - `get_enc_index()` return type
 - `score_with_profile()` `model` parameter
-- `_best_variant_score()` in `confusion.py`
+- `_best_variant_score()` in `confusion.py` — both the `model` parameter
+  (via the tuple type) and the `index` parameter type
 
 All three types (`bytearray`, `bytes`, `memoryview`) support integer indexing
 identically, so no scoring logic changes are needed. Benchmarked: no speed
@@ -109,8 +119,10 @@ The fallback can be removed in a future release.
 ## Testing
 
 - Existing unit tests and accuracy tests validate correctness end-to-end.
-- Add a focused test that round-trips: serialize → load → verify models
-  match the training input.
+- Add a focused test that round-trips: serialize → load → verify model keys
+  match, all 65536 bytes per model are identical, and norms match to float
+  precision.
+- Test the v1 fallback path explicitly.
 - Run `compare_detectors.py --mypyc` to confirm accuracy is unchanged and
   first-detection time drops.
 
