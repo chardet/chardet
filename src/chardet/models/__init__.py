@@ -69,6 +69,10 @@ def _parse_models_bin_v2(
             names.append(name)
             norms[name] = norm
 
+        # zlib.decompress is faster than decompressobj; trailing bytes are
+        # unlikely in bundled data and would not affect correctness since we
+        # validate decompressed size.  train.py uses decompressobj for
+        # stricter checking during model generation.
         blob = zlib.decompress(data[offset:])
         expected_size = num_models * 65536
         if len(blob) != expected_size:
@@ -284,6 +288,9 @@ class BigramProfile:
         """
         total_bigrams = len(data) - 1
         if total_bigrams <= 0:
+            # Use empty lists (not [0]*65536) to avoid a 256KB allocation
+            # for no-op profiles.  Safe because score_with_profile returns
+            # early when input_norm == 0.0, so freq is never indexed.
             self.freq: list[int] = []
             self.nonzero: list[int] = []
             self.weight_sum: int = 0
