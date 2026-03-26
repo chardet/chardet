@@ -61,6 +61,15 @@ def test_big5_scores_high_on_big5_data(pipe_ctx: PipelineContext) -> None:
     assert score > 0.7
 
 
+def test_big5_trailing_lead_byte() -> None:
+    """Big5 data ending with a lone lead byte should not crash."""
+    # 你好 in Big5 = A740 A861, then append a lone lead byte 0xA5
+    data = "你好".encode("big5") + b"\xa5"
+    ratio, mb, _diversity = _analyze_big5(data)
+    assert ratio > 0.0
+    assert mb > 0
+
+
 def test_single_byte_encoding_returns_zero(pipe_ctx: PipelineContext) -> None:
     data = b"Hello world"
     score = compute_structural_score(data, REGISTRY["iso8859-1"], pipe_ctx)
