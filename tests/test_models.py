@@ -100,7 +100,7 @@ def test_score_best_language_high_byte_weighting() -> None:
 def test_bigram_profile_empty() -> None:
     p = BigramProfile(b"")
     assert p.weight_sum == 0
-    assert len(p.weighted_freq) == 0
+    assert len(p.nonzero) == 0
 
 
 def test_bigram_profile_single_byte() -> None:

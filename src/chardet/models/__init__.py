@@ -264,13 +264,14 @@ class BigramProfile:
     Computing this once and reusing it across all models reduces per-model
     scoring from O(n) to O(distinct_bigrams).
 
-    Stores a single ``weighted_freq`` dict mapping bigram index to
-    *count * idf_weight*.  Each bigram is weighted by its IDF (inverse
-    document frequency) across all models — bigrams unique to few models
-    get high weight, bigrams common to all models get weight 1.
+    Stores a dense ``freq`` list of length 65536 indexed by bigram index, plus
+    a ``nonzero`` list of indices with non-zero frequency for fast iteration.
+    Each bigram is weighted by its IDF (inverse document frequency) across all
+    models — bigrams unique to few models get high weight, bigrams common to
+    all models get weight 1.
     """
 
-    __slots__ = ("input_norm", "weight_sum", "weighted_freq")
+    __slots__ = ("freq", "input_norm", "nonzero", "weight_sum")
 
     def __init__(self, data: bytes) -> None:
         """Compute the bigram frequency distribution for *data*.
@@ -283,36 +284,51 @@ class BigramProfile:
         """
         total_bigrams = len(data) - 1
         if total_bigrams <= 0:
-            self.weighted_freq: dict[int, int] = {}
+            self.freq: list[int] = []
+            self.nonzero: list[int] = []
             self.weight_sum: int = 0
             self.input_norm: float = 0.0
             return
 
         idf = get_idf_weights()
-        freq: dict[int, int] = {}
+        freq: list[int] = [0] * 65536
+        nonzero: list[int] = []
         w_sum = 0
-        _get = freq.get
         for i in range(total_bigrams):
             idx = (data[i] << 8) | data[i + 1]
             w = idf[idx]
-            freq[idx] = _get(idx, 0) + w
+            if freq[idx] == 0:
+                nonzero.append(idx)
+            freq[idx] += w
             w_sum += w
-        self.weighted_freq = freq
+        self.freq = freq
+        self.nonzero = nonzero
         self.weight_sum = w_sum
-        self.input_norm = math.sqrt(sum(v * v for v in freq.values()))
+        norm_sq = 0
+        for idx in nonzero:
+            v = freq[idx]
+            norm_sq += v * v
+        self.input_norm = math.sqrt(norm_sq)
 
     @classmethod
     def from_weighted_freq(cls, weighted_freq: dict[int, int]) -> "BigramProfile":
         """Create a BigramProfile from pre-computed weighted frequencies.
 
         Computes ``weight_sum`` and ``input_norm`` from *weighted_freq* to
-        ensure consistency between the three fields.
+        ensure consistency between the stored fields.
 
         :param weighted_freq: Mapping of bigram index to weighted count.
         :returns: A new :class:`BigramProfile` instance.
         """
         profile = cls(b"")
-        profile.weighted_freq = weighted_freq
+        freq: list[int] = [0] * 65536
+        nonzero: list[int] = []
+        for idx, count in weighted_freq.items():
+            freq[idx] = count
+            if count:
+                nonzero.append(idx)
+        profile.freq = freq
+        profile.nonzero = nonzero
         profile.weight_sum = sum(weighted_freq.values())
         profile.input_norm = math.sqrt(sum(v * v for v in weighted_freq.values()))
         return profile
@@ -336,8 +352,9 @@ def score_with_profile(
     if model_norm == 0.0:
         return 0.0
     dot = 0
-    for idx, wcount in profile.weighted_freq.items():
-        dot += model[idx] * wcount
+    freq = profile.freq
+    for idx in profile.nonzero:
+        dot += model[idx] * freq[idx]
     return dot / (model_norm * profile.input_norm)
 
 
