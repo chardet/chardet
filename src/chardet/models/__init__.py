@@ -15,9 +15,8 @@ import zlib
 from chardet.registry import REGISTRY, lookup_encoding
 
 _unpack_uint32 = struct.Struct(">I").unpack_from
-_iter_3bytes = struct.Struct(">BBB").iter_unpack
-_V2_MAGIC = b"CMD2"
 _unpack_float64 = struct.Struct(">d").unpack_from
+_V2_MAGIC = b"CMD2"
 
 # Encodings that map to exactly one language, derived from the registry.
 # Keyed by canonical name only — callers always use canonical names.
@@ -29,23 +28,18 @@ for _enc in REGISTRY.values():
 
 def _parse_models_bin(
     data: bytes,
-) -> tuple[dict[str, bytearray | memoryview], dict[str, float]]:
-    """Parse models.bin (v1 or v2) into model tables and L2 norms.
+) -> tuple[dict[str, memoryview], dict[str, float]]:
+    """Parse the v2 dense zlib-compressed models.bin format.
 
     :param data: Raw bytes of models.bin (must be non-empty).
     :returns: A ``(models, norms)`` tuple.
     :raises ValueError: If the data is corrupt or truncated.
     """
-    if data[:4] == _V2_MAGIC:
-        return _parse_models_bin_v2(data)
-    return _parse_models_bin_v1(data)
-
-
-def _parse_models_bin_v2(
-    data: bytes,
-) -> tuple[dict[str, bytearray | memoryview], dict[str, float]]:
-    """Parse v2 dense zlib-compressed format."""
     try:
+        if data[:4] != _V2_MAGIC:
+            msg = "corrupt models.bin: missing CMD2 magic"
+            raise ValueError(msg)
+
         offset = 4  # skip magic
         (num_models,) = _unpack_uint32(data, offset)
         offset += 4
@@ -85,7 +79,7 @@ def _parse_models_bin_v2(
         # memoryview slices avoid copies; the blob bytes object is kept
         # alive by the functools.cache on _load_models_data().
         mv = memoryview(blob)
-        models: dict[str, bytearray | memoryview] = {}
+        models: dict[str, memoryview] = {}
         for i, name in enumerate(names):
             start = i * 65536
             models[name] = mv[start : start + 65536]
@@ -100,60 +94,8 @@ def _parse_models_bin_v2(
     return models, norms
 
 
-def _parse_models_bin_v1(
-    data: bytes,
-) -> tuple[dict[str, bytearray | memoryview], dict[str, float]]:
-    """Parse v1 sparse format (backward compatibility)."""
-    models: dict[str, bytearray | memoryview] = {}
-    norms: dict[str, float] = {}
-    _sqrt = math.sqrt
-    _unpack_u32 = _unpack_uint32
-    _iter_bbb = _iter_3bytes
-    try:
-        offset = 0
-        (num_encodings,) = _unpack_u32(data, offset)
-        offset += 4
-
-        if num_encodings > 10_000:
-            msg = f"corrupt models.bin: num_encodings={num_encodings} exceeds limit"
-            raise ValueError(msg)
-
-        for _ in range(num_encodings):
-            (name_len,) = _unpack_u32(data, offset)
-            offset += 4
-            if name_len > 256:
-                msg = f"corrupt models.bin: name_len={name_len} exceeds 256"
-                raise ValueError(msg)
-            name = data[offset : offset + name_len].decode("utf-8")
-            offset += name_len
-            (num_entries,) = _unpack_u32(data, offset)
-            offset += 4
-            if num_entries > 65536:
-                msg = f"corrupt models.bin: num_entries={num_entries} exceeds 65536"
-                raise ValueError(msg)
-
-            table = bytearray(65536)
-            sq_sum = 0
-            expected_bytes = num_entries * 3
-            chunk = data[offset : offset + expected_bytes]
-            if len(chunk) != expected_bytes:
-                msg = f"corrupt models.bin: truncated entry data for {name!r}"
-                raise ValueError(msg)
-            offset += expected_bytes
-            for b1, b2, weight in _iter_bbb(chunk):
-                table[(b1 << 8) | b2] = weight
-                sq_sum += weight * weight
-            models[name] = table
-            norms[name] = _sqrt(sq_sum)
-    except (struct.error, UnicodeDecodeError) as e:
-        msg = f"corrupt models.bin: {e}"
-        raise ValueError(msg) from e
-
-    return models, norms
-
-
 @functools.cache
-def _load_models_data() -> tuple[dict[str, bytearray | memoryview], dict[str, float]]:
+def _load_models_data() -> tuple[dict[str, memoryview], dict[str, float]]:
     """Load and parse models.bin, returning (models, norms).
 
     Cached: only reads from disk on first call.
@@ -173,10 +115,10 @@ def _load_models_data() -> tuple[dict[str, bytearray | memoryview], dict[str, fl
     return _parse_models_bin(data)
 
 
-def load_models() -> dict[str, bytearray | memoryview]:
+def load_models() -> dict[str, memoryview]:
     """Load all bigram models from the bundled models.bin file.
 
-    Each model is a bytearray or memoryview of length 65536 (256*256).
+    Each model is a memoryview of length 65536 (256*256).
     Index: (b1 << 8) | b2 -> weight (0-255).
 
     :returns: A dict mapping model key strings to 65536-byte lookup tables.
@@ -185,14 +127,14 @@ def load_models() -> dict[str, bytearray | memoryview]:
 
 
 def _build_enc_index(
-    models: dict[str, bytearray | memoryview],
-) -> dict[str, list[tuple[str | None, bytearray | memoryview, str]]]:
+    models: dict[str, memoryview],
+) -> dict[str, list[tuple[str | None, memoryview, str]]]:
     """Build a grouped index from a models dict.
 
     :param models: Mapping of ``"lang/encoding"`` keys to 65536-byte tables.
     :returns: Mapping of encoding name to ``[(lang, model, model_key), ...]``.
     """
-    index: dict[str, list[tuple[str | None, bytearray | memoryview, str]]] = {}
+    index: dict[str, list[tuple[str | None, memoryview, str]]] = {}
     for key, model in models.items():
         lang, enc = key.split("/", 1)
         index.setdefault(enc, []).append((lang, model, key))
@@ -208,7 +150,7 @@ def _build_enc_index(
 
 
 @functools.cache
-def get_enc_index() -> dict[str, list[tuple[str | None, bytearray | memoryview, str]]]:
+def get_enc_index() -> dict[str, list[tuple[str | None, memoryview, str]]]:
     """Return a pre-grouped index mapping encoding name -> [(lang, model, model_key), ...]."""
     return _build_enc_index(load_models())
 

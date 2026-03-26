@@ -119,6 +119,29 @@ def test_bigram_profile_high_byte_weight() -> None:
     assert p.weight_sum >= 1
 
 
+def test_get_idf_weights_wrong_size() -> None:
+    """idf.bin with wrong size should warn and return uniform weights."""
+    import chardet.models as mod  # noqa: PLC0415
+
+    mod.get_idf_weights.cache_clear()
+    mock_ref = MagicMock()
+    mock_ref.read_bytes.return_value = b"\x42" * 100  # wrong size
+
+    with (
+        patch.object(
+            mod.importlib.resources,
+            "files",
+            return_value=MagicMock(joinpath=MagicMock(return_value=mock_ref)),
+        ),
+        pytest.warns(RuntimeWarning, match="idf.bin has wrong size"),
+    ):
+        result = mod.get_idf_weights()
+
+    assert len(result) == 65536
+    assert all(b == 1 for b in result)
+    mod.get_idf_weights.cache_clear()
+
+
 # ---------------------------------------------------------------------------
 # Model coverage: every test-data encoding-language pair needs a model
 # ---------------------------------------------------------------------------
@@ -364,67 +387,54 @@ def test_load_models_empty_file(mock_models_bin: Callable[[bytes], None]) -> Non
     assert result == {}
 
 
-def test_load_models_num_encodings_exceeds_limit(
-    mock_models_bin: Callable[[bytes], None],
-) -> None:
-    """num_encodings > 10000 should raise ValueError."""
-    mock_models_bin(struct.pack("!I", 10001))
-    with pytest.raises(ValueError, match="num_encodings=10001 exceeds limit"):
+def test_load_models_missing_magic(mock_models_bin: Callable[[bytes], None]) -> None:
+    """Data without CMD2 magic should raise ValueError."""
+    mock_models_bin(struct.pack("!I", 1))
+    with pytest.raises(ValueError, match="missing CMD2 magic"):
         load_models()
 
 
-def test_load_models_name_len_exceeds_limit(
+def test_load_models_v2_num_models_exceeds_limit(
     mock_models_bin: Callable[[bytes], None],
 ) -> None:
-    """name_len > 256 should raise ValueError."""
-    data = struct.pack("!I", 1)  # num_encodings=1
+    """v2 num_models > 10000 should raise ValueError."""
+    data = b"CMD2" + struct.pack("!I", 10001)
+    mock_models_bin(data)
+    with pytest.raises(ValueError, match="num_models=10001 exceeds limit"):
+        load_models()
+
+
+def test_load_models_v2_name_len_exceeds_limit(
+    mock_models_bin: Callable[[bytes], None],
+) -> None:
+    """v2 name_len > 256 should raise ValueError."""
+    data = b"CMD2"
+    data += struct.pack("!I", 1)  # num_models=1
     data += struct.pack("!I", 300)  # name_len=300
     mock_models_bin(data)
     with pytest.raises(ValueError, match="name_len=300 exceeds 256"):
         load_models()
 
 
-def test_load_models_num_entries_exceeds_limit(
+def test_load_models_v2_truncated_header(
     mock_models_bin: Callable[[bytes], None],
 ) -> None:
-    """num_entries > 65536 should raise ValueError."""
-    name = b"test/enc"
-    data = struct.pack("!I", 1)  # num_encodings=1
-    data += struct.pack("!I", len(name)) + name  # name
-    data += struct.pack("!I", 70000)  # num_entries=70000
-    mock_models_bin(data)
-    with pytest.raises(ValueError, match="num_entries=70000 exceeds 65536"):
-        load_models()
-
-
-def test_load_models_truncated_data(mock_models_bin: Callable[[bytes], None]) -> None:
-    """Truncated model data should raise ValueError."""
-    name = b"test/enc"
-    data = struct.pack("!I", 1)  # num_encodings=1
-    data += struct.pack("!I", len(name)) + name  # name
-    data += struct.pack("!I", 2)  # num_entries=2
-    data += struct.pack("!BBB", 65, 66, 200)  # entry 1 (valid)
-    # entry 2 is missing — truncated
+    """v2 data truncated mid-header should raise ValueError."""
+    # CMD2 + num_models=1 but no name/norm data
+    data = b"CMD2" + struct.pack("!I", 1)
     mock_models_bin(data)
     with pytest.raises(ValueError, match=r"corrupt models\.bin"):
         load_models()
 
 
-def test_load_models_truncated_header(mock_models_bin: Callable[[bytes], None]) -> None:
-    """Data truncated mid-header should raise ValueError (struct.error wrapped)."""
-    # num_encodings=1 but no more data — struct.unpack_from will fail
-    mock_models_bin(struct.pack("!I", 1))
-    with pytest.raises(ValueError, match=r"corrupt models\.bin"):
-        load_models()
-
-
-def test_load_models_invalid_utf8_name(
+def test_load_models_v2_invalid_utf8_name(
     mock_models_bin: Callable[[bytes], None],
 ) -> None:
-    """Invalid UTF-8 in model name should raise ValueError (UnicodeDecodeError wrapped)."""
-    invalid_name = b"\xff\xfe"  # not valid UTF-8
-    data = struct.pack("!I", 1)  # num_encodings=1
-    data += struct.pack("!I", len(invalid_name)) + invalid_name  # name
+    """v2 with invalid UTF-8 in model name should raise ValueError."""
+    invalid_name = b"\xff\xfe"
+    data = b"CMD2"
+    data += struct.pack("!I", 1)  # num_models=1
+    data += struct.pack("!I", len(invalid_name)) + invalid_name
     mock_models_bin(data)
     with pytest.raises(ValueError, match=r"corrupt models\.bin"):
         load_models()
