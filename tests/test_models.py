@@ -430,6 +430,61 @@ def test_load_models_invalid_utf8_name(
         load_models()
 
 
+def test_load_models_v2_format(
+    mock_models_bin: Callable[[bytes], None],
+) -> None:
+    """v2 format should load via _parse_models_bin and produce correct tables."""
+    # Build a minimal v2 file with one model
+    name = b"fr/cp1252"
+    table = bytearray(65536)
+    table[(0xE9 << 8) | 0x20] = 200  # é followed by space
+    table[(0x6C << 8) | 0x65] = 50  # "le"
+    sq_sum = 200 * 200 + 50 * 50
+    norm = sq_sum**0.5
+
+    header = b"CMD2"
+    header += struct.pack("!I", 1)  # num_models
+    header += struct.pack("!I", len(name)) + name
+    header += struct.pack("!d", norm)
+    compressed = zlib.compress(bytes(table), 9)
+
+    mock_models_bin(header + compressed)
+    models = load_models()
+    assert "fr/cp1252" in models
+    assert models["fr/cp1252"][(0xE9 << 8) | 0x20] == 200
+    assert models["fr/cp1252"][(0x6C << 8) | 0x65] == 50
+
+
+def test_load_models_v2_corrupt_zlib(
+    mock_models_bin: Callable[[bytes], None],
+) -> None:
+    """Corrupt zlib data in v2 should raise ValueError."""
+    name = b"test/enc"
+    header = b"CMD2"
+    header += struct.pack("!I", 1)
+    header += struct.pack("!I", len(name)) + name
+    header += struct.pack("!d", 0.0)
+    mock_models_bin(header + b"\xff\xff\xff")
+    with pytest.raises(ValueError, match=r"corrupt models\.bin"):
+        load_models()
+
+
+def test_load_models_v2_wrong_decompressed_size(
+    mock_models_bin: Callable[[bytes], None],
+) -> None:
+    """v2 with wrong decompressed size should raise ValueError."""
+    header = b"CMD2"
+    header += struct.pack("!I", 2)  # claim 2 models
+    for name in [b"a/enc1", b"b/enc2"]:
+        header += struct.pack("!I", len(name)) + name
+        header += struct.pack("!d", 0.0)
+    # Only 1 model's worth of data
+    blob = zlib.compress(bytes(65536), 9)
+    mock_models_bin(header + blob)
+    with pytest.raises(ValueError, match="decompressed size"):
+        load_models()
+
+
 def test_score_with_profile_fallback_norm():
     """score_with_profile with empty model_key should compute norm on the fly."""
     from chardet.models import BigramProfile, score_with_profile  # noqa: PLC0415
