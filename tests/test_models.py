@@ -316,7 +316,7 @@ def test_deserialize_v2_wrong_decompressed_size(tmp_models_path: Path) -> None:
 
 def test_roundtrip_matches_load_models(tmp_path: Path) -> None:
     """The production models.bin should roundtrip through serialize/deserialize."""
-    production_tables = load_models()  # dict[str, bytearray]
+    production_tables = load_models()  # dict[str, bytearray | memoryview]
     # Convert bytearray tables back to dict format for serialize/deserialize roundtrip
     production_dicts: dict[str, dict[tuple[int, int], int]] = {}
     for name, table in production_tables.items():
