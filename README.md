@@ -8,7 +8,7 @@ Universal character encoding detector.
 
 chardet 7 is a ground-up, 0BSD-licensed rewrite of [chardet](https://github.com/chardet/chardet).
 Same package name, same public API — drop-in replacement for chardet 5.x/6.x, just much faster and more accurate.
-Python 3.10+, zero runtime dependencies, works on PyPy. 
+Python 3.10+, zero runtime dependencies, works on PyPy.
 
 [Read more details about the rewrite process.](https://dan-blanchard.github.io/blog/chardet-rewrite-controversy/)
 
