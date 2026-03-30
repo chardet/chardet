@@ -5,6 +5,8 @@ from __future__ import annotations
 import importlib
 from pathlib import Path
 
+import pytest
+
 from chardet._pyinstaller import get_hook_dirs
 
 
@@ -18,9 +20,12 @@ def test_get_hook_dirs_returns_package_directory() -> None:
 
 
 def test_hook_chardet_hidden_imports() -> None:
-    """The hook module should expose a hiddenimports list with chardet submodules."""
+    """The hook module should expose hiddenimports and datas."""
+    pytest.importorskip("PyInstaller")
     hook = importlib.import_module("chardet._pyinstaller.hook-chardet")
     assert hasattr(hook, "hiddenimports")
     assert isinstance(hook.hiddenimports, list)
     assert "chardet.pipeline.orchestrator" in hook.hiddenimports
     assert "chardet.models" in hook.hiddenimports
+    assert hasattr(hook, "datas")
+    assert isinstance(hook.datas, list)

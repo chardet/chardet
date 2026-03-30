@@ -1,16 +1,20 @@
 """PyInstaller hook for chardet.
 
-When chardet is built with mypyc (``HATCH_BUILD_HOOK_ENABLE_MYPYC=true``), the
-compiled modules depend on a shared runtime library whose name contains a hash
-(e.g. ``4ef79d6367bb14396397__mypyc``).  PyInstaller cannot detect this import
-automatically, so this hook collects the shared library and adds it as a hidden
-import.
+Ensures that chardet's data files (``models.bin``) and all submodules are
+bundled correctly.  When chardet is built with mypyc, the compiled modules
+also depend on a shared runtime library whose name contains a hash
+(e.g. ``4ef79d6367bb14396397__mypyc``); this hook collects that as well.
 """
 
 from __future__ import annotations
 
 import importlib.util
 from pathlib import Path
+
+from PyInstaller.utils.hooks import collect_data_files  # ty: ignore[unresolved-import]
+
+# Bundle non-Python data files (e.g. models/models.bin).
+datas = collect_data_files("chardet")
 
 # Collect all chardet submodules so nothing is missed.
 hiddenimports = [
