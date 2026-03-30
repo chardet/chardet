@@ -35,13 +35,13 @@ hiddenimports = [
 def _find_mypyc_hidden_imports() -> list[str]:
     """Discover mypyc runtime modules (``*__mypyc``) inside the chardet package."""
     spec = importlib.util.find_spec("chardet")
-    if spec is None or spec.origin is None:
+    if spec is None or spec.origin is None:  # pragma: no cover
         return []
 
     pkg_dir = Path(spec.origin).parent
     imports: list[str] = []
     for p in pkg_dir.rglob("*__mypyc*"):
-        if p.suffix in (".so", ".pyd") and p.is_file():
+        if p.suffix in (".so", ".pyd") and p.is_file():  # pragma: no cover
             # The module name is the stem up to the first dot
             # (e.g. "4ef79d6367bb14396397__mypyc.cpython-310-x86_64-linux-gnu"
             #  -> "4ef79d6367bb14396397__mypyc")
