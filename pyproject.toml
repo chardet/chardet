@@ -206,6 +206,7 @@ indent-style = "space"
 
 [tool.coverage.run]
 source = ["src/chardet"]
+omit = ["src/chardet/_pyinstaller/*"]
 
 [tool.coverage.report]
 fail_under = 95
