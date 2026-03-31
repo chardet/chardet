@@ -38,9 +38,6 @@ Changelog = "https://chardet.readthedocs.io/en/latest/changelog.html"
 [project.scripts]
 chardetect = "chardet.cli:main"
 
-[project.entry-points.pyinstaller40]
-hook-dirs = "chardet._pyinstaller:get_hook_dirs"
-
 [build-system]
 requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
@@ -180,9 +177,6 @@ ignore = [
     "INP001",  # not a package
     "A001",    # copyright shadows builtin
 ]
-# PyInstaller hooks use hyphenated names (hook-chardet.py) — not valid Python
-# module names, but required by the PyInstaller hook protocol.
-"src/chardet/_pyinstaller/hook-chardet.py" = ["N999", "D100"]
 # mypyc-compiled modules cannot use `from __future__ import annotations`
 "src/chardet/models/__init__.py" = ["FA100"]
 "src/chardet/pipeline/structural.py" = ["FA100"]
@@ -206,7 +200,6 @@ indent-style = "space"
 
 [tool.coverage.run]
 source = ["src/chardet"]
-omit = ["src/chardet/_pyinstaller/*"]
 
 [tool.coverage.report]
 fail_under = 95
