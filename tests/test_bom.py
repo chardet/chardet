@@ -14,25 +14,25 @@ def test_utf8_bom():
 def test_utf16_le_bom():
     data = b"\xff\xfeH\x00e\x00l\x00l\x00o\x00"
     result = detect_bom(data)
-    assert result == DetectionResult("utf-16-le", 1.0, None)
+    assert result == DetectionResult("utf-16", 1.0, None)
 
 
 def test_utf16_be_bom():
     data = b"\xfe\xff\x00H\x00e\x00l\x00l\x00o"
     result = detect_bom(data)
-    assert result == DetectionResult("utf-16-be", 1.0, None)
+    assert result == DetectionResult("utf-16", 1.0, None)
 
 
 def test_utf32_le_bom():
     data = b"\xff\xfe\x00\x00" + b"\x48\x00\x00\x00"
     result = detect_bom(data)
-    assert result == DetectionResult("utf-32-le", 1.0, None)
+    assert result == DetectionResult("utf-32", 1.0, None)
 
 
 def test_utf32_be_bom():
     data = b"\x00\x00\xfe\xff" + b"\x00\x00\x00\x48"
     result = detect_bom(data)
-    assert result == DetectionResult("utf-32-be", 1.0, None)
+    assert result == DetectionResult("utf-32", 1.0, None)
 
 
 def test_no_bom():
@@ -55,14 +55,14 @@ def test_utf32_le_checked_before_utf16_le():
     data = b"\xff\xfe\x00\x00" + b"\x48\x00\x00\x00"
     result = detect_bom(data)
     assert result is not None
-    assert result.encoding == "utf-32-le"
+    assert result.encoding == "utf-32"
 
 
 def test_utf32_le_bom_only():
     # Bare UTF-32-LE BOM with no payload is valid (0 % 4 == 0)
     result = detect_bom(b"\xff\xfe\x00\x00")
     assert result is not None
-    assert result.encoding == "utf-32-le"
+    assert result.encoding == "utf-32"
 
 
 def test_utf32_le_bom_falls_through_to_utf16_when_payload_not_aligned():
@@ -72,7 +72,7 @@ def test_utf32_le_bom_falls_through_to_utf16_when_payload_not_aligned():
     data = b"\xff\xfe\x00\x000\x00"
     result = detect_bom(data)
     assert result is not None
-    assert result.encoding == "utf-16-le"
+    assert result.encoding == "utf-16"
 
 
 def test_utf32_be_bom_falls_through_when_payload_not_aligned():

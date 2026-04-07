@@ -7,11 +7,11 @@ from chardet.pipeline import DetectionResult
 # Ordered longest-first so UTF-32 is checked before UTF-16
 # (UTF-32-LE BOM starts with the same bytes as UTF-16-LE BOM)
 _BOMS: tuple[tuple[bytes, str], ...] = (
-    (b"\x00\x00\xfe\xff", "utf-32-be"),
-    (b"\xff\xfe\x00\x00", "utf-32-le"),
+    (b"\x00\x00\xfe\xff", "utf-32"),
+    (b"\xff\xfe\x00\x00", "utf-32"),
     (b"\xef\xbb\xbf", "utf-8-sig"),
-    (b"\xfe\xff", "utf-16-be"),
-    (b"\xff\xfe", "utf-16-le"),
+    (b"\xfe\xff", "utf-16"),
+    (b"\xff\xfe", "utf-16"),
 )
 
 _UTF32_BOMS: frozenset[bytes] = frozenset({b"\x00\x00\xfe\xff", b"\xff\xfe\x00\x00"})

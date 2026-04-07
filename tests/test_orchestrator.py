@@ -23,28 +23,28 @@ def test_bom_detected():
 def test_bom_utf16_le():
     data = b"\xff\xfe" + "Hello world".encode("utf-16-le")
     result = run_pipeline(data, EncodingEra.ALL)
-    assert result[0].encoding == "utf-16-le"
+    assert result[0].encoding == "utf-16"
     assert result[0].confidence == 1.0
 
 
 def test_bom_utf16_be():
     data = b"\xfe\xff" + "Hello world".encode("utf-16-be")
     result = run_pipeline(data, EncodingEra.ALL)
-    assert result[0].encoding == "utf-16-be"
+    assert result[0].encoding == "utf-16"
     assert result[0].confidence == 1.0
 
 
 def test_bom_utf32_le():
     data = b"\xff\xfe\x00\x00" + "Hello world".encode("utf-32-le")
     result = run_pipeline(data, EncodingEra.ALL)
-    assert result[0].encoding == "utf-32-le"
+    assert result[0].encoding == "utf-32"
     assert result[0].confidence == 1.0
 
 
 def test_bom_utf32_be():
     data = b"\x00\x00\xfe\xff" + "Hello world".encode("utf-32-be")
     result = run_pipeline(data, EncodingEra.ALL)
-    assert result[0].encoding == "utf-32-be"
+    assert result[0].encoding == "utf-32"
     assert result[0].confidence == 1.0
 
 

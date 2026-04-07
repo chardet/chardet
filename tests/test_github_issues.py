@@ -208,6 +208,25 @@ class TestUtf1632:
         """Issue #62: UTF-16 BOM + U+0000 + U+0030 misread as UTF-32-LE."""
         _assert_detection(b"\xff\xfe\x00\x000\x00", "utf-16")
 
+    def test_utf16_le_bom_returns_utf16(self) -> None:
+        """Issue #364: BOM-prefixed UTF-16 should return 'utf-16' (not -le/-be).
+
+        Python's 'utf-16' codec strips the BOM on decode; 'utf-16-le' does not.
+        """
+        _assert_detection(b"\xff\xfeH\x00e\x00l\x00l\x00o\x00", "utf-16")
+
+    def test_utf16_be_bom_returns_utf16(self) -> None:
+        """Issue #364: BOM-prefixed UTF-16-BE should return 'utf-16'."""
+        _assert_detection(b"\xfe\xff\x00H\x00e\x00l\x00l\x00o", "utf-16")
+
+    def test_utf32_le_bom_returns_utf32(self) -> None:
+        """Issue #364: BOM-prefixed UTF-32 should return 'utf-32'."""
+        _assert_detection(b"\xff\xfe\x00\x00H\x00\x00\x00", "utf-32")
+
+    def test_utf32_be_bom_returns_utf32(self) -> None:
+        """Issue #364: BOM-prefixed UTF-32-BE should return 'utf-32'."""
+        _assert_detection(b"\x00\x00\xfe\xff\x00\x00\x00H", "utf-32")
+
     def test_utf16le_no_bom(self) -> None:
         """Issue #105: UTF-16LE without BOM detected via null-byte pattern."""
         _assert_detection(
