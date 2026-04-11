@@ -341,3 +341,19 @@ def test_lookup_encoding_codecs_fallback():
 def test_lookup_encoding_unknown_codec():
     """lookup_encoding returns None for unknown names."""
     assert lookup_encoding("no_such_codec_xyz") is None
+
+
+def test_lookup_encoding_python_only_codec():
+    """Names Python knows but chardet doesn't resolve to None.
+
+    chardet intentionally doesn't claim every Python stdlib codec:
+    ``mbcs``, ``idna``, ``punycode``, ``rot_13``, and the various
+    text-transform codecs (``base64_codec``, ``hex_codec``, ...) are all
+    valid Python codecs but are outside chardet's detection scope.
+    ``lookup_encoding`` should return None for them rather than returning
+    a bogus canonical.
+    """
+    for python_only in ("mbcs", "idna", "punycode", "rot_13"):
+        assert lookup_encoding(python_only) is None, (
+            f"{python_only!r} should return None (Python codec not in chardet registry)"
+        )
