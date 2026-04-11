@@ -445,6 +445,39 @@ class TestNoCrash:
         assert isinstance(result, dict)
         assert "encoding" in result
 
+    def test_issue_367_short_two_byte_runtime_error(self) -> None:
+        r"""Issue #367: b'\xf9\x92' raised RuntimeError.
+
+        Two-byte sequences that are valid multi-byte (e.g. cp932) score
+        above the structural confidence threshold, but statistical scoring
+        returns no results due to insufficient data.  The pipeline must
+        fall through to the fallback instead of returning an empty list.
+        """
+        # The exact input from the bug report
+        result = chardet.detect(b"\xf9\x92")
+        assert isinstance(result, dict)
+        assert "encoding" in result
+        assert result["encoding"] is not None
+
+    def test_issue_367_additional_two_byte_sequences(self) -> None:
+        """Issue #367: verify other representative two-byte sequences don't crash.
+
+        Samples chosen from byte ranges that form valid cp932/johab multi-byte
+        sequences — the same structural path that triggered the original bug.
+        """
+        samples = [
+            b"\x81\x40",  # cp932 lead byte + valid trail
+            b"\xf0\x80",  # cp932 high lead byte
+            b"\xe0\xa0",  # cp932 lead byte
+            b"\x84\x41",  # johab lead byte
+            b"\xd9\xfe",  # johab high lead byte
+            b"\xf9\x92",  # original report
+        ]
+        for data in samples:
+            result = chardet.detect(data)
+            assert isinstance(result, dict), f"Failed on {data!r}"
+            assert "encoding" in result, f"Failed on {data!r}"
+
 
 # =========================================================================
 # NULL SEPARATOR ISSUES

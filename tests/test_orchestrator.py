@@ -372,3 +372,19 @@ def test_fallback_when_cjk_gate_eliminates_all(monkeypatch: pytest.MonkeyPatch):
     data = bytes(range(0x80, 0x100)) * 2
     result = run_pipeline(data, EncodingEra.ALL)
     assert result[0].encoding is not None  # fallback
+
+
+def test_fallback_when_structural_scores_high_but_statistical_empty():
+    """Fall through to fallback when structural scores high but statistical empty.
+
+    When structural scoring exceeds the threshold but statistical scoring
+    returns no results (e.g. very short inputs), fall through to the
+    no_match_encoding fallback instead of returning an empty list.
+
+    Regression test for GitHub issue #367.
+    """
+    # b"\xf9\x92" is a valid cp932 multi-byte sequence that scores 1.0
+    # structurally but yields no statistical bigram matches on 2 bytes.
+    result = run_pipeline(b"\xf9\x92", EncodingEra.ALL)
+    assert len(result) >= 1
+    assert result[0].encoding is not None
