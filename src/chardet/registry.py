@@ -264,7 +264,14 @@ _REGISTRY_ENTRIES = (
     ),
     EncodingInfo(
         name="cp932",
-        aliases=("CP932", "ms932", "mskanji", "ms-kanji", "cswindows31j"),
+        aliases=(
+            "CP932",
+            "ms932",
+            "mskanji",
+            "ms-kanji",
+            "cswindows31j",
+            "windows-31j",
+        ),
         era=EncodingEra.MODERN_WEB,
         is_multibyte=True,
         languages=("ja",),
@@ -586,6 +593,7 @@ _REGISTRY_ENTRIES = (
             "iso8859-8",
             "hebrew",
             "iso88598",
+            "iso-8859-8-e",
             "iso-8859-8-i",
             "csiso88598e",
             "csiso88598i",
