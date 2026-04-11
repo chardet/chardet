@@ -101,6 +101,38 @@ def test_name_is_valid_codec():
         assert codec_info is not None, f"Invalid codec: {enc.name}"
 
 
+def test_aliases_are_unique_across_entries():
+    """No alias (or canonical name) may be claimed by two different entries.
+
+    A collision would make ``lookup_encoding(alias)`` silently return the
+    first entry in iteration order, leaving the second entry's intended
+    routing dead.  Self-aliasing (an entry listing its own canonical name
+    in its ``aliases`` tuple) is allowed and ignored.
+    """
+    claims: dict[str, set[str]] = {}
+    for entry in REGISTRY.values():
+        # Canonical names should be unique by definition (dict key) but
+        # must also not collide with any other entry's alias.
+        claims.setdefault(entry.name.lower(), set()).add(entry.name)
+        for alias in entry.aliases:
+            lowered = alias.lower()
+            # Self-aliasing is redundant but not a collision.
+            if lowered == entry.name.lower():
+                continue
+            claims.setdefault(lowered, set()).add(entry.name)
+
+    collisions = {name: sorted(cs) for name, cs in claims.items() if len(cs) > 1}
+    assert not collisions, (
+        "Alias collisions: the same name is claimed by multiple registry "
+        "entries, which would cause lookup_encoding() to silently route one "
+        "of them the wrong way.\n"
+        + "\n".join(
+            f"  {name!r}: claimed by {owners}"
+            for name, owners in sorted(collisions.items())
+        )
+    )
+
+
 def test_languages_field_exists():
     """Every EncodingInfo has a languages tuple."""
     for enc in REGISTRY.values():
