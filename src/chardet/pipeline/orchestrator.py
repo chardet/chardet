@@ -725,7 +725,8 @@ def _run_pipeline_core(  # noqa: PLR0913
             results = _score_structural_candidates(
                 data, structural_scores, valid_candidates, ctx
             )
-            return _postprocess_results(data, results)
+            if results:
+                return _postprocess_results(data, results)
 
     # Stage 3: Statistical scoring for all remaining candidates.
     # Bigram models converge quickly and don't benefit from scanning
