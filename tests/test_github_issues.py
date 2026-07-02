@@ -195,6 +195,24 @@ class TestEscapeSequences:
         # With enough ASCII bytes, the single ESC should not trigger binary
         _assert_detection(b"0" * 100 + b"\x1b", "ascii")
 
+    def test_plus_digits_not_utf7(self) -> None:
+        """Issue #371: ASCII text with a "+<digits>" run misdetected as UTF-7.
+
+        UTF-7 Guard C rejects base64 runs with no uppercase letters, but it
+        used ``bytes.islower()`` which is ``False`` for an all-digit run like
+        ``100`` (no cased characters), letting ``+100`` slip through and decode
+        as a valid UTF-16BE code unit.  Such a run has no uppercase letters and
+        must be treated as plain ASCII.
+        """
+        text = (
+            b"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do "
+            b"eiusmod tempor incididunt ut labore et dolore magna aliqua.\n\n+100\n"
+        )
+        _assert_detection(text, "ascii")
+        # Other digit-only runs after '+' must also stay ASCII.
+        for run in (b"+200", b"+99", b"+2000000"):
+            _assert_detection(b"the value is " + run + b" units\n", "ascii")
+
 
 # =========================================================================
 # UTF-16 / UTF-32 ISSUES
