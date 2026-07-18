@@ -43,6 +43,9 @@ def _has_valid_hz_regions(data: bytes) -> bool:
 _B64_CHARS: bytes = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 _UTF7_BASE64: frozenset[int] = frozenset(_B64_CHARS)
 
+# Uppercase ASCII letters (A-Z), used by Guard C in _has_valid_utf7_sequences.
+_B64_UPPERCASE: frozenset[int] = frozenset(b"ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
 # Lookup table mapping each Base64 byte to its 6-bit value (0-63).
 _B64_DECODE: dict[int, int] = {c: i for i, c in enumerate(_B64_CHARS)}
 
@@ -175,13 +178,16 @@ def _has_valid_utf7_sequences(data: bytes) -> bool:
         # UTF-7 encodes UTF-16BE code points, and the high byte for virtually
         # every script (Latin Extended, Cyrillic, Arabic, CJK, …) produces
         # uppercase base64 characters.  Sequences without any uppercase like
-        # "row", "foo", "pos" are almost always variable names or English
-        # words that accidentally follow a '+'.  (bytes.islower() returns
-        # True when there are no uppercase letters, even if digits or '/'
-        # are present, which is the desired behavior here.)  Out of 71,510
-        # real UTF-7 base64 blocks in the test corpus, only 4 lack uppercase
-        # letters (0.006%).
-        if b64_len >= 3 and b64_data.islower():
+        # "row", "foo", "pos" (variable names / English words) or "100", "99"
+        # (digit runs) are almost always ASCII text that accidentally follows a
+        # '+'.  Out of 71,510 real UTF-7 base64 blocks in the test corpus, only
+        # 4 lack uppercase letters (0.006%).
+        #
+        # NOTE: this must test for the *absence of uppercase letters*, not
+        # ``bytes.islower()``.  ``b"100".islower()`` is ``False`` (there are no
+        # cased characters at all), so an all-digit run like ``+100`` would slip
+        # through an ``islower()`` guard and be misdetected as UTF-7 (issue #371).
+        if b64_len >= 3 and not any(b in _B64_UPPERCASE for b in b64_data):
             start = i
             continue
         # Accept if base64 content is valid UTF-16BE (padding bits check
