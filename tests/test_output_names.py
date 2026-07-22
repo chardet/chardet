@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from chardet.output_names import (
     _COMPAT_NAMES,
+    PREFERRED_SUPERSET,
     apply_legacy_rename,
     apply_preferred_superset,
 )
@@ -47,3 +48,30 @@ def test_compat_names_maps_codec_to_display() -> None:
     # Codec names that match 5.x output have no entry
     assert "ascii" not in _COMPAT_NAMES
     assert "utf-8" not in _COMPAT_NAMES
+
+
+def test_compat_names_covers_windows_and_iso_families() -> None:
+    """Regression guard for the seven previously missing entries.
+
+    cp1250/1256/1257, cp874 and iso8859-2/6/13 were absent from _COMPAT_NAMES,
+    so the default ``compat_names=True`` path leaked their internal codec
+    spelling instead of the 5.x/6.x display name.
+    """
+    assert _COMPAT_NAMES["cp1250"] == "Windows-1250"
+    assert _COMPAT_NAMES["cp1256"] == "Windows-1256"
+    assert _COMPAT_NAMES["cp1257"] == "Windows-1257"
+    assert _COMPAT_NAMES["cp874"] == "CP874"
+    assert _COMPAT_NAMES["iso8859-2"] == "ISO-8859-2"
+    assert _COMPAT_NAMES["iso8859-6"] == "ISO-8859-6"
+    assert _COMPAT_NAMES["iso8859-13"] == "ISO-8859-13"
+
+
+def test_every_preferred_superset_target_has_compat_name() -> None:
+    """Every ``prefer_superset`` target must have a ``_COMPAT_NAMES`` entry.
+
+    Otherwise the superset remap leaves a raw codec name on the default path.
+    """
+    leaked = sorted(
+        target for target in PREFERRED_SUPERSET.values() if target not in _COMPAT_NAMES
+    )
+    assert not leaked, f"prefer_superset targets missing compat names: {leaked}"

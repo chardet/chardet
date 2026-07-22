@@ -11,6 +11,19 @@ Changelog
 7.5.0 (UNRELEASED)
 -------------------
 
+**Bug Fixes:**
+
+- Fixed ``compat_names`` (the default) leaking internal Python codec names
+  for seven encodings.  ``detect()`` now returns ``ISO-8859-2``,
+  ``ISO-8859-6``, ``ISO-8859-13``, ``Windows-1250``, ``Windows-1256``,
+  ``Windows-1257``, and ``CP874`` instead of their lowercase codec
+  spellings.  These were absent from ``_COMPAT_NAMES`` after the 7.1.0
+  switch to codec-name canonicals, which made default output inconsistent
+  with their siblings (e.g. ``cp1250`` vs ``Windows-1251``) and with the
+  encoding-name table in :doc:`usage`.
+  (`António Afonso <https://github.com/aadsm>`_ via Claude,
+  `#374 <https://github.com/chardet/chardet/pull/374>`_)
+
 **Improvements:**
 
 - ``chardet.equivalences`` is now a deprecation shim.  Accuracy-evaluation
