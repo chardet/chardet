@@ -66,6 +66,16 @@ def test_compat_names_covers_windows_and_iso_families() -> None:
     assert _COMPAT_NAMES["iso8859-13"] == "ISO-8859-13"
 
 
+def test_compat_names_covers_cp932() -> None:
+    """Regression guard for the previously missing cp932 entry.
+
+    cp932 was absent from _COMPAT_NAMES, so the default ``compat_names=True``
+    path leaked the internal ``cp932`` codec name instead of the 5.x/6.x
+    display name ``CP932`` used by its siblings (e.g. shift_jis_2004).
+    """
+    assert _COMPAT_NAMES["cp932"] == "CP932"
+
+
 def test_every_preferred_superset_target_has_compat_name() -> None:
     """Every ``prefer_superset`` target must have a ``_COMPAT_NAMES`` entry.
 
