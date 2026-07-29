@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import codecs
 import warnings
 
 #: Default maximum number of bytes to examine during detection.
@@ -22,6 +23,38 @@ def _warn_deprecated_chunk_size(chunk_size: int, stacklevel: int = 3) -> None:
             DeprecationWarning,
             stacklevel=stacklevel,
         )
+
+
+def decodes_without_error(data: bytes, encoding: str) -> bool:
+    """Return ``True`` if *data* decodes cleanly under *encoding*.
+
+    Equivalent to ``data.decode(encoding, errors="strict")`` except that an
+    incomplete multi-byte sequence at the *end* of *data* is accepted instead of
+    raising.
+
+    Detection input is nearly always a prefix of a larger whole.  Callers pass
+    the first N bytes of a file, and chardet slices further on its own.
+    For a two-byte encoding any of those cuts lands mid-character roughly half
+    the time.
+
+    A one-shot strict decode cannot tell a truncated tail from corrupt data: it
+    raises either way, so the candidate is discarded and every CJK encoding can
+    disappear from the candidate set over a single dangling lead byte. An
+    incremental decoder with ``final=False`` defers the partial tail instead,
+    while still raising on genuine corruption anywhere before it.
+
+    :param data: The raw byte data to test.
+    :param encoding: Name of the codec to test *data* against.
+    :returns: ``True`` if *data* decodes without error, ``False`` otherwise.
+    """
+    try:
+        codecs.getincrementaldecoder(encoding)().decode(data, final=False)
+    except (UnicodeError, LookupError):
+        # UnicodeError rather than UnicodeDecodeError: the utf-16/utf-32
+        # incremental decoders raise a bare UnicodeError when the stream does
+        # not start with a BOM.
+        return False
+    return True
 
 
 def _validate_max_bytes(max_bytes: int) -> None:

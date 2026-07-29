@@ -47,7 +47,10 @@ order:
 
 9. **Byte Validity Filtering** — Attempts to decode the data with each
    candidate encoding's Python codec. Any encoding that raises a decode
-   error is eliminated.
+   error is eliminated. An incomplete multi-byte sequence at the very end
+   of the data does not count as an error: detection input is usually a
+   prefix of a larger whole, so a partial trailing character means the
+   input was cut mid-character rather than that the encoding is wrong.
 
 10. **CJK Gating** — Eliminates CJK candidates that lack genuine
     multi-byte structure. Checks pair ratio, high-byte count, byte

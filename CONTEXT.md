@@ -46,7 +46,7 @@ Listed in execution order. Each stage's name matches its module in `chardet.pipe
 6. **Markup charset** — `<meta charset>`, `<?xml encoding>`, PEP 263 coding-declaration extraction. Includes **markup superset promotion**.
 7. **ASCII** — pure-7-bit fast path.
 8. **UTF-8 validation** — multi-byte structural check.
-9. **Byte-validity filtering** — drop candidates whose codec raises on `bytes.decode()`.
+9. **Byte-validity filtering** — drop candidates whose codec cannot decode the data. An incomplete multi-byte sequence at the very end is tolerated, since the input is usually a prefix of a larger whole.
 10. **CJK gating** — drop CJK candidates lacking multi-byte structure (pair ratio, high-byte count, byte coverage, lead-byte diversity).
 11. **Structural probing** — score multi-byte encoding fit (`pipeline/structural.py`).
 12. **Statistical scoring** — bigram cosine similarity against language-specific **BigramProfile**s.

@@ -79,8 +79,17 @@ def test_unknown_encoding_returns_none():
 
 
 def test_lying_charset_declaration_rejected():
-    # Declares shift_jis but contains invalid bytes for that encoding
-    data = b'<meta charset="shift_jis">' + "日本語テスト".encode()
+    # Declares shift_jis but contains invalid bytes for that encoding.
+    #
+    # The body must be undecodable before its final character: validity
+    # tolerates an incomplete trailing one, so a body whose only defect is a
+    # dangling lead byte would pass.  It must also be undecodable under
+    # shift_jis_2004 -- what "shift_jis" resolves to, with a wider repertoire
+    # than shift_jis itself.
+    data = (
+        b'<meta charset="shift_jis">'
+        + "これは文字コード判定のテストに用いる日本語の文章です。".encode()
+    )
     result = detect_markup_charset(data)
     assert result is None
 
