@@ -44,7 +44,7 @@ uv run ruff format .       # format
 ### Training Models
 
 ```bash
-uv run python scripts/train.py   # retrain bigram models from CulturaX/MADLAD-400/Wikipedia data
+uv run --group training python scripts/train.py   # retrain bigram models from CulturaX/MADLAD-400/Wikipedia data
 uv run python scripts/verify_no_overlap.py  # verify no train/test data overlap
 ```
 

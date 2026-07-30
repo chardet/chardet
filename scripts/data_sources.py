@@ -218,7 +218,14 @@ def _stream_from_hf(  # noqa: PLR0913
     Returns ``(accepted_texts, skipped_count)`` where ``skipped_count`` is the
     number of articles excluded by fingerprint or index.
     """
-    from datasets import load_dataset  # noqa: PLC0415
+    try:
+        from datasets import load_dataset  # noqa: PLC0415
+    except ImportError as exc:  # pragma: no cover
+        msg = (
+            "The 'datasets' package is required for training. "
+            "Install it with: uv sync --group training"
+        )
+        raise ImportError(msg) from exc
 
     try:
         if data_files is not None:
