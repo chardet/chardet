@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 
+from chardet._utils import decodes_without_error
 from chardet.pipeline import DETERMINISTIC_CONFIDENCE, DetectionResult, PipelineContext
 from chardet.pipeline.structural import compute_structural_score
 from chardet.registry import REGISTRY, lookup_encoding
@@ -125,9 +126,7 @@ def promote_markup_superset(
         return markup_result
     superset_info = REGISTRY[superset_name]
     # Validate: superset must be able to decode the data
-    try:
-        data.decode(superset_name, errors="strict")
-    except (UnicodeDecodeError, LookupError):
+    if not decodes_without_error(data, superset_name):
         return markup_result
     # Compare structural scores
     ctx = PipelineContext()
@@ -150,8 +149,4 @@ def _validate_bytes(data: bytes, encoding: str) -> bool:
     full 200 kB input just to verify a charset declaration found in the
     header.
     """
-    try:
-        data[:_SCAN_LIMIT].decode(encoding)
-    except (UnicodeDecodeError, LookupError, ValueError):
-        return False
-    return True
+    return decodes_without_error(data[:_SCAN_LIMIT], encoding)

@@ -54,7 +54,7 @@ test suite):
 
 .. code-block:: bash
 
-   uv run python scripts/train.py
+   uv run --group training python scripts/train.py
 
 Training data is cached in ``data/`` (gitignored). Models are saved to
 ``src/chardet/models/models.bin``.

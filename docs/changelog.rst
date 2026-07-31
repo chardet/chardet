@@ -13,6 +13,23 @@ Changelog
 
 **Bug Fixes:**
 
+- Fixed multi-byte encodings being eliminated when the input ends in an
+  incomplete character.  Byte-validity filtering decoded with a one-shot
+  strict decode, which cannot tell a truncated tail from corrupt data, so a
+  single dangling lead byte dropped every CJK candidate and the result came
+  down to input-length parity — a 184-byte GBK sample detected as
+  ``GB18030``, the same sample minus one byte as ``Windows-1256``.  This was
+  also reachable on complete, well-formed files, because chardet slices its
+  own input at ``max_bytes`` and at ``_SCAN_LIMIT`` in
+  ``_validate_bytes()``: a valid 14 kB GBK page with an honest
+  ``<meta charset="gbk">`` lost its declaration, and with it ``text/html``
+  and 0.95 confidence, whenever byte 4096 happened to split a character.
+  Validity checks now decode incrementally with ``final=False``, deferring a
+  partial trailing character while still rejecting corruption anywhere
+  before it.
+  (`António Afonso <https://github.com/aadsm>`_ via Claude,
+  `#376 <https://github.com/chardet/chardet/pull/376>`_)
+
 - Fixed ``compat_names`` (the default) leaking internal Python codec names
   for seven encodings.  ``detect()`` now returns ``ISO-8859-2``,
   ``ISO-8859-6``, ``ISO-8859-13``, ``Windows-1250``, ``Windows-1256``,
