@@ -230,12 +230,14 @@ archs = ["AMD64"]
 
 [dependency-groups]
 dev = [
-    "datasets>=4.6.0",
     "prek>=0.3.4",
     "pytest>=9.0.2",
     "pytest-cov>=7.0.0",
     "pytest-xdist>=3.5.0",
     "ruff>=0.15.2",
+]
+training = [
+    "datasets>=4.6.0",
 ]
 docs = [
     "sphinx>=8.0",
