@@ -9,14 +9,6 @@ import sys
 import tempfile
 from pathlib import Path
 
-try:
-    from chardet._utils import ISO_TO_LANGUAGE
-except ImportError:
-    # Older chardet versions don't have ISO_TO_LANGUAGE in _utils.
-    # Provide an empty dict so scripts still work (language normalization
-    # will fall back to passthrough for old versions).
-    ISO_TO_LANGUAGE: dict[str, str] = {}  # type: ignore[no-redef]
-
 _TEST_DATA_REPO = "https://github.com/chardet/test-data.git"
 _REF_FILE = ".test-data-ref"
 
@@ -156,10 +148,31 @@ def format_bytes(n: int) -> str:
 # charset-normalizer) to ISO 639-1 codes (used by chardet 7+ and test dirs).
 # Derived from ISO_TO_LANGUAGE to avoid maintaining two dicts that must stay
 # in sync.
-_LANGUAGE_NAME_TO_ISO: dict[str, str] = {v: k for k, v in ISO_TO_LANGUAGE.items()}
-# "scottish gaelic" is the full name used by some detectors; ISO_TO_LANGUAGE
-# maps gd -> "gaelic" (the short form).
-_LANGUAGE_NAME_TO_ISO["scottish gaelic"] = "gd"
+#
+# Built lazily: importing chardet at module scope would pre-import it before
+# benchmark_memory.py captures its tracemalloc baseline, making the measured
+# import cost of chardet exactly 0 while leaving other detectors unaffected.
+_LANGUAGE_NAME_TO_ISO: dict[str, str] | None = None
+
+
+def _language_name_to_iso() -> dict[str, str]:
+    """Return (and memoize) the English-name -> ISO 639-1 mapping."""
+    global _LANGUAGE_NAME_TO_ISO  # noqa: PLW0603
+    if _LANGUAGE_NAME_TO_ISO is None:
+        try:
+            from chardet._utils import ISO_TO_LANGUAGE  # noqa: PLC0415
+
+            iso_to_language: dict[str, str] = ISO_TO_LANGUAGE
+        except ImportError:
+            # Older chardet versions don't have ISO_TO_LANGUAGE in _utils.
+            # Fall back to passthrough language normalization.
+            iso_to_language = {}
+        mapping = {v: k for k, v in iso_to_language.items()}
+        # "scottish gaelic" is the full name used by some detectors;
+        # ISO_TO_LANGUAGE maps gd -> "gaelic" (the short form).
+        mapping["scottish gaelic"] = "gd"
+        _LANGUAGE_NAME_TO_ISO = mapping
+    return _LANGUAGE_NAME_TO_ISO
 
 
 def normalize_language(detected_language: str | None) -> str | None:
@@ -171,7 +184,7 @@ def normalize_language(detected_language: str | None) -> str | None:
     if not detected_language:
         return None
     lowered = detected_language.lower().rstrip("—")  # charset-normalizer quirk
-    return _LANGUAGE_NAME_TO_ISO.get(lowered, lowered)
+    return _language_name_to_iso().get(lowered, lowered)
 
 
 def collect_test_files(

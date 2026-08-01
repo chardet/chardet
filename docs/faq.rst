@@ -38,8 +38,9 @@ an alternative encoding detector. Key differences:
 
 - **Accuracy:** chardet achieves 99.3% vs charset-normalizer's 85.4% on
   the same test suite.
-- **Speed:** chardet is 1.5x faster with mypyc (551 vs 376 files/s).
-- **Memory:** chardet uses 1.5x less peak memory (52.9 vs 78.8 MiB).
+- **Speed:** comparable overall with mypyc (1,059 vs 1,001 files/s), but
+  chardet is 1.7x faster at the median (0.33 vs 0.57ms per file).
+- **Memory:** chardet uses 1.3x less peak memory (53.8 vs 69.8 MiB).
 - **Language detection:** chardet detects language with 95.7% accuracy vs
   charset-normalizer's 59.2%.
 
@@ -50,7 +51,8 @@ How is chardet different from cchardet?
 Mozilla's uchardet C/C++ library. Key differences:
 
 - **Accuracy:** chardet achieves 99.3% vs cchardet's 55.9%.
-- **Speed:** cchardet is faster (1.3s vs 4.6s) due to C implementation.
+- **Speed:** cchardet is 2.5x faster (0.9s vs 2.4s for 2,517 files) due to
+  its C implementation.
 - **Encoding breadth:** chardet supports 49 more encodings than cchardet,
   including EBCDIC, Mac, Baltic, and BOM-less UTF-16/32.
 - **Dependencies:** chardet is pure Python with zero dependencies.
