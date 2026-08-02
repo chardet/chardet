@@ -14,6 +14,7 @@ import platform
 import sys
 import tracemalloc
 from pathlib import Path
+from statistics import mean
 
 try:
     import resource
@@ -83,11 +84,20 @@ def main() -> None:
             best = r.best()
             return best.encoding if best else None
 
-    # Run detection over all files (slow under tracemalloc, but needed for peak)
+    # Run detection over all files (slow under tracemalloc, but needed for peak).
+    # Peak is reset per file so each detection's own high-water mark can be
+    # recorded, which is what the memory-percentile table is built from. The
+    # run-wide peak is recovered as the max of the per-file absolute peaks.
+    traced_peak = 0
+    file_peaks: list[int] = []
     for _enc, _lang, _fp, data in all_data:
+        tracemalloc.reset_peak()
+        current_before, _ = tracemalloc.get_traced_memory()
         detect(data)
+        _, peak_after = tracemalloc.get_traced_memory()
+        file_peaks.append(peak_after - current_before)
+        traced_peak = max(traced_peak, peak_after)
 
-    _, traced_peak = tracemalloc.get_traced_memory()
     tracemalloc.stop()
 
     rss_after = (
@@ -109,6 +119,7 @@ def main() -> None:
                     "traced_peak": traced_peak_delta,
                     "rss_before": rss_before,
                     "rss_after": rss_after,
+                    "file_peaks": file_peaks,
                 }
             )
         )
@@ -123,6 +134,15 @@ def main() -> None:
         print(f"  Traced peak:   {_format_bytes(traced_peak_delta)}")
         print(f"  RSS before:    {_format_bytes(rss_before)}")
         print(f"  RSS after:     {_format_bytes(rss_after)}")
+        if file_peaks:
+            ordered = sorted(file_peaks)
+            print()
+            print("Peak memory per detection:")
+            print(f"  mean:   {_format_bytes(int(mean(file_peaks)))}")
+            for label, pct in (("median", 50), ("p90", 90), ("p95", 95), ("p99", 99)):
+                idx = min(len(ordered) - 1, len(ordered) * pct // 100)
+                print(f"  {label + ':':<8}{_format_bytes(ordered[idx])}")
+            print(f"  max:    {_format_bytes(ordered[-1])}")
 
 
 if __name__ == "__main__":

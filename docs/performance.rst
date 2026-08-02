@@ -43,7 +43,7 @@ Accuracy
    * - **chardet 7.4.4 (mypyc)**
      - **2499/2517**
      - **99.3%**
-     - **1,059 files/s**
+     - **1,067 files/s**
    * - chardet 6.0.0
      - 2219/2517
      - 88.2%
@@ -51,11 +51,11 @@ Accuracy
    * - charset-normalizer 3.4.9 (mypyc)
      - 2150/2517
      - 85.4%
-     - 1,001 files/s
+     - 1,010 files/s
    * - cchardet 2.2.1
      - 1407/2517
      - 55.9%
-     - 2,698 files/s
+     - 2,695 files/s
 
 chardet leads all detectors on accuracy: **+11.1pp** vs chardet 6.0.0,
 **+13.9pp** vs charset-normalizer 3.4.9, and **+43.4pp** vs cchardet 2.2.1.
@@ -65,7 +65,7 @@ Speed
 
 .. list-table::
    :header-rows: 1
-   :widths: 30 12 12 12 12 12
+   :widths: 26 10 10 10 10 10 10
 
    * - Detector
      - Files/s
@@ -73,36 +73,47 @@ Speed
      - Median
      - p90
      - p95
+     - p99
    * - cchardet 2.2.1
-     - 2,698
+     - 2,695
      - 0.37ms
      - 0.03ms
      - 0.45ms
      - 0.71ms
+     - 2.28ms
    * - **chardet 7.4.4 (mypyc)**
-     - **1,059**
+     - **1,067**
      - **0.94ms**
      - **0.33ms**
-     - **2.54ms**
-     - **3.05ms**
+     - **2.55ms**
+     - **3.10ms**
+     - **5.36ms**
    * - charset-normalizer 3.4.9 (mypyc)
-     - 1,001
-     - 1.00ms
-     - 0.57ms
-     - 2.43ms
-     - 3.93ms
+     - 1,010
+     - 0.99ms
+     - 0.56ms
+     - 2.41ms
+     - 4.05ms
+     - 6.66ms
    * - chardet 6.0.0
      - 20
      - 49.97ms
      - 1.09ms
-     - 112.30ms
-     - 229.76ms
+     - 112.36ms
+     - 231.56ms
+     - 679.04ms
 
 With mypyc compilation, chardet 7.4.4 is **53x faster** than chardet 6.0.0.
 Against charset-normalizer 3.4.9 (mypyc) the two are close on total
-throughput (**1.06x**), but chardet is **1.7x faster at the median**
-(0.33ms vs 0.57ms) --- charset-normalizer's cost is spread more evenly
-across files, while chardet resolves most files early in the pipeline.
+throughput (**1.06x**), but chardet is faster at every point of the
+distribution that matters for latency: **1.7x at the median** (0.33ms vs
+0.56ms), **1.3x at p95** (3.10ms vs 4.05ms), and **1.2x at p99** (5.36ms
+vs 6.66ms), with a worst case 1.6x lower (20ms vs 32ms).
+
+cchardet is the fastest in aggregate, but it owns the worst tail of any
+detector measured: its slowest single file takes **355ms**, 18x chardet's
+worst case, so a latency budget built on its median will be missed badly
+on the outliers.
 
 Memory
 ------
@@ -120,22 +131,22 @@ Memory
      - **5.1ms**
      - **937 KiB** :sup:`*`
      - **53.8 MiB**
-     - **137.7 MiB**
+     - **139.1 MiB**
    * - chardet 6.0.0
-     - 17.8ms
+     - 17.0ms
      - 12.1 MiB
-     - 28.7 MiB
-     - 125.7 MiB
+     - 28.8 MiB
+     - 132.3 MiB
    * - charset-normalizer 3.4.9
-     - 3.8ms
+     - 3.7ms
      - 1.6 MiB
-     - 69.8 MiB
-     - 219.2 MiB
+     - 69.9 MiB
+     - 220.1 MiB
    * - cchardet 2.2.1
-     - 0.8ms
+     - 0.7ms
      - 29.5 KiB
-     - 156.4 KiB
-     - 87.6 MiB
+     - 50.0 KiB
+     - 88.5 MiB
 
 :sup:`*` chardet 7.x uses lazy loading --- models and the detection
 pipeline are not allocated until the first ``detect()`` call, so
@@ -144,8 +155,72 @@ full model cost appears in Peak Memory instead.
 
 chardet uses **1.3x less peak memory** than charset-normalizer 3.4.9 and
 **1.6x less RSS**. chardet 6.0.0 has the smallest footprint of the
-Python detectors (28.7 MiB peak) --- the tradeoff for its much lower
+Python detectors (28.8 MiB peak) --- the tradeoff for its much lower
 accuracy and throughput.
+
+Memory per Detection
+--------------------
+
+The table above measures the whole process. This one measures a single
+``detect()`` call: peak CPython allocations during the call, above what
+was already resident when it started. It answers a different question ---
+not "how much does the library cost to load" but "how much does one more
+concurrent detection cost".
+
+.. list-table::
+   :header-rows: 1
+   :widths: 26 12 12 12 12 12
+
+   * - Detector
+     - Mean
+     - Median
+     - p90
+     - p95
+     - p99
+   * - **chardet 7.4.4**
+     - **518 KiB**
+     - **526 KiB**
+     - **547 KiB**
+     - **554 KiB**
+     - **591 KiB**
+   * - charset-normalizer 3.4.9
+     - 130 KiB
+     - 57 KiB
+     - 161 KiB
+     - 218 KiB
+     - 418 KiB
+   * - chardet 6.0.0
+     - 108 KiB
+     - 69 KiB
+     - 182 KiB
+     - 301 KiB
+     - 876 KiB
+   * - cchardet 2.2.1
+     - 87 B :sup:`†`
+     - 92 B :sup:`†`
+     - 98 B :sup:`†`
+     - 98 B :sup:`†`
+     - 106 B :sup:`†`
+
+:sup:`†` cchardet does its work in C, which ``tracemalloc`` cannot see.
+Its near-zero figures mean "invisible", not "free".
+
+**charset-normalizer allocates less per call than chardet at typical
+sizes** --- 57 KiB at the median against chardet's 526 KiB. chardet's
+per-call cost is flat instead: it varies by 12% from median to p99
+(526 -> 591 KiB), while charset-normalizer's grows 7x (57 -> 418 KiB) and
+chardet 6.0.0's grows 13x (69 -> 876 KiB). So chardet trades a higher
+floor for a predictable ceiling, which is the better shape for sizing a
+worker pool; charset-normalizer is the better fit when most inputs are
+small and peak footprint per call matters more than its variance.
+
+The maximum is excluded from this table because for every Python
+detector it is the *first* call, which pays for lazy initialization
+(52.9 MiB for chardet, 63.9 MiB for charset-normalizer, 16.5 MiB for
+chardet 6.0.0) rather than anything about steady-state detection.
+
+Reproduce with ``python scripts/compare_detectors.py --memory --cn
+--cchardet --mypyc``.
 
 Language Detection
 ------------------

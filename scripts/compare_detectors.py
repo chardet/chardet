@@ -27,6 +27,7 @@ import subprocess
 import sys
 import tempfile
 from collections import defaultdict
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -588,6 +589,18 @@ def _run_timing_subprocess(  # noqa: PLR0913
     return _TimingResult(results, timing, file_times, import_time, first_detect_time)
 
 
+def _percentiles(values: Sequence[float], points: Sequence[int]) -> dict[int, float]:
+    """Return ``{point: value}`` for each requested percentile.
+
+    Uses nearest-rank on the sorted samples, which stays well-defined for
+    small inputs where ``statistics.quantiles`` would raise.
+    """
+    if not values:
+        return dict.fromkeys(points, 0.0)
+    ordered = sorted(values)
+    return {p: ordered[min(len(ordered) - 1, len(ordered) * p // 100)] for p in points}
+
+
 # ---------------------------------------------------------------------------
 # 3x median timing
 # ---------------------------------------------------------------------------
@@ -694,6 +707,7 @@ def _measure_memory_subprocess(
             "traced_peak": 0,
             "rss_before": 0,
             "rss_after": 0,
+            "file_peaks": [],
         }
     return json.loads(result.stdout.strip().split("\n")[0])
 
@@ -1040,11 +1054,11 @@ def run_comparison(  # noqa: PLR0913
     print("=" * 100)
     print(
         f"  {'':>{max_label}}  {'total':>10}  {'mean':>10}  "
-        f"{'median':>10}  {'p90':>10}  {'p95':>10}  {'max':>10}"
+        f"{'median':>10}  {'p90':>10}  {'p95':>10}  {'p99':>10}  {'max':>10}"
     )
     print(
         f"  {'-' * max_label}  {'-' * 10}  {'-' * 10}  "
-        f"{'-' * 10}  {'-' * 10}  {'-' * 10}  {'-' * 10}"
+        f"{'-' * 10}  {'-' * 10}  {'-' * 10}  {'-' * 10}  {'-' * 10}"
     )
     for label in detector_labels:
         ft = stats[label]["file_times"]
@@ -1053,14 +1067,13 @@ def run_comparison(  # noqa: PLR0913
             mean_ms = statistics.mean(ft) * 1000
             median_ms = statistics.median(ft) * 1000
             max_ms = max(ft) * 1000
-            if len(ft) >= 20:
-                q = statistics.quantiles(ft, n=20)
-                p90_ms = q[17] * 1000  # 18/20 = 90th percentile
-                p95_ms = q[18] * 1000  # 19/20 = 95th percentile
-            else:
-                p90_ms = p95_ms = 0.0
+            pct = _percentiles(ft, (90, 95, 99))
+            p90_ms = pct[90] * 1000
+            p95_ms = pct[95] * 1000
+            p99_ms = pct[99] * 1000
         else:
-            total_ms = mean_ms = median_ms = p90_ms = p95_ms = max_ms = 0.0
+            total_ms = mean_ms = median_ms = 0.0
+            p90_ms = p95_ms = p99_ms = max_ms = 0.0
         print(
             f"  {label:<{max_label}} "
             f"{total_ms:>9.0f}ms "
@@ -1068,6 +1081,7 @@ def run_comparison(  # noqa: PLR0913
             f"{median_ms:>9.2f}ms "
             f"{p90_ms:>9.2f}ms "
             f"{p95_ms:>9.2f}ms "
+            f"{p99_ms:>9.2f}ms "
             f"{max_ms:>9.2f}ms"
         )
 
@@ -1117,6 +1131,45 @@ def run_comparison(  # noqa: PLR0913
     print("  1st detect = time for first file detection (includes lazy initialization)")
     print("  time to 1st result = import + 1st detect")
     print()
+
+    # -- Per-detection memory distribution --
+    if memory and any(memory_results[x].get("file_peaks") for x in detector_labels):
+        print("=" * 100)
+        print("PEAK MEMORY PER DETECTION (per-file, detection-only)")
+        print("=" * 100)
+        print(
+            f"  {'':>{max_label}}  {'mean':>12}  {'median':>12}  "
+            f"{'p90':>12}  {'p95':>12}  {'p99':>12}  {'max':>12}"
+        )
+        print(
+            f"  {'-' * max_label}  {'-' * 12}  {'-' * 12}  "
+            f"{'-' * 12}  {'-' * 12}  {'-' * 12}  {'-' * 12}"
+        )
+        for label in detector_labels:
+            peaks = memory_results[label].get("file_peaks") or []
+            if peaks:
+                pct = _percentiles(peaks, (50, 90, 95, 99))
+                cells = [
+                    int(statistics.mean(peaks)),
+                    int(pct[50]),
+                    int(pct[90]),
+                    int(pct[95]),
+                    int(pct[99]),
+                    max(peaks),
+                ]
+                row = f"  {label:<{max_label}}  " + "  ".join(
+                    f"{_format_bytes(c):>12}" for c in cells
+                )
+            else:
+                row = f"  {label:<{max_label}}  " + "  ".join(
+                    f"{'---':>12}" for _ in range(6)
+                )
+            print(row)
+        print()
+        print("  Peak CPython allocations during a single detect() call, above the")
+        print("  memory already resident when that call started. C-extension")
+        print("  allocations (e.g. cchardet) are invisible to tracemalloc.")
+        print()
 
     # -- Per-encoding table --
     all_encodings = sorted(

@@ -22,9 +22,9 @@ binary files. **0BSD licensed.**
 |                        | chardet 7.4.4 (mypyc) | chardet 6.0.0 | [charset-normalizer] 3.4.9 |
 | ---------------------- | :--------------------: | :-----------: | :-------------------------: |
 | Accuracy (2,517 files) |       **99.3%**        |     88.2%     |            85.4%            |
-| Speed                  | **1,059 files/s** (658 pure) |  20 files/s   |        1,001 files/s        |
+| Speed                  | **1,067 files/s** (658 pure) |  20 files/s   |        1,010 files/s        |
 | Language detection     |       **95.7%**        |     40.0%     |            59.2%            |
-| Peak memory            |     **53.8 MiB**       |    28.7 MiB   |          69.8 MiB           |
+| Peak memory            |     **53.8 MiB**       |    28.8 MiB   |          69.9 MiB           |
 | Streaming detection    |        **yes**         |      yes      |             no              |
 | Encoding era filtering |        **yes**         |      no       |             no              |
 | Encoding filters       |        **yes**         |      no       |             yes             |
