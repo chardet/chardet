@@ -40,11 +40,10 @@ an alternative encoding detector. Key differences:
   the same test suite.
 - **Speed:** 2.6x faster overall with mypyc (2,698 vs 1,024 files/s),
   and faster across the latency distribution on our test suite:
-  3.5x at the median (0.16 vs 0.56ms), 3.4x at p95, 3.3x at p99. The
-  exception is the tail of legacy CJK multi-byte encodings, where
-  charset-normalizer stays flatter (p99 1.58 vs our 5.00ms) --- if your
-  inputs are mostly Big5/GB/EUC/Shift_JIS and p95+ latency is what you
-  budget for, it still wins there. See :doc:`performance`.
+  3.5x at the median (0.16 vs 0.56ms), 3.4x at p95, 3.3x at p99.
+  Legacy CJK multi-byte encodings are the one subset where
+  charset-normalizer keeps a flatter tail (p99 1.58 vs our 5.00ms) ---
+  a difference of a few milliseconds at worst. See :doc:`performance`.
 - **Accuracy convention:** our 99.3% credits supersets (Windows-1252 for
   ISO-8859-1); scored on exact matches only it is 84.4% against
   charset-normalizer's 75.9%. Both columns are published.

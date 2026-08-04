@@ -151,8 +151,9 @@ With mypyc compilation, chardet 7.4.4 is **135x faster** than chardet
 mean. The gap holds across the whole distribution: **3.5x at the
 median** (0.16ms vs 0.56ms), **3.4x at p95** (1.14ms vs 3.87ms), and
 **3.3x at p99** (1.92ms vs 6.37ms), with a worst case 3.0x lower
-(11ms vs 33ms). The one exception is the far CJK tail --- see
-`Latency by Script Family`_.
+(11ms vs 33ms). See `Latency by Script Family`_ for the CJK split, the
+one subset where charset-normalizer keeps a (few-millisecond) edge in
+the tail.
 
 cchardet and chardet are now tied on aggregate throughput (2,706 vs
 2,698 files/s, within run noise), but cchardet owns the worst tail of
@@ -211,18 +212,16 @@ Splitting the same measurements:
 
 chardet now leads on CJK through the median (0.19ms vs 0.52ms --- escape
 sequences and clear multi-byte structure resolve immediately) and even
-on the CJK *mean* (0.53ms vs 0.58ms), but the far tail still belongs to
-charset-normalizer: **chardet's CJK p99 of 5.00ms is 2.9x its own
-non-CJK p99** and **3.2x charset-normalizer's 1.58ms**.
-charset-normalizer stays markedly flatter on CJK; chardet is ahead
-everywhere else (p99 1.75ms vs 6.47ms).
+on the CJK *mean* (0.53ms vs 0.58ms). charset-normalizer keeps the
+flatter CJK tail (p99 1.58ms vs chardet's 5.00ms), but the absolute
+stakes are small: the gap is a few milliseconds and chardet's slowest
+CJK file completes in 10ms. chardet is ahead everywhere else
+(p99 1.75ms vs 6.47ms).
 
-**On a CJK-heavy workload where p95+ latency matters,
-charset-normalizer still has the better tail and the "faster at every
-percentile" summary above does not apply.** Percentiles over a mixed
-corpus are sensitive to how much CJK it contains: this suite is 7.2%
-CJK (183/2,517), so a corpus with a higher share will shift chardet's
-aggregate p95/p99 upward.
+Percentiles over a mixed corpus are sensitive to how much CJK it
+contains: this suite is 7.2% CJK (183/2,517), so a CJK-heavier corpus
+shifts chardet's aggregate p95/p99 upward --- by milliseconds, not
+orders of magnitude.
 
 ``UTF-8``/``UTF-16``/``UTF-32`` count as non-CJK here even when the text
 is Chinese, Japanese, or Korean, because they are resolved by BOM or
