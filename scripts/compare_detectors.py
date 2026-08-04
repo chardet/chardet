@@ -27,7 +27,6 @@ import subprocess
 import sys
 import tempfile
 from collections import defaultdict
-from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -35,6 +34,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from utils import collect_test_files, normalize_language
 from utils import format_bytes as _format_bytes
+from utils import percentiles as _percentiles
 
 from chardet.evaluation import (
     BIDIRECTIONAL_GROUPS,
@@ -604,18 +604,6 @@ def _is_cjk_encoding(name: str | None) -> bool:
     canonical = lookup_encoding(name)
     info = REGISTRY.get(canonical) if canonical else None
     return bool(info and info.is_multibyte)
-
-
-def _percentiles(values: Sequence[float], points: Sequence[int]) -> dict[int, float]:
-    """Return ``{point: value}`` for each requested percentile.
-
-    Uses nearest-rank on the sorted samples, which stays well-defined for
-    small inputs where ``statistics.quantiles`` would raise.
-    """
-    if not values:
-        return dict.fromkeys(points, 0.0)
-    ordered = sorted(values)
-    return {p: ordered[min(len(ordered) - 1, len(ordered) * p // 100)] for p in points}
 
 
 # ---------------------------------------------------------------------------

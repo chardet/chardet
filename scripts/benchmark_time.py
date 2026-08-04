@@ -198,12 +198,11 @@ def main() -> None:
         total_ms = sum(file_times) * 1000
         mean_ms = statistics.mean(file_times) * 1000 if file_times else 0.0
         median_ms = statistics.median(file_times) * 1000 if file_times else 0.0
-        if len(file_times) >= 20:
-            q = statistics.quantiles(file_times, n=20)
-            p90_ms = q[17] * 1000
-            p95_ms = q[18] * 1000
-        else:
-            p90_ms = p95_ms = 0.0
+        from utils import percentiles  # noqa: PLC0415
+
+        pct = percentiles(file_times, (90, 95))
+        p90_ms = pct[90] * 1000
+        p95_ms = pct[95] * 1000
 
         print(f"Detector: {args.detector}")
         if args.detector == "chardet":

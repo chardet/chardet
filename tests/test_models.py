@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import struct
 import zlib
 from collections.abc import Callable
@@ -544,3 +545,98 @@ def test_rowmax_matches_models() -> None:
             max(table[start : start + 256]) for start in range(0, 65536, 256)
         )
         assert rowmax[key] == derived, f"rowmax.bin stale for model {key}"
+
+
+def test_decompress_tables_chunked_matches_whole() -> None:
+    """Incremental decompression must be feed-granularity independent."""
+    blob = bytes(range(256)) * 256  # exactly one 65536-byte table
+    compressed = zlib.compress(blob)
+    for chunk_size in (1, 7, 262144):
+        out = models_mod._decompress_tables(compressed, 0, ["m"], chunk_size)
+        assert out == {"m": blob}, f"chunk_size={chunk_size}"
+
+
+@pytest.mark.parametrize("chunk_size", [1, 262144])
+def test_decompress_tables_rejects_surplus_tables(chunk_size: int) -> None:
+    """A blob with more tables than the header claims must be rejected.
+
+    chunk_size=1 forces the boundary where the final claimed table
+    completes with the fed chunk fully consumed while surplus compressed
+    input is still unfed — the case a tail-only drain would miss.
+    """
+    # Deterministic incompressible filler (no PRNG): chained SHA-256.
+    blob = b"".join(
+        hashlib.sha256(i.to_bytes(4, "big")).digest() for i in range(65536 * 2 // 32)
+    )
+    compressed = zlib.compress(blob)
+    with pytest.raises(ValueError, match="decompressed size"):
+        models_mod._decompress_tables(compressed, 0, ["only-one"], chunk_size)
+
+
+def test_rowmax_bin_header_matches_models_bin() -> None:
+    """rowmax.bin must carry the CRM1 magic and the SHA-256 of models.bin.
+
+    A regenerated models.bin without a matching rowmax.bin regeneration
+    would silently under-estimate row maxima and break pruning's upper
+    bound, so the digest is the load-time staleness guard.
+    """
+    models_dir = Path(models_mod.__file__).parent
+    raw = (models_dir / "rowmax.bin").read_bytes()
+    assert raw[:4] == b"CRM1"
+    digest = hashlib.sha256((models_dir / "models.bin").read_bytes()).digest()
+    assert raw[4:36] == digest
+
+
+def test_rowmax_stale_digest_falls_back_with_warning() -> None:
+    """A rowmax.bin whose digest mismatches models.bin must be rejected.
+
+    The fallback derives the tables from the models directly, which is
+    slower but always correct, and warns so packaging mistakes get noticed.
+    """
+    models_dir = Path(models_mod.__file__).parent
+    real_models = (models_dir / "models.bin").read_bytes()
+    real_rowmax = (models_dir / "rowmax.bin").read_bytes()
+    stale = real_rowmax[:4] + bytes(32) + real_rowmax[36:]
+    contents = {"models.bin": real_models, "rowmax.bin": stale}
+
+    def fake_joinpath(name: str) -> MagicMock:
+        ref = MagicMock()
+        ref.read_bytes.return_value = contents[name]
+        return ref
+
+    models_mod.get_rowmax.cache_clear()
+    models_mod._load_models_data.cache_clear()
+    try:
+        with (
+            patch.object(
+                models_mod.importlib.resources,
+                "files",
+                return_value=MagicMock(joinpath=MagicMock(side_effect=fake_joinpath)),
+            ),
+            pytest.warns(RuntimeWarning, match="rowmax.bin"),
+        ):
+            derived = models_mod.get_rowmax()
+        assert derived
+    finally:
+        models_mod.get_rowmax.cache_clear()
+        models_mod._load_models_data.cache_clear()
+
+    # The fallback must produce exactly the tables the genuine file holds.
+    genuine = models_mod.get_rowmax()
+    assert derived == genuine
+    models_mod.get_rowmax.cache_clear()
+
+
+def test_score_with_profile_accepts_bytearray_and_memoryview() -> None:
+    """The historical bytearray/memoryview table types must keep working.
+
+    mypyc enforces parameter types at runtime, so without explicit widening
+    a compiled install would raise TypeError where pure Python accepted the
+    call.
+    """
+    profile = models_mod.BigramProfile(b"\xc3\xa9\xc3\xa4")
+    table = bytearray(65536)
+    table[(0xC3 << 8) | 0xA9] = 100
+    expected = models_mod.score_with_profile(profile, bytes(table))
+    assert models_mod.score_with_profile(profile, table) == expected
+    assert models_mod.score_with_profile(profile, memoryview(bytes(table))) == expected

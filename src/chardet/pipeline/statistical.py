@@ -14,16 +14,17 @@ from chardet.models import (
     score_with_profile,
 )
 from chardet.pipeline import DetectionResult
+from chardet.pipeline.confusion import _CONFUSION_BAND
 from chardet.pipeline.postprocess import _COMMON_LATIN_ENCODINGS, _DEMOTION_CANDIDATES
 from chardet.registry import EncodingInfo
 
 # Margin subtracted from the running second-best encoding score when deciding
 # whether a variant's upper bound rules it out.  Must be at least
-# ``confusion._CONFUSION_BAND`` (0.005) so that every result position
+# ``confusion._CONFUSION_BAND`` so that every result position
 # ``resolve_confusion_groups`` may examine (position 1 plus all candidates
-# within the band of the top score) is scored exactly; 0.01 gives a 2x
-# cushion for float noise.
-_PRUNE_MARGIN = 0.01
+# within the band of the top score) is scored exactly; derived with a 2x
+# cushion for float noise so a band change cannot silently invalidate it.
+_PRUNE_MARGIN = 2 * _CONFUSION_BAND
 
 # Below this many distinct bigrams the upper-bound prescreen costs about as
 # much as the full dot products it would avoid, so score everything directly.
@@ -48,17 +49,19 @@ def _split_variants(
     candidates: tuple[EncodingInfo, ...],
     profile: BigramProfile,
 ) -> tuple[
-    list[tuple[str, str | None, bytes, str]],
-    list[tuple[float, str, str | None, bytes, str]],
+    list[tuple[str, str | None, bytes, str, int]],
+    list[tuple[float, int, str, str | None, bytes, str]],
 ]:
     """Flatten candidate model variants for pruned scoring.
 
     Returns ``(mb_entries, sb_entries)`` where multi-byte entries are
-    ``(enc, lang, table, key)`` and single-byte entries are
-    ``(upper_bound, enc, lang, table, key)`` sorted by descending bound.
-    The upper bound multiplies each lead byte's total profile weight by the
-    model's maximum weight for that lead byte — at most 256 terms versus one
-    term per distinct bigram for a full score.
+    ``(enc, lang, table, key, variant_index)`` and single-byte entries are
+    ``(upper_bound, variant_index, enc, lang, table, key)`` sorted by
+    descending bound.  The upper bound multiplies each lead byte's total
+    profile weight by the model's maximum weight for that lead byte — at
+    most 256 terms versus one term per distinct bigram for a full score.
+    ``variant_index`` is the variant's position in the encoding index, so
+    exact score ties resolve to the same variant the full path keeps.
     """
     index = get_enc_index()
     norms = _get_model_norms()
@@ -67,23 +70,32 @@ def _split_variants(
     nonzero_rows = profile.nonzero_rows
     input_norm = profile.input_norm
 
-    mb_entries: list[tuple[str, str | None, bytes, str]] = []
-    sb_entries: list[tuple[float, str, str | None, bytes, str]] = []
+    mb_entries: list[tuple[str, str | None, bytes, str, int]] = []
+    sb_entries: list[tuple[float, int, str, str | None, bytes, str]] = []
     for enc in candidates:
         variants = index.get(enc.name)
         if variants is None:
             continue
         if enc.is_multibyte:
-            for lang, table, key in variants:
-                mb_entries.append((enc.name, lang, table, key))
+            for vi, (lang, table, key) in enumerate(variants):
+                mb_entries.append((enc.name, lang, table, key, vi))
             continue
-        for lang, table, key in variants:
+        for vi, (lang, table, key) in enumerate(variants):
             rm = rowmax[key]
             ub_dot = 0
             for b1 in nonzero_rows:
                 ub_dot += rm[b1] * row_freq[b1]
-            ub = ub_dot / (norms[key] * input_norm)
-            sb_entries.append((ub, enc.name, lang, table, key))
+            model_norm = norms.get(key)
+            if model_norm is None:
+                # Unknown norm: cannot bound the score, so never skip.
+                ub = float("inf")
+            elif model_norm > 0.0:
+                ub = ub_dot / (model_norm * input_norm)
+            else:
+                # Zero norm: score_with_profile returns 0.0 for this model,
+                # so bound it at 0.0 instead of dividing by zero.
+                ub = 0.0
+            sb_entries.append((ub, vi, enc.name, lang, table, key))
     sb_entries.sort(key=lambda e: e[0], reverse=True)
     return mb_entries, sb_entries
 
@@ -105,8 +117,11 @@ def _score_pruned(
 
     Encodings that ``postprocess_results`` inspects regardless of rank
     (the common Western Latin trio for niche-Latin demotion, KOI8-T for the
-    KOI8-R promotion) are force-scored when their trigger could fire, so the
-    pruned result list drives postprocessing exactly like the full list.
+    KOI8-R promotion) are force-scored when their trigger could fire.
+    Because confusion resolution can promote position 1 or any candidate
+    within the band into position 0 before those triggers are evaluated,
+    the trigger check covers every encoding near the top, not just the
+    statistical winner.
 
     Returns (enc, score, lang) tuples for encodings scoring above zero, in
     candidate order.
@@ -116,19 +131,23 @@ def _score_pruned(
 
     best_score: dict[str, float] = {}
     best_lang: dict[str, str | None] = {}
+    best_vi: dict[str, int] = {}
     # Running top-2 scores across distinct encodings; the pruning threshold
     # trails the second-best so the top two encodings stay exact.
     top1_enc = ""
     top1 = 0.0
     top2 = 0.0
 
-    def record(enc_name: str, s: float, lang: str | None) -> None:
+    def record(enc_name: str, s: float, lang: str | None, vi: int) -> None:
         nonlocal top1_enc, top1, top2
-        prev = best_score.get(enc_name, 0.0)
-        if s <= prev:
+        prev = best_score.get(enc_name)
+        if prev is not None and (s < prev or (s == prev and vi >= best_vi[enc_name])):
+            # On exact ties keep the variant that comes first in index
+            # order, matching score_best_language on the full path.
             return
         best_score[enc_name] = s
         best_lang[enc_name] = lang
+        best_vi[enc_name] = vi
         if enc_name == top1_enc:
             top1 = s
         elif s > top1:
@@ -138,22 +157,27 @@ def _score_pruned(
         elif s > top2:
             top2 = s
 
-    for enc_name, lang, table, key in mb_entries:
-        record(enc_name, score_with_profile(profile, table, key), lang)
+    for enc_name, lang, table, key, vi in mb_entries:
+        record(enc_name, score_with_profile(profile, table, key), lang, vi)
 
-    for ub, enc_name, lang, table, key in sb_entries:
+    for ub, vi, enc_name, lang, table, key in sb_entries:
         if ub < top2 - _PRUNE_MARGIN:
             # Sorted by descending bound and the threshold only rises, so
             # no later entry can matter either.
             break
-        record(enc_name, score_with_profile(profile, table, key), lang)
+        record(enc_name, score_with_profile(profile, table, key), lang, vi)
 
     # Force-score the encodings postprocess_results may look up by name in
     # the tail of the result list, when their trigger condition could fire.
+    # The trigger is any near-top encoding — everything with a score within
+    # the pruning margin of the second-best — because confusion resolution
+    # may promote any of those (position 1 or a band member) to the top
+    # before postprocess evaluates its own trigger conditions.
+    near_top = [e for e, s in best_score.items() if s >= top2 - _PRUNE_MARGIN]
     forced: list[str] = []
-    if top1_enc in _DEMOTION_CANDIDATES:
+    if any(e in _DEMOTION_CANDIDATES for e in near_top):
         forced.extend(_COMMON_LATIN_ENCODINGS)
-    if top1_enc == "koi8-r":
+    if "koi8-r" in near_top:
         forced.append("koi8-t")
     if forced:
         for enc in candidates:
@@ -161,8 +185,8 @@ def _score_pruned(
                 continue
             # Score every variant: a partially-pruned encoding may otherwise
             # carry an understated best score into the demotion comparison.
-            for lang, table, key in index.get(enc.name, []):
-                record(enc.name, score_with_profile(profile, table, key), lang)
+            for vi, (lang, table, key) in enumerate(index.get(enc.name, [])):
+                record(enc.name, score_with_profile(profile, table, key), lang, vi)
 
     return [
         (enc.name, best_score[enc.name], best_lang[enc.name])

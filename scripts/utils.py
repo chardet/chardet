@@ -3,11 +3,30 @@
 from __future__ import annotations
 
 import argparse
+import math
 import shutil
 import subprocess
 import sys
 import tempfile
+from collections.abc import Sequence
 from pathlib import Path
+
+
+def percentiles(values: Sequence[float], points: Sequence[int]) -> dict[int, float]:
+    """Return ``{point: value}`` for each requested percentile.
+
+    Nearest-rank on the sorted samples: ``ordered[ceil(n * p / 100) - 1]``,
+    the smallest sample value that is >= *p* percent of the distribution.
+    Well-defined for any non-empty sample size, unlike
+    ``statistics.quantiles``.  The single shared implementation keeps every
+    benchmark script reporting the same convention.
+    """
+    if not values:
+        return dict.fromkeys(points, 0.0)
+    ordered = sorted(values)
+    n = len(ordered)
+    return {p: ordered[min(n - 1, max(0, math.ceil(n * p / 100) - 1))] for p in points}
+
 
 _TEST_DATA_REPO = "https://github.com/chardet/test-data.git"
 _REF_FILE = ".test-data-ref"

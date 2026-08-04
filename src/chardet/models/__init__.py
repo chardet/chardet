@@ -6,6 +6,7 @@ annotations.
 """
 
 import functools
+import hashlib
 import importlib.resources
 import math
 import struct
@@ -17,6 +18,9 @@ from chardet.registry import REGISTRY, lookup_encoding
 _unpack_uint32 = struct.Struct(">I").unpack_from
 _unpack_float64 = struct.Struct(">d").unpack_from
 _V2_MAGIC = b"CMD2"
+#: rowmax.bin format: magic + SHA-256 of the matching models.bin + one
+#: 256-byte row-maxima table per model, in models.bin header order.
+_ROWMAX_MAGIC = b"CRM1"
 
 # Encodings that map to exactly one language, derived from the registry.
 # Keyed by canonical name only — callers always use canonical names.
@@ -26,7 +30,9 @@ for _enc in REGISTRY.values():
         _SINGLE_LANG_MAP[_enc.name] = _enc.languages[0]
 
 
-def _decompress_tables(data: bytes, offset: int, names: list[str]) -> dict[str, bytes]:
+def _decompress_tables(
+    data: bytes, offset: int, names: list[str], chunk_size: int = 262144
+) -> dict[str, bytes]:
     """Decompress the model tables from ``data[offset:]``, one per name.
 
     Each model is stored as its own bytes object rather than a memoryview
@@ -55,7 +61,7 @@ def _decompress_tables(data: bytes, offset: int, names: list[str]) -> dict[str, 
         if decomp.unconsumed_tail:
             piece = decomp.decompress(decomp.unconsumed_tail, need)
         elif pos < end:
-            chunk = data[pos : pos + 262144]
+            chunk = data[pos : pos + chunk_size]
             pos += len(chunk)
             piece = decomp.decompress(chunk, need)
         elif not flushed:
@@ -73,11 +79,20 @@ def _decompress_tables(data: bytes, offset: int, names: list[str]) -> dict[str, 
         elif len(table) > 65536:
             break  # oversized flush -> size mismatch below
     if len(models) == num_models:
-        # Drain any leftover decompressed output so extra data is caught.
+        # Drain any leftover decompressed output so extra data is caught,
+        # including surplus tables in compressed input not yet fed to the
+        # decompressor.  Bytes after the stream's end marker (decomp.eof)
+        # are ignored, matching whole-blob zlib.decompress behavior.
+        extra = b""
         if decomp.unconsumed_tail:
-            produced += len(decomp.decompress(decomp.unconsumed_tail, 1))
-        elif not flushed:
-            produced += len(decomp.flush())
+            extra = decomp.decompress(decomp.unconsumed_tail, 1)
+        while not extra and not decomp.eof and pos < end:
+            chunk = data[pos : pos + chunk_size]
+            pos += len(chunk)
+            extra = decomp.decompress(chunk, 1)
+        if not extra and not decomp.eof and not flushed:
+            extra = decomp.flush()
+        produced += len(extra)
     if produced != expected_size or len(models) != num_models:
         msg = (
             f"corrupt models.bin: decompressed size {produced} "
@@ -232,20 +247,42 @@ def get_rowmax() -> dict[str, bytes]:
     (65536 terms) — statistical scoring uses this to rule out candidate
     models without scoring them fully.
 
-    Loads the precomputed ``rowmax.bin`` (written by ``scripts/train.py``
-    in the same model order as ``models.bin``); if the file is missing or
-    does not match the model count, the tables are derived from the models
-    directly (slower, but always available).
+    Loads the precomputed ``rowmax.bin`` (written by ``scripts/train.py`` in
+    the same model order as ``models.bin``).  The file starts with a ``CRM1``
+    magic and the SHA-256 of the ``models.bin`` it was derived from: a stale
+    or mismatched file would silently under-estimate row maxima and break
+    the upper bound that pruning depends on, so anything that does not match
+    the *current* ``models.bin`` byte-for-byte is rejected and the tables
+    are derived from the models directly (slower, but always correct).
     """
     models = load_models()
-    ref = importlib.resources.files("chardet.models").joinpath("rowmax.bin")
+    files = importlib.resources.files("chardet.models")
     try:
-        data = ref.read_bytes()
+        data = files.joinpath("rowmax.bin").read_bytes()
+        models_digest = hashlib.sha256(
+            files.joinpath("models.bin").read_bytes()
+        ).digest()
     except (FileNotFoundError, OSError):
         data = b""
-    if data and len(data) == len(models) * 256:
+        models_digest = b""
+    header_size = 4 + 32
+    if (
+        data[:4] == _ROWMAX_MAGIC
+        and data[4:header_size] == models_digest
+        and len(data) == header_size + len(models) * 256
+    ):
         # models preserves models.bin header order, matching rowmax.bin.
-        return {key: data[i * 256 : (i + 1) * 256] for i, key in enumerate(models)}
+        return {
+            key: data[header_size + i * 256 : header_size + (i + 1) * 256]
+            for i, key in enumerate(models)
+        }
+    if models:
+        warnings.warn(
+            "chardet rowmax.bin is missing or does not match models.bin; "
+            "deriving row maxima from the models (slower startup)",
+            RuntimeWarning,
+            stacklevel=2,
+        )
     return {
         key: bytes(max(table[start : start + 256]) for start in range(0, 65536, 256))
         for key, table in models.items()
@@ -337,9 +374,17 @@ class BigramProfile:
                 nonzero.append(idx)
             freq[idx] += w
             w_sum += w
+        self._finish(freq, nonzero, w_sum)
+
+    def _finish(self, freq: list[int], nonzero: list[int], weight_sum: int) -> None:
+        """Store the frequency data and derive the norm and row aggregates.
+
+        Single finalization path shared by both constructors so pruning
+        fields cannot silently diverge between them.
+        """
         self.freq = freq
         self.nonzero = nonzero
-        self.weight_sum = w_sum
+        self.weight_sum = weight_sum
         norm_sq = 0
         row_freq: list[int] = [0] * 256
         for idx in nonzero:
@@ -363,29 +408,30 @@ class BigramProfile:
         profile = cls(b"")
         freq: list[int] = [0] * 65536
         nonzero: list[int] = []
-        row_freq: list[int] = [0] * 256
+        w_sum = 0
         for idx, count in weighted_freq.items():
             freq[idx] = count
             if count:
                 nonzero.append(idx)
-                row_freq[idx >> 8] += count
-        profile.freq = freq
-        profile.nonzero = nonzero
-        profile.row_freq = row_freq
-        profile.nonzero_rows = [b1 for b1 in range(256) if row_freq[b1]]
-        profile.weight_sum = sum(weighted_freq.values())
-        profile.input_norm = math.sqrt(sum(v * v for v in weighted_freq.values()))
+                w_sum += count
+        profile._finish(freq, nonzero, w_sum)
         return profile
 
 
 def score_with_profile(
-    profile: BigramProfile, model: bytes, model_key: str = ""
+    profile: BigramProfile,
+    model: "bytes | bytearray | memoryview",
+    model_key: str = "",
 ) -> float:
     """Score a pre-computed bigram profile against a single model using cosine similarity.
 
-    *model* must be ``bytes`` (not ``bytearray``/``memoryview``): the narrow
-    type lets mypyc compile the dot-product loop with native byte indexing.
+    ``bytearray``/``memoryview`` tables are accepted for compatibility but
+    copied to ``bytes`` first: the narrow type lets mypyc compile the
+    dot-product loop with native byte indexing (and keeps compiled and
+    pure-Python installs accepting the same argument types).
     """
+    if not isinstance(model, bytes):
+        model = bytes(model)
     if profile.input_norm == 0.0:
         return 0.0
     norms = _get_model_norms()

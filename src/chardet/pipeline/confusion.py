@@ -205,7 +205,7 @@ def resolve_by_category_voting(
     # pass; what survives is exactly the distinguishing bytes present.
     # Equivalent to ``frozenset(data) & diff_bytes`` but ~5x faster, since
     # that would hash every byte of the (up to max_bytes) input.
-    non_diff = bytes(b for b in range(256) if b not in diff_bytes)
+    non_diff, _ = _pair_byte_tables(diff_bytes)
     relevant = frozenset(data.translate(None, non_diff))
     if not relevant:
         return None
@@ -222,6 +222,23 @@ def resolve_by_category_voting(
     if votes_b > votes_a:
         return enc_b
     return None
+
+
+@functools.cache
+def _pair_byte_tables(diff_bytes: frozenset[int]) -> tuple[bytes, bytes]:
+    """Return ``(non_diff_delete, membership)`` byte tables for a pair.
+
+    ``non_diff_delete`` holds every byte value *not* in *diff_bytes* (for
+    ``bytes.translate`` deletion) and ``membership`` is a 256-entry table
+    with 1 at each distinguishing byte (native indexing under mypyc, where
+    frozenset probes are boxed).  Cached because *diff_bytes* comes from
+    the fixed per-pair confusion maps loaded once per process.
+    """
+    member = bytearray(256)
+    for b in diff_bytes:
+        member[b] = 1
+    non_diff = bytes(b for b in range(256) if not member[b])
+    return non_diff, bytes(member)
 
 
 def _best_variant_score(
@@ -262,16 +279,11 @@ def resolve_by_bigram_rescore(
 
     # C-level prefilter: if no distinguishing byte occurs anywhere, the
     # focused profile below would be empty — skip the per-byte loop.
-    diff_delete = bytes(diff_bytes)
-    if len(data.translate(None, diff_delete)) == len(data):
+    # Deleting the *non*-distinguishing bytes leaves a result that is tiny
+    # (usually empty) rather than a near-full copy of the input.
+    non_diff, is_diff = _pair_byte_tables(diff_bytes)
+    if not data.translate(None, non_diff):
         return None
-
-    # 256-entry membership table instead of frozenset probes: bytes indexing
-    # compiles to a native array access under mypyc, set membership does not.
-    member = bytearray(256)
-    for b in diff_bytes:
-        member[b] = 1
-    is_diff = bytes(member)
 
     idf = get_idf_weights()
     freq: dict[int, int] = {}
