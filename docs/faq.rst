@@ -46,7 +46,14 @@ an alternative encoding detector. Key differences:
   a difference of a few milliseconds at worst. See :doc:`performance`.
 - **Accuracy convention:** our 99.3% credits supersets (Windows-1252 for
   ISO-8859-1); scored on exact matches only it is 84.4% against
-  charset-normalizer's 75.9%. Both columns are published.
+  charset-normalizer's 75.9%. Both columns are published, but we
+  consider the superset the correct answer: detection reads at most the
+  first 200 KB, and only the superset is guaranteed to decode the rest
+  of the file --- the same reasoning behind the WHATWG/W3C Encoding
+  Standard's rule that browsers decode ``ascii`` and ``iso-8859-1``
+  content as ``windows-1252``. The strict gap is the convention, not
+  the detector: with superset remapping disabled chardet scores 91.9%
+  strict, still ahead of charset-normalizer. See :doc:`performance`.
 - **Memory:** chardet uses 2.6x less peak memory (27.4 vs 69.9 MiB) and
   1.8x less RSS. Per ``detect()`` call the ordering reverses ---
   charset-normalizer allocates 57 KiB at the median against chardet's

@@ -97,12 +97,34 @@ the stricter convention but narrows from +13.9pp to +8.5pp.
 
 The concessions are overwhelmingly ISO-8859-x to the corresponding
 Windows codepage (51 ``iso8859-5`` -> ``cp1251``, 46 ``iso8859-2`` ->
-``cp1250``, 33 ``iso8859-1`` -> ``cp1252``). Those are safe: the Windows
-codepage is a true superset, so it decodes the bytes losslessly and
-text passed to ``.decode()`` comes out correct. For content with no C1
-bytes the two are genuinely indistinguishable, which is why we score
-them as equivalent by default --- but the strict column is published so
-the choice is visible rather than baked into a headline number.
+``cp1250``, 33 ``iso8859-1`` -> ``cp1252``).
+
+This is a deliberate design position, not a scoring convenience: **when
+two encodings can both decode the observed bytes, returning the larger
+superset is the correct answer.** Detection examines at most the first
+200 KB of a file (``max_bytes``). A byte past that window can require
+the superset --- a C1 curly quote in what looked like ISO-8859-1, an
+extension character in what looked like EUC-KR --- and if it does, the
+subset answer breaks the eventual ``.decode()`` while the superset
+answer never can: the superset decodes everything the subset does,
+identically. Erring toward the superset is the only choice that is safe
+under partial evidence. The web platform reached the same conclusion
+for the same reason: the WHATWG/W3C Encoding Standard requires
+browsers to decode content labelled ``ascii`` or ``iso-8859-1`` as
+``windows-1252``.
+
+Nor does the strict column measure a detection weakness. The gap it
+shows is the output convention itself: run with superset remapping
+disabled (``prefer_superset=False``), chardet scores **91.9% strict**
+(2312/2517) --- ahead of charset-normalizer's 75.9% --- while giving up
+only three files of lenient accuracy (99.3% -> 99.2%). Exact subset
+names are available to callers who want them; the tables on this page
+use superset output because we consider it the right answer to ship.
+
+The strict column is published for comparability --- other detectors
+report exact-match numbers --- and so the convention behind our
+headline figure is visible rather than baked in, not because we
+consider the two conventions equally good.
 
 Speed
 -----
@@ -400,12 +422,18 @@ chardet is **+2.1pp more accurate** than charset-normalizer 3.4.9 on
 charset-normalizer's own test data, and **+6.9pp** on language
 detection.
 
-Under strict scoring the result reverses: on these same files
-charset-normalizer scores **84.9%** against chardet's **67.0%**. This
-subset is dense in exactly the encodings where we emit the Windows
-superset (33 ``euc_kr`` -> ``cp949``, 31 ``iso8859-5`` -> ``cp1251``,
-22 ``iso8859-2`` -> ``cp1250``), so it concedes 31.8pp to leniency
-against charset-normalizer's 11.7pp. Whichever convention you prefer,
+Under strict scoring the result appears to reverse: on these same
+files charset-normalizer scores **84.9%** against chardet's **67.0%**.
+This subset is dense in exactly the encodings where we deliberately
+emit the Windows superset (33 ``euc_kr`` -> ``cp949``, 31 ``iso8859-5``
+-> ``cp1251``, 22 ``iso8859-2`` -> ``cp1250``), so it concedes 31.8pp
+to leniency against charset-normalizer's 11.7pp. The reversal measures
+the output convention, not detection quality: with superset remapping
+disabled, chardet scores **90.4% strict on this same subset** ---
+ahead of charset-normalizer's 84.9% --- while losing three files of
+lenient accuracy. We emit the superset anyway because, as argued under
+`Strict (Exact-Match) Scoring`_, it is the correct answer when only a
+prefix of the file has been examined. Whichever convention you prefer,
 it should be applied to both detectors --- which is the point of
 publishing both columns.
 
