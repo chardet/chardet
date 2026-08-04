@@ -41,6 +41,7 @@ from chardet.evaluation import (
     SUPERSETS,
     is_correct,
     is_equivalent_detection,
+    is_exact_match,
 )
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -728,6 +729,8 @@ def _record_result(  # noqa: PLR0913
     """Update a detector's stats dict with one detection result."""
     detector_stats["total"] += 1
     detector_stats["per_enc"][expected_encoding]["total"] += 1
+    if is_exact_match(expected_encoding, detected):
+        detector_stats["strict_correct"] += 1
     if is_correct(expected_encoding, detected) or (
         detected is not None
         and is_equivalent_detection(filepath.read_bytes(), expected_encoding, detected)
@@ -844,6 +847,7 @@ def run_comparison(  # noqa: PLR0913
     for label in detector_labels:
         stats[label] = {
             "correct": 0,
+            "strict_correct": 0,
             "total": 0,
             "lang_correct": 0,
             "lang_total": 0,
@@ -1046,6 +1050,33 @@ def run_comparison(  # noqa: PLR0913
             f"{s['lang_correct']:>4}/{s['lang_total']} = {lang_acc:.1%} language  "
             f"(detection: {s['time']:.2f}s)"
         )
+
+    # -- Strict vs lenient scoring --
+    print()
+    print("=" * 100)
+    print("STRICT vs LENIENT ENCODING ACCURACY")
+    print("=" * 100)
+    print(f"  {'':>{max_label}}  {'lenient':>16}  {'strict':>16}  {'concession':>16}")
+    print(f"  {'-' * max_label}  {'-' * 16}  {'-' * 16}  {'-' * 16}")
+    for label in detector_labels:
+        s = stats[label]
+        lenient = s["correct"]
+        strict = s["strict_correct"]
+        lenient_pct = lenient / total if total else 0
+        strict_pct = strict / total if total else 0
+        gap_pp = (lenient_pct - strict_pct) * 100
+        print(
+            f"  {label:<{max_label}}  "
+            f"{f'{lenient} ({lenient_pct:.1%})':>16}  "
+            f"{f'{strict} ({strict_pct:.1%})':>16}  "
+            f"{f'+{lenient - strict} (+{gap_pp:.1f}pp)':>16}"
+        )
+    print()
+    print("  lenient    = supersets, byte-order variants, and decoded-output")
+    print("               equivalence all credited (the default scoring)")
+    print("  strict     = exact encoding match only, after alias normalization")
+    print("  concession = files a detector wins only under lenient scoring")
+    print()
 
     # -- Detection runtime distribution --
     print()

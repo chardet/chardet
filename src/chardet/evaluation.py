@@ -163,6 +163,32 @@ _NORMALIZED_BIDIR: dict[str, frozenset[str]] = _build_group_index(
 )
 
 
+def is_exact_match(expected: str | None, detected: str | None) -> bool:
+    """Check whether *detected* names the very same encoding as *expected*.
+
+    Only alias and case differences are normalized away, so
+    ``windows-1252`` matches ``cp1252``. Unlike :func:`is_correct`, this
+    credits neither supersets nor byte-order variants: detecting UTF-8
+    for an ASCII file is ``False`` here.
+
+    This is the stricter convention some other detectors score
+    themselves against. Reporting it alongside :func:`is_correct` makes
+    the two conventions directly comparable instead of leaving the
+    difference implicit.
+
+    :param expected: The expected encoding name, or ``None`` for binary files.
+    :param detected: The detected encoding name, or ``None``.
+    :returns: ``True`` if both names resolve to the same encoding.
+    """
+    if expected is None:
+        return detected is None
+    if detected is None:
+        return False
+    norm_exp = lookup_encoding(expected) or expected.lower()
+    norm_det = lookup_encoding(detected) or detected.lower()
+    return norm_exp == norm_det
+
+
 def is_correct(expected: str | None, detected: str | None) -> bool:
     """Check whether *detected* is an acceptable answer for *expected*.
 
@@ -172,6 +198,8 @@ def is_correct(expected: str | None, detected: str | None) -> bool:
     2. Both belong to the same bidirectional byte-order group, OR
     3. *detected* is a known superset of *expected*.
 
+    See :func:`is_exact_match` for the stricter exact-only predicate.
+
     :param expected: The expected encoding name, or ``None`` for binary files.
     :param detected: The detected encoding name, or ``None``.
     :returns: ``True`` if the detection is acceptable.
@@ -180,12 +208,13 @@ def is_correct(expected: str | None, detected: str | None) -> bool:
         return detected is None
     if detected is None:
         return False
-    norm_exp = lookup_encoding(expected) or expected.lower()
-    norm_det = lookup_encoding(detected) or detected.lower()
 
     # 1. Exact match
-    if norm_exp == norm_det:
+    if is_exact_match(expected, detected):
         return True
+
+    norm_exp = lookup_encoding(expected) or expected.lower()
+    norm_det = lookup_encoding(detected) or detected.lower()
 
     # 2. Bidirectional (same byte-order group)
     if norm_exp in _NORMALIZED_BIDIR and norm_det in _NORMALIZED_BIDIR[norm_exp]:
