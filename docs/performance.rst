@@ -44,7 +44,7 @@ Accuracy
    * - **chardet 7.4.4 (mypyc)**
      - **2499/2517**
      - **99.3%**
-     - **2,698 files/s**
+     - **2,724 files/s**
    * - chardet 6.0.0
      - 2219/2517
      - 88.2%
@@ -52,14 +52,14 @@ Accuracy
    * - charset-normalizer 3.4.9 (mypyc)
      - 2150/2517
      - 85.4%
-     - 1,024 files/s
-   * - cchardet 2.2.1
-     - 1407/2517
-     - 55.9%
-     - 2,706 files/s
+     - 1,051 files/s
+   * - cchardet 3.1.0
+     - 1411/2517
+     - 56.1%
+     - 4,652 files/s
 
 chardet leads all detectors on accuracy: **+11.1pp** vs chardet 6.0.0,
-**+13.9pp** vs charset-normalizer 3.4.9, and **+43.4pp** vs cchardet 2.2.1.
+**+13.9pp** vs charset-normalizer 3.4.9, and **+43.2pp** vs cchardet 3.1.0.
 
 Strict (Exact-Match) Scoring
 ----------------------------
@@ -85,10 +85,10 @@ ours. Both conventions, on the same files:
      - 85.4%
      - 75.9%
      - +9.5pp
-   * - cchardet 2.2.1
-     - 55.9%
-     - 50.5%
-     - +5.4pp
+   * - cchardet 3.1.0
+     - 56.1%
+     - 50.1%
+     - +6.0pp
 
 "Concession" is the share of files a detector wins only under lenient
 rules. **chardet benefits from lenient scoring more than the others
@@ -118,49 +118,49 @@ Speed
      - p90
      - p95
      - p99
-   * - cchardet 2.2.1
-     - 2,706
-     - 0.37ms
+   * - cchardet 3.1.0
+     - 4,652
+     - 0.22ms
      - 0.03ms
-     - 0.45ms
-     - 0.71ms
-     - 2.22ms
+     - 0.65ms
+     - 0.90ms
+     - 1.87ms
    * - **chardet 7.4.4 (mypyc)**
-     - **2,698**
+     - **2,724**
      - **0.37ms**
      - **0.16ms**
      - **0.93ms**
-     - **1.14ms**
-     - **1.92ms**
+     - **1.12ms**
+     - **1.85ms**
    * - charset-normalizer 3.4.9 (mypyc)
-     - 1,024
-     - 0.98ms
-     - 0.56ms
-     - 2.41ms
-     - 3.87ms
-     - 6.37ms
+     - 1,051
+     - 0.95ms
+     - 0.54ms
+     - 2.34ms
+     - 3.80ms
+     - 6.28ms
    * - chardet 6.0.0
      - 20
-     - 50.07ms
-     - 1.08ms
-     - 111.52ms
-     - 230.52ms
-     - 685.33ms
+     - 49.36ms
+     - 1.10ms
+     - 109.12ms
+     - 228.69ms
+     - 671.93ms
 
-With mypyc compilation, chardet 7.4.4 is **135x faster** than chardet
+With mypyc compilation, chardet 7.4.4 is **133x faster** than chardet
 6.0.0, and **2.6x faster** than charset-normalizer 3.4.9 (mypyc) at the
-mean. The gap holds across the whole distribution: **3.5x at the
-median** (0.16ms vs 0.56ms), **3.4x at p95** (1.14ms vs 3.87ms), and
-**3.3x at p99** (1.92ms vs 6.37ms), with a worst case 3.0x lower
-(11ms vs 33ms). See `Latency by Script Family`_ for the CJK split, the
-one subset where charset-normalizer keeps a (few-millisecond) edge in
-the tail.
+mean. The gap holds across the whole distribution: **3.4x at the
+median** (0.16ms vs 0.54ms), at p95 (1.12ms vs 3.80ms), and at p99
+(1.85ms vs 6.28ms), with a worst case 2.9x lower (11ms vs 32ms). See
+`Latency by Script Family`_ for the CJK split, the one subset where
+charset-normalizer keeps a (few-millisecond) edge in the tail.
 
-cchardet and chardet are now tied on aggregate throughput (2,706 vs
-2,698 files/s, within run noise), but cchardet owns the worst tail of
-any detector measured: its slowest single file takes **354ms**, 32x
-chardet's worst case, so a latency budget built on its median will be
-missed badly on the outliers.
+cchardet 3.1.0 leads aggregate throughput at 1.7x chardet (4,652 vs
+2,724 files/s) --- a large improvement over its 2.2.1 release, which
+chardet had caught --- but the two meet at the tail (p99 1.87ms vs
+chardet's 1.85ms) and chardet's worst case is 2.3x lower (11ms vs
+25ms). The trade remains accuracy: cchardet detects 43.2pp fewer
+files correctly.
 
 Latency by Script Family
 ------------------------
@@ -185,39 +185,39 @@ Splitting the same measurements:
    * - **chardet 7.4.4**
      - **CJK**
      - 183
-     - **0.19ms**
-     - 2.14ms
-     - **5.00ms**
-     - 10.04ms
+     - **0.18ms**
+     - 1.86ms
+     - **4.72ms**
+     - 10.29ms
    * - **chardet 7.4.4**
      - **non-CJK**
      - 2,334
      - 0.16ms
-     - 1.12ms
-     - **1.75ms**
-     - 10.95ms
+     - 1.10ms
+     - **1.71ms**
+     - 10.94ms
    * - charset-normalizer 3.4.9
      - CJK
      - 183
-     - 0.52ms
-     - 1.16ms
-     - 1.58ms
-     - 1.63ms
+     - 0.49ms
+     - 1.10ms
+     - 1.59ms
+     - 1.80ms
    * - charset-normalizer 3.4.9
      - non-CJK
      - 2,334
-     - 0.57ms
-     - 4.11ms
-     - 6.47ms
-     - 32.60ms
+     - 0.54ms
+     - 4.05ms
+     - 6.38ms
+     - 32.04ms
 
-chardet now leads on CJK through the median (0.19ms vs 0.52ms --- escape
+chardet now leads on CJK through the median (0.18ms vs 0.49ms --- escape
 sequences and clear multi-byte structure resolve immediately) and even
-on the CJK *mean* (0.53ms vs 0.58ms). charset-normalizer keeps the
-flatter CJK tail (p99 1.58ms vs chardet's 5.00ms), but the absolute
+on the CJK *mean* (0.51ms vs 0.55ms). charset-normalizer keeps the
+flatter CJK tail (p99 1.59ms vs chardet's 4.72ms), but the absolute
 stakes are small: the gap is a few milliseconds and chardet's slowest
 CJK file completes in 10ms. chardet is ahead everywhere else
-(p99 1.75ms vs 6.47ms).
+(p99 1.71ms vs 6.38ms).
 
 Percentiles over a mixed corpus are sensitive to how much CJK it
 contains: this suite is 7.2% CJK (183/2,517), so a CJK-heavier corpus
@@ -241,36 +241,39 @@ Memory
      - Peak Memory
      - RSS
    * - **chardet 7.4.4**
-     - **5.9ms**
+     - **5.7ms**
      - **995 KiB** :sup:`*`
      - **27.4 MiB**
-     - **125.2 MiB**
+     - **125.0 MiB**
    * - chardet 6.0.0
      - 17.0ms
      - 12.1 MiB
      - 28.8 MiB
      - 132.3 MiB
    * - charset-normalizer 3.4.9
-     - 3.8ms
+     - 3.6ms
      - 1.6 MiB
      - 69.9 MiB
      - 219.8 MiB
-   * - cchardet 2.2.1
+   * - cchardet 3.1.0
      - 0.7ms
-     - 29.5 KiB
-     - 156.4 KiB
-     - 88.0 MiB
+     - 31.8 KiB
+     - 64.0 MiB
+     - 153.4 MiB
 
 :sup:`*` chardet 7.x uses lazy loading --- models and the detection
 pipeline are not allocated until the first ``detect()`` call, so
 ``import chardet`` costs 995 KiB against chardet 6.0.0's 12.1 MiB. The
 full model cost appears in Peak Memory instead.
 
-chardet uses **2.6x less peak memory** than charset-normalizer 3.4.9 and
-**1.8x less RSS**. Since 7.4.4 decompresses its models incrementally,
-chardet also has the smallest peak footprint of the Python detectors
-(27.4 MiB, edging out chardet 6.0.0's 28.8 MiB --- without the older
-version's much lower accuracy and throughput).
+chardet uses **2.6x less peak memory** than charset-normalizer 3.4.9,
+**2.3x less** than cchardet 3.1.0, and has the **lowest RSS of every
+detector measured**. Since 7.4.4 decompresses its models incrementally,
+its 27.4 MiB peak is the smallest on the table, edging out even chardet
+6.0.0's 28.8 MiB --- without the older version's much lower accuracy
+and throughput. (cchardet 2.2.1 used to report a near-zero traced peak
+because its C allocations were invisible to ``tracemalloc``; 3.1.0's
+are visible.)
 
 Memory per Detection
 --------------------
@@ -309,32 +312,30 @@ concurrent detection cost".
      - 182 KiB
      - 301 KiB
      - 876 KiB
-   * - cchardet 2.2.1
-     - 87 B :sup:`†`
-     - 92 B :sup:`†`
-     - 98 B :sup:`†`
-     - 98 B :sup:`†`
-     - 106 B :sup:`†`
+   * - cchardet 3.1.0
+     - 45 KiB
+     - 6 KiB
+     - 38 KiB
+     - 56 KiB
+     - 120 KiB
 
-:sup:`†` cchardet does its work in C, which ``tracemalloc`` cannot see.
-Its near-zero figures mean "invisible", not "free".
-
-**charset-normalizer allocates less per call than chardet at typical
-sizes** --- 57 KiB at the median against chardet's 530 KiB. chardet's
-per-call cost is flat instead: it varies by 15% from median to p99
-(530 -> 610 KiB), while charset-normalizer's grows 7x (57 -> 418 KiB) and
-chardet 6.0.0's grows 13x (69 -> 876 KiB). So chardet trades a higher
-floor for a predictable ceiling, which is the better shape for sizing a
-worker pool; charset-normalizer is the better fit when most inputs are
-small and peak footprint per call matters more than its variance.
+**charset-normalizer and cchardet allocate less per call than chardet
+at typical sizes** --- 57 KiB and 6 KiB at the median against chardet's
+530 KiB. chardet's per-call cost is flat instead: it varies by 15% from
+median to p99 (530 -> 610 KiB), while charset-normalizer's grows 7x
+(57 -> 410 KiB), cchardet's 20x (6 -> 120 KiB), and chardet 6.0.0's 13x
+(69 -> 876 KiB). So chardet trades a higher floor for a predictable
+ceiling, which is the better shape for sizing a worker pool; the others
+are the better fit when most inputs are small and peak footprint per
+call matters more than its variance.
 
 One-time lazy initialization is absorbed by a warmup call before the
 distribution is measured (a ~23 MiB peak for chardet — the model load
 visible in the table above), so every sample here is a steady-state
 call.  The maximum is still excluded from the table because it
 describes the single largest input file rather than typical calls:
-1.3 MiB for chardet, but 63.9 MiB for charset-normalizer, whose
-per-call footprint grows with input size.
+1.3 MiB for chardet, but 63.9 MiB for both charset-normalizer and
+cchardet 3.1.0, whose per-call footprints grow with input size.
 
 Reproduce with ``python scripts/compare_detectors.py --memory --cn
 --cchardet --mypyc``.
@@ -358,12 +359,12 @@ Language Detection
    * - chardet 6.0.0
      - 1003/2509
      - 40.0%
-   * - cchardet 2.2.1
+   * - cchardet 3.1.0
      - 0/2509
      - 0.0%
 
 chardet detects language with **95.7% accuracy** --- +36.4pp vs
-charset-normalizer 3.4.9 and +55.7pp vs chardet 6.0.0. cchardet 2.2.1 does
+charset-normalizer 3.4.9 and +55.7pp vs chardet 6.0.0. cchardet 3.1.0 does
 not report language.
 
 Accuracy on charset-normalizer's Test Set
@@ -438,45 +439,45 @@ Benchmarked with 2,517 files, ``encoding_era=ALL``:
      - 4 threads
      - 8 threads
    * - 3.13 (pure)
+     - 3,300ms
      - 3,330ms
-     - 3,280ms
-     - 3,320ms
-     - 3,310ms
+     - 3,240ms
+     - 3,250ms
    * - 3.13t (pure)
-     - 4,050ms
-     - 2,210ms (1.8x)
-     - 1,280ms (3.2x)
-     - 1,000ms (4.1x)
+     - 4,000ms
+     - 2,200ms (1.8x)
+     - 1,230ms (3.3x)
+     - 1,020ms (3.9x)
    * - 3.13 (mypyc)
-     - 660ms
-     - 660ms
-     - 670ms
-     - 660ms
+     - 680ms
+     - 700ms
+     - 690ms
+     - 690ms
    * - **3.13t (mypyc)** :sup:`*`
-     - 730ms
-     - 440ms (1.7x)
-     - 250ms (2.9x)
-     - **250ms (2.9x)**
+     - 740ms
+     - 480ms (1.5x)
+     - 290ms (2.6x)
+     - **250ms (3.0x)**
    * - 3.14 (pure)
-     - 3,040ms
+     - 3,020ms
      - 3,010ms
-     - 3,040ms
-     - 3,120ms
+     - 2,960ms
+     - 2,980ms
    * - 3.14t (pure)
-     - 3,390ms
-     - 1,720ms (2.0x)
-     - 970ms (3.5x)
-     - 670ms (5.1x)
+     - 3,360ms
+     - 1,760ms (1.9x)
+     - 930ms (3.6x)
+     - 710ms (4.7x)
    * - 3.14 (mypyc)
-     - 950ms
-     - 840ms
-     - 840ms
-     - 840ms
+     - 960ms
+     - 820ms
+     - 820ms
+     - 830ms
    * - **3.14t (mypyc)**
-     - 1,150ms
-     - 620ms (1.9x)
-     - 350ms (3.3x)
-     - **220ms (5.2x)**
+     - 1,170ms
+     - 680ms (1.7x)
+     - 390ms (3.0x)
+     - **270ms (4.3x)**
 
 :sup:`*` The 3.13t mypyc row was compiled locally with mypy 1.19.1. mypy
 2.x's free-threaded runtime uses ``_PyObject_XDecRefDelayed``, which CPython
@@ -503,10 +504,10 @@ needed.
      - Files/s
      - Speedup
    * - Pure Python
-     - 836
+     - 839
      - baseline
    * - mypyc compiled
-     - 2,698
+     - 2,724
      - **3.2x**
 
 Both rows are the CPython 3.14 measurements from the cross-version table
@@ -631,7 +632,7 @@ ratio (3.0x) matches the cross-session ratio implied by the table
      - **2026-08**
      - **2499/2517**
      - **99.3%**
-     - **2,698**
+     - **2,724**
      - **95.7%**
 
 chardet 3.0.1--3.0.4 had identical accuracy and speed; only 3.0.4 is
@@ -664,104 +665,105 @@ pure-Python wheel.
      - p95
    * - CPython 3.10
      - mypyc
-     - 767ms
-     - 3,282
-     - 0.30ms
+     - 800ms
+     - 3,146
+     - 0.32ms
      - 0.19ms
-     - 0.59ms
-     - 0.72ms
+     - 0.64ms
+     - 0.77ms
    * - CPython 3.10
      - pure
-     - 3,976ms
-     - 633
-     - 1.58ms
-     - 0.81ms
-     - 4.03ms
-     - 4.90ms
+     - 3,934ms
+     - 640
+     - 1.56ms
+     - 0.80ms
+     - 4.02ms
+     - 4.86ms
    * - CPython 3.11
      - mypyc
-     - 759ms
-     - 3,316
-     - 0.30ms
-     - 0.18ms
-     - 0.59ms
-     - 0.72ms
+     - 789ms
+     - 3,190
+     - 0.31ms
+     - 0.19ms
+     - 0.63ms
+     - 0.76ms
    * - CPython 3.11
      - pure
-     - 3,062ms
-     - 822
-     - 1.22ms
+     - 3,046ms
+     - 826
+     - 1.21ms
+     - 0.63ms
+     - 3.08ms
+     - 3.73ms
+   * - CPython 3.12
+     - mypyc
+     - 682ms
+     - 3,691
+     - 0.27ms
+     - 0.13ms
      - 0.64ms
-     - 3.01ms
-     - 3.75ms
-   * - **CPython 3.12**
-     - **mypyc**
-     - **635ms**
-     - **3,964**
-     - **0.25ms**
-     - **0.12ms**
-     - **0.57ms**
-     - **0.71ms**
+     - 0.77ms
    * - CPython 3.12
      - pure
-     - 3,194ms
-     - 788
+     - 3,188ms
+     - 790
      - 1.27ms
      - 0.62ms
-     - 3.29ms
-     - 4.09ms
-   * - CPython 3.13
-     - mypyc
-     - 640ms
-     - 3,933
-     - 0.25ms
-     - 0.12ms
-     - 0.59ms
-     - 0.74ms
+     - 3.31ms
+     - 4.06ms
+   * - **CPython 3.13**
+     - **mypyc**
+     - **675ms**
+     - **3,729**
+     - **0.27ms**
+     - **0.13ms**
+     - **0.64ms**
+     - **0.78ms**
    * - CPython 3.13
      - pure
-     - 3,304ms
-     - 762
+     - 3,290ms
+     - 765
      - 1.31ms
-     - 0.65ms
-     - 3.32ms
+     - 0.64ms
+     - 3.36ms
      - 4.17ms
    * - CPython 3.14
      - mypyc
-     - 933ms
-     - 2,698
+     - 924ms
+     - 2,724
      - 0.37ms
      - 0.16ms
      - 0.93ms
-     - 1.14ms
+     - 1.12ms
    * - CPython 3.14
      - pure
-     - 3,010ms
-     - 836
-     - 1.20ms
-     - 0.59ms
-     - 3.09ms
+     - 2,999ms
+     - 839
+     - 1.19ms
+     - 0.58ms
+     - 3.11ms
      - 3.80ms
    * - PyPy 3.10
      - pure
-     - 3,267ms
-     - 770
-     - 1.30ms
-     - 0.13ms
-     - 3.00ms
-     - 3.69ms
+     - 3,202ms
+     - 786
+     - 1.27ms
+     - 0.12ms
+     - 2.94ms
+     - 3.65ms
    * - PyPy 3.11
      - pure
-     - 3,083ms
-     - 816
-     - 1.22ms
+     - 3,140ms
+     - 802
+     - 1.25ms
      - 0.12ms
-     - 2.83ms
-     - 3.47ms
+     - 2.86ms
+     - 3.65ms
 
-**CPython 3.12 + mypyc is the fastest combination** at 3,964 files/s.
-mypyc provides a 3.2--5.2x speedup across CPython versions; the gap is
+**CPython 3.13 + mypyc is the fastest combination** at 3,729 files/s,
+with 3.12 within 1% --- the two trade places between sessions. mypyc
+provides a 3.2--4.9x speedup across CPython versions; the gap is
 smallest on 3.14, which runs mypyc-compiled code noticeably slower than
 3.12/3.13 while running pure Python slightly faster. Pure Python on
-PyPy (770--816 files/s) sits inside the pure-CPython range (633--836
-files/s) and reaches 19--30% of mypyc-compiled CPython throughput.
+PyPy (786--802 files/s) sits inside the pure-CPython range (640--839
+files/s) and reaches 21--29% of mypyc-compiled CPython throughput.

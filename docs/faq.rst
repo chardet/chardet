@@ -38,11 +38,11 @@ an alternative encoding detector. Key differences:
 
 - **Accuracy:** chardet achieves 99.3% vs charset-normalizer's 85.4% on
   the same test suite.
-- **Speed:** 2.6x faster overall with mypyc (2,698 vs 1,024 files/s),
-  and faster across the latency distribution on our test suite:
-  3.5x at the median (0.16 vs 0.56ms), 3.4x at p95, 3.3x at p99.
+- **Speed:** 2.6x faster overall with mypyc (2,724 vs 1,051 files/s),
+  and 3.4x faster across the latency distribution on our test suite:
+  at the median (0.16 vs 0.54ms), at p95, and at p99.
   Legacy CJK multi-byte encodings are the one subset where
-  charset-normalizer keeps a flatter tail (p99 1.58 vs our 5.00ms) ---
+  charset-normalizer keeps a flatter tail (p99 1.59 vs our 4.72ms) ---
   a difference of a few milliseconds at worst. See :doc:`performance`.
 - **Accuracy convention:** our 99.3% credits supersets (Windows-1252 for
   ISO-8859-1); scored on exact matches only it is 84.4% against
@@ -61,10 +61,13 @@ How is chardet different from cchardet?
 `cchardet <https://github.com/faust-streaming/faust-cchardet>`_ wraps
 Mozilla's uchardet C/C++ library. Key differences:
 
-- **Accuracy:** chardet achieves 99.3% vs cchardet's 55.9%.
-- **Speed:** tied in aggregate (0.93s for either across 2,517 files),
-  though cchardet has the faster median (0.03 vs 0.16ms) and chardet
-  the far better worst case (11ms vs 354ms).
+- **Accuracy:** chardet achieves 99.3% vs cchardet's 56.1%.
+- **Speed:** cchardet 3.1.0 is 1.7x faster in aggregate (0.54s vs
+  0.92s across 2,517 files), but the two meet at the tail --- p99
+  1.87ms vs our 1.85ms --- and chardet's worst case is lower
+  (11ms vs 25ms).
+- **Memory:** chardet's peak footprint is 2.3x smaller (27.4 vs
+  64.0 MiB traced) with lower RSS (125 vs 153 MiB).
 - **Encoding breadth:** chardet supports 49 more encodings than cchardet,
   including EBCDIC, Mac, Baltic, and BOM-less UTF-16/32.
 - **Dependencies:** chardet is pure Python with zero dependencies.
