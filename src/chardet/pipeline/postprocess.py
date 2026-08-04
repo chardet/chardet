@@ -194,18 +194,29 @@ _KOI8_T_DISTINGUISHING: frozenset[int] = frozenset(
 )
 
 
+# Deletion tables for bytes.translate: length changes iff a distinguishing
+# byte occurs in the data.  A translate scan runs at C speed where the
+# equivalent generator expression iterates the whole (up to max_bytes) input
+# with boxed set-membership tests.  All distinguishing bytes are > 0x7F, so
+# the old per-byte high-bit filter is subsumed by set membership.
+_DEMOTION_DELETE: dict[str, bytes] = {
+    enc: bytes(byte_set) for enc, byte_set in _DEMOTION_CANDIDATES.items()
+}
+_KOI8_T_DELETE: bytes = bytes(_KOI8_T_DISTINGUISHING)
+
+
 def _should_demote(encoding: str, data: bytes) -> bool:
     """Return True if encoding is a demotion candidate with no distinguishing bytes.
 
-    Checks whether any non-ASCII byte in *data* falls in the set of byte
-    values that decode differently under the given encoding vs iso-8859-1.
-    If none do, the data is equally valid under both encodings and there is
-    no byte-level evidence for preferring the candidate encoding.
+    Checks whether any byte in *data* falls in the set of byte values that
+    decode differently under the given encoding vs iso-8859-1.  If none do,
+    the data is equally valid under both encodings and there is no
+    byte-level evidence for preferring the candidate encoding.
     """
-    distinguishing = _DEMOTION_CANDIDATES.get(encoding)
-    if distinguishing is None:
+    delete = _DEMOTION_DELETE.get(encoding)
+    if delete is None:
         return False
-    return not any(b in distinguishing for b in data if b > 0x7F)
+    return len(data.translate(None, delete)) == len(data)
 
 
 def _demote_niche_latin(
@@ -259,7 +270,7 @@ def _promote_koi8t(
     if koi8t_idx is None:
         return results
     # Check for Tajik-specific bytes
-    if any(b in _KOI8_T_DISTINGUISHING for b in data if b > 0x7F):
+    if len(data.translate(None, _KOI8_T_DELETE)) != len(data):
         koi8t_result = results[koi8t_idx]
         top_conf = results[0].confidence
         promoted = DetectionResult(

@@ -26,9 +26,7 @@ for _enc in REGISTRY.values():
         _SINGLE_LANG_MAP[_enc.name] = _enc.languages[0]
 
 
-def _decompress_tables(
-    data: bytes, offset: int, names: list[str]
-) -> dict[str, bytes]:
+def _decompress_tables(data: bytes, offset: int, names: list[str]) -> dict[str, bytes]:
     """Decompress the model tables from ``data[offset:]``, one per name.
 
     Each model is stored as its own bytes object rather than a memoryview
