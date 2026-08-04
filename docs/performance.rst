@@ -14,8 +14,9 @@ CPython 3.14 unless noted.
    against numbers published in older versions of these docs --- a
    number that improved between releases may reflect the faster
    machine, the faster code, or both. Comparisons *within* a table are
-   valid: every detector, Python version, and build in a given table was
-   measured on the same machine in the same session.
+   valid: every detector, Python version, and build in a given table
+   was measured on the same machine, almost always in the same session
+   (the one exception is noted under `Historical Performance`_).
 
 Detecting a superset of the expected encoding is counted as correct,
 since the superset decodes the data without loss (e.g., detecting
@@ -521,6 +522,13 @@ the same 2,517-file test suite with the same equivalence rules. Pure
 Python on CPython 3.14 for versions before 7.0; mypyc-compiled for
 7.0+, matching what ``pip install chardet`` delivers. Language column
 shows "---" for versions that did not support language detection.
+
+All rows were measured on the machine noted at the top of this page,
+but the 7.4.4 row comes from a later session than the rest of the
+table. To bound the session-to-session drift, 7.4.3 was re-measured
+back-to-back with 7.4.4 in a single session: the same-session speed
+ratio (3.0x) matches the cross-session ratio implied by the table
+(3.1x), and the absolute drift was about 10%.
 
 .. list-table::
    :header-rows: 1
