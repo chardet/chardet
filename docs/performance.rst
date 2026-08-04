@@ -147,7 +147,7 @@ Speed
      - 228.69ms
      - 671.93ms
 
-With mypyc compilation, chardet 7.4.4 is **133x faster** than chardet
+With mypyc compilation, chardet 7.4.4 is **134x faster** than chardet
 6.0.0, and **2.6x faster** than charset-normalizer 3.4.9 (mypyc) at the
 mean. The gap holds across the whole distribution: **3.4x at the
 median** (0.16ms vs 0.54ms), at p95 (1.12ms vs 3.80ms), and at p99
