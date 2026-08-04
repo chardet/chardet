@@ -38,10 +38,16 @@ an alternative encoding detector. Key differences:
 
 - **Accuracy:** chardet achieves 99.3% vs charset-normalizer's 85.4% on
   the same test suite.
-- **Speed:** comparable overall with mypyc (1,067 vs 1,010 files/s), but
-  chardet is faster across the latency distribution: 1.7x at the median
-  (0.33 vs 0.56ms), 1.3x at p95 (3.10 vs 4.05ms), and 1.2x at p99
-  (5.36 vs 6.66ms).
+- **Speed:** comparable overall with mypyc (1,067 vs 1,010 files/s), and
+  chardet is faster across the latency distribution on our test suite:
+  1.7x at the median (0.33 vs 0.56ms), 1.3x at p95, 1.2x at p99. The
+  exception is legacy CJK multi-byte encodings, where charset-normalizer
+  has the better tail (p99 1.67 vs our 10.84ms) --- if your inputs are
+  mostly Big5/GB/EUC/Shift_JIS, prefer it for latency. See
+  :doc:`performance`.
+- **Accuracy convention:** our 99.3% credits supersets (Windows-1252 for
+  ISO-8859-1); scored on exact matches only it is 84.4% against
+  charset-normalizer's 75.9%. Both columns are published.
 - **Memory:** chardet uses 1.3x less peak memory (53.8 vs 69.9 MiB) and
   1.6x less RSS. Per ``detect()`` call the ordering reverses ---
   charset-normalizer allocates 57 KiB at the median against chardet's

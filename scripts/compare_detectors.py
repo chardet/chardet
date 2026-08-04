@@ -43,6 +43,7 @@ from chardet.evaluation import (
     is_equivalent_detection,
     is_exact_match,
 )
+from chardet.registry import REGISTRY, lookup_encoding
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 _CHAR_DATASET_URL = "https://github.com/Ousret/char-dataset.git"
@@ -590,6 +591,21 @@ def _run_timing_subprocess(  # noqa: PLR0913
     return _TimingResult(results, timing, file_times, import_time, first_detect_time)
 
 
+def _is_cjk_encoding(name: str | None) -> bool:
+    """Whether *name* is a legacy CJK multi-byte encoding.
+
+    Every ``is_multibyte`` entry in the registry is CJK (Big5, GB, EUC,
+    Shift_JIS, ISO-2022, Johab), so that flag is the classifier. UTF-8/16/32
+    are excluded: they carry CJK text but skip the expensive disambiguation
+    path, which is what this split is meant to isolate.
+    """
+    if not name:
+        return False
+    canonical = lookup_encoding(name)
+    info = REGISTRY.get(canonical) if canonical else None
+    return bool(info and info.is_multibyte)
+
+
 def _percentiles(values: Sequence[float], points: Sequence[int]) -> dict[int, float]:
     """Return ``{point: value}`` for each requested percentile.
 
@@ -863,6 +879,8 @@ def run_comparison(  # noqa: PLR0913
             "lang_failures": [],
             "time": 0.0,
             "file_times": [],
+            "cjk_file_times": [],
+            "non_cjk_file_times": [],
         }
 
     data_dir_str = str(data_dir)
@@ -968,6 +986,8 @@ def run_comparison(  # noqa: PLR0913
             import_times[label] = timing.import_time
             first_detect_times[label] = timing.first_detect_time
             filtered_file_times: list[float] = []
+            cjk_times: list[float] = []
+            non_cjk_times: list[float] = []
             for i, (expected, exp_lang, path_str, detected, det_lang) in enumerate(
                 timing.results
             ):
@@ -978,6 +998,8 @@ def run_comparison(  # noqa: PLR0913
                         continue
                 if i < len(timing.file_times):
                     filtered_file_times.append(timing.file_times[i])
+                    bucket = cjk_times if _is_cjk_encoding(expected) else non_cjk_times
+                    bucket.append(timing.file_times[i])
                 _record_result(
                     stats[label],
                     expected,
@@ -987,6 +1009,8 @@ def run_comparison(  # noqa: PLR0913
                     det_lang,
                 )
             stats[label]["file_times"] = filtered_file_times
+            stats[label]["cjk_file_times"] = cjk_times
+            stats[label]["non_cjk_file_times"] = non_cjk_times
 
     total = stats[detectors[0][0]]["total"]
 
@@ -1050,6 +1074,42 @@ def run_comparison(  # noqa: PLR0913
             f"{s['lang_correct']:>4}/{s['lang_total']} = {lang_acc:.1%} language  "
             f"(detection: {s['time']:.2f}s)"
         )
+
+    # -- CJK vs non-CJK latency --
+    if any(stats[x]["cjk_file_times"] for x in detector_labels):
+        print()
+        print("=" * 100)
+        print("LATENCY BY SCRIPT FAMILY (per-file, detection-only, milliseconds)")
+        print("=" * 100)
+        print(
+            f"  {'':>{max_label}}  {'group':>9}  {'files':>6}  {'mean':>9}  "
+            f"{'median':>9}  {'p95':>9}  {'p99':>9}  {'max':>9}"
+        )
+        print(
+            f"  {'-' * max_label}  {'-' * 9}  {'-' * 6}  {'-' * 9}  "
+            f"{'-' * 9}  {'-' * 9}  {'-' * 9}  {'-' * 9}"
+        )
+        for label in detector_labels:
+            for group, key in (
+                ("CJK", "cjk_file_times"),
+                ("non-CJK", "non_cjk_file_times"),
+            ):
+                ft = stats[label][key]
+                if not ft:
+                    continue
+                pct = _percentiles(ft, (50, 95, 99))
+                print(
+                    f"  {label:<{max_label}}  {group:>9}  {len(ft):>6}  "
+                    f"{statistics.mean(ft) * 1000:>8.2f}ms  "
+                    f"{pct[50] * 1000:>8.2f}ms  {pct[95] * 1000:>8.2f}ms  "
+                    f"{pct[99] * 1000:>8.2f}ms  {max(ft) * 1000:>8.2f}ms"
+                )
+        print()
+        print("  CJK = expected encoding is a legacy CJK multi-byte encoding")
+        print("        (Big5, GB, EUC, Shift_JIS, ISO-2022, Johab). UTF-8/16/32")
+        print("        count as non-CJK even when the text is CJK, since they")
+        print("        skip the multi-byte disambiguation path.")
+        print()
 
     # -- Strict vs lenient scoring --
     print()

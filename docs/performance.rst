@@ -60,6 +60,49 @@ Accuracy
 chardet leads all detectors on accuracy: **+11.1pp** vs chardet 6.0.0,
 **+13.9pp** vs charset-normalizer 3.4.9, and **+43.4pp** vs cchardet 2.2.1.
 
+Strict (Exact-Match) Scoring
+----------------------------
+
+The numbers above credit supersets, byte-order variants, and
+decoded-output equivalence. Other detectors publish accuracy scored on
+exact matches only, so those figures are not directly comparable to
+ours. Both conventions, on the same files:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 16 16 16
+
+   * - Detector
+     - Lenient
+     - Strict
+     - Concession
+   * - **chardet 7.4.4 (mypyc)**
+     - **99.3%**
+     - **84.4%**
+     - +14.9pp
+   * - charset-normalizer 3.4.9 (mypyc)
+     - 85.4%
+     - 75.9%
+     - +9.5pp
+   * - cchardet 2.2.1
+     - 55.9%
+     - 50.5%
+     - +5.4pp
+
+"Concession" is the share of files a detector wins only under lenient
+rules. **chardet benefits from lenient scoring more than the others
+do** --- 374 files, against charset-normalizer's 240. Our lead survives
+the stricter convention but narrows from +13.9pp to +8.5pp.
+
+The concessions are overwhelmingly ISO-8859-x to the corresponding
+Windows codepage (51 ``iso8859-5`` -> ``cp1251``, 46 ``iso8859-2`` ->
+``cp1250``, 33 ``iso8859-1`` -> ``cp1252``). Those are safe: the Windows
+codepage is a true superset, so it decodes the bytes losslessly and
+text passed to ``.decode()`` comes out correct. For content with no C1
+bytes the two are genuinely indistinguishable, which is why we score
+them as equivalent by default --- but the strict column is published so
+the choice is visible rather than baked into a headline number.
+
 Speed
 -----
 
@@ -105,15 +148,84 @@ Speed
 
 With mypyc compilation, chardet 7.4.4 is **53x faster** than chardet 6.0.0.
 Against charset-normalizer 3.4.9 (mypyc) the two are close on total
-throughput (**1.06x**), but chardet is faster at every point of the
-distribution that matters for latency: **1.7x at the median** (0.33ms vs
+throughput (**1.06x**), but chardet is faster across this corpus at
+every point of the distribution: **1.7x at the median** (0.33ms vs
 0.56ms), **1.3x at p95** (3.10ms vs 4.05ms), and **1.2x at p99** (5.36ms
-vs 6.66ms), with a worst case 1.6x lower (20ms vs 32ms).
+vs 6.66ms), with a worst case 1.6x lower (20ms vs 32ms). That ordering
+is corpus-dependent --- see `Latency by Script Family`_, where
+charset-normalizer wins the CJK tail decisively.
 
 cchardet is the fastest in aggregate, but it owns the worst tail of any
 detector measured: its slowest single file takes **355ms**, 18x chardet's
 worst case, so a latency budget built on its median will be missed badly
 on the outliers.
+
+Latency by Script Family
+------------------------
+
+Those aggregates hide a real weakness. Legacy CJK multi-byte encodings
+(Big5, GB, EUC, Shift_JIS, ISO-2022, Johab) need structural probing and
+statistical scoring across many candidate models, and that is by far
+chardet's most expensive path. Splitting the same measurements:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 26 11 8 11 11 11 11
+
+   * - Detector
+     - Group
+     - Files
+     - Median
+     - p95
+     - p99
+     - Max
+   * - **chardet 7.4.4**
+     - **CJK**
+     - 183
+     - **0.16ms**
+     - 5.39ms
+     - **10.84ms**
+     - 15.04ms
+   * - **chardet 7.4.4**
+     - **non-CJK**
+     - 2,334
+     - 0.32ms
+     - 2.85ms
+     - **4.59ms**
+     - 19.74ms
+   * - charset-normalizer 3.4.9
+     - CJK
+     - 183
+     - 0.50ms
+     - 1.11ms
+     - 1.67ms
+     - 1.69ms
+   * - charset-normalizer 3.4.9
+     - non-CJK
+     - 2,334
+     - 0.56ms
+     - 3.99ms
+     - 6.51ms
+     - 33.06ms
+
+chardet's CJK *median* is its fastest case (0.16ms --- escape sequences
+and clear multi-byte structure resolve immediately), but its CJK *tail*
+is its worst: **p99 of 10.84ms, 2.4x its own non-CJK p99**, and
+**6.5x charset-normalizer's 1.67ms**. charset-normalizer is markedly
+flatter on CJK; chardet is ahead on everything else (p99 4.59ms vs
+6.51ms).
+
+**On a CJK-heavy workload, charset-normalizer has the better tail
+latency and the "faster at every percentile" summary above does not
+apply.** Percentiles over a mixed corpus are sensitive to how much CJK
+it contains: this suite is 7.2% CJK (183/2,517), so a corpus with a
+higher share will shift chardet's aggregate p95/p99 upward. This is the
+clearest optimization target in the pipeline --- 7% of files produce
+most of the tail.
+
+``UTF-8``/``UTF-16``/``UTF-32`` count as non-CJK here even when the text
+is Chinese, Japanese, or Korean, because they are resolved by BOM or
+byte-pattern checks and never reach the disambiguation path.
 
 Memory
 ------
@@ -281,6 +393,21 @@ Vietnamese file) and 2 we relabeled (UTF-8-SIG, not UTF-8).
 chardet is **+2.1pp more accurate** than charset-normalizer 3.4.9 on
 charset-normalizer's own test data, and **+6.9pp** on language
 detection.
+
+Under strict scoring the result reverses: on these same files
+charset-normalizer scores **84.9%** against chardet's **67.0%**. This
+subset is dense in exactly the encodings where we emit the Windows
+superset (33 ``euc_kr`` -> ``cp949``, 31 ``iso8859-5`` -> ``cp1251``,
+22 ``iso8859-2`` -> ``cp1250``), so it concedes 31.8pp to leniency
+against charset-normalizer's 11.7pp. Whichever convention you prefer,
+it should be applied to both detectors --- which is the point of
+publishing both columns.
+
+For the record, the two corpora are not independent: 472 of
+char-dataset's 477 files (99%) are byte-identical to files in the
+chardet test suite, and the encoding labels agree on 442 of them. The
+disagreements are mostly the same superset question resolved the other
+way (17 files we label ``iso8859-8`` and they label ``cp1255``).
 
 You can reproduce these numbers with
 ``python scripts/compare_detectors.py --cn-dataset --cn --mypyc``.
