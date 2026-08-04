@@ -241,10 +241,10 @@ Memory
      - Peak Memory
      - RSS
    * - **chardet 7.4.4**
-     - **5.1ms**
-     - **949 KiB** :sup:`*`
+     - **5.9ms**
+     - **995 KiB** :sup:`*`
      - **27.4 MiB**
-     - **124.2 MiB**
+     - **125.2 MiB**
    * - chardet 6.0.0
      - 17.0ms
      - 12.1 MiB
@@ -254,16 +254,16 @@ Memory
      - 3.8ms
      - 1.6 MiB
      - 69.9 MiB
-     - 217.9 MiB
+     - 219.8 MiB
    * - cchardet 2.2.1
      - 0.7ms
-     - 29.4 KiB
-     - 49.9 KiB
-     - 88.2 MiB
+     - 29.5 KiB
+     - 156.4 KiB
+     - 88.0 MiB
 
 :sup:`*` chardet 7.x uses lazy loading --- models and the detection
 pipeline are not allocated until the first ``detect()`` call, so
-``import chardet`` costs 949 KiB against chardet 6.0.0's 12.1 MiB. The
+``import chardet`` costs 995 KiB against chardet 6.0.0's 12.1 MiB. The
 full model cost appears in Peak Memory instead.
 
 chardet uses **2.6x less peak memory** than charset-normalizer 3.4.9 and
@@ -292,17 +292,17 @@ concurrent detection cost".
      - p95
      - p99
    * - **chardet 7.4.4**
-     - **514 KiB**
+     - **504 KiB**
      - **530 KiB**
      - **564 KiB**
      - **572 KiB**
      - **610 KiB**
    * - charset-normalizer 3.4.9
-     - 130 KiB
+     - 129 KiB
      - 57 KiB
      - 161 KiB
-     - 218 KiB
-     - 418 KiB
+     - 216 KiB
+     - 410 KiB
    * - chardet 6.0.0
      - 108 KiB
      - 69 KiB
@@ -328,10 +328,13 @@ floor for a predictable ceiling, which is the better shape for sizing a
 worker pool; charset-normalizer is the better fit when most inputs are
 small and peak footprint per call matters more than its variance.
 
-The maximum is excluded from this table because for every Python
-detector it is the *first* call, which pays for lazy initialization
-(23.2 MiB for chardet, 63.9 MiB for charset-normalizer, 16.5 MiB for
-chardet 6.0.0) rather than anything about steady-state detection.
+One-time lazy initialization is absorbed by a warmup call before the
+distribution is measured (a ~23 MiB peak for chardet — the model load
+visible in the table above), so every sample here is a steady-state
+call.  The maximum is still excluded from the table because it
+describes the single largest input file rather than typical calls:
+1.3 MiB for chardet, but 63.9 MiB for charset-normalizer, whose
+per-call footprint grows with input size.
 
 Reproduce with ``python scripts/compare_detectors.py --memory --cn
 --cchardet --mypyc``.
