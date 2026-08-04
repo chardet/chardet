@@ -14,17 +14,17 @@ Python 3.10+, zero runtime dependencies, works on PyPy.
 
 ## Why chardet 7?
 
-**99.3% accuracy** on 2,517 test files. **53x faster** than chardet 6.0.0,
-and **+13.9pp more accurate** than charset-normalizer 3.4.9 at comparable
+**99.3% accuracy** on 2,517 test files. **135x faster** than chardet 6.0.0,
+and **+13.9pp more accurate** than charset-normalizer 3.4.9 at 2.6x its
 speed. **Language detection** for every result. **MIME type detection** for
 binary files. **0BSD licensed.**
 
 |                        | chardet 7.4.4 (mypyc) | chardet 6.0.0 | [charset-normalizer] 3.4.9 |
 | ---------------------- | :--------------------: | :-----------: | :-------------------------: |
 | Accuracy (2,517 files) |       **99.3%**        |     88.2%     |            85.4%            |
-| Speed                  | **1,067 files/s** (658 pure) |  20 files/s   |        1,010 files/s        |
+| Speed                  | **2,698 files/s** (836 pure) |  20 files/s   |        1,024 files/s        |
 | Language detection     |       **95.7%**        |     40.0%     |            59.2%            |
-| Peak memory            |     **53.8 MiB**       |    28.8 MiB   |          69.9 MiB           |
+| Peak memory            |     **27.4 MiB**       |    28.8 MiB   |          69.9 MiB           |
 | Streaming detection    |        **yes**         |      yes      |             no              |
 | Encoding era filtering |        **yes**         |      no       |             no              |
 | Encoding filters       |        **yes**         |      no       |             yes             |
@@ -146,13 +146,13 @@ cat somefile.txt | chardetect
 
 - **0BSD license** (previous versions were LGPL)
 - **Ground-up rewrite:** 13-stage detection pipeline using BOM detection, magic number identification, structural probing, byte validity filtering, and bigram statistical models
-- **53x faster** than chardet 6.0.0 with mypyc, and comparable in speed to charset-normalizer 3.4.9 while being far more accurate
+- **135x faster** than chardet 6.0.0 with mypyc, and 2.6x faster than charset-normalizer 3.4.9 while being far more accurate
 - **99.3% accuracy:** +11.1pp vs chardet 6.0.0, +13.9pp vs charset-normalizer 3.4.9
 - **Language detection:** 95.7% accuracy across 49 languages, returned with every result
 - **MIME type detection:** identifies 40+ binary file formats (images, audio/video, archives, documents, executables, fonts) via magic number signatures, plus `text/html`, `text/xml`, and `text/x-python` for markup
 - **Encoding filters:** `include_encodings` and `exclude_encodings` parameters to restrict or exclude specific encodings from the candidate set
 - **99 encodings:** full coverage including EBCDIC, Mac, DOS, and Baltic/Central European families
-- **Optional mypyc compilation:** 1.62x additional speedup on CPython
+- **Optional mypyc compilation:** 3.2x additional speedup on CPython
 - **Thread-safe:** `detect()` and `detect_all()` are safe to call concurrently; scales on free-threaded Python
 - **Same API:** `detect()`, `detect_all()`, `UniversalDetector`, and the `chardetect` CLI all work as before
 
