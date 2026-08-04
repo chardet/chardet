@@ -26,9 +26,72 @@ for _enc in REGISTRY.values():
         _SINGLE_LANG_MAP[_enc.name] = _enc.languages[0]
 
 
+def _decompress_tables(
+    data: bytes, offset: int, names: list[str]
+) -> dict[str, bytes]:
+    """Decompress the model tables from ``data[offset:]``, one per name.
+
+    Each model is stored as its own bytes object rather than a memoryview
+    slice of one big blob: mypyc compiles bytes indexing in the scoring hot
+    loop to a native C array access, while memoryview indexing goes through
+    a boxed generic call.  Decompression is incremental, one 64 KB table at
+    a time — materializing the whole multi-megabyte blob and slicing it
+    would transiently double the allocation and strand the freed pages in
+    process RSS.  Trailing compressed bytes are ignored, as with whole-blob
+    ``zlib.decompress``; the decompressed size is validated instead.
+
+    :raises ValueError: If the decompressed size is not exactly
+        ``len(names) * 65536``.
+    """
+    num_models = len(names)
+    expected_size = num_models * 65536
+    decomp = zlib.decompressobj()
+    models: dict[str, bytes] = {}
+    table = bytearray()
+    produced = 0
+    pos = offset
+    end = len(data)
+    flushed = False
+    while len(models) < num_models:
+        need = 65536 - len(table)
+        if decomp.unconsumed_tail:
+            piece = decomp.decompress(decomp.unconsumed_tail, need)
+        elif pos < end:
+            chunk = data[pos : pos + 262144]
+            pos += len(chunk)
+            piece = decomp.decompress(chunk, need)
+        elif not flushed:
+            flushed = True
+            piece = decomp.flush()
+            if not piece:
+                break  # stream exhausted early -> size mismatch below
+        else:
+            break  # stream exhausted early -> size mismatch below
+        produced += len(piece)
+        table += piece
+        if len(table) == 65536:
+            models[names[len(models)]] = bytes(table)
+            table.clear()
+        elif len(table) > 65536:
+            break  # oversized flush -> size mismatch below
+    if len(models) == num_models:
+        # Drain any leftover decompressed output so extra data is caught.
+        if decomp.unconsumed_tail:
+            produced += len(decomp.decompress(decomp.unconsumed_tail, 1))
+        elif not flushed:
+            produced += len(decomp.flush())
+    if produced != expected_size or len(models) != num_models:
+        msg = (
+            f"corrupt models.bin: decompressed size {produced} "
+            f"!= expected {expected_size}"
+        )
+        raise ValueError(msg)
+    return models
+
+
 def _parse_models_bin(
     data: bytes,
-) -> tuple[dict[str, memoryview], dict[str, float]]:
+) -> tuple[dict[str, bytes], dict[str, float]]:
     """Parse the v2 dense zlib-compressed models.bin format.
 
     :param data: Raw bytes of models.bin (must be non-empty).
@@ -63,26 +126,7 @@ def _parse_models_bin(
             names.append(name)
             norms[name] = norm
 
-        # zlib.decompress is faster than decompressobj; trailing bytes are
-        # unlikely in bundled data and would not affect correctness since we
-        # validate decompressed size.  train.py uses decompressobj for
-        # stricter checking during model generation.
-        blob = zlib.decompress(data[offset:])
-        expected_size = num_models * 65536
-        if len(blob) != expected_size:
-            msg = (
-                f"corrupt models.bin: decompressed size {len(blob)} "
-                f"!= expected {expected_size}"
-            )
-            raise ValueError(msg)
-
-        # memoryview slices avoid copies; the blob bytes object is kept
-        # alive by the functools.cache on _load_models_data().
-        mv = memoryview(blob)
-        models: dict[str, memoryview] = {}
-        for i, name in enumerate(names):
-            start = i * 65536
-            models[name] = mv[start : start + 65536]
+        models = _decompress_tables(data, offset, names)
 
     except zlib.error as e:
         msg = f"corrupt models.bin: {e}"
@@ -95,7 +139,7 @@ def _parse_models_bin(
 
 
 @functools.cache
-def _load_models_data() -> tuple[dict[str, memoryview], dict[str, float]]:
+def _load_models_data() -> tuple[dict[str, bytes], dict[str, float]]:
     """Load and parse models.bin, returning (models, norms).
 
     Cached: only reads from disk on first call.
@@ -115,10 +159,10 @@ def _load_models_data() -> tuple[dict[str, memoryview], dict[str, float]]:
     return _parse_models_bin(data)
 
 
-def load_models() -> dict[str, memoryview]:
+def load_models() -> dict[str, bytes]:
     """Load all bigram models from the bundled models.bin file.
 
-    Each model is a memoryview of length 65536 (256*256).
+    Each model is a bytes object of length 65536 (256*256).
     Index: (b1 << 8) | b2 -> weight (0-255).
 
     :returns: A dict mapping model key strings to 65536-byte lookup tables.
@@ -127,14 +171,14 @@ def load_models() -> dict[str, memoryview]:
 
 
 def _build_enc_index(
-    models: dict[str, memoryview],
-) -> dict[str, list[tuple[str | None, memoryview, str]]]:
+    models: dict[str, bytes],
+) -> dict[str, list[tuple[str | None, bytes, str]]]:
     """Build a grouped index from a models dict.
 
     :param models: Mapping of ``"lang/encoding"`` keys to 65536-byte tables.
     :returns: Mapping of encoding name to ``[(lang, model, model_key), ...]``.
     """
-    index: dict[str, list[tuple[str | None, memoryview, str]]] = {}
+    index: dict[str, list[tuple[str | None, bytes, str]]] = {}
     for key, model in models.items():
         lang, enc = key.split("/", 1)
         index.setdefault(enc, []).append((lang, model, key))
@@ -150,7 +194,7 @@ def _build_enc_index(
 
 
 @functools.cache
-def get_enc_index() -> dict[str, list[tuple[str | None, memoryview, str]]]:
+def get_enc_index() -> dict[str, list[tuple[str | None, bytes, str]]]:
     """Return a pre-grouped index mapping encoding name -> [(lang, model, model_key), ...]."""
     return _build_enc_index(load_models())
 
@@ -180,7 +224,38 @@ def _get_model_norms() -> dict[str, float]:
 
 
 @functools.cache
-def get_idf_weights() -> bytearray:
+def get_rowmax() -> dict[str, bytes]:
+    """Return per-model row-maximum tables for upper-bound prescreening.
+
+    For each model, entry ``b1`` of its 256-byte table holds the maximum
+    weight in the model's row for lead byte ``b1``.  Because every bigram
+    weight is bounded by its row maximum, a dot product against the row
+    maxima (256 terms) upper-bounds the dot product against the full table
+    (65536 terms) — statistical scoring uses this to rule out candidate
+    models without scoring them fully.
+
+    Loads the precomputed ``rowmax.bin`` (written by ``scripts/train.py``
+    in the same model order as ``models.bin``); if the file is missing or
+    does not match the model count, the tables are derived from the models
+    directly (slower, but always available).
+    """
+    models = load_models()
+    ref = importlib.resources.files("chardet.models").joinpath("rowmax.bin")
+    try:
+        data = ref.read_bytes()
+    except (FileNotFoundError, OSError):
+        data = b""
+    if data and len(data) == len(models) * 256:
+        # models preserves models.bin header order, matching rowmax.bin.
+        return {key: data[i * 256 : (i + 1) * 256] for i, key in enumerate(models)}
+    return {
+        key: bytes(max(table[start : start + 256]) for start in range(0, 65536, 256))
+        for key, table in models.items()
+    }
+
+
+@functools.cache
+def get_idf_weights() -> bytes:
     """Return a 65536-byte IDF weight table for bigram profile construction.
 
     Loads a precomputed table from ``idf.bin`` (generated at training time).
@@ -200,8 +275,8 @@ def get_idf_weights() -> bytearray:
             RuntimeWarning,
             stacklevel=2,
         )
-        return bytearray(b"\x01" * 65536)
-    return bytearray(data)
+        return b"\x01" * 65536
+    return data
 
 
 class BigramProfile:
@@ -215,9 +290,21 @@ class BigramProfile:
     Each bigram is weighted by its IDF (inverse document frequency) across all
     models — bigrams unique to few models get high weight, bigrams common to
     all models get weight 1.
+
+    ``row_freq`` aggregates ``freq`` by lead byte (256 entries) and
+    ``nonzero_rows`` lists the lead bytes with non-zero total; together with
+    per-model row maxima (:func:`get_rowmax`) they let statistical scoring
+    compute a cheap upper bound on a model's score.
     """
 
-    __slots__ = ("freq", "input_norm", "nonzero", "weight_sum")
+    __slots__ = (
+        "freq",
+        "input_norm",
+        "nonzero",
+        "nonzero_rows",
+        "row_freq",
+        "weight_sum",
+    )
 
     def __init__(self, data: bytes) -> None:
         """Compute the bigram frequency distribution for *data*.
@@ -235,6 +322,8 @@ class BigramProfile:
             # early when input_norm == 0.0, so freq is never indexed.
             self.freq: list[int] = []
             self.nonzero: list[int] = []
+            self.row_freq: list[int] = []
+            self.nonzero_rows: list[int] = []
             self.weight_sum: int = 0
             self.input_norm: float = 0.0
             return
@@ -254,10 +343,14 @@ class BigramProfile:
         self.nonzero = nonzero
         self.weight_sum = w_sum
         norm_sq = 0
+        row_freq: list[int] = [0] * 256
         for idx in nonzero:
             v = freq[idx]
             norm_sq += v * v
+            row_freq[idx >> 8] += v
         self.input_norm = math.sqrt(norm_sq)
+        self.row_freq = row_freq
+        self.nonzero_rows = [b1 for b1 in range(256) if row_freq[b1]]
 
     @classmethod
     def from_weighted_freq(cls, weighted_freq: dict[int, int]) -> "BigramProfile":
@@ -272,21 +365,29 @@ class BigramProfile:
         profile = cls(b"")
         freq: list[int] = [0] * 65536
         nonzero: list[int] = []
+        row_freq: list[int] = [0] * 256
         for idx, count in weighted_freq.items():
             freq[idx] = count
             if count:
                 nonzero.append(idx)
+                row_freq[idx >> 8] += count
         profile.freq = freq
         profile.nonzero = nonzero
+        profile.row_freq = row_freq
+        profile.nonzero_rows = [b1 for b1 in range(256) if row_freq[b1]]
         profile.weight_sum = sum(weighted_freq.values())
         profile.input_norm = math.sqrt(sum(v * v for v in weighted_freq.values()))
         return profile
 
 
 def score_with_profile(
-    profile: BigramProfile, model: bytearray | memoryview, model_key: str = ""
+    profile: BigramProfile, model: bytes, model_key: str = ""
 ) -> float:
-    """Score a pre-computed bigram profile against a single model using cosine similarity."""
+    """Score a pre-computed bigram profile against a single model using cosine similarity.
+
+    *model* must be ``bytes`` (not ``bytearray``/``memoryview``): the narrow
+    type lets mypyc compile the dot-product loop with native byte indexing.
+    """
     if profile.input_norm == 0.0:
         return 0.0
     norms = _get_model_norms()

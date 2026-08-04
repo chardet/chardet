@@ -163,6 +163,8 @@ def _score_structural_candidates(
     structural_scores: list[tuple[str, float]],
     valid_candidates: tuple[EncodingInfo, ...],
     ctx: PipelineContext,
+    *,
+    full_ranking: bool = False,
 ) -> list[DetectionResult]:
     """Score structurally-valid CJK candidates using statistical bigrams.
 
@@ -189,7 +191,11 @@ def _score_structural_candidates(
     )
     single_byte = tuple(e for e in valid_candidates if not e.is_multibyte)
     results = list(
-        score_candidates(data[:_STAT_SCORE_MAX_BYTES], (*valid_mb, *single_byte))
+        score_candidates(
+            data[:_STAT_SCORE_MAX_BYTES],
+            (*valid_mb, *single_byte),
+            full_ranking=full_ranking,
+        )
     )
 
     # Boost multi-byte candidates with high byte coverage.
@@ -225,6 +231,7 @@ def _run_pipeline_core(  # noqa: PLR0913
     exclude_encodings: frozenset[str] | None = None,
     no_match_encoding: str = "cp1252",
     empty_input_encoding: str = "utf-8",
+    full_ranking: bool = False,
 ) -> list[DetectionResult]:
     """Core pipeline logic. Returns list of results sorted by confidence."""
     ctx = PipelineContext()
@@ -341,7 +348,11 @@ def _run_pipeline_core(  # noqa: PLR0913
         _, best_score = structural_scores[0]
         if best_score >= _STRUCTURAL_CONFIDENCE_THRESHOLD:
             results = _score_structural_candidates(
-                data, structural_scores, valid_candidates, ctx
+                data,
+                structural_scores,
+                valid_candidates,
+                ctx,
+                full_ranking=full_ranking,
             )
             if results:
                 return postprocess_results(data, results)
@@ -350,7 +361,9 @@ def _run_pipeline_core(  # noqa: PLR0913
     # Bigram models converge quickly and don't benefit from scanning
     # beyond 16 KB — cap the data to avoid unnecessary work on large files.
     stat_data = data[:_STAT_SCORE_MAX_BYTES]
-    results = list(score_candidates(stat_data, tuple(valid_candidates)))
+    results = list(
+        score_candidates(stat_data, tuple(valid_candidates), full_ranking=full_ranking)
+    )
     if not results:
         return _make_fallback_or_none(no_match_encoding, allowed, "no_match_encoding")
 
@@ -366,6 +379,7 @@ def run_pipeline(  # noqa: PLR0913
     exclude_encodings: frozenset[str] | None = None,
     no_match_encoding: str = "cp1252",
     empty_input_encoding: str = "utf-8",
+    full_ranking: bool = False,
 ) -> list[DetectionResult]:
     """Run the full detection pipeline.
 
@@ -376,6 +390,10 @@ def run_pipeline(  # noqa: PLR0913
     :param exclude_encodings: If not ``None``, never return these encodings.
     :param no_match_encoding: Encoding returned when no candidate survives.
     :param empty_input_encoding: Encoding returned for empty input.
+    :param full_ranking: When ``True``, statistical scoring evaluates every
+        candidate so the returned list is complete (``detect_all`` needs
+        this).  When ``False``, candidates that provably cannot affect the
+        top of the ranking may be omitted from the tail.
     :returns: A list of :class:`DetectionResult` sorted by confidence descending.
     """
     results = _run_pipeline_core(
@@ -386,6 +404,7 @@ def run_pipeline(  # noqa: PLR0913
         exclude_encodings=exclude_encodings,
         no_match_encoding=no_match_encoding,
         empty_input_encoding=empty_input_encoding,
+        full_ranking=full_ranking,
     )
     results = fill_languages(data, results)
     results = [_with_default_mime(r) for r in results]

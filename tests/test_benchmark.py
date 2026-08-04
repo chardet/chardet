@@ -16,7 +16,7 @@ from pathlib import Path
 import pytest
 
 import chardet
-from chardet.models import _load_models_data, get_enc_index
+from chardet.models import _load_models_data, get_enc_index, get_rowmax
 from chardet.pipeline.confusion import load_confusion_data
 from chardet.registry import get_candidates, lookup_encoding
 
@@ -95,6 +95,7 @@ def _clear_all_caches():
     """Clear all functools.cache-decorated functions to simulate cold start."""
     _load_models_data.cache_clear()
     get_enc_index.cache_clear()
+    get_rowmax.cache_clear()
     get_candidates.cache_clear()
     lookup_encoding.cache_clear()
     load_confusion_data.cache_clear()
@@ -116,11 +117,13 @@ def _make_scaled_input(base: bytes, target_bytes: int) -> bytes:
 # ---------------------------------------------------------------------------
 
 # mypyc widens the gap between fast-path and statistical detection;
-# pure Python still needs headroom so use a lower threshold.
+# pure Python still needs headroom so use a lower threshold.  Upper-bound
+# pruning made statistical scoring ~2x faster (measured ratios: >=3.1x
+# compiled, >=1.4x pure), so the thresholds leave ~20% headroom below that.
 _HAS_MYPYC = any(Path(chardet.__file__).parent.rglob("*.so")) or any(
     Path(chardet.__file__).parent.rglob("*.pyd")
 )
-_MIN_SPEEDUP = 3 if _HAS_MYPYC else 1.5
+_MIN_SPEEDUP = 2.5 if _HAS_MYPYC else 1.2
 
 
 @pytest.mark.parametrize(
@@ -169,7 +172,9 @@ def test_ratio_cold_vs_warm_model_loading():
     cold = time.perf_counter() - start
 
     ratio = cold / warm
-    assert ratio < 30, f"Cold start too slow vs warm: {ratio:.1f}x (max 30x)"
+    # Warm statistical detection is ~2x faster since upper-bound pruning,
+    # which doubled this ratio (measured: ~29x compiled, ~12x pure).
+    assert ratio < 50, f"Cold start too slow vs warm: {ratio:.1f}x (max 50x)"
 
 
 # ---------------------------------------------------------------------------

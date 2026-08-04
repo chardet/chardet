@@ -158,6 +158,7 @@ def detect_all(  # noqa: PLR0913
         exclude_encodings=exclude,
         no_match_encoding=no_match,
         empty_input_encoding=empty,
+        full_ranking=True,
     )
     dicts = [r.to_dict() for r in results]
     if not ignore_threshold:

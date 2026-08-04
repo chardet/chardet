@@ -332,8 +332,8 @@ def test_deserialize_v2_wrong_decompressed_size(tmp_models_path: Path) -> None:
 
 def test_roundtrip_matches_load_models(tmp_path: Path) -> None:
     """The production models.bin should roundtrip through serialize/deserialize."""
-    production_tables = models_mod.load_models()  # dict[str, memoryview]
-    # Convert memoryview tables back to dict format for serialize/deserialize roundtrip
+    production_tables = models_mod.load_models()  # dict[str, bytes]
+    # Convert byte tables back to dict format for serialize/deserialize roundtrip
     production_dicts: dict[str, dict[tuple[int, int], int]] = {}
     for name, table in production_tables.items():
         bigrams: dict[tuple[int, int], int] = {}
@@ -490,10 +490,10 @@ def test_score_with_profile_fallback_norm():
     """score_with_profile with empty model_key should compute norm on the fly."""
     profile = models_mod.BigramProfile(b"\xc3\xa9\xc3\xa4")  # some high-byte bigrams
     # Build a model with a few non-zero entries
-    model = bytearray(65536)
-    model[(0xC3 << 8) | 0xA9] = 100
-    model[(0xC3 << 8) | 0xA4] = 80
-    score = models_mod.score_with_profile(profile, model, model_key="")
+    table = bytearray(65536)
+    table[(0xC3 << 8) | 0xA9] = 100
+    table[(0xC3 << 8) | 0xA4] = 80
+    score = models_mod.score_with_profile(profile, bytes(table), model_key="")
     assert isinstance(score, float)
     assert score > 0.0
 
@@ -501,7 +501,7 @@ def test_score_with_profile_fallback_norm():
 def test_score_with_profile_all_zeros_model():
     """All-zeros model should return 0.0 (model_norm == 0)."""
     profile = models_mod.BigramProfile(b"\xc3\xa9\xc3\xa4")
-    model = bytearray(65536)  # all zeros
+    model = bytes(65536)  # all zeros
     score = models_mod.score_with_profile(profile, model, model_key="")
     assert score == 0.0
 
@@ -514,9 +514,9 @@ def test_enc_index_alias_resolution() -> None:
     """
     # Create a fake model dict with a non-canonical encoding name.
     # "utf8" is a non-canonical alias for "utf-8".
-    fake_model = bytearray(65536)
-    fake_model[(0xC3 << 8) | 0xA9] = 100
-    fake_models = {"French/utf8": fake_model}
+    fake_table = bytearray(65536)
+    fake_table[(0xC3 << 8) | 0xA9] = 100
+    fake_models = {"French/utf8": bytes(fake_table)}
 
     index = models_mod._build_enc_index(fake_models)
 
@@ -526,3 +526,21 @@ def test_enc_index_alias_resolution() -> None:
     assert "utf-8" in index
     # Both should point to the same entries
     assert index["utf-8"] is index["utf8"]
+
+
+def test_rowmax_matches_models() -> None:
+    """rowmax.bin must stay in sync with models.bin.
+
+    Each model's rowmax table entry b1 must equal the maximum weight in the
+    model's row for lead byte b1.  A mismatch means rowmax.bin is stale
+    relative to models.bin and must be regenerated (scripts/train.py writes
+    both).
+    """
+    models = models_mod.load_models()
+    rowmax = models_mod.get_rowmax()
+    assert set(rowmax) == set(models)
+    for key, table in models.items():
+        derived = bytes(
+            max(table[start : start + 256]) for start in range(0, 65536, 256)
+        )
+        assert rowmax[key] == derived, f"rowmax.bin stale for model {key}"

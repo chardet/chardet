@@ -71,3 +71,60 @@ def test_correct_encoding_scores_highest():
     # windows-1251 should be among the top results
     top_names = [r.encoding for r in results[:3]]
     assert "cp1251" in top_names
+
+
+# ---------------------------------------------------------------------------
+# Upper-bound pruning
+# ---------------------------------------------------------------------------
+
+_PRUNING_SAMPLES = [
+    "Все счастливые семьи похожи друг на друга, каждая несчастливая семья "
+    "несчастлива по-своему. Все смешалось в доме Облонских.".encode("windows-1251"),
+    "Héllo wörld café résumé naïve — l'élève français è già qui. ".encode(
+        "windows-1252"
+    )
+    * 8,
+    "これはテストです。日本語の文章を検出するためのサンプルテキストです。".encode(
+        "cp932"
+    )
+    * 4,
+    "中文编码检测测试样本，这是一段用于测试的中文文字。".encode("gb18030") * 4,
+    "한국어 인코딩 감지 테스트를 위한 샘플 텍스트입니다.".encode("cp949") * 4,
+]
+
+
+# Pruned scoring guarantees exact scores for the winner, position 1, and
+# everything within the confusion band of the top score; matches
+# statistical._PRUNE_MARGIN's guarantee (confusion band = 0.005).
+_EXACT_BAND = 0.005
+
+
+@pytest.mark.parametrize("data", _PRUNING_SAMPLES, ids=range(len(_PRUNING_SAMPLES)))
+def test_pruned_matches_full_ranking_at_top(data: bytes):
+    """Pruned scoring must return the same winner and runner-up as full scoring.
+
+    Pruning may drop tail results, and encodings whose variants were partly
+    skipped may report an understated tail score — but the winner, position
+    1, and everything within the confusion band of the top score must be
+    identical to the full ranking, and no pruned score may ever exceed its
+    full-ranking counterpart.
+    """
+    candidates = get_candidates(EncodingEra.ALL)
+    pruned = score_candidates(data, candidates)
+    full = score_candidates(data, candidates, full_ranking=True)
+
+    assert pruned, "pruned scoring returned no results"
+    for i in range(min(2, len(full))):
+        assert pruned[i].encoding == full[i].encoding
+        assert pruned[i].confidence == pytest.approx(full[i].confidence, abs=1e-12)
+        assert pruned[i].language == full[i].language
+
+    full_by_enc = {r.encoding: r for r in full}
+    top_conf = full[0].confidence
+    for r in pruned:
+        true_conf = full_by_enc[r.encoding].confidence
+        # Never overstated (would corrupt the ranking) ...
+        assert r.confidence <= true_conf + 1e-12
+        # ... and exact for anything the confusion band can examine.
+        if true_conf >= top_conf - _EXACT_BAND:
+            assert r.confidence == pytest.approx(true_conf, abs=1e-12)

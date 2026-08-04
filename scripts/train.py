@@ -768,6 +768,21 @@ def main() -> None:
     idf_path.write_bytes(idf_table)
     print(f"IDF weights:  {idf_path} ({len(idf_table):,} bytes)")
 
+    # Serialize per-model row maxima for upper-bound prescreening in
+    # statistical scoring.  One 256-byte table per model (entry b1 = max
+    # weight in that model's row for lead byte b1), concatenated in the
+    # same sorted-name order as models.bin.
+    print("=== Computing row-max tables ===")
+    rowmax_path = output_path.parent / "rowmax.bin"
+    rowmax_blob = bytearray()
+    for name in sorted(models.keys()):
+        rm = [0] * 256
+        for (b1, _b2), weight in models[name].items():
+            rm[b1] = max(rm[b1], weight)
+        rowmax_blob.extend(rm)
+    rowmax_path.write_bytes(rowmax_blob)
+    print(f"Row maxima:   {rowmax_path} ({len(rowmax_blob):,} bytes)")
+
     print("=== Computing confusion groups ===")
     confusion_maps = compute_distinguishing_maps(threshold=0.80)
     confusion_size = serialize_confusion_data(

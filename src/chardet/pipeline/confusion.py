@@ -221,7 +221,7 @@ def resolve_by_category_voting(
 
 def _best_variant_score(
     profile: BigramProfile,
-    index: dict[str, list[tuple[str | None, memoryview, str]]],
+    index: dict[str, list[tuple[str | None, bytes, str]]],
     enc: str,
 ) -> float:
     """Return the best bigram score across all language variants for *enc*."""
