@@ -56,7 +56,9 @@ packages = ["src/chardet"]
 
 [tool.hatch.build.targets.wheel.hooks.mypyc]
 enable-by-default = false
-dependencies = ["hatch-mypyc>=0.16.0", "mypy>=1.15"]
+# mypy 1.15's generated C fails to compile on Python 3.14; 1.19 is the
+# oldest release verified to build all compiled modules there.
+dependencies = ["hatch-mypyc>=0.16.0", "mypy>=1.19"]
 require-runtime-dependencies = false
 include = [
     "/src/chardet/models/__init__.py",
