@@ -117,13 +117,19 @@ def _make_scaled_input(base: bytes, target_bytes: int) -> bytes:
 # ---------------------------------------------------------------------------
 
 # mypyc widens the gap between fast-path and statistical detection;
-# pure Python still needs headroom so use a lower threshold.  Upper-bound
-# pruning made statistical scoring ~2x faster (measured ratios: >=3.1x
-# compiled, >=1.4x pure), so the thresholds leave ~20% headroom below that.
+# pure Python still needs headroom so use a lower threshold.
+#
+# The statistical reference must be size-matched to the ~2-4 KB fast-path
+# inputs: upper-bound pruning made statistical scoring of the bare 532-byte
+# Cyrillic sample so cheap that the ratio collapsed to 1.0-1.2x on CI
+# runners and lost all discrimination.  Against a like-sized statistical
+# input the ratio is ~3x pure / ~6x compiled on an M4 Max, and slower CI
+# hardware compresses it less because both sides scale together.
+_STATISTICAL_RATIO_DATA = CYRILLIC_WIN1251 * 8  # ~4.3 KB, like the fast inputs
 _HAS_MYPYC = any(Path(chardet.__file__).parent.rglob("*.so")) or any(
     Path(chardet.__file__).parent.rglob("*.pyd")
 )
-_MIN_SPEEDUP = 2.5 if _HAS_MYPYC else 1.2
+_MIN_SPEEDUP = 2.5 if _HAS_MYPYC else 1.5
 
 
 @pytest.mark.parametrize(
@@ -140,7 +146,7 @@ _MIN_SPEEDUP = 2.5 if _HAS_MYPYC else 1.2
 )
 def test_ratio_fast_vs_statistical(label: str, fast_data: bytes):
     fast = _median_time(lambda: chardet.detect(fast_data), _ITERS_RATIO)
-    slow = _median_time(lambda: chardet.detect(CYRILLIC_WIN1251), _ITERS_RATIO)
+    slow = _median_time(lambda: chardet.detect(_STATISTICAL_RATIO_DATA), _ITERS_RATIO)
     ratio = slow / fast
     assert ratio >= _MIN_SPEEDUP, (
         f"{label} not fast enough vs statistical: {ratio:.1f}x (need {_MIN_SPEEDUP}x)"
