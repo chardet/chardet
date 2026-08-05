@@ -52,6 +52,7 @@ _COMPAT_NAMES: dict[str, str] = {
     "cp855": "IBM855",
     "cp866": "IBM866",
     "cp874": "CP874",
+    "cp932": "CP932",
     "cp949": "CP949",
     "euc_jis_2004": "EUC-JP",
     "euc_kr": "EUC-KR",

@@ -40,6 +40,12 @@ Changelog
   encoding-name table in :doc:`usage`.
   (`António Afonso <https://github.com/aadsm>`_ via Claude,
   `#374 <https://github.com/chardet/chardet/pull/374>`_)
+- Fixed ``compat_names`` (the default) leaking the internal ``cp932`` codec
+  name.  ``detect()`` now returns ``CP932`` instead of ``cp932``, matching
+  its Japanese siblings (``shift_jis_2004`` → ``SHIFT_JIS``) and the value
+  chardet 5.x/6.x returned.
+  (`uttam12331 <https://github.com/uttam12331>`_,
+  `#375 <https://github.com/chardet/chardet/pull/375>`_)
 
 **Improvements:**
 
