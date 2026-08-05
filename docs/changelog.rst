@@ -43,6 +43,14 @@ Changelog
 
 **Improvements:**
 
+- ``prefer_superset=True`` is now documented as the recommended mode and
+  **will become the default in chardet 8.0**.  Detection examines at most
+  ``max_bytes`` of input, so only the superset encoding is guaranteed to
+  decode bytes beyond that window — the same reasoning behind the
+  WHATWG/W3C Encoding Standard's rule that browsers decode ``ascii`` and
+  ``iso-8859-1`` content as ``windows-1252``.  Callers that depend on
+  subset names should start passing ``prefer_superset=False`` explicitly.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 - ``chardet.equivalences`` is now a deprecation shim.  Accuracy-evaluation
   predicates (``is_correct``, ``is_equivalent_detection``, etc.) moved to
   ``chardet.evaluation``; public-API encoding-name remapping

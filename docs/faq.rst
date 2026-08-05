@@ -35,7 +35,8 @@ How do I increase accuracy?
   default (``False``) skips the renaming and reports the detected
   encoding under its own name --- note it is not a promise of the
   *smallest* matching encoding, since detection may natively choose a
-  superset that fits the data better.
+  superset that fits the data better.  ``prefer_superset=True`` will
+  become the default in chardet 8.0.
 
 How is chardet different from charset-normalizer?
 --------------------------------------------------

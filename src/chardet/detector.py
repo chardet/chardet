@@ -74,7 +74,8 @@ class UniversalDetector:
             result to their decode-safe Windows/CP superset equivalents
             (e.g., ISO-8859-1 -> Windows-1252).  If ``False`` (default),
             skip the renaming --- not a promise of the smallest matching
-            encoding.  See :func:`chardet.detect` for details.
+            encoding.  The default will change to ``True`` in chardet 8.0.
+            See :func:`chardet.detect` for details.
         :param compat_names: If ``True`` (default), return encoding names
             compatible with chardet 5.x/6.x.  If ``False``, return raw Python
             codec names.

@@ -65,7 +65,8 @@ def detect(  # noqa: PLR0913
         encoding is reported under its own name --- note this only skips
         the renaming step; it is not a promise of the *smallest* matching
         encoding, since detection may natively choose a superset that fits
-        the data better.
+        the data better.  The default will change to ``True`` in chardet
+        8.0; pass ``False`` explicitly if you depend on subset names.
     :param compat_names: If ``True`` (default), return encoding names
         compatible with chardet 5.x/6.x.  If ``False``, return raw Python
         codec names.
@@ -138,7 +139,8 @@ def detect_all(  # noqa: PLR0913
     :param prefer_superset: If ``True``, remap subset encodings in the
         results to their decode-safe Windows/CP superset equivalents.
         If ``False`` (default), skip the renaming --- not a promise of the
-        smallest matching encoding.  See :func:`detect` for details.
+        smallest matching encoding.  The default will change to ``True``
+        in chardet 8.0.  See :func:`detect` for details.
     :param compat_names: If ``True`` (default), return encoding names
         compatible with chardet 5.x/6.x.  If ``False``, return raw Python
         codec names.

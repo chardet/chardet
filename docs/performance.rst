@@ -119,7 +119,8 @@ disabled (``prefer_superset=False``), chardet scores **91.9% strict**
 (2312/2517) --- ahead of charset-normalizer's 75.9% --- while giving up
 only three files of lenient accuracy (99.3% -> 99.2%). Exact subset
 names are available to callers who want them; the tables on this page
-use superset output because we consider it the right answer to ship.
+use superset output because we consider it the right answer to ship,
+and ``prefer_superset=True`` will become the default in chardet 8.0.
 
 The strict column is published for comparability --- other detectors
 report exact-match numbers --- and so the convention behind our
