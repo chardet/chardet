@@ -19,7 +19,7 @@ and **+13.9pp more accurate** than charset-normalizer 3.4.9 at 2.6x its
 speed. **Language detection** for every result. **MIME type detection** for
 binary files. **0BSD licensed.**
 
-|                        | chardet 7.4.4 (mypyc) | chardet 6.0.0 | [charset-normalizer] 3.4.9 |
+|                        | chardet 7.5.0 (mypyc) | chardet 6.0.0 | [charset-normalizer] 3.4.9 |
 | ---------------------- | :--------------------: | :-----------: | :-------------------------: |
 | Accuracy (2,517 files) |       **99.3%**        |     88.2%     |            85.4%            |
 | Speed                  | **2,724 files/s** (839 pure) |  20 files/s   |        1,051 files/s        |

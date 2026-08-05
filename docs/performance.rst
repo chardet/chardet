@@ -8,7 +8,7 @@ CPython 3.14 unless noted.
 
 .. note::
 
-   Timings on this page were re-measured for 7.4.4 on an **Apple M4 Max
+   Timings on this page were re-measured for 7.5.0 on an **Apple M4 Max
    (macOS 26, 14 cores)**. Earlier releases were benchmarked on
    different hardware, so absolute timings are **not** comparable
    against numbers published in older versions of these docs --- a
@@ -41,7 +41,7 @@ Accuracy
      - Correct
      - Accuracy
      - Speed
-   * - **chardet 7.4.4 (mypyc)**
+   * - **chardet 7.5.0 (mypyc)**
      - **2499/2517**
      - **99.3%**
      - **2,724 files/s**
@@ -77,7 +77,7 @@ ours. Both conventions, on the same files:
      - Lenient
      - Strict
      - Concession
-   * - **chardet 7.4.4 (mypyc)**
+   * - **chardet 7.5.0 (mypyc)**
      - **99.3%**
      - **84.4%**
      - +14.9pp
@@ -148,7 +148,7 @@ Speed
      - 0.65ms
      - 0.90ms
      - 1.87ms
-   * - **chardet 7.4.4 (mypyc)**
+   * - **chardet 7.5.0 (mypyc)**
      - **2,724**
      - **0.37ms**
      - **0.16ms**
@@ -170,7 +170,7 @@ Speed
      - 228.69ms
      - 671.93ms
 
-With mypyc compilation, chardet 7.4.4 is **134x faster** than chardet
+With mypyc compilation, chardet 7.5.0 is **134x faster** than chardet
 6.0.0, and **2.6x faster** than charset-normalizer 3.4.9 (mypyc) at the
 mean. The gap holds across the whole distribution: **3.4x at the
 median** (0.16ms vs 0.54ms), at p95 (1.12ms vs 3.80ms), and at p99
@@ -191,7 +191,7 @@ Latency by Script Family
 Legacy CJK multi-byte encodings (Big5, GB, EUC, Shift_JIS, ISO-2022,
 Johab) need structural probing and statistical scoring across many
 candidate models, and that remains chardet's most expensive path ---
-though 7.4.4's upper-bound pruning cut that tail roughly in half.
+though 7.5.0's upper-bound pruning cut that tail roughly in half.
 Splitting the same measurements:
 
 .. list-table::
@@ -205,14 +205,14 @@ Splitting the same measurements:
      - p95
      - p99
      - Max
-   * - **chardet 7.4.4**
+   * - **chardet 7.5.0**
      - **CJK**
      - 183
      - **0.18ms**
      - 1.86ms
      - **4.72ms**
      - 10.29ms
-   * - **chardet 7.4.4**
+   * - **chardet 7.5.0**
      - **non-CJK**
      - 2,334
      - 0.16ms
@@ -263,7 +263,7 @@ Memory
      - Import Memory
      - Peak Memory
      - RSS
-   * - **chardet 7.4.4**
+   * - **chardet 7.5.0**
      - **5.7ms**
      - **995 KiB** :sup:`*`
      - **27.4 MiB**
@@ -291,7 +291,7 @@ full model cost appears in Peak Memory instead.
 
 chardet uses **2.6x less peak memory** than charset-normalizer 3.4.9,
 **2.3x less** than cchardet 3.1.0, and has the **lowest RSS of every
-detector measured**. Since 7.4.4 decompresses its models incrementally,
+detector measured**. Since 7.5.0 decompresses its models incrementally,
 its 27.4 MiB peak is the smallest on the table, edging out even chardet
 6.0.0's 28.8 MiB --- without the older version's much lower accuracy
 and throughput. (cchardet 2.2.1 used to report a near-zero traced peak
@@ -317,7 +317,7 @@ concurrent detection cost".
      - p90
      - p95
      - p99
-   * - **chardet 7.4.4**
+   * - **chardet 7.5.0**
      - **504 KiB**
      - **530 KiB**
      - **564 KiB**
@@ -373,7 +373,7 @@ Language Detection
    * - Detector
      - Correct
      - Accuracy
-   * - **chardet 7.4.4**
+   * - **chardet 7.5.0**
      - **2400/2509**
      - **95.7%**
    * - charset-normalizer 3.4.9
@@ -410,7 +410,7 @@ Vietnamese file) and 2 we relabeled (UTF-8-SIG, not UTF-8).
      - Correct
      - Encoding Accuracy
      - Language Accuracy
-   * - **chardet 7.4.4 (mypyc)**
+   * - **chardet 7.5.0 (mypyc)**
      - **463/469**
      - **98.7%**
      - **92.8%**
@@ -557,9 +557,9 @@ Python on CPython 3.14 for versions before 7.0; mypyc-compiled for
 shows "---" for versions that did not support language detection.
 
 All rows were measured on the machine noted at the top of this page,
-but the 7.4.4 row comes from a later session than the rest of the
+but the 7.5.0 row comes from a later session than the rest of the
 table. To bound the session-to-session drift, 7.4.3 was re-measured
-back-to-back with 7.4.4 in a single session: the same-session speed
+back-to-back with 7.5.0 in a single session: the same-session speed
 ratio (3.0x) matches the cross-session ratio implied by the table
 (3.1x), and the absolute drift was about 10%.
 
@@ -657,7 +657,7 @@ ratio (3.0x) matches the cross-session ratio implied by the table
      - 99.3%
      - 878
      - 95.7%
-   * - **chardet 7.4.4 (mypyc)**
+   * - **chardet 7.5.0 (mypyc)**
      - **2026-08**
      - **2499/2517**
      - **99.3%**
@@ -675,7 +675,7 @@ chardet 3.0.0 crashed on Python 3.14 and is omitted.
 Performance Across Python Versions
 -----------------------------------
 
-Benchmarked chardet 7.4.4 across all supported Python versions
+Benchmarked chardet 7.5.0 across all supported Python versions
 (macOS aarch64, 2,517 files, ``encoding_era=ALL``). CPython versions
 install mypyc-compiled wheels automatically; PyPy receives the
 pure-Python wheel.
