@@ -29,6 +29,13 @@ How do I increase accuracy?
 - **Use encoding filters.** If you know exactly which encodings are
   possible, pass ``include_encodings`` to restrict the candidate set.
   Alternatively, use ``exclude_encodings`` to remove known false positives.
+- **Pass prefer_superset=True when decoding.** Detection examines at most
+  the first 200 KB, and only a superset encoding is guaranteed to decode
+  bytes beyond that window; the remap makes the result decode-safe.  The
+  default (``False``) skips the renaming and reports the detected
+  encoding under its own name --- note it is not a promise of the
+  *smallest* matching encoding, since detection may natively choose a
+  superset that fits the data better.
 
 How is chardet different from charset-normalizer?
 --------------------------------------------------

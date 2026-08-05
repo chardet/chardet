@@ -56,8 +56,16 @@ def detect(  # noqa: PLR0913
     :param chunk_size: Deprecated -- accepted for backward compatibility but
         has no effect.
     :param max_bytes: Maximum number of bytes to examine from *byte_str*.
-    :param prefer_superset: If ``True``, remap ISO subset encodings to their
-        Windows/CP superset equivalents (e.g., ISO-8859-1 -> Windows-1252).
+    :param prefer_superset: If ``True``, remap subset encodings in the result
+        to their decode-safe Windows/CP superset equivalents (e.g.,
+        ISO-8859-1 -> Windows-1252, EUC-KR -> CP949).  Recommended when the
+        result will be used to decode: detection examines at most
+        *max_bytes* of input, and only the superset is guaranteed to decode
+        bytes beyond that window.  If ``False`` (default), the detected
+        encoding is reported under its own name --- note this only skips
+        the renaming step; it is not a promise of the *smallest* matching
+        encoding, since detection may natively choose a superset that fits
+        the data better.
     :param compat_names: If ``True`` (default), return encoding names
         compatible with chardet 5.x/6.x.  If ``False``, return raw Python
         codec names.
@@ -127,8 +135,10 @@ def detect_all(  # noqa: PLR0913
     :param chunk_size: Deprecated -- accepted for backward compatibility but
         has no effect.
     :param max_bytes: Maximum number of bytes to examine from *byte_str*.
-    :param prefer_superset: If ``True``, remap ISO subset encodings to their
-        Windows/CP superset equivalents.
+    :param prefer_superset: If ``True``, remap subset encodings in the
+        results to their decode-safe Windows/CP superset equivalents.
+        If ``False`` (default), skip the renaming --- not a promise of the
+        smallest matching encoding.  See :func:`detect` for details.
     :param compat_names: If ``True`` (default), return encoding names
         compatible with chardet 5.x/6.x.  If ``False``, return raw Python
         codec names.
