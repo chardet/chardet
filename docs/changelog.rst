@@ -13,32 +13,31 @@ Changelog
 
 **Bug Fixes:**
 
-- Fixed markup-declared encodings being reported under a name that cannot
+- Fixed markup-declared encodings being reported under a name that can't
   decode the input.  A page declaring ``Shift_JIS`` but using CP932
-  NEC/IBM extension characters (e.g. ①) was reported as ``SHIFT_JIS``,
-  which fails ``.decode()`` on the very bytes it was detected from; the
-  superset promotion only compared structural scores, which tie at 1.0
-  for structurally clean data, so it never fired.  Promotion to the
-  Windows superset (``CP932``, ``CP949``) is now unconditional whenever
-  the codec that the reported name resolves to cannot decode the data
-  but the superset can.
+  NEC/IBM extension characters (like ①) came back as ``SHIFT_JIS``, a
+  name that fails ``.decode()`` on the same bytes it was detected from.
+  The superset promotion was supposed to catch this, but it only compared
+  structural scores, and those tie at 1.0 for structurally clean data, so
+  it basically never fired.  Promotion to the Windows superset
+  (``CP932``, ``CP949``) now always happens when the codec the reported
+  name resolves to can't decode the data but the superset can.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
-- Fixed a markup charset declaration overriding genuine UTF-8 content.
-  A page declaring a single-byte charset (e.g.
-  ``<meta charset="iso-8859-1">``) while actually encoded as UTF-8 was
-  reported as the declared encoding, which would decode to mojibake.
-  Valid UTF-8 with multi-byte sequences now wins over a conflicting
-  declaration (the markup MIME type is retained); pure-ASCII and
-  genuinely single-byte content still honour the declaration.  This also
-  removes an era inconsistency where the same file detected differently
-  under ``MODERN_WEB`` and ``ALL``.
+- Fixed a lying charset declaration beating genuine UTF-8 content.  A
+  page declaring ``<meta charset="iso-8859-1">`` while actually encoded
+  as UTF-8 came back as the declared encoding, which decodes to
+  mojibake.  Valid UTF-8 with multi-byte sequences now wins over a
+  conflicting declaration (keeping the markup MIME type); pure ASCII and
+  real single-byte content still honor the declaration.  This also fixes
+  an era inconsistency: the same file came back ``utf-8`` under
+  ``MODERN_WEB`` but ``ISO-8859-1`` under ``ALL``.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 - Fixed BOM-less UTF-16 byte-order detection for pure-CJK text with no
   ASCII characters.  The null-byte parity heuristic assumes ASCII
   characters put nulls in the true byte order's high-byte position, but a
   whitespace-free CJK sample has none of those; its only nulls come from
   the *low* byte of characters like U+4E00 (一), which sit in the
-  opposite parity and made the swapped byte order the sole candidate --- so
+  opposite parity and made the swapped byte order the sole candidate:
   short Chinese UTF-16 samples were detected with reversed endianness at
   full confidence, in both directions.  Byte order is now always chosen
   by decoding both ways and comparing text quality (byte-swapped CJK
@@ -95,10 +94,10 @@ Changelog
   beat the current runner-up by more than the confusion-resolution
   margin is skipped without scoring.  Multi-byte models are always
   scored in full, and ``detect_all()`` bypasses pruning entirely, so
-  results are bit-identical — verified against unpruned scoring across
-  the whole test corpus.  Mean detection time dropped ~2.9x on the
+  results are bit-identical (verified against unpruned scoring across
+  the whole test corpus).  Mean detection time dropped ~2.9x on the
   benchmark corpus (0.37ms mean, 1.85ms p99 with mypyc), with the
-  largest gains on legacy CJK inputs (p99 9.5ms → 3.3ms).
+  largest gains on legacy CJK inputs (p99 dropped from 9.5ms to 3.3ms).
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 - Model tables are now ``bytes`` rather than ``memoryview`` slices, and
   the model blob is decompressed incrementally in chunks instead of in
@@ -110,8 +109,8 @@ Changelog
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 - Confusion-group resolution and post-processing rank corrections
   replaced their per-byte Python scans with ``bytes.translate``-based
-  prefilters and membership tables, cutting the cost of near-tie
-  adjudication on large inputs.
+  prefilters and membership tables, cutting the cost of resolving
+  near-ties on large inputs.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 
 **Improvements:**
