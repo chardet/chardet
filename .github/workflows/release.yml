@@ -100,15 +100,15 @@ jobs:
       # extension, avoiding the limit. This is ~50% slower than the
       # single-library build used on Linux/macOS.
       #
-      # mypy is pinned <2 here because mypy 2.x's separate mode compiles
-      # package __init__ modules (chardet/models/__init__.py) but the group
-      # library it emits (chardet/models__mypyc) never makes it into the
-      # wheel, producing wheels that fail on import. mypy 1.x leaves package
-      # __init__ modules as pure Python in separate mode, which is what every
-      # release through 7.4.3 shipped on Windows.
+      # models/__init__.py is additionally excluded from compilation here:
+      # in separate mode, the group library mypyc emits for a package
+      # __init__ (chardet/models__mypyc) is not packaged into the wheel by
+      # hatch-mypyc 0.16.0, so any wheel that compiles it fails on import
+      # with ModuleNotFoundError. Windows wheels ship models/__init__.py as
+      # pure Python instead, as every release through 7.4.3 did.
       - name: Patch pyproject.toml for MSVC compatibility
         run: |
-          ((Get-Content pyproject.toml) -replace 'options = \{ debug_level = "0" \}', 'options = { debug_level = "0", separate = true }') -replace '"mypy>=1\.19"', '"mypy>=1.19,<2"' | Set-Content pyproject.toml
+          ((Get-Content pyproject.toml) -replace 'options = \{ debug_level = "0" \}', 'options = { debug_level = "0", separate = true }') -replace '"/src/chardet/models/__init__\.py",', '' | Set-Content pyproject.toml
         shell: pwsh
       # Hide the patch from git so hatch-vcs derives the clean tagged version
       # instead of a dirty dev version (e.g. 7.4.0.post2.dev0+g...).
