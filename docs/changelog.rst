@@ -13,6 +13,26 @@ Changelog
 
 **Bug Fixes:**
 
+- Fixed markup-declared encodings being reported under a name that cannot
+  decode the input.  A page declaring ``Shift_JIS`` but using CP932
+  NEC/IBM extension characters (e.g. ①) was reported as ``SHIFT_JIS``,
+  which fails ``.decode()`` on the very bytes it was detected from; the
+  superset promotion only compared structural scores, which tie at 1.0
+  for structurally clean data, so it never fired.  Promotion to the
+  Windows superset (``CP932``, ``CP949``) is now unconditional whenever
+  the codec that the reported name resolves to cannot decode the data
+  but the superset can.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+- Fixed a markup charset declaration overriding genuine UTF-8 content.
+  A page declaring a single-byte charset (e.g.
+  ``<meta charset="iso-8859-1">``) while actually encoded as UTF-8 was
+  reported as the declared encoding, which would decode to mojibake.
+  Valid UTF-8 with multi-byte sequences now wins over a conflicting
+  declaration (the markup MIME type is retained); pure-ASCII and
+  genuinely single-byte content still honour the declaration.  This also
+  removes an era inconsistency where the same file detected differently
+  under ``MODERN_WEB`` and ``ALL``.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 - Fixed BOM-less UTF-16 byte-order detection for pure-CJK text with no
   ASCII characters.  The null-byte parity heuristic assumes ASCII
   characters put nulls in the true byte order's high-byte position, but a

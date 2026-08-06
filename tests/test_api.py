@@ -943,3 +943,33 @@ def test_include_encodings_preserves_accuracy(
         f"expected={expected}, got={result['encoding']} "
         f"(confidence={result['confidence']:.2f})"
     )
+
+
+def test_utf8_bytes_override_single_byte_declaration() -> None:
+    """Valid multi-byte UTF-8 wins over a lying single-byte declaration."""
+    data = (
+        b'<html><head><meta charset="iso-8859-1"></head><body>'
+        + "päivää tänään".encode()
+        + b"</body></html>"
+    )
+    result = chardet.detect(data)
+    assert result["encoding"] == "utf-8"
+    assert result["mime_type"] == "text/html"
+
+
+def test_single_byte_declaration_kept_for_real_latin1() -> None:
+    """A declaration is honoured when the bytes are not valid UTF-8."""
+    data = (
+        b'<html><head><meta charset="iso-8859-1"></head><body>'
+        + "päivää".encode("latin-1")
+        + b"</body></html>"
+    )
+    result = chardet.detect(data)
+    assert result["encoding"] == "ISO-8859-1"
+
+
+def test_single_byte_declaration_kept_for_pure_ascii() -> None:
+    """A declaration is honoured when the bytes are pure ASCII."""
+    data = b'<html><head><meta charset="iso-8859-1"></head><body>plain</body></html>'
+    result = chardet.detect(data)
+    assert result["encoding"] == "ISO-8859-1"

@@ -145,3 +145,31 @@ def test_pep263_non_ascii_coding_name():
     with patch("chardet.pipeline.markup._PEP263_RE", broad_re):
         result = detect_markup_charset(data)
     assert result is None
+
+
+def test_promote_when_reported_codec_cannot_decode():
+    """Declared Shift_JIS with CP932 NEC extensions promotes to cp932.
+
+    The internal shift_jis_2004 codec decodes NEC row 13 (e.g. 0x87 0x40,
+    the circled digit one), but the reported name "SHIFT_JIS" resolves to
+    plain shift_jis for callers, which cannot.  The promotion must fire
+    regardless of structural-score ties so the reported name can actually
+    decode the data.
+    """
+    data = "こんにちは".encode("shift_jis") + b"\x87\x40"
+    data.decode("cp932")  # sanity: superset decodes
+    result = DetectionResult("shift_jis_2004", 0.95, None, "text/xml")
+    allowed = frozenset({"cp932", "shift_jis_2004"})
+    promoted = promote_markup_superset(data, result, allowed)
+    assert promoted.encoding == "cp932"
+    assert promoted.confidence == 0.95
+    assert promoted.mime_type == "text/xml"
+
+
+def test_no_promotion_when_reported_codec_decodes_and_structure_ties():
+    """Plain Shift_JIS data stays shift_jis_2004 (no promotion on ties)."""
+    data = "こんにちは、世界。".encode("shift_jis")
+    result = DetectionResult("shift_jis_2004", 0.95, None, "text/html")
+    allowed = frozenset({"cp932", "shift_jis_2004"})
+    promoted = promote_markup_superset(data, result, allowed)
+    assert promoted.encoding == "shift_jis_2004"

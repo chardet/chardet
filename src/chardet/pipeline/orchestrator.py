@@ -303,9 +303,28 @@ def _run_pipeline_core(  # noqa: PLR0913
 
     # Stage 1b: Markup charset extraction (before ASCII/UTF-8 so explicit
     # declarations like <?xml encoding="iso-8859-1"?> are honoured even
-    # when the bytes happen to be pure ASCII or valid UTF-8).
+    # when the bytes happen to be pure ASCII).
     markup_result = detect_markup_charset(data)
     if markup_result is not None and markup_result.encoding in allowed:
+        # A declaration is honoured over pure ASCII (the declared encoding
+        # decodes those bytes identically), but not over genuine UTF-8
+        # structure: data containing valid multi-byte UTF-8 sequences is
+        # UTF-8 regardless of what the (frequently stale) declaration
+        # claims, and decoding it as the declared encoding would produce
+        # mojibake.  Keep the markup mime type; only the encoding wins.
+        if (
+            utf8_precheck is not None
+            and utf8_precheck.encoding != markup_result.encoding
+            and utf8_precheck.encoding in allowed
+        ):
+            return [
+                DetectionResult(
+                    utf8_precheck.encoding,
+                    utf8_precheck.confidence,
+                    utf8_precheck.language,
+                    markup_result.mime_type,
+                )
+            ]
         markup_result = promote_markup_superset(data, markup_result, allowed)
         return [markup_result]
 

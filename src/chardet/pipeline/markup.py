@@ -13,11 +13,15 @@ from chardet.registry import REGISTRY, lookup_encoding
 # encoding rather than the strict standard encoding.  Japanese web content
 # almost universally declares "Shift_JIS" but actually uses CP932 extensions;
 # similarly, Korean web content declares "EUC-KR" but uses CP949/UHC.
-# When the declared encoding resolves to the base (left), we check whether
-# the superset (right) is a better structural match.
-_MARKUP_SUPERSET_PROMOTIONS: dict[str, str] = {
-    "shift_jis_2004": "cp932",
-    "euc_kr": "cp949",
+# When the declared encoding resolves to the base (key), we check whether
+# the superset (second element) is a better answer.  The first element is
+# the codec that the *reported* encoding name resolves to for callers:
+# shift_jis_2004 is displayed as "SHIFT_JIS", which standard codec lookup
+# resolves to plain shift_jis, so that is the codec whose decode must not
+# break for the un-promoted name to be safe to report.
+_MARKUP_SUPERSET_PROMOTIONS: dict[str, tuple[str, str]] = {
+    "shift_jis_2004": ("shift_jis", "cp932"),
+    "euc_kr": ("euc_kr", "cp949"),
 }
 
 _SCAN_LIMIT = 4096
@@ -121,13 +125,27 @@ def promote_markup_superset(
     """
     if markup_result.encoding is None:
         return markup_result
-    superset_name = _MARKUP_SUPERSET_PROMOTIONS.get(markup_result.encoding)
-    if superset_name is None or superset_name not in allowed:
+    promotion = _MARKUP_SUPERSET_PROMOTIONS.get(markup_result.encoding)
+    if promotion is None:
+        return markup_result
+    reported_codec, superset_name = promotion
+    if superset_name not in allowed:
         return markup_result
     superset_info = REGISTRY[superset_name]
     # Validate: superset must be able to decode the data
     if not decodes_without_error(data, superset_name):
         return markup_result
+    # Decode-safety: if the codec the reported name resolves to cannot
+    # decode the data (e.g. a declared-Shift_JIS page using CP932 NEC/IBM
+    # extensions), the superset is the only answer a caller can actually
+    # use with ``.decode()`` -- promote unconditionally.
+    if not decodes_without_error(data, reported_codec):
+        return DetectionResult(
+            superset_name,
+            markup_result.confidence,
+            markup_result.language,
+            markup_result.mime_type,
+        )
     # Compare structural scores
     ctx = PipelineContext()
     base_score = compute_structural_score(data, REGISTRY[markup_result.encoding], ctx)
