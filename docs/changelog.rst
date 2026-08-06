@@ -15,35 +15,24 @@ Changelog
 
 - Fixed markup-declared encodings being reported under a name that can't
   decode the input.  A page declaring ``Shift_JIS`` but using CP932
-  NEC/IBM extension characters (like ①) came back as ``SHIFT_JIS``, a
-  name that fails ``.decode()`` on the same bytes it was detected from.
-  The superset promotion was supposed to catch this, but it only compared
-  structural scores, and those tie at 1.0 for structurally clean data, so
-  it basically never fired.  Promotion to the Windows superset
-  (``CP932``, ``CP949``) now always happens when the codec the reported
-  name resolves to can't decode the data but the superset can.
+  extension characters (like ①) came back as ``SHIFT_JIS``, which fails
+  ``.decode()`` on those same bytes.  Superset promotion (``CP932``,
+  ``CP949``) now always fires when the reported name can't decode the
+  data but the superset can.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 - Fixed a lying charset declaration beating genuine UTF-8 content.  A
-  page declaring ``<meta charset="iso-8859-1">`` while actually encoded
-  as UTF-8 came back as the declared encoding, which decodes to
-  mojibake.  Valid UTF-8 with multi-byte sequences now wins over a
-  conflicting declaration (keeping the markup MIME type); pure ASCII and
-  real single-byte content still honor the declaration.  This also fixes
-  an era inconsistency: the same file came back ``utf-8`` under
-  ``MODERN_WEB`` but ``ISO-8859-1`` under ``ALL``.
+  UTF-8 page declaring ``<meta charset="iso-8859-1">`` came back as
+  ISO-8859-1, which decodes to mojibake.  Valid multi-byte UTF-8 now
+  wins over a conflicting declaration; pure ASCII and real single-byte
+  content still honor it.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
-- Fixed BOM-less UTF-16 byte-order detection for pure-CJK text with no
-  ASCII characters.  The null-byte parity heuristic assumes ASCII
-  characters put nulls in the true byte order's high-byte position, but a
-  whitespace-free CJK sample has none of those; its only nulls come from
-  the *low* byte of characters like U+4E00 (一), which sit in the
-  opposite parity and made the swapped byte order the sole candidate:
-  short Chinese UTF-16 samples were detected with reversed endianness at
-  full confidence, in both directions.  Byte order is now always chosen
-  by decoding both ways and comparing text quality (byte-swapped CJK
-  scatters across the BMP and fails the quality check), with the null
-  signal breaking near-ties.  Found by scoring chardet against
-  charset-normalizer's char-dataset ground truth.
+- Fixed BOM-less UTF-16 byte-order detection for pure-CJK text.  With no
+  ASCII in the sample, the only null bytes come from the low byte of
+  characters like U+4E00 (一), which sit in the wrong parity position, so
+  short Chinese UTF-16 samples came back with reversed endianness at full
+  confidence.  Byte order is now chosen by decoding both ways and
+  comparing text quality, with the null signal breaking near-ties.  Found
+  by scoring chardet against charset-normalizer's char-dataset.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 
 7.5.0 (2026-08-05)
@@ -87,30 +76,21 @@ Changelog
 
 **Performance:**
 
-- Statistical scoring now prunes single-byte candidates with an
-  upper-bound test.  Per-model row-maximum tables (shipped as
-  ``rowmax.bin``, validated against ``models.bin`` by content digest)
-  bound the best score a model could still reach; any model that cannot
-  beat the current runner-up by more than the confusion-resolution
-  margin is skipped without scoring.  Multi-byte models are always
-  scored in full, and ``detect_all()`` bypasses pruning entirely, so
-  results are bit-identical (verified against unpruned scoring across
-  the whole test corpus).  Mean detection time dropped ~2.9x on the
-  benchmark corpus (0.37ms mean, 1.85ms p99 with mypyc), with the
-  largest gains on legacy CJK inputs (p99 dropped from 9.5ms to 3.3ms).
+- Statistical scoring now skips single-byte models that provably can't
+  beat the current runner-up, using per-model row-maximum tables
+  (``rowmax.bin``).  Results are bit-identical: multi-byte models are
+  always scored in full and ``detect_all()`` bypasses pruning.  Mean
+  detection time dropped ~2.9x with mypyc, with the largest gains on
+  legacy CJK (p99 from 9.5ms to 3.3ms).
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
-- Model tables are now ``bytes`` rather than ``memoryview`` slices, and
-  the model blob is decompressed incrementally in chunks instead of in
-  one shot.  mypyc compiles ``bytes`` indexing on the scoring hot path
-  to native array access (the union-typed ``memoryview`` forced boxed
-  calls), and chunked decompression stops holding the full decompressed
-  blob alongside its copies: peak process memory dropped from 53.9 to
-  27.4 MiB.
+- Model tables are now ``bytes`` (native array indexing under mypyc,
+  instead of boxed ``memoryview`` calls), and the model blob is
+  decompressed in chunks rather than one shot: peak process memory
+  dropped from 53.9 to 27.4 MiB.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
-- Confusion-group resolution and post-processing rank corrections
-  replaced their per-byte Python scans with ``bytes.translate``-based
-  prefilters and membership tables, cutting the cost of resolving
-  near-ties on large inputs.
+- Confusion-group resolution and post-processing now use
+  ``bytes.translate`` prefilters instead of per-byte Python scans,
+  making near-tie resolution cheaper on large inputs.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 
 **Improvements:**
