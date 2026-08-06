@@ -47,6 +47,34 @@ Changelog
   (`uttam12331 <https://github.com/uttam12331>`_,
   `#375 <https://github.com/chardet/chardet/pull/375>`_)
 
+**Performance:**
+
+- Statistical scoring now prunes single-byte candidates with an
+  upper-bound test.  Per-model row-maximum tables (shipped as
+  ``rowmax.bin``, validated against ``models.bin`` by content digest)
+  bound the best score a model could still reach; any model that cannot
+  beat the current runner-up by more than the confusion-resolution
+  margin is skipped without scoring.  Multi-byte models are always
+  scored in full, and ``detect_all()`` bypasses pruning entirely, so
+  results are bit-identical — verified against unpruned scoring across
+  the whole test corpus.  Mean detection time dropped ~2.9x on the
+  benchmark corpus (0.37ms mean, 1.85ms p99 with mypyc), with the
+  largest gains on legacy CJK inputs (p99 9.5ms → 3.3ms).
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+- Model tables are now ``bytes`` rather than ``memoryview`` slices, and
+  the model blob is decompressed incrementally in chunks instead of in
+  one shot.  mypyc compiles ``bytes`` indexing on the scoring hot path
+  to native array access (the union-typed ``memoryview`` forced boxed
+  calls), and chunked decompression stops holding the full decompressed
+  blob alongside its copies: peak process memory dropped from 53.9 to
+  27.4 MiB.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+- Confusion-group resolution and post-processing rank corrections
+  replaced their per-byte Python scans with ``bytes.translate``-based
+  prefilters and membership tables, cutting the cost of near-tie
+  adjudication on large inputs.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+
 **Improvements:**
 
 - ``prefer_superset=True`` is now documented as the recommended mode and
