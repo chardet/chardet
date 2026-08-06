@@ -187,11 +187,13 @@ def _check_utf16(data: bytes) -> DetectionResult | None:
     be_frac = be_null_count / num_units
     le_frac = le_null_count / num_units
 
-    le_qualified = le_frac >= _UTF16_MIN_NULL_FRACTION and not _is_null_separator_pattern(
-        data[:sample_len], le_frac
+    le_qualified = (
+        le_frac >= _UTF16_MIN_NULL_FRACTION
+        and not _is_null_separator_pattern(data[:sample_len], le_frac)
     )
-    be_qualified = be_frac >= _UTF16_MIN_NULL_FRACTION and not _is_null_separator_pattern(
-        data[:sample_len], be_frac
+    be_qualified = (
+        be_frac >= _UTF16_MIN_NULL_FRACTION
+        and not _is_null_separator_pattern(data[:sample_len], be_frac)
     )
 
     if not (le_qualified or be_qualified):
