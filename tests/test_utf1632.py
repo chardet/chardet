@@ -610,3 +610,36 @@ def test_real_utf16_le_cjk_still_detected() -> None:
     result = detect_utf1632_patterns(data)
     assert result is not None
     assert result.encoding == "utf-16-le"
+
+
+# ---------------------------------------------------------------------------
+# Byte-order choice for pure-CJK text with no ASCII
+# ---------------------------------------------------------------------------
+
+# Pure Chinese with no ASCII or whitespace at all.  The only null bytes in
+# its UTF-16 form come from the *low* byte of U+4E00 (一), which sit in
+# the opposite parity position and used to make the swapped byte order the
+# sole null-pattern candidate (returned at full confidence).
+_PURE_CJK_TEXT = "我一直没有埋怨过一切时间观念都是相同的"
+
+
+def test_utf16_be_pure_cjk_no_ascii_keeps_byte_order() -> None:
+    """Pure CJK UTF-16-BE with no ASCII must not be detected as LE."""
+    data = _PURE_CJK_TEXT.encode("utf-16-be")
+    # Precondition for the trap: no nulls in the true (even) parity, some
+    # nulls in the false (odd) parity from U+4E00 low bytes.
+    assert not any(data[i] == 0 for i in range(0, len(data), 2))
+    assert any(data[i] == 0 for i in range(1, len(data), 2))
+    result = detect_utf1632_patterns(data)
+    assert result is not None
+    assert result.encoding == "utf-16-be"
+    assert result.confidence == DETERMINISTIC_CONFIDENCE
+
+
+def test_utf16_le_pure_cjk_no_ascii_keeps_byte_order() -> None:
+    """Pure CJK UTF-16-LE with no ASCII must not be detected as BE."""
+    data = _PURE_CJK_TEXT.encode("utf-16-le")
+    result = detect_utf1632_patterns(data)
+    assert result is not None
+    assert result.encoding == "utf-16-le"
+    assert result.confidence == DETERMINISTIC_CONFIDENCE

@@ -8,6 +8,25 @@ Changelog
    Dan directed the design, reviewed all output, and takes responsibility for
    the result. Unmarked entries by Dan were written without AI assistance.
 
+7.5.1 (UNRELEASED)
+-------------------
+
+**Bug Fixes:**
+
+- Fixed BOM-less UTF-16 byte-order detection for pure-CJK text with no
+  ASCII characters.  The null-byte parity heuristic assumes ASCII
+  characters put nulls in the true byte order's high-byte position, but a
+  whitespace-free CJK sample has none of those; its only nulls come from
+  the *low* byte of characters like U+4E00 (一), which sit in the
+  opposite parity and made the swapped byte order the sole candidate --- so
+  short Chinese UTF-16 samples were detected with reversed endianness at
+  full confidence, in both directions.  Byte order is now always chosen
+  by decoding both ways and comparing text quality (byte-swapped CJK
+  scatters across the BMP and fails the quality check), with the null
+  signal breaking near-ties.  Found by scoring chardet against
+  charset-normalizer's char-dataset ground truth.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+
 7.5.0 (2026-08-05)
 -------------------
 
