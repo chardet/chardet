@@ -483,6 +483,11 @@ def _build_one_model(
     # Load texts from disk cache only (never download in workers).
     # The download phase in main() must complete before workers start.
     if lang not in _worker_text_cache:
+        # Keep only the current language.  utf-8 alone spans every
+        # language, so an unbounded cache has each worker accumulating
+        # dozens of 25k-article text lists — enough to get the whole
+        # process group OOM-killed near the end of a full retrain.
+        _worker_text_cache.clear()
         # Load from all source caches.  The artpacks source only ever holds
         # the zxx pseudo-language (populated by scripts/fetch_artpacks.py).
         texts: list[str] = []
