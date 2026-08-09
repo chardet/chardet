@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 
 from chardet._utils import decodes_without_error
+from chardet.enums import EncodingEra
 from chardet.pipeline import DETERMINISTIC_CONFIDENCE, DetectionResult, PipelineContext
 from chardet.pipeline.structural import compute_structural_score
 from chardet.registry import REGISTRY, lookup_encoding
@@ -39,6 +40,59 @@ _HTML4_CONTENT_TYPE_RE = re.compile(
 # PEP 263: encoding declaration in the first two lines of a Python file.
 # https://peps.python.org/pep-0263/
 _PEP263_RE = re.compile(rb"^[ \t\f]*#.*?coding[:=][ \t]*([-\w.]+)", re.MULTILINE)
+
+# Charset declaration in EBCDIC-encoded markup, matched against a cp037
+# decode of the head.  Letters and digits sit at the same code points in
+# every EBCDIC code page, so the ``charset=``/``encoding=`` label and the
+# encoding name itself decode correctly through cp037 regardless of which
+# EBCDIC variant the data actually uses.  Quote characters are NOT invariant
+# (e.g. cp1026 moves ``"``), so an optional single junk character stands in
+# for the opening quote.
+_EBCDIC_DECL_RE = re.compile(
+    r"(?:charset|encoding)\s*=\s*[^\sA-Za-z0-9._-]?\s*([A-Za-z][A-Za-z0-9._-]+)",
+    re.IGNORECASE,
+)
+
+# High bytes: EBCDIC text is dominated by bytes >= 0x80 (Latin lowercase
+# letters all sit at 0x81+; other scripts likewise), while ASCII-compatible
+# markup is dominated by bytes < 0x80.
+_MARKUP_HIGH_BYTES = bytes(range(0x80, 0x100))
+
+# Minimum fraction of high bytes in the head for an EBCDIC scan to be
+# worth attempting.
+_EBCDIC_SCAN_MIN_HIGH_FRACTION = 0.25
+
+
+def _detect_ebcdic_declaration(head: bytes) -> DetectionResult | None:
+    """Look for a charset declaration in EBCDIC-encoded markup.
+
+    The ASCII regexes cannot see declarations in EBCDIC bytes, so when the
+    head looks like EBCDIC text (dominated by high bytes), decode it through
+    cp037 — the EBCDIC page whose letter and digit positions are shared by
+    all variants — and scan the decoded text.  Only declarations naming a
+    MAINFRAME-era encoding are honoured, and the declared encoding must
+    actually decode the head.
+    """
+    high_count = len(head) - len(head.translate(None, _MARKUP_HIGH_BYTES))
+    if high_count < len(head) * _EBCDIC_SCAN_MIN_HIGH_FRACTION:
+        return None
+    decoded = head.decode("cp037", errors="replace")
+    match = _EBCDIC_DECL_RE.search(decoded)
+    if match is None:
+        return None
+    encoding = lookup_encoding(match.group(1).strip())
+    if (
+        encoding is not None
+        and REGISTRY[encoding].era & EncodingEra.MAINFRAME
+        and decodes_without_error(head, encoding)
+    ):
+        return DetectionResult(
+            encoding=encoding,
+            confidence=DETERMINISTIC_CONFIDENCE,
+            language=None,
+            mime_type="text/html",
+        )
+    return None
 
 
 def _detect_pep263(data: bytes) -> DetectionResult | None:
@@ -106,6 +160,10 @@ def detect_markup_charset(data: bytes) -> DetectionResult | None:
                     language=None,
                     mime_type=mime_type,
                 )
+
+    ebcdic_result = _detect_ebcdic_declaration(head)
+    if ebcdic_result is not None:
+        return ebcdic_result
 
     return _detect_pep263(data)
 

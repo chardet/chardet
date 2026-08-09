@@ -22,6 +22,17 @@ Changelog
   the training pipeline already applies.  Fixed 21 files in the expanded
   test suite plus a long-standing GB2312 known failure.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+- Fixed EBCDIC text being invisible to the early pipeline stages.
+  EBCDIC uses 0x05 and 0x15 as tab and newline, which the binary stage
+  counted as binary indicators, so cp1026 and cp875 pages came back as
+  ``encoding=None``.  Charset declarations inside EBCDIC-encoded markup
+  (``<meta charset="cp1026">``) were also unreadable to the ASCII
+  markup regexes.  The binary stage now treats those controls as
+  whitespace when the data is high-byte-dominated, and the markup stage
+  scans a cp037 decode of the head for declarations, which works for
+  every EBCDIC variant because letters and digits sit at the same code
+  points in all of them.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 
 7.5.1 (2026-08-06)
 -------------------
