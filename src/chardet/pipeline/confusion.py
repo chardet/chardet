@@ -16,6 +16,7 @@ import importlib.resources
 import struct
 import warnings
 
+from chardet.enums import EncodingEra
 from chardet.models import (
     BigramProfile,
     get_enc_index,
@@ -23,7 +24,7 @@ from chardet.models import (
     score_with_profile,
 )
 from chardet.pipeline import DetectionResult
-from chardet.registry import lookup_encoding
+from chardet.registry import REGISTRY, lookup_encoding
 
 # Type alias for the distinguishing map structure:
 # Maps (enc_a, enc_b) -> (distinguishing_byte_set, {byte_val: (cat_a, cat_b)})
@@ -328,6 +329,28 @@ def _find_pair_key(
 # position 1 to participate in confusion resolution.
 _CONFUSION_BAND = 0.005
 
+# Minimum total occurrences of a pair's distinguishing bytes before
+# resolution may overturn the statistical ranking of two MAINFRAME-era
+# encodings.  EBCDIC siblings share almost their whole byte map, their diff
+# sets are a handful of punctuation positions, and both resolvers reduce to
+# prose-typicality priors there — a single ambiguous byte (one ``|``-vs-``!``
+# position) is not enough evidence to demote a winner that earned its rank
+# from the whole byte distribution.  Non-mainframe pairs keep sparse-evidence
+# swaps: their distinguishing bytes are letters, where one hit is meaningful.
+_MIN_DISTINGUISHING_OCCURRENCES = 3
+
+
+def _is_mainframe_pair(enc_a: str, enc_b: str) -> bool:
+    """Return True if both encodings are MAINFRAME-era (EBCDIC siblings)."""
+    info_a = REGISTRY.get(enc_a)
+    info_b = REGISTRY.get(enc_b)
+    return (
+        info_a is not None
+        and info_b is not None
+        and bool(info_a.era & EncodingEra.MAINFRAME)
+        and bool(info_b.era & EncodingEra.MAINFRAME)
+    )
+
 
 def resolve_confusion_groups(
     data: bytes,
@@ -369,6 +392,15 @@ def resolve_confusion_groups(
 
         diff_bytes, categories = maps[pair_key]
         enc_a, enc_b = pair_key
+
+        # For EBCDIC sibling pairs, require enough distinguishing evidence
+        # to second-guess the ranking.  Deleting every non-distinguishing
+        # byte leaves exactly the distinguishing bytes present.
+        if _is_mainframe_pair(*pair_key):
+            non_diff, _ = _pair_byte_tables(diff_bytes)
+            occurrences = len(data.translate(None, non_diff))
+            if occurrences < _MIN_DISTINGUISHING_OCCURRENCES:
+                continue
 
         cat_winner = resolve_by_category_voting(
             data, enc_a, enc_b, diff_bytes, categories

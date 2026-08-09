@@ -331,13 +331,16 @@ def _era_rank(encoding: str) -> int:
     return era & -era
 
 
-def _has_high_byte_evidence(data: bytes, encoding: str) -> bool:
-    """Return True if any model variant of *encoding* weights a high-byte bigram present in *data*.
+def _has_high_byte_evidence(data: bytes, encoding: str, language: "str | None") -> bool:
+    """Return True if *encoding*'s winning model weights a high-byte bigram present in *data*.
 
-    A candidate whose models assign zero weight to every non-ASCII bigram in
+    A candidate whose model assigns zero weight to every non-ASCII bigram in
     the data earned its statistical score purely from ASCII bigrams — noise
-    that cannot distinguish encodings.  Only called on dead heats, so the
-    Python-level scan of the (capped) data is off the hot path.
+    that cannot distinguish encodings.  Only the variant that actually won
+    (*language*) counts: another language's variant having weight for those
+    bytes says nothing about why *this* result is on top.  Only called on
+    dead heats, so the Python-level scan of the (capped) data is off the
+    hot path.
     """
     variants = get_enc_index().get(encoding)
     if not variants:
@@ -352,7 +355,9 @@ def _has_high_byte_evidence(data: bytes, encoding: str) -> bool:
         prev = b
     if not seen:
         return False
-    for _lang, table, _key in variants:
+    for lang, table, _key in variants:
+        if language is not None and lang != language:
+            continue
         for idx in seen:
             if table[idx]:
                 return True
@@ -377,7 +382,7 @@ def _prefer_prevalent_on_dead_heat(
     top = results[0] if results else None
     if top is None or top.encoding is None or len(results) < 2:
         return results
-    if _has_high_byte_evidence(data, top.encoding):
+    if _has_high_byte_evidence(data, top.encoding, top.language):
         return results
     best_idx = 0
     best_rank = _era_rank(top.encoding)
