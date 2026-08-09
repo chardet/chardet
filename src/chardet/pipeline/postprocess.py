@@ -20,8 +20,11 @@ this module is compiled with mypyc, which does not support PEP 563 string
 annotations.
 """
 
+from chardet._utils import decodes_without_error
+from chardet.models import get_enc_index
 from chardet.pipeline import DetectionResult
 from chardet.pipeline.confusion import resolve_confusion_groups
+from chardet.registry import REGISTRY
 
 # Common Western Latin encodings that share the iso-8859-1 character
 # repertoire for the byte values where iso-8859-10 is indistinguishable.
@@ -284,20 +287,194 @@ def _promote_koi8t(
     return results
 
 
+# Confidence gap below which two candidates are a statistical dead heat:
+# their scores differ only through model-norm noise on bigrams that carry no
+# real evidence (observed dead heats sit within ~1e-5; genuinely decided
+# rankings lead by >= 2e-3).
+_DEAD_HEAT_EPSILON = 1e-4
+
+# On a dead heat between an encoding and its Windows superset, prefer the
+# superset: it decodes everything the base encoding does, so it is never a
+# worse answer when the statistics cannot separate them.  Mirrors
+# ``markup._MARKUP_SUPERSET_PROMOTIONS``.
+_DEAD_HEAT_SUPERSETS: dict[str, str] = {
+    "shift_jis": "cp932",
+    "shift_jis_2004": "cp932",
+    "euc_kr": "cp949",
+}
+
+# Confidence band for the classic-Mac line-ending promotion.  Wider than the
+# dead-heat epsilon because bare-\r line endings are decisive platform
+# evidence, not just a prior.  Matches ``confusion._CONFUSION_BAND``.
+_CR_MAC_BAND = 0.005
+
+# Minimum number of \r line endings before the classic-Mac promotion fires.
+_CR_MAC_MIN_LINES = 3
+
+# EncodingEra.LEGACY_MAC — value inlined to avoid importing the enum into
+# this mypyc-compiled hot path for a single constant.
+_LEGACY_MAC_ERA = 4
+
+
+# Cap on the data scanned for high-byte bigram evidence — matches the
+# window statistical scoring uses (``orchestrator._STAT_SCORE_MAX_BYTES``),
+# so the evidence check sees the same bytes the scores were computed from.
+_EVIDENCE_SCAN_MAX_BYTES = 16384
+
+
+def _era_rank(encoding: str) -> int:
+    """Return the lowest era bit for *encoding* (lower = more prevalent today)."""
+    info = REGISTRY.get(encoding)
+    if info is None:
+        return 1 << 30
+    era = int(info.era)
+    return era & -era
+
+
+def _has_high_byte_evidence(data: bytes, encoding: str) -> bool:
+    """Return True if any model variant of *encoding* weights a high-byte bigram present in *data*.
+
+    A candidate whose models assign zero weight to every non-ASCII bigram in
+    the data earned its statistical score purely from ASCII bigrams — noise
+    that cannot distinguish encodings.  Only called on dead heats, so the
+    Python-level scan of the (capped) data is off the hot path.
+    """
+    variants = get_enc_index().get(encoding)
+    if not variants:
+        return False
+    window = data[:_EVIDENCE_SCAN_MAX_BYTES]
+    seen: set[int] = set()
+    prev = window[0]
+    for i in range(1, len(window)):
+        b = window[i]
+        if prev >= 0x80 or b >= 0x80:
+            seen.add((prev << 8) | b)
+        prev = b
+    if not seen:
+        return False
+    for _lang, table, _key in variants:
+        for idx in seen:
+            if table[idx]:
+                return True
+    return False
+
+
+def _prefer_prevalent_on_dead_heat(
+    data: bytes,
+    results: list[DetectionResult],
+) -> list[DetectionResult]:
+    """Break statistical dead heats in favour of the more prevalent era.
+
+    When several encodings score within :data:`_DEAD_HEAT_EPSILON` of the
+    top result and the top result's models carry no weight for any high-byte
+    bigram in the data, the ranking is an artifact of ASCII-bigram noise.
+    Promote the candidate from the most prevalent era (modern web > legacy
+    ISO > Mac > regional > DOS > mainframe) so evidence-free dead heats
+    resolve to the likeliest real-world answer.  A top result whose models
+    do weight observed high-byte bigrams won on real evidence and is kept,
+    however small its margin.
+    """
+    top = results[0] if results else None
+    if top is None or top.encoding is None or len(results) < 2:
+        return results
+    if _has_high_byte_evidence(data, top.encoding):
+        return results
+    best_idx = 0
+    best_rank = _era_rank(top.encoding)
+    for i in range(1, len(results)):
+        r = results[i]
+        if r.encoding is None:
+            continue
+        if top.confidence - r.confidence > _DEAD_HEAT_EPSILON:
+            break
+        rank = _era_rank(r.encoding)
+        if rank < best_rank:
+            best_rank = rank
+            best_idx = i
+    if best_idx == 0:
+        return results
+    chosen = results[best_idx]
+    promoted = DetectionResult(
+        chosen.encoding, top.confidence, chosen.language, chosen.mime_type
+    )
+    rest = [r for j, r in enumerate(results) if j != best_idx]
+    return [promoted, *rest]
+
+
+def _promote_superset_on_dead_heat(
+    data: bytes,
+    results: list[DetectionResult],
+) -> list[DetectionResult]:
+    """Promote a Windows superset over its base encoding on a dead heat."""
+    top = results[0] if results else None
+    if top is None or top.encoding is None or len(results) < 2:
+        return results
+    superset = _DEAD_HEAT_SUPERSETS.get(top.encoding)
+    if superset is None:
+        return results
+    for i in range(1, len(results)):
+        r = results[i]
+        if top.confidence - r.confidence > _DEAD_HEAT_EPSILON:
+            break
+        if r.encoding == superset and decodes_without_error(data, superset):
+            promoted = DetectionResult(
+                r.encoding, top.confidence, r.language, r.mime_type
+            )
+            rest = [x for j, x in enumerate(results) if j != i]
+            return [promoted, *rest]
+    return results
+
+
+def _promote_mac_on_cr_line_endings(
+    data: bytes,
+    results: list[DetectionResult],
+) -> list[DetectionResult]:
+    r"""Promote a classic-Mac candidate when line endings are bare ``\r``.
+
+    Classic Mac OS is the only platform that terminated lines with a lone
+    carriage return, so data with several ``\r`` bytes and no ``\n`` is
+    near-certainly Mac-era text.  When a LEGACY_MAC candidate scores within
+    :data:`_CR_MAC_BAND` of a non-Mac top result, promote it.
+    """
+    top = results[0] if results else None
+    if top is None or top.encoding is None or len(results) < 2:
+        return results
+    if _era_rank(top.encoding) == _LEGACY_MAC_ERA:
+        return results
+    if data.find(b"\n") >= 0 or data.count(b"\r") < _CR_MAC_MIN_LINES:
+        return results
+    for i in range(1, len(results)):
+        r = results[i]
+        if top.confidence - r.confidence > _CR_MAC_BAND:
+            break
+        if r.encoding is not None and _era_rank(r.encoding) == _LEGACY_MAC_ERA:
+            promoted = DetectionResult(
+                r.encoding, top.confidence, r.language, r.mime_type
+            )
+            rest = [x for j, x in enumerate(results) if j != i]
+            return [promoted, *rest]
+    return results
+
+
 def postprocess_results(
     data: bytes,
     results: list[DetectionResult],
 ) -> list[DetectionResult]:
-    """Apply confusion-group resolution, niche Latin demotion, and KOI8-T promotion.
+    """Apply rank corrections to the statistically scored results.
 
-    These three rank-correction steps run in sequence after statistical
-    scoring.  Each step inspects byte-level evidence in *data* and may
-    re-order or replace entries in *results*.
+    Steps run in sequence, weakest evidence first: dead-heat priors
+    (superset preference, era prevalence), then confusion-group resolution,
+    niche Latin demotion, and KOI8-T promotion (byte-level evidence), and
+    finally the classic-Mac line-ending promotion (platform evidence that
+    should override the priors).
 
     :param data: The raw byte data the results were produced from.
     :param results: A list of :class:`DetectionResult` ranked by confidence.
     :returns: A new list (or the same list) with rank corrections applied.
     """
+    results = _promote_superset_on_dead_heat(data, results)
+    results = _prefer_prevalent_on_dead_heat(data, results)
     results = resolve_confusion_groups(data, results)
     results = _demote_niche_latin(data, results)
-    return _promote_koi8t(data, results)
+    results = _promote_koi8t(data, results)
+    return _promote_mac_on_cr_line_endings(data, results)

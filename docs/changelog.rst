@@ -34,6 +34,20 @@ Changelog
   points in all of them.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 
+**Improvements:**
+
+- Statistical dead heats no longer resolve by candidate enumeration
+  order.  The English models of cp437, cp850, Windows-1252, and MacRoman
+  score identically on ASCII-dominated data, so files with almost no
+  high-byte evidence (an ``ioreg`` dump with a single 0xD5 byte, a
+  ReadMe with classic-Mac line endings) came back as whichever encoding
+  the registry happened to list first.  Three post-processing rules now
+  break these ties: prefer the Windows superset (``CP932`` over
+  ``SHIFT_JIS``), prefer the more prevalent encoding era when the winner
+  has no high-byte evidence at all, and prefer a classic-Mac candidate
+  when line endings are bare ``\r``.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+
 7.5.1 (2026-08-06)
 -------------------
 
