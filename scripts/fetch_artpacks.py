@@ -73,7 +73,21 @@ def rsync_year(year: str, raw_dir: Path) -> None:
         str(dest),
     ]
     print(f"  rsync {year}...")
-    subprocess.run(cmd, check=True)
+    result = subprocess.run(cmd, check=False)
+    # Per-file errors are routine for this archive: a few unreadable
+    # directories (exit 23) and DOS-era filenames whose raw cp437 bytes
+    # APFS rejects as non-UTF-8 (exit 1 under Apple's openrsync, which has
+    # no --iconv).  Losing a handful of files is immaterial to a
+    # statistical corpus — only a transfer that produced nothing is fatal.
+    if result.returncode:
+        transferred = sum(1 for p in dest.rglob("*") if p.is_file())
+        if transferred == 0:
+            msg = f"rsync {year} failed (exit {result.returncode}), no files"
+            raise RuntimeError(msg)
+        print(
+            f"  rsync {year}: partial transfer "
+            f"(exit {result.returncode}, {transferred} files kept)"
+        )
 
 
 def prepare_article(data: bytes) -> str | None:
