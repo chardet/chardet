@@ -74,10 +74,13 @@ A set of encodings that statistical scoring cannot reliably separate (e.g. ISO-8
 A pre-computed mapping of (encoding-pair) → (set of bytes whose Unicode category differs between the two), bundled as the **confusion data file** `confusion.bin`. The data structure that drives confusion-group resolution.
 
 **Category voting**:
-The first confusion-resolution mechanism. For each distinguishing byte present in the data, vote for the encoding whose Unicode-category interpretation is more plausible.
+A confusion-resolution mechanism. For each *occurrence* of a distinguishing byte, vote for the encoding whose Unicode-category reading is more plausible **in context**: a letter reading is demoted below punctuation when its neighbors give it no word shape (no letter neighbors, or a lowercase letter jammed against a following capital). Votes earned by demoting an impossible letter reading form the **demotion margin**.
 
 **Bigram rescoring**:
-The fallback confusion-resolution mechanism when category voting is inconclusive. Rescore the tied candidates against their bigram profiles, restricted to data positions containing distinguishing bytes.
+The model-evidence confusion-resolution mechanism: rescore the tied candidates against their bigram profiles, restricted to data positions containing distinguishing bytes. Decides the pair unless the category vote's demotion margin is decisive — evidence *against* an impossible reading outranks the rescore's prose-typicality, but a vote won on naive letter preference defers to it.
+
+**Art-model exemption**:
+Confusion resolution never reviews a result won by the art model's pseudo-language (no linguistic content): voting and rescoring reason about prose, which box-drawing data is not.
 
 **Statistical dead heat**:
 A ranking state where multiple encodings score within noise of each other because the data's high-byte bigrams carry no weight in the top candidate's models — the order is an artifact of candidate enumeration, not evidence.

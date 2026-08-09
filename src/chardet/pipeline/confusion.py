@@ -14,9 +14,9 @@ annotations.
 import functools
 import importlib.resources
 import struct
+import unicodedata
 import warnings
 
-from chardet.enums import EncodingEra
 from chardet.models import (
     BigramProfile,
     get_enc_index,
@@ -24,7 +24,7 @@ from chardet.models import (
     score_with_profile,
 )
 from chardet.pipeline import DetectionResult
-from chardet.registry import REGISTRY, lookup_encoding
+from chardet.registry import lookup_encoding
 
 # Type alias for the distinguishing map structure:
 # Maps (enc_a, enc_b) -> (distinguishing_byte_set, {byte_val: (cat_a, cat_b)})
@@ -178,30 +178,84 @@ _CATEGORY_PREFERENCE: dict[str, int] = {
 }
 
 
-def resolve_by_category_voting(
+# Preference assigned to a letter reading whose context makes it an
+# implausible word member — below every punctuation and symbol category.
+_IMPLAUSIBLE_LETTER_PREFERENCE = 2
+
+# Vote margin at which category voting overrides the bigram rescore.  Two
+# context-decisive occurrences (letter-vs-punctuation with the word-shape
+# rule fired: 2 x (6 - 2)) clear it; a lone punctuation-vs-punctuation
+# reading (margin 1) never does.
+_DECISIVE_VOTE_MARGIN = 8
+
+# Cap on distinguishing-byte occurrences examined per pair.  Sparse by
+# nature; the cap only bounds pathological inputs.
+_MAX_VOTE_OCCURRENCES = 256
+
+
+@functools.cache
+def _letter_case_table(encoding: str) -> bytes:
+    """256-entry table: 0 = non-letter, 1 = uppercase letter, 2 = other letter.
+
+    Combining marks count as letters: in decomposed text (Vietnamese under
+    windows-1258) a base letter's neighbor is its diacritic, which is
+    word-internal, not a word boundary.
+    """
+    table = bytearray(256)
+    for b in range(256):
+        try:
+            ch = bytes([b]).decode(encoding)
+        except UnicodeDecodeError:
+            continue
+        cat = unicodedata.category(ch)
+        if cat == "Lu":
+            table[b] = 1
+        elif cat[0] == "L" or cat in ("Mn", "Mc"):
+            table[b] = 2
+    return bytes(table)
+
+
+def _context_preference(cat: str, left: int, right: int, case_table: bytes) -> int:
+    """Preference for reading a byte as *cat*, adjusted for word shape.
+
+    A letter reading only deserves its high preference when its neighbors
+    make it look like part of a word under the same encoding: a letter with
+    no letter neighbors is quoted/isolated punctuation in disguise, and a
+    lowercase letter immediately followed by an uppercase one is not a word
+    shape any of the supported languages produce.
+    """
+    pref = _CATEGORY_PREFERENCE.get(cat, 0)
+    if cat[0] != "L":
+        return pref
+    left_kind = case_table[left]
+    right_kind = case_table[right]
+    if left_kind == 0 and right_kind == 0:
+        return _IMPLAUSIBLE_LETTER_PREFERENCE
+    if cat == "Ll" and right_kind == 1:
+        return _IMPLAUSIBLE_LETTER_PREFERENCE
+    return pref
+
+
+def _vote_with_margin(
     data: bytes,
     enc_a: str,
     enc_b: str,
     diff_bytes: frozenset[int],
     categories: dict[int, tuple[str, str]],
-) -> str | None:
-    """Resolve between two encodings using Unicode category voting.
+) -> tuple[str | None, int, int]:
+    """Context-aware category voting; returns ``(winner, margin, demotion_margin)``.
 
-    For each distinguishing byte present in the data, compare the Unicode
-    general category under each encoding. The encoding whose interpretation
-    has the higher category preference score gets a vote. The encoding with
-    more votes wins.
+    For each occurrence of a distinguishing byte, compare the two
+    encodings' readings: Unicode category preference, adjusted for word
+    shape (see :func:`_context_preference`).  The reading that makes more
+    linguistic sense of the byte *in its context* collects the vote;
+    occurrences vote independently, so repeated evidence counts.
 
-    :param data: The raw byte data to examine.
-    :param enc_a: First encoding name.
-    :param enc_b: Second encoding name.
-    :param diff_bytes: Byte values where the two encodings differ.
-    :param categories: Mapping of byte value to ``(cat_a, cat_b)`` Unicode
-        general category pairs.
-    :returns: The winning encoding name, or ``None`` if tied.
+    ``demotion_margin`` counts only the winner's votes earned where the
+    *losing* side's letter reading was word-shape-implausible — evidence
+    against an impossible reading, which is far stronger than the naive
+    letters-beat-punctuation preference.
     """
-    votes_a = 0
-    votes_b = 0
     # Delete every non-distinguishing byte value in one C-level translate
     # pass; what survives is exactly the distinguishing bytes present.
     # Equivalent to ``frozenset(data) & diff_bytes`` but ~5x faster, since
@@ -209,20 +263,56 @@ def resolve_by_category_voting(
     non_diff, _ = _pair_byte_tables(diff_bytes)
     relevant = frozenset(data.translate(None, non_diff))
     if not relevant:
-        return None
+        return None, 0, 0
+    table_a = _letter_case_table(enc_a)
+    table_b = _letter_case_table(enc_b)
+    votes_a = 0
+    votes_b = 0
+    demotion_a = 0
+    demotion_b = 0
+    end = len(data) - 1
     for bv in relevant:
         cat_a, cat_b = categories[bv]
-        pref_a = _CATEGORY_PREFERENCE.get(cat_a, 0)
-        pref_b = _CATEGORY_PREFERENCE.get(cat_b, 0)
-        if pref_a > pref_b:
-            votes_a += pref_a - pref_b
-        elif pref_b > pref_a:
-            votes_b += pref_b - pref_a
+        needle = bytes((bv,))
+        pos = data.find(needle)
+        examined = 0
+        while pos >= 0 and examined < _MAX_VOTE_OCCURRENCES:
+            left = data[pos - 1] if pos > 0 else 0
+            right = data[pos + 1] if pos < end else 0
+            pref_a = _context_preference(cat_a, left, right, table_a)
+            pref_b = _context_preference(cat_b, left, right, table_b)
+            if pref_a > pref_b:
+                votes_a += pref_a - pref_b
+                if cat_b[0] == "L" and pref_b == _IMPLAUSIBLE_LETTER_PREFERENCE:
+                    demotion_a += pref_a - pref_b
+            elif pref_b > pref_a:
+                votes_b += pref_b - pref_a
+                if cat_a[0] == "L" and pref_a == _IMPLAUSIBLE_LETTER_PREFERENCE:
+                    demotion_b += pref_b - pref_a
+            examined += 1
+            pos = data.find(needle, pos + 1)
     if votes_a > votes_b:
-        return enc_a
+        return enc_a, votes_a - votes_b, demotion_a
     if votes_b > votes_a:
-        return enc_b
-    return None
+        return enc_b, votes_b - votes_a, demotion_b
+    return None, 0, 0
+
+
+def resolve_by_category_voting(
+    data: bytes,
+    enc_a: str,
+    enc_b: str,
+    diff_bytes: frozenset[int],
+    categories: dict[int, tuple[str, str]],
+) -> str | None:
+    """Resolve between two encodings using context-aware category voting.
+
+    :returns: The winning encoding name, or ``None`` if tied.
+    """
+    winner, _margin, _demotion = _vote_with_margin(
+        data, enc_a, enc_b, diff_bytes, categories
+    )
+    return winner
 
 
 @functools.cache
@@ -329,28 +419,6 @@ def _find_pair_key(
 # position 1 to participate in confusion resolution.
 _CONFUSION_BAND = 0.005
 
-# Minimum total occurrences of a pair's distinguishing bytes before
-# resolution may overturn the statistical ranking of two MAINFRAME-era
-# encodings.  EBCDIC siblings share almost their whole byte map, their diff
-# sets are a handful of punctuation positions, and both resolvers reduce to
-# prose-typicality priors there — a single ambiguous byte (one ``|``-vs-``!``
-# position) is not enough evidence to demote a winner that earned its rank
-# from the whole byte distribution.  Non-mainframe pairs keep sparse-evidence
-# swaps: their distinguishing bytes are letters, where one hit is meaningful.
-_MIN_DISTINGUISHING_OCCURRENCES = 3
-
-
-def _is_mainframe_pair(enc_a: str, enc_b: str) -> bool:
-    """Return True if both encodings are MAINFRAME-era (EBCDIC siblings)."""
-    info_a = REGISTRY.get(enc_a)
-    info_b = REGISTRY.get(enc_b)
-    return (
-        info_a is not None
-        and info_b is not None
-        and bool(info_a.era & EncodingEra.MAINFRAME)
-        and bool(info_b.era & EncodingEra.MAINFRAME)
-    )
-
 
 def resolve_confusion_groups(
     data: bytes,
@@ -373,6 +441,11 @@ def resolve_confusion_groups(
     top = results[0]
     if top.encoding is None:
         return results
+    # An art-model win (the zxx pseudo-language: no linguistic content) is
+    # not up for linguistic-plausibility review — voting and rescoring both
+    # reason about prose, which box-drawing data is not.
+    if top.language == "zxx":
+        return results
 
     maps = load_confusion_data()
     top_conf = top.confidence
@@ -393,20 +466,21 @@ def resolve_confusion_groups(
         diff_bytes, categories = maps[pair_key]
         enc_a, enc_b = pair_key
 
-        # For EBCDIC sibling pairs, require enough distinguishing evidence
-        # to second-guess the ranking.  Deleting every non-distinguishing
-        # byte leaves exactly the distinguishing bytes present.
-        if _is_mainframe_pair(*pair_key):
-            non_diff, _ = _pair_byte_tables(diff_bytes)
-            occurrences = len(data.translate(None, non_diff))
-            if occurrences < _MIN_DISTINGUISHING_OCCURRENCES:
-                continue
-
-        cat_winner = resolve_by_category_voting(
+        cat_winner, _vote_margin, demotion_margin = _vote_with_margin(
             data, enc_a, enc_b, diff_bytes, categories
         )
-        bigram_winner = resolve_by_bigram_rescore(data, enc_a, enc_b, diff_bytes)
-        winner = bigram_winner if bigram_winner is not None else cat_winner
+        # A demotion-driven vote outranks the bigram rescore: those votes
+        # were earned where the opposing reading was a word-shape-impossible
+        # letter (lowercase jammed between digits or capitals), which is
+        # stronger evidence than the rescore's prose-typicality priors.  A
+        # vote won on the naive letters-beat-punctuation preference defers
+        # to the rescore's model evidence.
+        winner: str | None
+        if cat_winner is not None and demotion_margin >= _DECISIVE_VOTE_MARGIN:
+            winner = cat_winner
+        else:
+            bigram_winner = resolve_by_bigram_rescore(data, enc_a, enc_b, diff_bytes)
+            winner = bigram_winner if bigram_winner is not None else cat_winner
 
         if winner is not None and winner == candidate.encoding:
             # Give the promoted candidate the top result's confidence so

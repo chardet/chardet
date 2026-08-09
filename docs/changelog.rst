@@ -54,11 +54,16 @@ Changelog
   suite's wild artpacks were excluded from training by content
   fingerprint.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
-- Confusion resolution between EBCDIC siblings now requires at least
-  three occurrences of a pair's distinguishing bytes before it may
-  overturn the statistical ranking — a single ambiguous byte (one
-  ``|`` read as "``!`` is likelier") is not enough evidence to demote
-  a winner.
+- Confusion-group resolution is now context-aware.  Category voting
+  votes per occurrence and demotes letter readings that have no word
+  shape (a "letter" quoted between apostrophes, or a lowercase letter
+  jammed against a following capital — how EBCDIC record data reads
+  under the wrong sibling page).  A vote whose margin comes from such
+  demotions overrides the bigram rescore; one won on the naive
+  letters-beat-punctuation preference defers to it.  Art-model wins are
+  exempt from resolution entirely, since both mechanisms reason about
+  prose.  Fixes twelve EBCDIC and Latin files the retrain had left
+  hanging on single-byte coin flips.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 - Statistical dead heats no longer resolve by candidate enumeration
   order.  The English models of cp437, cp850, Windows-1252, and MacRoman
