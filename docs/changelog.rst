@@ -8,6 +8,21 @@ Changelog
    Dan directed the design, reviewed all output, and takes responsibility for
    the result. Unmarked entries by Dan were written without AI assistance.
 
+7.6.0 (unreleased)
+-------------------
+
+**Bug Fixes:**
+
+- Fixed space-padded text matching a degenerate Serbian model at up to
+  0.93 confidence.  The ``sr/cp1250`` training corpus is Cyrillic, which
+  mostly fails to encode into cp1250, so the model learned whitespace
+  residue instead of Serbian; ANSI art and column-aligned ``.po`` files
+  then matched it on runs of spaces alone.  Statistical scoring now
+  skips repeated-whitespace bigrams, mirroring the whitespace collapse
+  the training pipeline already applies.  Fixed 21 files in the expanded
+  test suite plus a long-standing GB2312 known failure.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+
 7.5.1 (2026-08-06)
 -------------------
 

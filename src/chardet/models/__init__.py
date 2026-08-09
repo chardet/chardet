@@ -17,6 +17,12 @@ from chardet.registry import REGISTRY, lookup_encoding
 
 _unpack_uint32 = struct.Struct(">I").unpack_from
 _unpack_float64 = struct.Struct(">d").unpack_from
+
+# 256-entry membership table for ASCII whitespace bytes (space, tab, LF, CR)
+# — native byte indexing under mypyc, used in the bigram-profile hot loop.
+_ASCII_WHITESPACE_TABLE = bytes(
+    1 if b in (0x20, 0x09, 0x0A, 0x0D) else 0 for b in range(256)
+)
 _V2_MAGIC = b"CMD2"
 #: rowmax.bin format: magic + SHA-256 of the matching models.bin + one
 #: 256-byte row-maxima table per model, in models.bin header order.
@@ -368,7 +374,15 @@ class BigramProfile:
         nonzero: list[int] = []
         w_sum = 0
         for i in range(total_bigrams):
-            idx = (data[i] << 8) | data[i + 1]
+            b1 = data[i]
+            b2 = data[i + 1]
+            # Skip repeated-whitespace bigrams (equivalent to collapsing
+            # whitespace runs, which training does before counting): padding
+            # and indentation carry no encoding signal, and models trained
+            # on lossy transcodes can carry spurious weight for them.
+            if b1 == b2 and _ASCII_WHITESPACE_TABLE[b1]:
+                continue
+            idx = (b1 << 8) | b2
             w = idf[idx]
             if freq[idx] == 0:
                 nonzero.append(idx)
