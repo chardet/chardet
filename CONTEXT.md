@@ -42,15 +42,15 @@ Listed in execution order. Each stage's name matches its module in `chardet.pipe
 2. **UTF-16/32 patterns** — null-byte patterns for BOM-less Unicode.
 3. **Escape sequences** — ISO-2022-JP/KR, HZ-GB-2312.
 4. **Magic numbers** — 40+ binary file signatures (PNG, PDF, ZIP, etc.) plus ZIP-entry-name disambiguation for OOXML/EPUB.
-5. **Binary detection** — null-byte / control-char threshold for unrecognized binary.
-6. **Markup charset** — `<meta charset>`, `<?xml encoding>`, PEP 263 coding-declaration extraction. Includes **markup superset promotion**.
+5. **Binary detection** — null-byte / control-char threshold for unrecognized binary. EBCDIC tab/newline controls do not count as binary evidence when the data is high-byte-dominated (plausibly EBCDIC text).
+6. **Markup charset** — `<meta charset>`, `<?xml encoding>`, PEP 263 coding-declaration extraction, including declarations inside EBCDIC-encoded markup. Includes **markup superset promotion**.
 7. **ASCII** — pure-7-bit fast path.
 8. **UTF-8 validation** — multi-byte structural check.
 9. **Byte-validity filtering** — drop candidates whose codec cannot decode the data. An incomplete multi-byte sequence at the very end is tolerated, since the input is usually a prefix of a larger whole.
 10. **CJK gating** — drop CJK candidates lacking multi-byte structure (pair ratio, high-byte count, byte coverage, lead-byte diversity).
 11. **Structural probing** — score multi-byte encoding fit (`pipeline/structural.py`).
 12. **Statistical scoring** — bigram cosine similarity against language-specific **BigramProfile**s.
-13. **Post-processing** — chained rank corrections: **confusion-group resolution**, **niche Latin demotion**, **KOI8-T promotion**.
+13. **Post-processing** — chained rank corrections, weakest evidence first: **dead-heat superset promotion**, **era-prevalence prior**, **confusion-group resolution**, **niche Latin demotion**, **KOI8-T promotion**, **classic-Mac line-ending promotion**.
 14. **Language detection** — three-tier fill of the `language` field on every result.
 
 ### Detection concepts
@@ -78,6 +78,18 @@ The first confusion-resolution mechanism. For each distinguishing byte present i
 
 **Bigram rescoring**:
 The fallback confusion-resolution mechanism when category voting is inconclusive. Rescore the tied candidates against their bigram profiles, restricted to data positions containing distinguishing bytes.
+
+**Statistical dead heat**:
+A ranking state where multiple encodings score within noise of each other because the data's high-byte bigrams carry no weight in the top candidate's models — the order is an artifact of candidate enumeration, not evidence.
+
+**Dead-heat superset promotion**:
+Postprocess rank correction. On a **statistical dead heat** between an encoding and its Windows superset (Shift_JIS/CP932, EUC-KR/CP949), promote the superset — it is never a worse answer.
+
+**Era-prevalence prior**:
+Postprocess rank correction. On a **statistical dead heat**, promote the candidate from the most prevalent **encoding era** (modern web first, mainframe last). Fires only when the top result has no high-byte evidence at all.
+
+**Classic-Mac line-ending promotion**:
+Postprocess rank correction. Data whose line endings are bare carriage returns is near-certainly classic-Mac text; a LEGACY_MAC candidate scoring close to a non-Mac winner is promoted. Platform evidence — deliberately ordered after the priors so it can override them.
 
 **Niche Latin demotion**:
 Postprocess rank correction. When a niche Latin encoding (e.g. ISO-8859-16) outranks a common one but the data contains none of the niche encoding's distinguishing bytes, demote it.
@@ -153,4 +165,5 @@ The mechanism in `scripts/verify_no_overlap.py` that excludes any training-data 
 - **"superset"** appears in three independent places: **markup superset promotion** (pipeline), **preferred-superset remapping** (output), **superset acceptance** (evaluation). They share the underlying **encoding superset relationship** but operate at different times on different units. Don't conflate.
 - **"binary"** is both an outcome (the `encoding=None` result) and a stage name (`pipeline/binary.py`). Disambiguate by saying "the **Binary detection stage**" vs. "a **binary** result".
 - **"model"** is overloaded: the **model file** holds many **BigramProfile**s, but casual prose sometimes uses "the model" for a single profile and sometimes for the whole file. Prefer **BigramProfile** for the unit, **model file** for the artifact.
+- **"BigramProfile"** collides with code: this glossary uses it for a trained (language, encoding) profile in the **model file**, but the `BigramProfile` *class* in `models/__init__.py` is the weighted bigram distribution computed from the *input data* at detection time. The trained side is a raw lookup table, not an instance of that class. When precision matters, say "trained model table" vs. "input profile".
 - **"language"** refers to (1) the field on **DetectionResult**, (2) the **language detection** stage that fills it, and (3) the language part of a **BigramProfile** key. Usually clear from context.
