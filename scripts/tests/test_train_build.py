@@ -10,7 +10,7 @@ from train import _build_one_model, _worker_text_cache
 
 
 def test_build_one_model_returns_tuple(tmp_path: Path) -> None:
-    """_build_one_model returns a 4-tuple even with no cached texts."""
+    """_build_one_model returns a 5-tuple even with no cached texts."""
     _worker_text_cache.clear()
     result = _build_one_model(
         lang="xx",  # non-existent language
@@ -20,9 +20,10 @@ def test_build_one_model_returns_tuple(tmp_path: Path) -> None:
         max_samples=10,
     )
     assert isinstance(result, tuple)
-    assert len(result) == 4
-    key, bigrams, _samples, _total_bytes = result
+    assert len(result) == 5
+    key, bigrams, _samples, _total_bytes, retention = result
     assert key == "xx/utf-8"
+    assert retention is None
     # No cached texts for "xx", so bigrams should be None
     assert bigrams is None
 
@@ -48,12 +49,14 @@ def test_build_one_model_with_real_texts(tmp_path: Path) -> None:
         cache_dir=tmp_path,
         max_samples=100,
     )
-    key, bigrams, samples, total_bytes = result
+    key, bigrams, samples, total_bytes, retention = result
     assert key == "fr/iso-8859-1"
     assert bigrams is not None
     assert len(bigrams) > 0
     assert samples > 0
     assert total_bytes > 0
+    # All characters in the sample are iso-8859-1-encodable
+    assert retention == 1.0
 
 
 def test_load_cached_articles_does_not_filter(tmp_path: Path) -> None:

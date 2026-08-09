@@ -44,11 +44,13 @@ def _get_codec(encoding_name: str) -> str | None:
 
 
 def build_exclusion_set(test_data_dir: Path) -> frozenset[str]:
-    """Scan test data for CulturaX files and return content fingerprints.
+    """Scan test data and return content fingerprints of every test file.
 
-    Iterates directories matching ``{encoding}-{language}``, finds files
-    matching ``culturax_*``, decodes them using the encoding from the
-    directory name, and returns SHA-256 fingerprints of the decoded text.
+    Iterates directories matching ``{encoding}-{language}``, decodes each
+    file using the encoding from the directory name, and returns SHA-256
+    fingerprints of the decoded text.  All files are fingerprinted — not
+    just ``culturax_*`` — so any training source (web corpora, artpacks)
+    is protected from test overlap.
     """
     fingerprints: set[str] = set()
 
@@ -73,8 +75,6 @@ def build_exclusion_set(test_data_dir: Path) -> frozenset[str]:
 
         for filepath in sorted(encoding_dir.iterdir()):
             if not filepath.is_file():
-                continue
-            if not filepath.name.startswith("culturax_"):
                 continue
 
             try:

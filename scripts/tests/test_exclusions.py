@@ -49,13 +49,14 @@ def test_build_exclusion_set_empty_dir(tmp_path: Path) -> None:
     assert result == frozenset()
 
 
-def test_build_exclusion_set_ignores_non_culturax(tmp_path: Path) -> None:
-    """Files not matching culturax_* pattern are ignored."""
+def test_build_exclusion_set_fingerprints_all_files(tmp_path: Path) -> None:
+    """Every test file is fingerprinted, not just culturax_* (ADR-0004)."""
     enc_dir = tmp_path / "utf-8-en"
     enc_dir.mkdir()
-    (enc_dir / "some_other_file.txt").write_text("Hello world", encoding="utf-8")
+    text = "Hello world, this is a wild test article with enough content."
+    (enc_dir / "artpack_some_file.txt").write_text(text, encoding="utf-8")
     result = build_exclusion_set(tmp_path)
-    assert result == frozenset()
+    assert fingerprint_text(text) in result
 
 
 def test_build_exclusion_set_decodes_and_fingerprints(tmp_path: Path) -> None:

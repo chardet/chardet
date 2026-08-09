@@ -426,6 +426,15 @@ def run_pipeline(  # noqa: PLR0913
         full_ranking=full_ranking,
     )
     results = fill_languages(data, results)
+    # The ANSI-art model is keyed under the "zxx" pseudo-language (ISO 639
+    # for "no linguistic content").  Kept internal so language fill does not
+    # overwrite it; callers see language=None.
+    results = [
+        DetectionResult(r.encoding, r.confidence, None, r.mime_type)
+        if r.language == "zxx"
+        else r
+        for r in results
+    ]
     results = [_with_default_mime(r) for r in results]
     if not results:  # pragma: no cover
         msg = "pipeline must always return at least one result"

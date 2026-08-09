@@ -78,6 +78,15 @@ ENCODING_LANG_MAP: dict[str, list[str]] = {
 _ALL_LANGS = sorted({lang for enc in REGISTRY.values() for lang in enc.languages})
 ENCODING_LANG_MAP["utf-8"] = _ALL_LANGS
 
+# Train-time pseudo-language for the ANSI-art model (ISO 639 "zxx" = no
+# linguistic content).  Prose models carry no signal for box-drawing and
+# shading bytes, so art files land on arbitrary winners; a model trained on
+# real artpacks (fetched by scripts/fetch_artpacks.py) makes art ordinary
+# statistical detection.  Deliberately NOT in the registry — the pipeline
+# maps zxx back to language=None at the API boundary.
+_ART_PSEUDO_LANG = "zxx"
+ENCODING_LANG_MAP["cp437"] = [*ENCODING_LANG_MAP["cp437"], _ART_PSEUDO_LANG]
+
 
 def encode_text(text: str, codec_name: str) -> bytes | None:
     """Encode text into the target encoding.
@@ -474,9 +483,10 @@ def _build_one_model(
     # Load texts from disk cache only (never download in workers).
     # The download phase in main() must complete before workers start.
     if lang not in _worker_text_cache:
-        # Load from all source caches (culturax, madlad400, wikipedia)
+        # Load from all source caches.  The artpacks source only ever holds
+        # the zxx pseudo-language (populated by scripts/fetch_artpacks.py).
         texts: list[str] = []
-        for source in ("culturax", "madlad400", "wikipedia"):
+        for source in ("culturax", "madlad400", "wikipedia", "artpacks"):
             source_dir = cache_dir / source / lang
             texts.extend(load_cached_articles(source_dir, max_samples - len(texts)))
             if len(texts) >= max_samples:
@@ -487,9 +497,11 @@ def _build_one_model(
     if not texts:
         return (model_key, None, 0, 0, None)
 
-    # Add HTML-wrapped samples
-    html_samples = add_html_samples(texts, charset=enc_name)
-    all_texts = list(texts) + html_samples
+    # Add HTML-wrapped samples (not for art — artpacks are not web pages)
+    if lang == _ART_PSEUDO_LANG:
+        all_texts = list(texts)
+    else:
+        all_texts = list(texts) + add_html_samples(texts, charset=enc_name)
 
     # Prepare substitutions for this encoding
     subs = get_substitutions(enc_name, [lang])
@@ -645,11 +657,23 @@ def main() -> None:
     else:
         encoding_map = ENCODING_LANG_MAP
 
-    # Collect all unique languages needed
+    # Collect all unique languages needed.  The art pseudo-language is not
+    # downloadable from HuggingFace — scripts/fetch_artpacks.py populates
+    # its cache — so it is excluded from the download phase.
     all_langs: set[str] = set()
     for langs in encoding_map.values():
         all_langs.update(langs)
+    all_langs.discard(_ART_PSEUDO_LANG)
     sorted_langs = sorted(all_langs)
+    art_cache = cache_dir / "artpacks" / _ART_PSEUDO_LANG
+    if (
+        _ART_PSEUDO_LANG in {lang for langs in encoding_map.values() for lang in langs}
+        and not art_cache.is_dir()
+    ):
+        print(
+            f"WARNING: no artpack cache at {art_cache} — run "
+            "scripts/fetch_artpacks.py first to train the art model"
+        )
 
     # Build exclusion set from test data
     exclusions: frozenset[str] = frozenset()
