@@ -36,6 +36,30 @@ Changelog
 
 **Improvements:**
 
+- All bigram models retrained on a refreshed corpus (25,000 CulturaX
+  articles per language) with the training pipeline hardened per
+  ADR-0004: whitespace collapses after encoding instead of before, a
+  retention guard hard-fails any (language, encoding) pair whose corpus
+  mostly fails to encode, Serbian gets genuine Latin-script text by
+  Gaj transliteration (``sr/cp1250`` went from 119 whitespace-residue
+  bigrams to 941 real ones), and CP1006 gains the sixteen Urdu letters
+  its substitution table was missing.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+- New ANSI-art model.  Prose models carry no signal for box-drawing
+  and shading bytes, so artpack files landed on arbitrary winners.
+  cp437 detection now includes a bigram profile trained on 16,621
+  text-mode art files from the `16colo.rs <https://16colo.rs/>`_
+  archive, keyed under the ISO 639 ``zxx`` pseudo-language (no
+  linguistic content) and reported with ``language=None``.  The test
+  suite's wild artpacks were excluded from training by content
+  fingerprint.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+- Confusion resolution between EBCDIC siblings now requires at least
+  three occurrences of a pair's distinguishing bytes before it may
+  overturn the statistical ranking — a single ambiguous byte (one
+  ``|`` read as "``!`` is likelier") is not enough evidence to demote
+  a winner.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 - Statistical dead heats no longer resolve by candidate enumeration
   order.  The English models of cp437, cp850, Windows-1252, and MacRoman
   score identically on ASCII-dominated data, so files with almost no
