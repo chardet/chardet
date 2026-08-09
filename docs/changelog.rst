@@ -54,6 +54,16 @@ Changelog
   suite's wild artpacks were excluded from training by content
   fingerprint.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+- Wiki-markup artifacts are now stripped from training text.  The
+  major-language corpora are clean, but low-resource CulturaX slices
+  are heavily wiki-derived: the Breton cache alone carried ~3,000
+  ``]]``, enough to cross the model weight-preservation threshold and
+  plant phantom ``]]`` bigrams on EBCDIC distinguishing bytes, flipping
+  cp500/cp1140 resolution on unrelated files.  Doubled link brackets,
+  template braces, table pipes, and bold/italic quote runs collapse to
+  single characters before bigram counting — markup is not natural
+  language in any language.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 - Confusion-group resolution is now context-aware.  Category voting
   votes per occurrence and demotes letter readings that have no word
   shape (a "letter" quoted between apostrophes, or a lowercase letter

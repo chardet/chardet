@@ -435,6 +435,9 @@ def get_substitutions(charset_name: str, langs: list[str]) -> dict[str, str]:
 
 def normalize_text(text: str, charset_name: str) -> str:
     """Clean and normalize text for encoding into a legacy charset."""
+    # Collapse wiki-markup artifacts to their single-character forms
+    for pattern, repl in _WIKI_MARKUP_SUBS:
+        text = pattern.sub(repl, text)
     # Collapse repeated whitespace
     text = re.sub(r"(\s)\1+", r"\1", text)
     # Vietnamese decomposition for Windows-1258
@@ -453,6 +456,23 @@ def apply_substitutions(text: str, subs: dict[str, str]) -> str:
 
 
 _WHITESPACE_RUN_RE = re.compile(r"(\s)\1+")
+
+# Wiki-markup artifacts that leak into web corpora.  Major-language CulturaX
+# slices are clean, but low-resource slices are heavily wiki-derived: the
+# Breton cache carries ~3,000 ``]]`` at 25k articles, which crosses the
+# high-byte weight-preservation threshold and plants ``]]`` bigrams on
+# EBCDIC distinguishing bytes (0xBB in cp1140) — enough to flip sibling
+# resolution.  Markup is not natural language in any language, so doubled
+# link brackets, template braces, table pipes, and bold/italic quote runs
+# collapse to their single forms before bigram counting.
+_WIKI_MARKUP_SUBS: tuple[tuple[re.Pattern[str], str], ...] = (
+    (re.compile(r"\[\[+"), "["),
+    (re.compile(r"\]\]+"), "]"),
+    (re.compile(r"\{\{+"), "{"),
+    (re.compile(r"\}\}+"), "}"),
+    (re.compile(r"\|\|+"), "|"),
+    (re.compile(r"''+"), "'"),
+)
 
 
 def collapse_whitespace_runs(text: str) -> str:
