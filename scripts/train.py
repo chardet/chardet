@@ -58,7 +58,6 @@ from substitutions import (
     transliterate_serbian_to_latin,
 )
 
-from chardet.enums import EncodingEra
 from chardet.registry import REGISTRY
 
 print = functools.partial(print, flush=True)  # noqa: A001
@@ -513,12 +512,11 @@ def _build_one_model(
 
     # Serbian is digraphic: for Latin-script targets, transliterate the
     # (predominantly Cyrillic) corpus to Gaj's Latin alphabet (ADR-0004).
+    # Note: uppercase augmentation for MAINFRAME models was tried here and
+    # removed — doubling every sample with an uppercased copy flattened the
+    # separation between EBCDIC sibling models on ordinary prose without
+    # rescuing the all-caps fixed-width records it targeted.
     transliterate = lang == "sr" and _is_latin_target(codec)
-
-    # Mainframe data is frequently all-uppercase (fixed-width records), so
-    # MAINFRAME-era models train on an uppercased copy of every sample too.
-    era = REGISTRY[enc_name].era if enc_name in REGISTRY else EncodingEra(0)
-    augment_case = bool(era & EncodingEra.MAINFRAME)
 
     enc_cache = _worker_encodable_cache.setdefault(codec, {})
 
@@ -531,14 +529,12 @@ def _build_one_model(
             text = transliterate_serbian_to_latin(text)
         text = normalize_text(text, enc_name)
         text = apply_substitutions(text, subs)
-        variants = (text, text.upper()) if augment_case else (text,)
-        for variant in variants:
-            filtered, kept, total = _filter_encodable(variant, codec, enc_cache)
-            kept_alpha += kept
-            total_alpha += total
-            result = encode_text(collapse_whitespace_runs(filtered), codec)
-            if result is not None:
-                encoded.append(result)
+        filtered, kept, total = _filter_encodable(text, codec, enc_cache)
+        kept_alpha += kept
+        total_alpha += total
+        result = encode_text(collapse_whitespace_runs(filtered), codec)
+        if result is not None:
+            encoded.append(result)
 
     retention = kept_alpha / total_alpha if total_alpha else None
 
