@@ -50,8 +50,15 @@ from data_sources import (
 )
 from data_sources import get_texts as get_texts_multi
 from exclusions import build_exclusion_set
-from substitutions import apply_substitutions, get_substitutions, normalize_text
+from substitutions import (
+    apply_substitutions,
+    collapse_whitespace_runs,
+    get_substitutions,
+    normalize_text,
+    transliterate_serbian_to_latin,
+)
 
+from chardet.enums import EncodingEra
 from chardet.registry import REGISTRY
 
 print = functools.partial(print, flush=True)  # noqa: A001
@@ -395,6 +402,53 @@ def _write_training_metadata(
 # worker gets its own copy of this dict.
 _worker_text_cache: dict[str, list[str]] = {}
 
+# Per-worker cache of which characters each codec can encode, keyed by codec
+# name.  Corpus alphabets are small, so each character is probed once.
+_worker_encodable_cache: dict[str, dict[str, bool]] = {}
+
+
+def _filter_encodable(
+    text: str, codec: str, cache: dict[str, bool]
+) -> tuple[str, int, int]:
+    """Drop characters *codec* cannot encode and count alphabetic retention.
+
+    Dropping happens explicitly in text space (rather than via
+    ``errors="ignore"`` at encode time) so whitespace collapsing can run
+    *after* the drop — otherwise removed characters leave freshly adjacent
+    whitespace behind as fake bigram signal (see ADR-0004).
+
+    Returns ``(filtered_text, kept_alpha, total_alpha)``.
+    """
+    counts = collections.Counter(text)
+    kept = 0
+    total = 0
+    drop: list[str] = []
+    for ch, n in counts.items():
+        ok = cache.get(ch)
+        if ok is None:
+            try:
+                ok = ch.encode(codec, errors="ignore") != b""
+            except UnicodeEncodeError:
+                ok = False
+            cache[ch] = ok
+        if ch.isalpha():
+            total += n
+            if ok:
+                kept += n
+        if not ok:
+            drop.append(ch)
+    if drop:
+        text = text.translate({ord(c): None for c in drop})
+    return text, kept, total
+
+
+def _is_latin_target(codec: str) -> bool:
+    """Return True if *codec* cannot represent Cyrillic text."""
+    try:
+        return "абвгд".encode(codec, errors="ignore") == b""
+    except UnicodeEncodeError:
+        return True
+
 
 def _build_one_model(
     lang: str,
@@ -402,12 +456,17 @@ def _build_one_model(
     codec: str,
     cache_dir: Path,
     max_samples: int,
-) -> tuple[str, dict[tuple[int, int], int] | None, int, int]:
+) -> tuple[str, dict[tuple[int, int], int] | None, int, int, float | None]:
     """Build a single bigram model in a (possibly forked) worker process.
 
     Returns
     -------
-    tuple of (model_key, bigrams_or_None, sample_count, total_encoded_bytes)
+    tuple of (model_key, bigrams_or_None, sample_count, total_encoded_bytes,
+    alpha_retention_or_None)
+
+    ``alpha_retention`` is the fraction of alphabetic characters across all
+    samples that survived encoding into the target, or ``None`` when the
+    corpus contained no alphabetic characters.
 
     """
     model_key = f"{lang}/{enc_name}"
@@ -426,7 +485,7 @@ def _build_one_model(
     texts = _worker_text_cache[lang]
 
     if not texts:
-        return (model_key, None, 0, 0)
+        return (model_key, None, 0, 0, None)
 
     # Add HTML-wrapped samples
     html_samples = add_html_samples(texts, charset=enc_name)
@@ -435,26 +494,48 @@ def _build_one_model(
     # Prepare substitutions for this encoding
     subs = get_substitutions(enc_name, [lang])
 
-    # Normalize, substitute, and encode all texts
+    # Serbian is digraphic: for Latin-script targets, transliterate the
+    # (predominantly Cyrillic) corpus to Gaj's Latin alphabet (ADR-0004).
+    transliterate = lang == "sr" and _is_latin_target(codec)
+
+    # Mainframe data is frequently all-uppercase (fixed-width records), so
+    # MAINFRAME-era models train on an uppercased copy of every sample too.
+    era = REGISTRY[enc_name].era if enc_name in REGISTRY else EncodingEra(0)
+    augment_case = bool(era & EncodingEra.MAINFRAME)
+
+    enc_cache = _worker_encodable_cache.setdefault(codec, {})
+
+    # Normalize, substitute, filter, and encode all texts
     encoded: list[bytes] = []
+    kept_alpha = 0
+    total_alpha = 0
     for text in all_texts:
+        if transliterate:
+            text = transliterate_serbian_to_latin(text)
         text = normalize_text(text, enc_name)
         text = apply_substitutions(text, subs)
-        result = encode_text(text, codec)
-        if result is not None:
-            encoded.append(result)
+        variants = (text, text.upper()) if augment_case else (text,)
+        for variant in variants:
+            filtered, kept, total = _filter_encodable(variant, codec, enc_cache)
+            kept_alpha += kept
+            total_alpha += total
+            result = encode_text(collapse_whitespace_runs(filtered), codec)
+            if result is not None:
+                encoded.append(result)
+
+    retention = kept_alpha / total_alpha if total_alpha else None
 
     if not encoded:
-        return (model_key, None, len(all_texts), 0)
+        return (model_key, None, len(all_texts), 0, retention)
 
     # Compute raw bigram frequencies (normalization happens later in main)
     freqs = compute_bigram_frequencies(encoded)
 
     if not freqs:
-        return (model_key, None, len(encoded), sum(len(e) for e in encoded))
+        return (model_key, None, len(encoded), sum(len(e) for e in encoded), retention)
 
     total_bytes = sum(len(e) for e in encoded)
-    return (model_key, freqs, len(encoded), total_bytes)
+    return (model_key, freqs, len(encoded), total_bytes, retention)
 
 
 # ---------------------------------------------------------------------------
@@ -528,6 +609,14 @@ def main() -> None:
         default=False,
         help="Skip download and model building; load raw bigram counts from "
         "cache and re-run normalization and serialization only",
+    )
+    parser.add_argument(
+        "--min-alpha-retention",
+        type=float,
+        default=0.7,
+        help="Abort if any (language, encoding) pair keeps less than this "
+        "fraction of its corpus's alphabetic characters after encoding "
+        "(see ADR-0004)",
     )
     args = parser.parse_args()
     cache_dir = Path(args.cache_dir)
@@ -676,18 +765,33 @@ def main() -> None:
                 (lang, enc_name, codec, cache_dir, args.max_samples) for lang in langs
             )
 
+        retention_by_key: dict[str, float] = {}
+
+        def record_result(
+            key: str,
+            freqs: dict[tuple[int, int], int] | None,
+            samples: int,
+            total_bytes: int,
+            retention: float | None,
+        ) -> None:
+            if retention is not None:
+                retention_by_key[key] = retention
+            r_str = (
+                f", {retention:.1%} alpha retention" if retention is not None else ""
+            )
+            if freqs:
+                raw_models[key] = freqs
+                print(
+                    f"  {key}: {len(freqs)} raw bigrams from "
+                    f"{samples} samples ({total_bytes:,} bytes{r_str})"
+                )
+            else:
+                print(f"  SKIP {key}: no usable bigrams{r_str}")
+
         if args.build_workers == 1:
             # Sequential mode (useful for debugging)
             for item in work_items:
-                key, freqs, samples, total_bytes = _build_one_model(*item)
-                if freqs:
-                    raw_models[key] = freqs
-                    print(
-                        f"  {key}: {len(freqs)} raw bigrams from "
-                        f"{samples} samples ({total_bytes:,} bytes)"
-                    )
-                else:
-                    print(f"  SKIP {key}: no usable bigrams")
+                record_result(*_build_one_model(*item))
         else:
             # Parallel mode
             with concurrent.futures.ProcessPoolExecutor(
@@ -698,19 +802,38 @@ def main() -> None:
                 }
                 for future in concurrent.futures.as_completed(futures):
                     try:
-                        key, freqs, samples, total_bytes = future.result()
+                        result = future.result()
                     except Exception as exc:
                         enc = futures[future]
                         print(f"  ERROR {enc}: {exc}")
                         continue
-                    if freqs:
-                        raw_models[key] = freqs
-                        print(
-                            f"  {key}: {len(freqs)} raw bigrams from "
-                            f"{samples} samples ({total_bytes:,} bytes)"
-                        )
-                    else:
-                        print(f"  SKIP {key}: no usable bigrams")
+                    record_result(*result)
+
+        # Retention guard (ADR-0004): a registry-declared (language, encoding)
+        # pair whose corpus mostly fails to encode is a config or
+        # preprocessing bug — abort before anything is cached or shipped.
+        low_retention = {
+            key: r
+            for key, r in sorted(retention_by_key.items())
+            if r < args.min_alpha_retention
+        }
+        if low_retention:
+            print()
+            print(
+                f"ERROR: alphabetic retention below "
+                f"{args.min_alpha_retention:.0%} for "
+                f"{len(low_retention)} model(s):"
+            )
+            for key, r in low_retention.items():
+                print(f"  {key}: {r:.1%}")
+            print(
+                "A registry-declared (language, encoding) pair must be able "
+                "to represent its corpus; fix the registry languages or the "
+                "preprocessing (substitutions/transliteration). See ADR-0004."
+            )
+            # os._exit, not SystemExit: the atexit cleanup handler exits 0
+            # unconditionally, which would swallow the failure code.
+            os._exit(1)
 
         # Cache raw counts for future --from-raw-cache runs
         print(f"\n  Caching raw bigram counts to {raw_cache_path}")

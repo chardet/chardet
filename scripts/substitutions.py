@@ -124,6 +124,38 @@ _ARABIC_PRESENTATION_FORM_SUBSTITUTIONS: dict[str, str] = {
     "\u064a": "\ufef1",  # YEH
 }
 
+# Urdu letters → presentation forms present in CP1006.  The shared table
+# above only covers standard Arabic letters, but CP1006 is an Urdu code
+# page: without these, the highest-frequency Urdu letters (peh, tcheh,
+# keheh, gaf, heh goal, farsi yeh, yeh barree, noon ghunna) silently drop
+# during encoding, shredding words into isolated survivors and training a
+# space-adjacency model instead of an Urdu one.  Mappings target the exact
+# forms Python's cp1006 codec encodes; where CP1006 has no hamza variant
+# the base letter stands in.  CP1006-only — CP864 is an Arabic page and
+# never sees these letters in its training languages.
+_CP1006_URDU_SUBSTITUTIONS: dict[str, str] = {
+    "\u0679": "\ufb66",  # TTEH → TTEH ISOLATED FORM (0xBA)
+    "\u067e": "\ufb56",  # PEH → PEH ISOLATED FORM (0xB5)
+    "\u0686": "\ufb7a",  # TCHEH → TCHEH ISOLATED FORM (0xC0)
+    "\u0688": "\ufb84",  # DDAL → DAHAL ISOLATED FORM (0xC7, cp1006's ddal slot)
+    "\u0691": "\ufb8c",  # RREH → RREH ISOLATED FORM (0xCA)
+    "\u0698": "\ufb8a",  # JEH → JEH ISOLATED FORM (0xCC)
+    "\u06a9": "\ufed9",  # KEHEH → KAF ISOLATED FORM (0xE3)
+    "\u06af": "\ufb92",  # GAF → GAF ISOLATED FORM (0xE5)
+    "\u06ba": "\ufb9e",  # NOON GHUNNA → NOON GHUNNA ISOLATED FORM (0xEC)
+    "\u06be": "\ufbaa",  # HEH DOACHASHMEE → its ISOLATED FORM (0xF4)
+    "\u06c1": "\ufba6",  # HEH GOAL → HEH GOAL ISOLATED FORM (0xF1)
+    "\u06c2": "\ufba6",  # HEH GOAL WITH HAMZA ABOVE → HEH GOAL ISOLATED FORM
+    "\u06c3": "\ufe93",  # TEH MARBUTA GOAL → TEH MARBUTA ISOLATED FORM (0xB7)
+    "\u06cc": "\ufef1",  # FARSI YEH → YEH ISOLATED FORM (0xF9)
+    "\u06d2": "\ufbae",  # YEH BARREE → YEH BARREE ISOLATED FORM (0xFD)
+    "\u06d3": "\ufbb0",  # YEH BARREE WITH HAMZA → its ISOLATED FORM (0xFC)
+    "\u0623": "\ufe8d",  # ALEF WITH HAMZA ABOVE → ALEF (cp1006 has no FE83)
+    "\u0625": "\ufe8d",  # ALEF WITH HAMZA BELOW → ALEF (cp1006 has no FE87)
+    "\u0651": "\ufe7c",  # SHADDA → SHADDA ISOLATED FORM (0xFE)
+    "\u06d4": ".",  # ARABIC FULL STOP (absent from cp1006)
+}
+
 # ---------------------------------------------------------------------------
 # Cyrillic substitutions
 # ---------------------------------------------------------------------------
@@ -375,6 +407,10 @@ def get_substitutions(charset_name: str, langs: list[str]) -> dict[str, str]:
     # forms instead of standard Arabic letters
     if upper in ("CP1006", "CP864"):
         subs.update(_ARABIC_PRESENTATION_FORM_SUBSTITUTIONS)
+    # Urdu letters and CP1006 repertoire quirks, applied after the shared
+    # Arabic table so its hamza-alef entries win for this code page.
+    if upper == "CP1006":
+        subs.update(_CP1006_URDU_SUBSTITUTIONS)
     if upper == "CP866":
         subs.update(_CP866_SUBSTITUTIONS)
     # Romanian comma-below → cedilla for all encodings except ISO-8859-16
@@ -414,3 +450,109 @@ def apply_substitutions(text: str, subs: dict[str, str]) -> str:
         if old in text:
             text = text.replace(old, new)
     return text
+
+
+_WHITESPACE_RUN_RE = re.compile(r"(\s)\1+")
+
+
+def collapse_whitespace_runs(text: str) -> str:
+    """Collapse runs of the same whitespace character to a single one.
+
+    Applied *after* unencodable characters are removed, so dropped
+    characters can never leave freshly adjacent whitespace behind as fake
+    bigram signal (see ADR-0004).
+    """
+    return _WHITESPACE_RUN_RE.sub(r"\1", text)
+
+
+# ---------------------------------------------------------------------------
+# Serbian transliteration
+# ---------------------------------------------------------------------------
+
+# Serbian Cyrillic → Gaj's Latin alphabet.  Serbian is digraphic: the same
+# language is written in both scripts, and the mapping between them is
+# deterministic.  The CulturaX Serbian corpus is predominantly Cyrillic,
+# which cannot encode into Latin code pages like cp1250 — transliterating
+# gives those models genuine Serbian-Latin text at full sample count
+# (see ADR-0004).  The three digraph letters (љ њ џ) are handled in
+# transliterate_serbian_to_latin so their casing can follow context.
+_SERBIAN_CYRILLIC_TO_GAJ: dict[str, str] = {
+    "\u0430": "a",  # а → a
+    "\u0431": "b",  # б → b
+    "\u0432": "v",  # в → v
+    "\u0433": "g",  # г → g
+    "\u0434": "d",  # д → d
+    "\u0452": "đ",  # ђ → đ
+    "\u0435": "e",  # е → e
+    "\u0436": "ž",  # ж → ž
+    "\u0437": "z",  # з → z
+    "\u0438": "i",  # и → i
+    "\u0458": "j",  # ј → j
+    "\u043a": "k",  # к → k
+    "\u043b": "l",  # л → l
+    "\u043c": "m",  # м → m
+    "\u043d": "n",  # н → n
+    "\u043e": "o",  # о → o
+    "\u043f": "p",  # п → p
+    "\u0440": "r",  # р → r
+    "\u0441": "s",  # с → s
+    "\u0442": "t",  # т → t
+    "\u045b": "ć",  # ћ → ć
+    "\u0443": "u",  # у → u
+    "\u0444": "f",  # ф → f
+    "\u0445": "h",  # х → h
+    "\u0446": "c",  # ц → c
+    "\u0447": "č",  # ч → č
+    "\u0448": "š",  # ш → š
+    "\u0410": "A",  # А → A
+    "\u0411": "B",  # Б → B
+    "\u0412": "V",  # В → V
+    "\u0413": "G",  # Г → G
+    "\u0414": "D",  # Д → D
+    "\u0402": "Đ",  # Ђ → Đ
+    "\u0415": "E",  # Е → E
+    "\u0416": "Ž",  # Ж → Ž
+    "\u0417": "Z",  # З → Z
+    "\u0418": "I",  # И → I
+    "\u0408": "J",  # Ј → J
+    "\u041a": "K",  # К → K
+    "\u041b": "L",  # Л → L
+    "\u041c": "M",  # М → M
+    "\u041d": "N",  # Н → N
+    "\u041e": "O",  # О → O
+    "\u041f": "P",  # П → P
+    "\u0420": "R",  # Р → R
+    "\u0421": "S",  # С → S
+    "\u0422": "T",  # Т → T
+    "\u040b": "Ć",  # Ћ → Ć
+    "\u0423": "U",  # У → U
+    "\u0424": "F",  # Ф → F
+    "\u0425": "H",  # Х → H
+    "\u0426": "C",  # Ц → C
+    "\u0427": "Č",  # Ч → Č
+    "\u0428": "Š",  # Ш → Š
+    "\u0459": "lj",  # љ → lj
+    "\u045a": "nj",  # њ → nj
+    "\u045f": "dž",  # џ → dž
+}
+
+# Uppercase digraphs pick their second letter's case from the following
+# character: ЉУБАВ → LJUBAV, but Љубав → Ljubav.
+_SERBIAN_UPPER_DIGRAPHS: dict[str, tuple[str, str]] = {
+    "\u0409": ("LJ", "Lj"),  # Љ → LJ/Lj
+    "\u040a": ("NJ", "Nj"),  # Њ → NJ/Nj
+    "\u040f": ("DŽ", "Dž"),  # Џ → DŽ/Dž
+}
+
+
+def transliterate_serbian_to_latin(text: str) -> str:
+    """Transliterate Serbian Cyrillic text to Gaj's Latin alphabet."""
+    out: list[str] = []
+    for i, ch in enumerate(text):
+        digraph = _SERBIAN_UPPER_DIGRAPHS.get(ch)
+        if digraph is not None:
+            nxt = text[i + 1] if i + 1 < len(text) else ""
+            out.append(digraph[0] if nxt.isupper() else digraph[1])
+        else:
+            out.append(_SERBIAN_CYRILLIC_TO_GAJ.get(ch, ch))
+    return "".join(out)
