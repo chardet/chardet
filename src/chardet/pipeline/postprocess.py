@@ -23,7 +23,10 @@ annotations.
 from chardet._utils import decodes_without_error
 from chardet.models import get_enc_index
 from chardet.pipeline import DetectionResult
-from chardet.pipeline.confusion import resolve_confusion_groups
+from chardet.pipeline.confusion import (
+    confusion_pair_winner,
+    resolve_confusion_groups,
+)
 from chardet.registry import REGISTRY
 
 # Common Western Latin encodings that share the iso-8859-1 character
@@ -499,12 +502,21 @@ def _promote_mac_on_cr_line_endings(
     Classic Mac OS is the only platform that terminated lines with a lone
     carriage return, so data with several ``\r`` bytes and no ``\n`` is
     near-certainly Mac-era text.  When a LEGACY_MAC candidate scores within
-    :data:`_CR_MAC_BAND` of a non-Mac top result, promote it.
+    :data:`_CR_MAC_BAND` of a non-Mac top result, promote it — unless the
+    pair has a distinguishing-byte map and the byte-level evidence says the
+    current top wins: a platform prior must not overturn direct evidence
+    that confusion resolution may have just used to establish the top.
     """
     top = results[0] if results else None
     if top is None or top.encoding is None or len(results) < 2:
         return results
     if _era_rank(top.encoding) == _LEGACY_MAC_ERA:
+        return results
+    # An art-model win is not up for prose-based review: the pairwise
+    # veto below reasons about word shapes and prose bigrams, which
+    # box-drawing data is not, and old ANSI art legitimately carries
+    # bare-CR line endings.
+    if top.language == "zxx":
         return results
     if data.find(b"\n") >= 0 or data.count(b"\r") < _CR_MAC_MIN_LINES:
         return results
@@ -513,6 +525,12 @@ def _promote_mac_on_cr_line_endings(
         if top.confidence - r.confidence > _CR_MAC_BAND:
             break
         if r.encoding is not None and _era_rank(r.encoding) == _LEGACY_MAC_ERA:
+            if confusion_pair_winner(data, top.encoding, r.encoding) == top.encoding:
+                # Byte-level evidence says the top beats the best-ranked
+                # Mac candidate: stop entirely rather than letting a
+                # lower-ranked sibling take the promotion just because it
+                # has no distinguishing-byte map to be checked against.
+                break
             promoted = DetectionResult(
                 r.encoding, top.confidence, r.language, r.mime_type
             )

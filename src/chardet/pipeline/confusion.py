@@ -185,8 +185,17 @@ _IMPLAUSIBLE_LETTER_PREFERENCE = 2
 # Vote margin at which category voting overrides the bigram rescore.  Two
 # context-decisive occurrences (letter-vs-punctuation with the word-shape
 # rule fired: 2 x (6 - 2)) clear it; a lone punctuation-vs-punctuation
-# reading (margin 1) never does.
+# reading (margin 1) never does.  Raising this threshold is not safe: the
+# EBCDIC record suite depends on a decisive margin of 12 (three
+# occurrences) to hold off the rescore's max-over-variants bias.
 _DECISIVE_VOTE_MARGIN = 8
+
+# Minimum number of distinct demotion-earning occurrences for a vote to be
+# decisive.  A single occurrence can reach margin 8 on its own (a
+# plausible-letter reading at preference 10 against an implausible-letter
+# reading demoted to 2), and one byte of context must never outrank the
+# rescore's model evidence.
+_DECISIVE_MIN_EVENTS = 2
 
 # Cap on distinguishing-byte occurrences examined per pair.  Sparse by
 # nature; the cap only bounds pathological inputs.
@@ -199,13 +208,24 @@ def _letter_case_table(encoding: str) -> bytes:
 
     Combining marks count as letters: in decomposed text (Vietnamese under
     windows-1258) a base letter's neighbor is its diacritic, which is
-    word-internal, not a word boundary.
+    word-internal, not a word boundary.  Whitespace deliberately counts as
+    a plain non-letter: exempting space-adjacent letters from the
+    isolated-letter demotion (to spare one-letter words like French ``à``)
+    was tried and falsified by the accuracy suite — Irish/Finnish po files
+    and the EBCDIC record set depend on space-adjacent demotions, so the
+    cross-family decisive-override gate handles the ``à`` failure mode
+    instead.
     """
     table = bytearray(256)
     for b in range(256):
         try:
             ch = bytes([b]).decode(encoding)
         except UnicodeDecodeError:
+            continue
+        # Stateful codecs can decode a byte to zero characters (utf-7's
+        # ``+`` opens a base64 run and yields ``""``), and category()
+        # rejects anything but a single character.
+        if len(ch) != 1:
             continue
         cat = unicodedata.category(ch)
         if cat == "Lu":
@@ -242,8 +262,10 @@ def _vote_with_margin(
     enc_b: str,
     diff_bytes: frozenset[int],
     categories: dict[int, tuple[str, str]],
-) -> tuple[str | None, int, int]:
-    """Context-aware category voting; returns ``(winner, margin, demotion_margin)``.
+) -> tuple[str | None, int, int, int]:
+    """Context-aware category voting.
+
+    Returns ``(winner, margin, demotion_margin, demotion_events)``.
 
     For each occurrence of a distinguishing byte, compare the two
     encodings' readings: Unicode category preference, adjusted for word
@@ -254,7 +276,9 @@ def _vote_with_margin(
     ``demotion_margin`` counts only the winner's votes earned where the
     *losing* side's letter reading was word-shape-implausible — evidence
     against an impossible reading, which is far stronger than the naive
-    letters-beat-punctuation preference.
+    letters-beat-symbols preference.  ``demotion_events`` counts how many
+    distinct occurrences contributed to it, so callers can tell repeated
+    evidence from one loud byte.
     """
     # Delete every non-distinguishing byte value in one C-level translate
     # pass; what survives is exactly the distinguishing bytes present.
@@ -263,13 +287,15 @@ def _vote_with_margin(
     non_diff, _ = _pair_byte_tables(diff_bytes)
     relevant = frozenset(data.translate(None, non_diff))
     if not relevant:
-        return None, 0, 0
+        return None, 0, 0, 0
     table_a = _letter_case_table(enc_a)
     table_b = _letter_case_table(enc_b)
     votes_a = 0
     votes_b = 0
     demotion_a = 0
     demotion_b = 0
+    events_a = 0
+    events_b = 0
     end = len(data) - 1
     for bv in relevant:
         cat_a, cat_b = categories[bv]
@@ -281,21 +307,72 @@ def _vote_with_margin(
             right = data[pos + 1] if pos < end else 0
             pref_a = _context_preference(cat_a, left, right, table_a)
             pref_b = _context_preference(cat_b, left, right, table_b)
+            # A letter reading beating a *punctuation* reading on naive
+            # preference alone is not evidence: punctuation of every
+            # category legitimately borders letters (delimiters, hyphens,
+            # brackets, apostrophes), so the letter interpretation is
+            # never the only plausible one.  A letter beating a *symbol*
+            # reading still counts — box-drawing or dingbats inside a
+            # word is not a shape prose produces.
             if pref_a > pref_b:
-                votes_a += pref_a - pref_b
-                if cat_b[0] == "L" and pref_b == _IMPLAUSIBLE_LETTER_PREFERENCE:
-                    demotion_a += pref_a - pref_b
+                if cat_a[0] == "L" and cat_b[0] == "P":
+                    pass
+                else:
+                    votes_a += pref_a - pref_b
+                    if cat_b[0] == "L" and pref_b == _IMPLAUSIBLE_LETTER_PREFERENCE:
+                        demotion_a += pref_a - pref_b
+                        events_a += 1
             elif pref_b > pref_a:
-                votes_b += pref_b - pref_a
-                if cat_a[0] == "L" and pref_a == _IMPLAUSIBLE_LETTER_PREFERENCE:
-                    demotion_b += pref_b - pref_a
+                if cat_b[0] == "L" and cat_a[0] == "P":
+                    pass
+                else:
+                    votes_b += pref_b - pref_a
+                    if cat_a[0] == "L" and pref_a == _IMPLAUSIBLE_LETTER_PREFERENCE:
+                        demotion_b += pref_b - pref_a
+                        events_b += 1
             examined += 1
             pos = data.find(needle, pos + 1)
     if votes_a > votes_b:
-        return enc_a, votes_a - votes_b, demotion_a
+        return enc_a, votes_a - votes_b, demotion_a, events_a
     if votes_b > votes_a:
-        return enc_b, votes_b - votes_a, demotion_b
-    return None, 0, 0
+        return enc_b, votes_b - votes_a, demotion_b, events_b
+    return None, 0, 0, 0
+
+
+def confusion_pair_winner(data: bytes, enc_x: str, enc_y: str) -> str | None:
+    """Return the byte-evidence winner between two encodings, or ``None``.
+
+    Mirrors the in-band pairwise rule of :func:`resolve_confusion_groups`
+    (decisive demotion vote, else bigram rescore, else category vote) for
+    callers outside the ranked-results scan — e.g. the classic-Mac
+    line-ending promotion, whose platform prior must not override
+    distinguishing-byte evidence.  Returns ``None`` when the pair has no
+    distinguishing map or the evidence is inconclusive.
+    """
+    maps = load_confusion_data()
+    pair_key = _find_pair_key(maps, enc_x, enc_y)
+    if pair_key is None:
+        return None
+    diff_bytes, categories = maps[pair_key]
+    enc_a, enc_b = pair_key
+    cat_winner, _margin, demotion_margin, demotion_events = _vote_with_margin(
+        data, enc_a, enc_b, diff_bytes, categories
+    )
+    if (
+        cat_winner is not None
+        and demotion_margin >= _DECISIVE_VOTE_MARGIN
+        and demotion_events >= _DECISIVE_MIN_EVENTS
+        and len(diff_bytes) < _CROSS_FAMILY_MIN_DIFFS
+    ):
+        return cat_winner
+    bigram_winner = resolve_by_bigram_rescore(data, enc_a, enc_b, diff_bytes)
+    if len(diff_bytes) >= _CROSS_FAMILY_MIN_DIFFS:
+        # Cross-family pairs: corroboration required (see the strict rule
+        # in resolve_confusion_groups).
+        if bigram_winner is not None and bigram_winner == cat_winner:
+            return bigram_winner
+        return None
+    return bigram_winner if bigram_winner is not None else cat_winner
 
 
 def resolve_by_category_voting(
@@ -309,7 +386,7 @@ def resolve_by_category_voting(
 
     :returns: The winning encoding name, or ``None`` if tied.
     """
-    winner, _margin, _demotion = _vote_with_margin(
+    winner, _margin, _demotion, _events = _vote_with_margin(
         data, enc_a, enc_b, diff_bytes, categories
     )
     return winner
@@ -415,9 +492,36 @@ def _find_pair_key(
     return None
 
 
+# Pairs whose distinguishing set is at least this large come from the
+# cross-family tier of the pair generator (byte-similar siblings differ at
+# most at 51 positions under its 0.80 similarity floor).  Cross-family
+# pairs arbitrate wholesale-different byte tables, where the rescore alone
+# is a coin flip whenever the distinguishing evidence in the data is
+# sparse — so these pairs require vote/rescore corroboration even for
+# in-band near-ties.
+_CROSS_FAMILY_MIN_DIFFS = 52
+
 # Maximum confidence gap from the top result for candidates beyond
 # position 1 to participate in confusion resolution.
 _CONFUSION_BAND = 0.005
+
+# Minimum confidence, as a fraction of the top result's, for out-of-band
+# candidates to participate in the strict tier of confusion resolution.
+# Confusion siblings can score far apart in absolute terms while the
+# statistical ranking among them is still noise (EBCDIC record data), so
+# the strict tier extends beyond the band — but only for challengers with
+# corroborated evidence (vote and bigram agreement, or a decisive
+# demotion-driven vote).
+_CONFUSION_FLOOR_RATIO = 0.5
+
+# The strict tier only opens when the top confidence is below this value.
+# A low absolute confidence means no model explains the data, so the
+# ranking among confusion siblings is noise and corroborated byte-level
+# evidence may overturn it.  A confident top means the statistics are
+# working; overriding them from far down the ranking does more harm than
+# good (correlated vote/rescore errors across the many near-scoring
+# Latin encodings).
+_STRICT_TIER_MAX_CONF = 0.2
 
 
 def resolve_confusion_groups(
@@ -443,55 +547,116 @@ def resolve_confusion_groups(
         return results
     # An art-model win (the zxx pseudo-language: no linguistic content) is
     # not up for linguistic-plausibility review — voting and rescoring both
-    # reason about prose, which box-drawing data is not.
+    # reason about prose, which box-drawing data is not.  Narrowing this to
+    # rescore-only review was tried and rejected: under era filtering a
+    # prose sibling can tie the art model exactly (cp850-en vs cp437-zxx on
+    # a real artpack file) and the flickery diff-focused rescore then
+    # dethrones genuine art, while the case the review would rescue —
+    # box-drawing strong enough to outrank dominant prose statistically,
+    # yet weaker than it in the diff-byte rescore — is a knife-edge regime
+    # the statistical ranking already resolves whenever prose dominates.
     if top.language == "zxx":
         return results
 
     maps = load_confusion_data()
     top_conf = top.confidence
+    floor = top_conf * _CONFUSION_FLOOR_RATIO
 
+    champion_idx = 0
+    champion = top
     for i in range(1, len(results)):
         candidate = results[i]
         if candidate.encoding is None:
             continue
-        # Always check position 1 (original top-2 behavior).
-        # For positions 2+, only check within the confidence band.
-        if i > 1 and top_conf - candidate.confidence > _CONFUSION_BAND:
+        # Position 1 and band members use the original in-band rules;
+        # candidates between the band and the floor enter the strict tier,
+        # which only opens when the statistics have failed outright.
+        in_band = i == 1 or top_conf - candidate.confidence <= _CONFUSION_BAND
+        if not in_band and (
+            top_conf >= _STRICT_TIER_MAX_CONF or candidate.confidence < floor
+        ):
             break
 
-        pair_key = _find_pair_key(maps, top.encoding, candidate.encoding)
+        pair_key = _find_pair_key(maps, champion.encoding, candidate.encoding)
         if pair_key is None:
             continue
 
         diff_bytes, categories = maps[pair_key]
         enc_a, enc_b = pair_key
 
-        cat_winner, _vote_margin, demotion_margin = _vote_with_margin(
+        cat_winner, _vote_margin, demotion_margin, demotion_events = _vote_with_margin(
             data, enc_a, enc_b, diff_bytes, categories
         )
         # A demotion-driven vote outranks the bigram rescore: those votes
         # were earned where the opposing reading was a word-shape-impossible
         # letter (lowercase jammed between digits or capitals), which is
         # stronger evidence than the rescore's prose-typicality priors.  A
-        # vote won on the naive letters-beat-punctuation preference defers
-        # to the rescore's model evidence.
+        # vote won on the naive letters-beat-symbols preference defers
+        # to the rescore's model evidence.  Decisiveness requires repeated
+        # evidence: one occurrence can reach the margin on its own, and a
+        # single byte of context must never outrank the models.
         winner: str | None
-        if cat_winner is not None and demotion_margin >= _DECISIVE_VOTE_MARGIN:
+        # The decisive-demotion override exists because *sibling* models
+        # are too similar for the rescore to arbitrate — a premise that
+        # only holds within-family.  Cross-family models differ wholesale,
+        # so there the rescore is at its most informative and the vote's
+        # linguistic priors at their least reliable (a French ``à`` read
+        # as a footnote dagger collects huge demotion margins): cross-
+        # family pairs always require corroboration instead.
+        if (
+            cat_winner is not None
+            and demotion_margin >= _DECISIVE_VOTE_MARGIN
+            and demotion_events >= _DECISIVE_MIN_EVENTS
+            and len(diff_bytes) < _CROSS_FAMILY_MIN_DIFFS
+        ):
             winner = cat_winner
         else:
             bigram_winner = resolve_by_bigram_rescore(data, enc_a, enc_b, diff_bytes)
-            winner = bigram_winner if bigram_winner is not None else cat_winner
+            if in_band and len(diff_bytes) < _CROSS_FAMILY_MIN_DIFFS:
+                winner = bigram_winner if bigram_winner is not None else cat_winner
+            # Strict rule (out-of-band candidates, and cross-family pairs
+            # even in-band): overturning the ranking needs corroboration —
+            # the vote and the rescore must agree.  (The decisive-demotion
+            # case is handled above.)
+            elif bigram_winner is not None and bigram_winner == cat_winner:
+                winner = bigram_winner
+            else:
+                winner = None
 
-        if winner is not None and winner == candidate.encoding:
-            # Give the promoted candidate the top result's confidence so
-            # the promotion survives any downstream confidence-based sort.
+        if winner is None or winner != candidate.encoding:
+            continue
+        if in_band:
+            # In-band promotion: trust it and stop, preserving the
+            # original single-promotion behavior for near-ties.
             promoted = DetectionResult(
                 candidate.encoding,
-                top.confidence,
+                top_conf,
                 candidate.language,
                 candidate.mime_type,
             )
             rest = [r for j, r in enumerate(results) if j != i]
             return [promoted, *rest]
+        # Strict-tier promotion: the new champion must defend against
+        # the remaining candidates (king-of-the-hill), because the
+        # correct member of a clique may rank below another sibling
+        # that also beats the current champion.  Known limitation: the
+        # scan is single-pass, so a higher-ranked candidate skipped
+        # earlier for lack of a pair with the then-champion is never
+        # revisited against the new one — accepted, since the original
+        # top-anchored code could not arbitrate those either.
+        champion_idx = i
+        champion = candidate
 
-    return results
+    if champion_idx == 0:
+        return results
+
+    # Give the promoted candidate the top result's confidence so the
+    # promotion survives any downstream confidence-based sort.
+    promoted = DetectionResult(
+        champion.encoding,
+        top_conf,
+        champion.language,
+        champion.mime_type,
+    )
+    rest = [r for j, r in enumerate(results) if j != champion_idx]
+    return [promoted, *rest]

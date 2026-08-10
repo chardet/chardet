@@ -14,7 +14,11 @@ from chardet.models import (
     score_with_profile,
 )
 from chardet.pipeline import DetectionResult
-from chardet.pipeline.confusion import _CONFUSION_BAND
+from chardet.pipeline.confusion import (
+    _CONFUSION_BAND,
+    _CONFUSION_FLOOR_RATIO,
+    _STRICT_TIER_MAX_CONF,
+)
 from chardet.pipeline.postprocess import (
     _COMMON_LATIN_ENCODINGS,
     _DEMOTION_CANDIDATES,
@@ -166,7 +170,16 @@ def _score_pruned(
         record(enc_name, score_with_profile(profile, table, key), lang, vi)
 
     for ub, vi, enc_name, lang, table, key in sb_entries:
-        if ub < top2 - _PRUNE_MARGIN:
+        # The strict confusion tier scans candidates down to
+        # _CONFUSION_FLOOR_RATIO of the top confidence whenever the top
+        # ends up below _STRICT_TIER_MAX_CONF, so while the running top is
+        # that low the pruning threshold must extend down to the tier's
+        # floor — otherwise a strict-tier candidate could be pruned here
+        # and detect() would diverge from the unpruned full ranking.
+        threshold = top2 - _PRUNE_MARGIN
+        if top1 < _STRICT_TIER_MAX_CONF:
+            threshold = min(threshold, top1 * _CONFUSION_FLOOR_RATIO)
+        if ub < threshold:
             # Sorted by descending bound and the threshold only rises, so
             # no later entry can matter either.
             break
@@ -178,7 +191,16 @@ def _score_pruned(
     # the pruning margin of the second-best — because confusion resolution
     # may promote any of those (position 1 or a band member) to the top
     # before postprocess evaluates its own trigger conditions.
-    near_top = [e for e, s in best_score.items() if s >= top2 - _PRUNE_MARGIN]
+    # Mirror the pruning threshold above: when the strict confusion tier
+    # can open, a strict-tier promotion may raise any candidate down to
+    # the tier floor into position 0, so the postprocess trigger scan must
+    # reach that far too — otherwise a promotion could fire with its
+    # force-scored dependents pruned away, diverging detect() from the
+    # full ranking.
+    trigger_floor = top2 - _PRUNE_MARGIN
+    if top1 < _STRICT_TIER_MAX_CONF:
+        trigger_floor = min(trigger_floor, top1 * _CONFUSION_FLOOR_RATIO)
+    near_top = [e for e, s in best_score.items() if s >= trigger_floor]
     forced: list[str] = []
     if any(e in _DEMOTION_CANDIDATES for e in near_top):
         forced.extend(_COMMON_LATIN_ENCODINGS)

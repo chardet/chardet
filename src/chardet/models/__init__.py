@@ -18,10 +18,17 @@ from chardet.registry import REGISTRY, lookup_encoding
 _unpack_uint32 = struct.Struct(">I").unpack_from
 _unpack_float64 = struct.Struct(">d").unpack_from
 
-# 256-entry membership table for ASCII whitespace bytes (space, tab, LF, CR)
-# — native byte indexing under mypyc, used in the bigram-profile hot loop.
+# 256-entry membership table for whitespace bytes whose runs training
+# collapsed — native byte indexing under mypyc, used in the bigram-profile
+# hot loop.  Covers the ASCII whitespace bytes (space, tab, LF, VT, FF, CR)
+# plus NBSP (0xA0): training's run collapse operates on decoded text where
+# regex \s matches all of these, so Latin models carry no run weight for
+# them and an uncollapsed input run would match only unrelated models
+# where the byte happens to be a letter.  0x85 (NEL in the ISO family) is
+# deliberately absent: it decodes to the ellipsis in windows-1252, whose
+# models legitimately carry ellipsis-run weight.
 _ASCII_WHITESPACE_TABLE = bytes(
-    1 if b in (0x20, 0x09, 0x0A, 0x0D) else 0 for b in range(256)
+    1 if b in (0x20, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0xA0) else 0 for b in range(256)
 )
 _V2_MAGIC = b"CMD2"
 #: rowmax.bin format: magic + SHA-256 of the matching models.bin + one

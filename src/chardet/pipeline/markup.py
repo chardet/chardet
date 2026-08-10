@@ -41,13 +41,20 @@ _HTML4_CONTENT_TYPE_RE = re.compile(
 # https://peps.python.org/pep-0263/
 _PEP263_RE = re.compile(rb"^[ \t\f]*#.*?coding[:=][ \t]*([-\w.]+)", re.MULTILINE)
 
-# Charset declaration in EBCDIC-encoded markup, matched against a cp037
-# decode of the head.  Letters and digits sit at the same code points in
-# every EBCDIC code page, so the ``charset=``/``encoding=`` label and the
-# encoding name itself decode correctly through cp037 regardless of which
-# EBCDIC variant the data actually uses.  Quote characters are NOT invariant
-# (e.g. cp1026 moves ``"``), so an optional single junk character stands in
-# for the opening quote.
+# Charset declarations in EBCDIC-encoded markup, matched against a cp037
+# decode of the head.  Letters, digits, and the anchor characters ``<``,
+# ``>``, ``?``, ``=``, and ``/`` sit at the same code points in every
+# supported EBCDIC code page, so the ``<meta``/``<?xml`` tag anchor, the
+# ``charset=``/``encoding=`` label, and the encoding name itself decode
+# correctly through cp037 regardless of which EBCDIC variant the data
+# actually uses.  The tag anchor is required so plain EBCDIC prose that
+# merely mentions ``encoding=NAME`` is not treated as a declaration; the
+# tag span and the declaration tokens are matched by separate regexes so
+# a bogus earlier ``encoding=`` token inside the same tag cannot consume
+# the anchor away from the genuine ``charset=`` that follows it.  Quote
+# characters are NOT invariant (e.g. cp1026 moves ``"``), so an optional
+# single junk character stands in for the opening quote.
+_EBCDIC_TAG_RE = re.compile(r"<(?:meta|\?xml)[^>]*", re.IGNORECASE)
 _EBCDIC_DECL_RE = re.compile(
     r"(?:charset|encoding)\s*=\s*[^\sA-Za-z0-9._-]?\s*([A-Za-z][A-Za-z0-9._-]+)",
     re.IGNORECASE,
@@ -77,21 +84,24 @@ def _detect_ebcdic_declaration(head: bytes) -> DetectionResult | None:
     if high_count < len(head) * _EBCDIC_SCAN_MIN_HIGH_FRACTION:
         return None
     decoded = head.decode("cp037", errors="replace")
-    match = _EBCDIC_DECL_RE.search(decoded)
-    if match is None:
-        return None
-    encoding = lookup_encoding(match.group(1).strip())
-    if (
-        encoding is not None
-        and REGISTRY[encoding].era & EncodingEra.MAINFRAME
-        and decodes_without_error(head, encoding)
-    ):
-        return DetectionResult(
-            encoding=encoding,
-            confidence=DETERMINISTIC_CONFIDENCE,
-            language=None,
-            mime_type="text/html",
-        )
+    # Scan every declaration token inside every anchor tag: an unrelated
+    # earlier ``charset=``/``encoding=`` token (a query string in an href,
+    # a bogus attribute in the same tag) must not mask a genuine EBCDIC
+    # declaration after it.
+    for tag in _EBCDIC_TAG_RE.finditer(decoded):
+        for match in _EBCDIC_DECL_RE.finditer(tag.group(0)):
+            encoding = lookup_encoding(match.group(1).strip())
+            if (
+                encoding is not None
+                and REGISTRY[encoding].era & EncodingEra.MAINFRAME
+                and decodes_without_error(head, encoding)
+            ):
+                return DetectionResult(
+                    encoding=encoding,
+                    confidence=DETERMINISTIC_CONFIDENCE,
+                    language=None,
+                    mime_type="text/html",
+                )
     return None
 
 

@@ -36,14 +36,19 @@ def test_load_confusion_data():
 
 
 def test_category_voting_prefers_letter_over_symbol():
-    """Category voting should prefer letter (Ll) over symbol (So)."""
+    """Category voting should prefer letter (Ll) over symbol (So).
+
+    Real encoding names are required (the vote builds per-encoding letter
+    tables via the codec), and the distinguishing byte needs lowercase
+    letter neighbors so the letter reading forms a plausible word shape.
+    """
     diff_bytes = frozenset({0xD5})
     categories = {0xD5: ("Ll", "So")}
-    data = bytes([0x41, 0xD5, 0x42])
+    data = bytes([0x61, 0xD5, 0x62])
     winner = confusion_mod.resolve_by_category_voting(
-        data, "enc_a", "enc_b", diff_bytes, categories
+        data, "latin-1", "mac-roman", diff_bytes, categories
     )
-    assert winner == "enc_a"
+    assert winner == "latin-1"
 
 
 def test_category_voting_returns_none_on_no_distinguishing_bytes():
@@ -170,11 +175,27 @@ def test_category_voting_returns_enc_b():
     diff_bytes = frozenset({0xD5})
     # enc_a maps to So (score 4), enc_b maps to Ll (score 10) → enc_b wins
     categories = {0xD5: ("So", "Ll")}
-    data = bytes([0x41, 0xD5, 0x42])
+    data = bytes([0x61, 0xD5, 0x62])
     winner = confusion_mod.resolve_by_category_voting(
-        data, "enc_a", "enc_b", diff_bytes, categories
+        data, "latin-1", "mac-roman", diff_bytes, categories
     )
-    assert winner == "enc_b"
+    assert winner == "mac-roman"
+
+
+def test_category_voting_letter_over_punctuation_is_not_evidence():
+    r"""Letter-over-punctuation naive votes are not evidence.
+
+    Punctuation legitimately borders letters (paths like ``KRB\ZUNI``
+    under EBCDIC read as ``KRBÖZUNI`` by a sibling), so the vote must
+    return None rather than promote the letter interpretation.
+    """
+    diff_bytes = frozenset({0xD5})
+    categories = {0xD5: ("Ll", "Po")}
+    data = bytes([0x61, 0xD5, 0x62])
+    winner = confusion_mod.resolve_by_category_voting(
+        data, "latin-1", "mac-roman", diff_bytes, categories
+    )
+    assert winner is None
 
 
 def test_bigram_rescore_returns_enc_a():
