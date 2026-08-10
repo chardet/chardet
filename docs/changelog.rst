@@ -33,6 +33,39 @@ Changelog
   every EBCDIC variant because letters and digits sit at the same code
   points in all of them.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+- Fixed the last two EBCDIC sibling misdetections from the expanded
+  test suite.  A record dump came back as cp273 because three
+  backslashes read as Ö under the German page, and a German historic
+  file came back as cp500 because the correct sibling sat outside the
+  near-tie band that confusion resolution scanned.
+  Letter-over-punctuation votes are no longer treated as evidence (a
+  backslash between capitals is a plausible path separator, unlike
+  box-drawing inside a word), and when no model scores above 0.2 the
+  scan now extends down to candidates at half the top confidence,
+  requiring the vote and the rescore to agree before overturning the
+  ranking.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+- Fixed a training normalization gap that biased Romanian detection
+  toward Windows-1250.  About a third of the Romanian corpus uses
+  legacy cedilla forms, which ISO-8859-16 cannot encode, so they were
+  silently dropped from its models while cp1250 kept every occurrence
+  at the very same byte positions (both pages put the s form at 0xBA
+  and the t form at 0xFE).  Cedilla now folds to comma-below when
+  training ISO-8859-16, giving both siblings identical weight at the
+  shared bytes.  The one test file still disagreeing turned out to be
+  mislabeled: its 0x89 bytes sit right after election percentages,
+  which is a per-mille sign under cp1250 and an unprintable control
+  under ISO-8859-16, so it moved to ``windows-1250-ro``.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+- Fixed the same normalization gap for the euro sign.  Euro-bearing
+  text was silently dropped when encoding to the 26 pre-euro
+  encodings, leaving their euro-updated siblings (cp1140 over cp500,
+  cp858 over cp850, ISO-8859-15 over ISO-8859-1) better fed at exactly
+  the byte that should discriminate them.  The euro now folds to the
+  generic currency sign wherever it cannot be encoded natively, which
+  also fixed an Estonian ISO-8859-13 file whose Baltic near-tie the
+  bias had flipped.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 
 **Improvements:**
 
@@ -95,6 +128,25 @@ Changelog
   ``SHIFT_JIS``), prefer the more prevalent encoding era when the winner
   has no high-byte evidence at all, and prefer a classic-Mac candidate
   when line endings are bare ``\r``.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+- Confusion resolution now covers cross-family near-ties.  Pair
+  generation adds a second tier: encodings that share a registry
+  language and at least 45% of their byte table (cp850 and
+  Windows-1252 on Spanish, ISO-8859-4 and Windows-1257 on Estonian),
+  growing the shipped pair set from 95 to 236.  The language-overlap
+  gate keeps cross-script pairs out.  Cross-family pairs demand
+  corroboration before acting: the category vote and the bigram
+  rescore must agree, and the decisive-vote override stays
+  within-family, where sibling models are too similar for the rescore
+  to arbitrate on its own.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+- Training pipeline hardening after a cache-loss post-mortem: worker
+  build failures and subset retrains that would drop an existing model
+  now abort loudly instead of shipping without it, exclusion-set
+  changes filter the article caches in place instead of deleting them
+  wholesale, subset retrains preserve metadata provenance for models
+  they did not rebuild, and the artpack fetcher builds into a
+  temporary directory so a failed sync cannot destroy a good corpus.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 
 7.5.1 (2026-08-06)
