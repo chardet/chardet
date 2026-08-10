@@ -50,7 +50,7 @@ Listed in execution order. Each stage's name matches its module in `chardet.pipe
 10. **CJK gating** — drop CJK candidates lacking multi-byte structure (pair ratio, high-byte count, byte coverage, lead-byte diversity).
 11. **Structural probing** — score multi-byte encoding fit (`pipeline/structural.py`).
 12. **Statistical scoring** — bigram cosine similarity against language-specific **BigramProfile**s.
-13. **Post-processing** — chained rank corrections, weakest evidence first: **dead-heat superset promotion**, **era-prevalence prior**, **confusion-group resolution**, **niche Latin demotion**, **KOI8-T promotion**, **classic-Mac line-ending promotion**.
+13. **Post-processing** — chained rank corrections, weakest evidence first: **dead-heat superset promotion**, **era-prevalence prior**, **rare-language arbitration**, **confusion-group resolution**, **niche Latin demotion**, **KOI8-T promotion**, **classic-Mac line-ending promotion**.
 14. **Language detection** — three-tier fill of the `language` field on every result.
 
 ### Detection concepts
@@ -90,6 +90,9 @@ Postprocess rank correction. On a **statistical dead heat** between an encoding 
 
 **Era-prevalence prior**:
 Postprocess rank correction. On a **statistical dead heat**, promote the candidate from the most prevalent **encoding era** (modern web first, mainframe last). Fires only when the top result has no high-byte evidence at all.
+
+**Rare-language arbitration**:
+Postprocess rank correction. When a winner from the hand-audited rare-language set leads the best prevalent-language candidate by less than a small margin *and* sits below an absolute-confidence ceiling, the prevalent candidate is promoted. A graded prior about legacy-era document populations, admissible only where byte evidence failed to discriminate; genuine rare-language text fails both gates. Set membership, rationale, and revision protocol live in ADR-0005; the gate boundary is guarded by sentinel files in test-data.
 
 **Classic-Mac line-ending promotion**:
 Postprocess rank correction. Data whose line endings are bare carriage returns is near-certainly classic-Mac text; a LEGACY_MAC candidate scoring close to a non-Mac winner is promoted. Platform evidence — deliberately ordered after the priors so it can override them.

@@ -86,6 +86,69 @@ ENCODING_LANG_MAP["utf-8"] = _ALL_LANGS
 _ART_PSEUDO_LANG = "zxx"
 ENCODING_LANG_MAP["cp437"] = [*ENCODING_LANG_MAP["cp437"], _ART_PSEUDO_LANG]
 
+# Languages that have been reviewed for the rare-language arbitration set
+# (``postprocess._RARE_LANGUAGES``, see ADR-0005).  Training warns when a
+# model is built for a language not in this list, so a newly added language
+# gets a deliberate prevalence classification instead of silence.  After
+# reviewing (add to the arbitration set or deliberately leave it out),
+# record the language here.
+_PREVALENCE_REVIEWED: frozenset[str] = frozenset(
+    {
+        _ART_PSEUDO_LANG,
+        *[
+            "ar",
+            "be",
+            "bg",
+            "br",
+            "cs",
+            "cy",
+            "da",
+            "de",
+            "el",
+            "en",
+            "eo",
+            "es",
+            "et",
+            "fa",
+            "fi",
+            "fr",
+            "ga",
+            "gd",
+            "he",
+            "hr",
+            "hu",
+            "id",
+            "is",
+            "it",
+            "ja",
+            "kk",
+            "ko",
+            "lt",
+            "lv",
+            "mk",
+            "ms",
+            "mt",
+            "nl",
+            "no",
+            "pl",
+            "pt",
+            "ro",
+            "ru",
+            "sk",
+            "sl",
+            "sr",
+            "sv",
+            "tg",
+            "th",
+            "tr",
+            "uk",
+            "ur",
+            "vi",
+            "zh",
+        ],
+    }
+)
+
 
 def encode_text(text: str, codec_name: str) -> bytes | None:
     """Encode text into the target encoding.
@@ -666,6 +729,14 @@ def main() -> None:
         all_langs.update(langs)
     all_langs.discard(_ART_PSEUDO_LANG)
     sorted_langs = sorted(all_langs)
+    unreviewed = sorted(all_langs - _PREVALENCE_REVIEWED)
+    if unreviewed:
+        print(
+            f"WARNING: language(s) not yet reviewed for rare-language "
+            f"arbitration (ADR-0005): {', '.join(unreviewed)} — classify "
+            "them in postprocess._RARE_LANGUAGES or record the decision in "
+            "_PREVALENCE_REVIEWED"
+        )
     art_cache = cache_dir / "artpacks" / _ART_PSEUDO_LANG
     if (
         _ART_PSEUDO_LANG in {lang for langs in encoding_map.values() for lang in langs}

@@ -430,6 +430,66 @@ def _promote_superset_on_dead_heat(
     return results
 
 
+# Languages whose (language, encoding) variants never accumulated a
+# measurable legacy document population.  Not a judgment about the
+# languages — a graded prior about legacy-era *bytes*: iso8859-14 (Latin-8,
+# the Celtic code page) was standardized in 1998 but Celtic text lived in
+# latin-1 and moved to UTF-8; this project's wild-page mining has found no
+# native specimen, and web surveys place the encoding at noise level.  The
+# one documented genuine niche — Irish gettext .po catalogues that declare
+# ISO-8859-14 (Scannell's vim/gettext translations, in the test suite) —
+# measures safely outside the arbitration gate: genuine Celtic text has no
+# prevalent-language rival anywhere near it.  Revision protocol per
+# ADR-0005: any new genuine specimen goes into test-data and forces a
+# re-audit of this set.
+_RARE_LANGUAGES: frozenset[str] = frozenset({"gd", "cy", "ga", "br"})
+
+# Maximum lead over the best prevalent-language candidate for a
+# rare-language winner to count as a coin flip rather than evidence.
+_RARE_ARBITRATION_MARGIN = 0.02
+
+# Maximum absolute confidence for arbitration to apply: genuine
+# rare-language text scores well above this even when short, so the gate
+# only opens in the evidence-free zone.
+_RARE_ARBITRATION_MAX_CONFIDENCE = 0.15
+
+
+def _arbitrate_rare_language(
+    results: list[DetectionResult],
+) -> list[DetectionResult]:
+    """Demote a rare-language winner that leads a prevalent rival by a coin flip.
+
+    Fires only when the winner's language is in :data:`_RARE_LANGUAGES`,
+    its absolute confidence is inside the evidence-free zone, and a
+    prevalent-language candidate sits within
+    :data:`_RARE_ARBITRATION_MARGIN`.  Genuine rare-language text fails
+    both gates: even short files score confidently, and their entire
+    neighborhood is same-language variants.
+    """
+    top = results[0] if results else None
+    if (
+        top is None
+        or top.encoding is None
+        or top.language not in _RARE_LANGUAGES
+        or top.confidence >= _RARE_ARBITRATION_MAX_CONFIDENCE
+        or len(results) < 2
+    ):
+        return results
+    for i in range(1, len(results)):
+        r = results[i]
+        if top.confidence - r.confidence > _RARE_ARBITRATION_MARGIN:
+            break
+        if r.encoding is None or r.language is None:
+            continue
+        if r.language not in _RARE_LANGUAGES:
+            promoted = DetectionResult(
+                r.encoding, top.confidence, r.language, r.mime_type
+            )
+            rest = [x for j, x in enumerate(results) if j != i]
+            return [promoted, *rest]
+    return results
+
+
 def _promote_mac_on_cr_line_endings(
     data: bytes,
     results: list[DetectionResult],
@@ -479,6 +539,7 @@ def postprocess_results(
     """
     results = _promote_superset_on_dead_heat(data, results)
     results = _prefer_prevalent_on_dead_heat(data, results)
+    results = _arbitrate_rare_language(results)
     results = resolve_confusion_groups(data, results)
     results = _demote_niche_latin(data, results)
     results = _promote_koi8t(data, results)

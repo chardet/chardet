@@ -15,16 +15,21 @@ from chardet.models import (
 )
 from chardet.pipeline import DetectionResult
 from chardet.pipeline.confusion import _CONFUSION_BAND
-from chardet.pipeline.postprocess import _COMMON_LATIN_ENCODINGS, _DEMOTION_CANDIDATES
+from chardet.pipeline.postprocess import (
+    _COMMON_LATIN_ENCODINGS,
+    _DEMOTION_CANDIDATES,
+    _RARE_ARBITRATION_MARGIN,
+)
 from chardet.registry import EncodingInfo
 
 # Margin subtracted from the running second-best encoding score when deciding
-# whether a variant's upper bound rules it out.  Must be at least
-# ``confusion._CONFUSION_BAND`` so that every result position
-# ``resolve_confusion_groups`` may examine (position 1 plus all candidates
-# within the band of the top score) is scored exactly; derived with a 2x
-# cushion for float noise so a band change cannot silently invalidate it.
-_PRUNE_MARGIN = 2 * _CONFUSION_BAND
+# whether a variant's upper bound rules it out.  Every result position the
+# postprocess corrections may examine must be scored exactly: position 1
+# plus all candidates within ``confusion._CONFUSION_BAND`` of the top for
+# ``resolve_confusion_groups`` (kept with a 2x cushion for float noise), and
+# all candidates within ``postprocess._RARE_ARBITRATION_MARGIN`` of the top
+# for rare-language arbitration.
+_PRUNE_MARGIN = _RARE_ARBITRATION_MARGIN + 2 * _CONFUSION_BAND
 
 # Below this many distinct bigrams the upper-bound prescreen costs about as
 # much as the full dot products it would avoid, so score everything directly.

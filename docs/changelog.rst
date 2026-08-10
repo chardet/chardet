@@ -54,6 +54,16 @@ Changelog
   suite's wild artpacks were excluded from training by content
   fingerprint.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+- Rare-language arbitration: a statistical winner from a language with
+  no documented legacy-encoding population (Scottish Gaelic, Welsh,
+  Irish, and Breton — ISO-8859-14 was standardized in 1998 but never
+  measurably deployed) now yields to a mainstream-language candidate
+  scoring within 0.02, when the winner's own confidence is below 0.15.
+  Genuine Celtic text is unaffected: it wins by landslides, and eight
+  new boundary sentinel files in the test suite guard the gate against
+  future drift.  Fixes a Croatian ``.po`` file detected as Scottish
+  Gaelic.  Design, evidence, and revision protocol in ADR-0005.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 - Wiki-markup artifacts are now stripped from training text.  The
   major-language corpora are clean, but low-resource CulturaX slices
   are heavily wiki-derived: the Breton cache alone carried ~3,000
