@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -138,8 +139,23 @@ def main() -> None:
     kept = 0
     scanned = 0
     excluded = 0
-    out_dir.mkdir(parents=True, exist_ok=True)
-    for path in sorted(raw_dir.rglob("*")):
+    # Rebuild the corpus from scratch and scan only the requested years:
+    # the raw cache may hold other years from earlier syncs, and leftover
+    # articles from a previous invocation must not leak into this one.
+    # Build into a temporary sibling first — the existing corpus is only
+    # replaced once the rebuild has produced something, so a failed rsync
+    # or an over-aggressive filter cannot destroy a good corpus.
+    tmp_dir = out_dir.with_name(out_dir.name + ".rebuild")
+    if tmp_dir.is_dir():
+        shutil.rmtree(tmp_dir)
+    tmp_dir.mkdir(parents=True, exist_ok=True)
+    candidates = sorted(
+        path
+        for year in args.years
+        if (raw_dir / year).is_dir()
+        for path in (raw_dir / year).rglob("*")
+    )
+    for path in candidates:
         if kept >= args.max_samples:
             break
         if not path.is_file():
@@ -155,7 +171,7 @@ def main() -> None:
             excluded += 1
             continue
         seen.add(fp)
-        save_article(out_dir, kept, text)
+        save_article(tmp_dir, kept, text)
         kept += 1
 
     print(
@@ -163,8 +179,12 @@ def main() -> None:
         f"{excluded} excluded as test data"
     )
     if kept == 0:
-        print("ERROR: no usable art articles produced")
+        shutil.rmtree(tmp_dir)
+        print("ERROR: no usable art articles produced (existing corpus untouched)")
         sys.exit(1)
+    if out_dir.is_dir():
+        shutil.rmtree(out_dir)
+    tmp_dir.replace(out_dir)
 
 
 if __name__ == "__main__":

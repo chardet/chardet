@@ -47,6 +47,15 @@ _UNIVERSAL_SUBSTITUTIONS: dict[str, str] = {
     "\u2032": "'",  # PRIME
     "\u2033": '"',  # DOUBLE PRIME
     "\u2212": "-",  # MINUS SIGN
+    # Currency: pre-euro encodings put the generic currency sign at the
+    # byte their euro-updated siblings reassigned to the euro (cp500 0x9F
+    # vs cp1140, cp850 vs cp858, iso8859-1 0xA4 vs iso8859-15).  Folding
+    # keeps the euro-heavy modern corpus feeding that byte on BOTH sides
+    # of each sibling pair instead of silently dropping it from the
+    # pre-euro model \u2014 the same parity invariant as the Romanian
+    # comma-below/cedilla folds.  The encodability filter scopes this to
+    # targets that cannot encode the euro natively.
+    "\u20ac": "\u00a4",  # EURO SIGN -> CURRENCY SIGN
     # Zero-width and formatting characters (remove)
     "\u200b": "",  # ZERO WIDTH SPACE
     "\u200c": "",  # ZERO WIDTH NON-JOINER
@@ -234,6 +243,21 @@ _CP1256_FARSI_SUBSTITUTIONS: dict[str, str] = {
 # Romanian substitutions
 # ---------------------------------------------------------------------------
 
+# Romanian: cedilla → comma-below for ISO-8859-16, the one legacy encoding
+# that carries only the modern forms.  Without this fold the ~38% of the
+# Romanian corpus written with legacy-keyboard cedilla forms is silently
+# dropped (unencodable) from the iso8859-16 models, while cedilla-target
+# siblings keep 100% of it at the very same byte positions (s-cedilla in
+# cp1250 and s-comma in iso8859-16 are both 0xBA; the t forms are both
+# 0xFE) — leaving the sibling model better fed at the exact bytes that
+# should discriminate.
+_ROMANIAN_COMMA_BELOW_SUBSTITUTIONS: dict[str, str] = {
+    "ţ": "ț",  # ţ → ț (cedilla → comma-below)
+    "ş": "ș",  # ş → ș
+    "Ţ": "Ț",  # Ţ → Ț (uppercase)
+    "Ş": "Ș",  # Ş → Ș (uppercase)
+}
+
 # Romanian: comma-below → cedilla for encodings without modern forms
 _ROMANIAN_CEDILLA_SUBSTITUTIONS: dict[str, str] = {
     "\u021b": "\u0163",  # ț → ţ (comma-below → cedilla)
@@ -413,9 +437,15 @@ def get_substitutions(charset_name: str, langs: list[str]) -> dict[str, str]:
         subs.update(_CP1006_URDU_SUBSTITUTIONS)
     if upper == "CP866":
         subs.update(_CP866_SUBSTITUTIONS)
-    # Romanian comma-below → cedilla for all encodings except ISO-8859-16
-    if "ro" in langs and upper != "ISO-8859-16":
-        subs.update(_ROMANIAN_CEDILLA_SUBSTITUTIONS)
+    # Romanian comma-below → cedilla for all encodings except ISO-8859-16,
+    # which gets the reverse fold (it encodes only the modern forms).
+    # Compare hyphen-insensitively: the registry's canonical spelling is
+    # "iso8859-16", whose .upper() has no hyphen after ISO.
+    if "ro" in langs:
+        if upper.replace("-", "") == "ISO885916":
+            subs.update(_ROMANIAN_COMMA_BELOW_SUBSTITUTIONS)
+        else:
+            subs.update(_ROMANIAN_CEDILLA_SUBSTITUTIONS)
 
     # Validate codec upfront — a bad charset_name is a caller bug
     codecs.lookup(charset_name)
@@ -571,8 +601,18 @@ def transliterate_serbian_to_latin(text: str) -> str:
     for i, ch in enumerate(text):
         digraph = _SERBIAN_UPPER_DIGRAPHS.get(ch)
         if digraph is not None:
+            # Next letter's case decides; when the next character has no
+            # case (space, punctuation, end of text), the preceding one
+            # does, so a word-final Љ in an all-caps word stays uppercase:
+            # УЧИТЕЉ → UČITELJ, not UČITELj.
             nxt = text[i + 1] if i + 1 < len(text) else ""
-            out.append(digraph[0] if nxt.isupper() else digraph[1])
+            if nxt.isupper():
+                out.append(digraph[0])
+            elif nxt.islower():
+                out.append(digraph[1])
+            else:
+                prev = text[i - 1] if i else ""
+                out.append(digraph[0] if prev.isupper() else digraph[1])
         else:
             out.append(_SERBIAN_CYRILLIC_TO_GAJ.get(ch, ch))
     return "".join(out)

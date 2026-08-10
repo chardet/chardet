@@ -15,6 +15,7 @@ import argparse
 import sys
 from pathlib import Path
 
+from data_sources import TEXT_SOURCES
 from exclusions import build_exclusion_set, fingerprint_text
 
 
@@ -32,7 +33,7 @@ def check_overlap(
 
     overlaps: list[tuple[str, str]] = []
 
-    for source in ("culturax", "madlad400", "wikipedia"):
+    for source in TEXT_SOURCES:
         source_dir = cache_dir / source
         if not source_dir.is_dir():
             continue

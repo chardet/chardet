@@ -84,12 +84,18 @@ def test_serialize_deserialize_roundtrip():
 
 
 def test_serialized_file_is_small():
-    """Confusion data should be <10KB."""
+    """Confusion data should stay well under 100KB.
+
+    The cross-family tier (language-overlap pairs down to 0.45 similarity)
+    roughly doubled the pair count and its pairs carry up to 128
+    distinguishing bytes each, so the budget is far above the old 10KB
+    sibling-only figure — but still small enough that the wheel stays slim.
+    """
     maps = compute_distinguishing_maps(threshold=0.80)
     with tempfile.NamedTemporaryFile(suffix=".bin", delete=False) as f:
         path = Path(f.name)
     try:
         serialize_confusion_data(maps, path)
-        assert path.stat().st_size < 10_000
+        assert path.stat().st_size < 100_000
     finally:
         path.unlink(missing_ok=True)

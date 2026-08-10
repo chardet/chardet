@@ -30,7 +30,6 @@ import itertools
 import math
 import os
 import pickle
-import shutil
 import signal
 import struct
 import time
@@ -43,13 +42,15 @@ from confusion_training import (
     serialize_confusion_data,
 )
 from data_sources import (
+    DOWNLOADABLE_SOURCES,
+    TEXT_SOURCES,
     SourceStats,
     check_cache_validity,
     load_cached_articles,
     write_cache_sentinel,
 )
 from data_sources import get_texts as get_texts_multi
-from exclusions import build_exclusion_set
+from exclusions import build_exclusion_set, fingerprint_text
 from substitutions import (
     apply_substitutions,
     collapse_whitespace_runs,
@@ -406,26 +407,56 @@ def _count_cached_texts(cache_dir: Path, lang: str, max_samples: int) -> int:
     Capped at *max_samples* to reflect what training actually uses.
     """
     total = 0
-    for source in ("culturax", "madlad400", "wikipedia"):
+    for source in TEXT_SOURCES:
         d = cache_dir / source / lang
         if d.is_dir():
             total += sum(1 for f in d.iterdir() if f.suffix == ".txt")
     return min(total, max_samples)
 
 
-def _write_training_metadata(
+def _read_metadata_blocks(path: Path) -> dict[str, list[str]]:
+    """Parse an existing metadata YAML into per-model line blocks.
+
+    The file is our own flat hand-emitted format: each model starts with a
+    two-space-indented ``  key:`` line followed by deeper-indented fields.
+    Returns ``{model_key: [block lines]}``; empty when the file is absent.
+    """
+    if not path.is_file():
+        return {}
+    blocks: dict[str, list[str]] = {}
+    current: list[str] | None = None
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if line.startswith("  ") and not line.startswith("    ") and line.endswith(":"):
+            current = []
+            blocks[line[2:-1]] = current
+            current.append(line)
+        elif current is not None and line.startswith("    "):
+            current.append(line)
+    return blocks
+
+
+def _write_training_metadata(  # noqa: PLR0913
     path: Path,
     models: dict[str, dict[tuple[int, int], int]],
     max_samples: int,
     cache_dir: Path,
     lang_stats: dict[str, SourceStats],
+    *,
+    retrained_encodings: set[str] | None = None,
 ) -> None:
     """Write training metadata YAML alongside models.bin.
 
     The YAML is written manually (no PyYAML dependency) since the structure
     is flat enough to emit directly.
+
+    On a subset retrain (*retrained_encodings* given), entries for models
+    whose encoding was not retrained are carried over verbatim from the
+    existing file: recomputing them would count the *current* article
+    cache, which records ``samples_used: 0`` for every language whose
+    corpus is no longer on disk even though the shipped model is unchanged.
     """
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    previous = _read_metadata_blocks(path) if retrained_encodings else {}
 
     lines: list[str] = [
         f'training_date: "{timestamp}"',
@@ -434,6 +465,11 @@ def _write_training_metadata(
     ]
 
     for model_key in sorted(models):
+        if retrained_encodings is not None:
+            enc_part = model_key.split("/", 1)[-1]
+            if enc_part not in retrained_encodings and model_key in previous:
+                lines.extend(previous[model_key])
+                continue
         bigram_count = len(models[model_key])
         # Model keys use "lang/encoding" format
         parts = model_key.split("/", 1)
@@ -452,10 +488,21 @@ def _write_training_metadata(
         lines.append(f"    samples_used: {samples_used}")
         lines.append(f"    bigram_entries: {bigram_count}")
         stats = lang_stats.get(lang, SourceStats())
+        # The artpack corpus is not downloaded by get_texts, so its count
+        # comes from the on-disk cache — otherwise samples_used (which
+        # counts all TEXT_SOURCES) would attribute those samples to no
+        # source.
+        artpacks_dir = cache_dir / "artpacks" / lang
+        artpacks_count = (
+            sum(1 for f in artpacks_dir.iterdir() if f.suffix == ".txt")
+            if artpacks_dir.is_dir()
+            else 0
+        )
         lines.append("    sources:")
         lines.append(f"      culturax: {stats.culturax}")
         lines.append(f"      madlad400: {stats.madlad400}")
         lines.append(f"      wikipedia: {stats.wikipedia}")
+        lines.append(f"      artpacks: {artpacks_count}")
         lines.append(f"    test_articles_excluded: {stats.excluded}")
 
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -553,7 +600,7 @@ def _build_one_model(
         # Load from all source caches.  The artpacks source only ever holds
         # the zxx pseudo-language (populated by scripts/fetch_artpacks.py).
         texts: list[str] = []
-        for source in ("culturax", "madlad400", "wikipedia", "artpacks"):
+        for source in TEXT_SOURCES:
             source_dir = cache_dir / source / lang
             texts.extend(load_cached_articles(source_dir, max_samples - len(texts)))
             if len(texts) >= max_samples:
@@ -763,15 +810,57 @@ def main() -> None:
             print("  Continuing without exclusion filtering.")
             print()
 
-    # Check cache validity against exclusion set
+    # Check cache validity against exclusion set.  When the exclusion set
+    # changes, filter every source cache in place — drop only articles
+    # whose fingerprint is now excluded — rather than deleting the caches
+    # wholesale.  A wholesale wipe once combined with a subset retrain to
+    # lose models: the retrain re-downloads only its own languages, the
+    # 600s download window cannot refill dozens of corpora, and the build
+    # phase then consumed empty snapshots while the download threads were
+    # still filling them.
     if exclusions and not args.keep_cache:
         if not check_cache_validity(cache_dir, exclusions):
-            print("  Exclusion set changed — invalidating article caches")
-            for source in ("culturax", "madlad400", "wikipedia"):
+            print("  Exclusion set changed — filtering article caches")
+            for source in (*DOWNLOADABLE_SOURCES, "artpacks"):
                 source_dir = cache_dir / source
-                if source_dir.is_dir():
-                    shutil.rmtree(source_dir)
-                    print(f"    Cleared {source_dir}")
+                if not source_dir.is_dir():
+                    continue
+                removed = 0
+                for lang_dir in sorted(source_dir.iterdir()):
+                    if not lang_dir.is_dir():
+                        continue
+                    kept: list[Path] = []
+                    for article in sorted(lang_dir.glob("*.txt")):
+                        try:
+                            text = article.read_text(encoding="utf-8")
+                        except (UnicodeDecodeError, OSError):
+                            # A corrupt or truncated cache file is as good
+                            # as excluded; drop it and let the next
+                            # download top the cache back up.
+                            article.unlink()
+                            removed += 1
+                            continue
+                        if fingerprint_text(text) in exclusions:
+                            article.unlink()
+                            removed += 1
+                        else:
+                            kept.append(article)
+                    # Renumber compactly: the download layer resumes at
+                    # index len(cached), so numbering gaps would make it
+                    # overwrite kept articles and permanently undercount
+                    # the cache.  Each target index is <= its source
+                    # index, so replace() never clobbers an unprocessed
+                    # file.  The shortfall is topped up by the next
+                    # download pass; as with any count-based resume, a
+                    # few re-streamed articles may repeat cached content
+                    # — bounded by the number removed, and harmless at
+                    # corpus scale.
+                    for i, article in enumerate(kept):
+                        target = lang_dir / f"{i:06d}.txt"
+                        if article != target:
+                            article.replace(target)
+                if removed:
+                    print(f"    {source}: removed {removed} newly-excluded articles")
         write_cache_sentinel(cache_dir, exclusions)
 
     print(f"Training bigram models for {len(encoding_map)} encodings")
@@ -890,20 +979,37 @@ def main() -> None:
                 record_result(*_build_one_model(*item))
         else:
             # Parallel mode
+            failed: list[str] = []
             with concurrent.futures.ProcessPoolExecutor(
                 max_workers=args.build_workers,
             ) as pool:
                 futures = {
-                    pool.submit(_build_one_model, *item): item[1] for item in work_items
+                    pool.submit(_build_one_model, *item): f"{item[0]}/{item[1]}"
+                    for item in work_items
                 }
                 for future in concurrent.futures.as_completed(futures):
                     try:
                         result = future.result()
                     except Exception as exc:
-                        enc = futures[future]
-                        print(f"  ERROR {enc}: {exc}")
+                        key = futures[future]
+                        print(f"  ERROR {key}: {exc}")
+                        failed.append(key)
                         continue
                     record_result(*result)
+            if failed:
+                print()
+                print(
+                    f"ERROR: {len(failed)} model build(s) failed: "
+                    f"{', '.join(sorted(failed))}"
+                )
+                print(
+                    "A failed build would silently ship without these models "
+                    "(a transient worker death cost uk/mac-cyrillic once); "
+                    "re-run the training command."
+                )
+                # os._exit, not SystemExit: the atexit cleanup handler exits
+                # 0 unconditionally, which would swallow the failure code.
+                os._exit(1)
 
         # Retention guard (ADR-0004): a registry-declared (language, encoding)
         # pair whose corpus mostly fails to encode is a config or
@@ -952,11 +1058,36 @@ def main() -> None:
         print("=== Merging with existing models ===")
         existing = deserialize_models(output_path)
         # Remove old models for retrained encodings (both formats)
+        removed_keys: list[str] = []
         for enc in args.encodings:
-            existing.pop(enc, None)  # old flat format
+            if existing.pop(enc, None) is not None:  # old flat format
+                removed_keys.append(enc)
             to_remove = [k for k in existing if k.endswith(f"/{enc}")]
             for k in to_remove:
                 del existing[k]
+            removed_keys.extend(to_remove)
+        # A model that existed cannot silently become unbuildable: a SKIP
+        # here means an empty/broken corpus cache or a preprocessing bug,
+        # and merging would ship models.bin without the model (this lost
+        # 11 models to a cache race once).  Legacy flat-format keys (bare
+        # encoding names) are exempt: the rebuild replaces them with
+        # lang/encoding keys by design, so they can never reappear
+        # verbatim.
+        lost = sorted(k for k in removed_keys if "/" in k and k not in models)
+        if lost:
+            print()
+            print(
+                f"ERROR: subset retrain produced no replacement for "
+                f"{len(lost)} existing model(s): {', '.join(lost)}"
+            )
+            print(
+                "Check the SKIP lines above — the corpus cache for those "
+                "languages is likely empty or incomplete.  models.bin was "
+                "not modified."
+            )
+            # os._exit, not SystemExit: the atexit cleanup handler exits 0
+            # unconditionally, which would swallow the failure code.
+            os._exit(1)
         existing.update(models)
         models = existing
         print(f"  Merged {len(models)} total models ({len(args.encodings)} retrained)")
@@ -1018,7 +1149,12 @@ def main() -> None:
 
     metadata_path = output_path.with_name("training_metadata.yaml")
     _write_training_metadata(
-        metadata_path, models, args.max_samples, cache_dir, lang_stats
+        metadata_path,
+        models,
+        args.max_samples,
+        cache_dir,
+        lang_stats,
+        retrained_encodings=set(args.encodings) if args.encodings else None,
     )
     print(f"Metadata written: {metadata_path}")
 

@@ -24,6 +24,17 @@ CULTURAX_DATASET = "uonlp/CulturaX"
 MADLAD_DATASET = "allenai/MADLAD-400"
 WIKIPEDIA_DATASET = "wikimedia/wikipedia"
 
+# Every article-cache source under the cache dir.  train.py's worker loads,
+# its cached-text counts, and verify_no_overlap.py must agree on this list;
+# it lives here so a new source cannot be added to one consumer and
+# silently skipped by the others.
+TEXT_SOURCES = ("culturax", "madlad400", "wikipedia", "artpacks")
+
+# The subset train.py can rebuild by itself (streamed from HuggingFace).
+# The artpack cache is produced by scripts/fetch_artpacks.py and must not
+# be deleted by cache invalidation — it is filtered in place instead.
+DOWNLOADABLE_SOURCES = ("culturax", "madlad400", "wikipedia")
+
 # ---------------------------------------------------------------------------
 # Language code mappings
 # ---------------------------------------------------------------------------
@@ -425,6 +436,9 @@ class SourceStats:
     culturax: int = 0
     madlad400: int = 0
     wikipedia: int = 0
+    # Filled by the metadata writer from the on-disk cache (the artpack
+    # corpus is produced by scripts/fetch_artpacks.py, not get_texts).
+    artpacks: int = 0
     excluded: int = 0
 
 

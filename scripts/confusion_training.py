@@ -111,8 +111,23 @@ def compute_confusion_groups(
 
 def compute_distinguishing_maps(
     threshold: float = 0.80,
+    overlap_threshold: float = 0.45,
 ) -> DistinguishingMaps:
     """Compute distinguishing byte maps and Unicode categories for all confusion pairs.
+
+    Two tiers of pairs are generated:
+
+    - byte-similar siblings: similarity >= *threshold* (the classic
+      within-family pairs — DOS vs DOS, EBCDIC vs EBCDIC);
+    - cross-family colliders: similarity >= *overlap_threshold* AND the two
+      encodings serve at least one common registry language.  Encodings for
+      the same languages produce near-tie statistical scores on that
+      language's prose even though their byte tables differ wholesale
+      (cp850 vs windows-1252 on Spanish), so these near-ties need
+      distinguishing-byte arbitration too.  The language-overlap gate keeps
+      cross-script pairs out: a Latin and a Cyrillic page share exactly the
+      ASCII half (similarity 0.5) but never a language, and their near-ties
+      are already separated by statistics.
 
     Returns a dict mapping (enc_a, enc_b) -> (diff_bytes, categories) where:
     - diff_bytes: frozenset of byte values that decode differently
@@ -131,8 +146,10 @@ def compute_distinguishing_maps(
 
     # Compute byte tables
     tables: dict[str, list[str | None]] = {}
+    languages: dict[str, frozenset[str]] = {}
     for enc in single_byte:
         tables[enc.name] = _decode_byte_table(enc.name)
+        languages[enc.name] = frozenset(enc.languages)
 
     names = [enc.name for enc in single_byte]
     result: DistinguishingMaps = {}
@@ -142,7 +159,12 @@ def compute_distinguishing_maps(
             sim, diff_bytes = _compute_pairwise_similarity(
                 tables[name_a], tables[name_b]
             )
-            if sim < threshold:
+            if sim < threshold and not (
+                sim >= overlap_threshold and languages[name_a] & languages[name_b]
+            ):
+                continue
+            # Serialization stores the diff count as a u8.
+            if len(diff_bytes) > 255:
                 continue
             # Build category map for distinguishing bytes
             categories: dict[int, tuple[str, str]] = {}
