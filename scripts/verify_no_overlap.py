@@ -12,10 +12,11 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import subprocess
 import sys
 from pathlib import Path
 
-from data_sources import TEXT_SOURCES
+from data_sources import TEXT_SOURCES, hash_exclusion_set
 from exclusions import build_exclusion_set, fingerprint_text
 
 
@@ -52,6 +53,115 @@ def check_overlap(
     return overlaps
 
 
+def _read_metadata_field(metadata_path: Path, field: str) -> str | None:
+    """Read a top-level quoted string field from the training metadata."""
+    if not metadata_path.is_file():
+        return None
+    prefix = f"{field}:"
+    for line in metadata_path.read_text(encoding="utf-8").splitlines():
+        if line.startswith(prefix):
+            return line[len(prefix) :].strip().strip('"')
+        if line.startswith("models:"):
+            break
+    return None
+
+
+def _git(test_data_dir: Path, *args: str) -> str | None:
+    """Run a git command in *test_data_dir*, or None on any failure."""
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(test_data_dir), *args],
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=60,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if result.returncode != 0:
+        return None
+    return result.stdout
+
+
+def _differing_test_files(test_data_dir: Path, commit: str) -> list[str] | None:
+    """List test files that differ from *commit*, or None if git cannot say.
+
+    Untracked files are included: a test file that was added but not yet
+    committed is the most likely cause of a provenance mismatch, and
+    ``git diff`` alone would report nothing and leave the warning with no
+    files to name.
+    """
+    toplevel = _git(test_data_dir, "rev-parse", "--show-toplevel")
+    if toplevel is None or Path(toplevel.strip()).resolve() != test_data_dir.resolve():
+        return None
+    diff = _git(test_data_dir, "diff", "--name-only", commit)
+    if diff is None:
+        return None
+    untracked = _git(test_data_dir, "ls-files", "--others", "--exclude-standard") or ""
+    names = {line for line in diff.splitlines() if line.strip()}
+    names.update(line for line in untracked.splitlines() if line.strip())
+    return sorted(names)
+
+
+def report_training_provenance(test_data_dir: Path, metadata_path: Path) -> bool:
+    """Report whether the models were filtered against the current test data.
+
+    The overlap scan above compares the *current* article cache against
+    test data, which cannot see the one contamination direction that
+    matters here: a test file created from a corpus article, with the
+    source article then removed from the cache, leaves the scan clean
+    while the shipped models were still trained on that text.  Comparing
+    the exclusion set recorded at training time against today's closes
+    that gap.
+
+    ``train.py`` records provenance only for a run that rebuilt every
+    model against a freshly filtered cache, so a match here means every
+    shipped model was filtered against exactly this test data.  An absent
+    record means unverifiable, never verified.
+
+    :returns: ``True`` only when provenance is recorded *and* matches.
+    """
+    recorded_hash = _read_metadata_field(metadata_path, "exclusion_set_hash")
+    if recorded_hash is None:
+        print(
+            "UNVERIFIED: the training metadata records no exclusion set, so "
+            "whether the shipped models were filtered against the current "
+            "test data cannot be determined.  A full retrain (no "
+            "--encodings/--from-raw-cache/--keep-cache) records it."
+        )
+        return False
+
+    current_hash = hash_exclusion_set(build_exclusion_set(test_data_dir))
+    if current_hash == recorded_hash:
+        print("Models were trained against exactly this test data.")
+        return True
+
+    print()
+    print("WARNING: test data differs from what the models were filtered against.")
+    commit = _read_metadata_field(metadata_path, "test_data_commit")
+    differing = _differing_test_files(test_data_dir, commit) if commit else None
+    if differing:
+        print(f"  {len(differing)} file(s) differ from {commit[:12]}:")
+        for name in differing[:20]:
+            print(f"    {name}")
+        if len(differing) > 20:
+            print(f"    ... and {len(differing) - 20} more")
+        print(
+            "  (This compares two states, so the list also covers files "
+            "removed since training if this checkout is the older one.)"
+        )
+    elif commit is None:
+        print("  No test-data commit was recorded, so the files cannot be listed.")
+    else:
+        print(f"  Cannot list files: {test_data_dir} is not a git checkout.")
+    print(
+        "  Any test file taken from a training corpus is train/test overlap "
+        "the scan above cannot detect.  Retrain every encoding whose "
+        "languages include theirs before trusting accuracy numbers."
+    )
+    return False
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Verify no overlap between training cache and test data",
@@ -65,6 +175,11 @@ def main() -> None:
         "--cache-dir",
         default="data/",
         help="Path to training data cache directory",
+    )
+    parser.add_argument(
+        "--metadata",
+        default="src/chardet/models/training_metadata.yaml",
+        help="Path to the training metadata written alongside models.bin",
     )
     args = parser.parse_args()
 
@@ -93,9 +208,19 @@ def main() -> None:
         for path, fp in overlaps:
             print(f"  {path} (fingerprint: {fp[:16]}...)")
         sys.exit(1)
-    else:
-        print("PASS: No overlap detected between training cache and test data.")
-        sys.exit(0)
+
+    print("PASS: No overlap detected between training cache and test data.")
+    # Advisory, not a failure: test data legitimately grows between
+    # retrains, and exiting non-zero on every benign addition would train
+    # readers to ignore the warning.  The overlap scan above stays the
+    # hard gate.
+    metadata_path = Path(args.metadata)
+    if not metadata_path.is_file():
+        # A mistyped --metadata must not read as "nothing to verify".
+        print(f"ERROR: training metadata not found: {metadata_path}", file=sys.stderr)
+        sys.exit(1)
+    report_training_provenance(test_data_path, metadata_path)
+    sys.exit(0)
 
 
 if __name__ == "__main__":

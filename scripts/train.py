@@ -32,6 +32,7 @@ import os
 import pickle
 import signal
 import struct
+import subprocess
 import time
 import zlib
 from datetime import datetime, timezone
@@ -46,6 +47,7 @@ from data_sources import (
     TEXT_SOURCES,
     SourceStats,
     check_cache_validity,
+    hash_exclusion_set,
     load_cached_articles,
     write_cache_sentinel,
 )
@@ -435,6 +437,81 @@ def _read_metadata_blocks(path: Path) -> dict[str, list[str]]:
     return blocks
 
 
+def _provenance_for_run(
+    args: argparse.Namespace,
+    exclusions: frozenset[str],
+    test_data_dir: Path | None,
+) -> tuple[str, str | None] | None:
+    """Return the provenance this run may record, or ``None``.
+
+    Only a run that rebuilt *every* model against a cache that was
+    actually filtered against *exclusions* may stamp the metadata.  Each
+    disqualifier below would otherwise let the guard certify models that
+    were never filtered against the recorded test data:
+
+    * ``--encodings`` — a subset retrain leaves most models untouched;
+    * ``--from-raw-cache`` — models come from counts built earlier, under
+      whatever exclusion set was current then;
+    * ``--keep-cache`` — skips the filtering pass, so excluded articles
+      may still be in the corpus;
+    * ``--no-skip-test-overlap`` or an empty/missing test-data directory —
+      nothing was excluded at all, and recording the empty set's hash
+      would let it match another empty run and read as verified.
+    """
+    if args.encodings or args.from_raw_cache or args.keep_cache:
+        return None
+    if not args.skip_test_overlap or not exclusions or test_data_dir is None:
+        return None
+    return hash_exclusion_set(exclusions), _git_head(test_data_dir)
+
+
+def _read_metadata_header(path: Path, field: str) -> str | None:
+    """Read a top-level quoted string field from an existing metadata file."""
+    if not path.is_file():
+        return None
+    prefix = f"{field}:"
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if line.startswith("models:"):
+            break
+        if line.startswith(prefix):
+            return line[len(prefix) :].strip().strip('"') or None
+    return None
+
+
+def _git(path: Path, *args: str) -> str | None:
+    """Run a git command in *path*, returning stdout or None on any failure."""
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(path), *args],
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=30,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if result.returncode != 0:
+        return None
+    return result.stdout.strip() or None
+
+
+def _git_head(path: Path) -> str | None:
+    """Return the git HEAD of the repository *rooted at* *path*, if any.
+
+    ``git -C`` walks up to the enclosing repository, so a plain directory
+    inside another checkout would otherwise report that parent's HEAD.
+    The default test-data layout is exactly that (``scripts/utils.py``
+    copies the clone's contents without its ``.git``), and recording the
+    chardet SHA there would make the provenance check compare test data
+    against chardet's own history.  Only a repository whose top level is
+    *path* itself counts.
+    """
+    toplevel = _git(path, "rev-parse", "--show-toplevel")
+    if toplevel is None or Path(toplevel).resolve() != path.resolve():
+        return None
+    return _git(path, "rev-parse", "HEAD")
+
+
 def _write_training_metadata(  # noqa: PLR0913
     path: Path,
     models: dict[str, dict[tuple[int, int], int]],
@@ -443,6 +520,7 @@ def _write_training_metadata(  # noqa: PLR0913
     lang_stats: dict[str, SourceStats],
     *,
     retrained_encodings: set[str] | None = None,
+    provenance: tuple[str, str | None] | None = None,
 ) -> None:
     """Write training metadata YAML alongside models.bin.
 
@@ -454,15 +532,35 @@ def _write_training_metadata(  # noqa: PLR0913
     existing file: recomputing them would count the *current* article
     cache, which records ``samples_used: 0`` for every language whose
     corpus is no longer on disk even though the shipped model is unchanged.
+
+    *provenance* is ``(exclusion_set_hash, test_data_commit_or_None)`` and
+    may only be supplied by a run that rebuilt **every** model against a
+    freshly filtered cache (see :func:`_provenance_for_run`).  Any other
+    run carries the existing file's values forward verbatim, so the
+    recorded hash always describes a state that every shipped model has
+    been filtered against — never a newer one that only some were.  A
+    guard that over-claims is worse than none: it would certify
+    carried-over models as clean against test data they predate.
     """
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     previous = _read_metadata_blocks(path) if retrained_encodings else {}
 
+    if provenance is not None:
+        exclusion_hash, commit = provenance
+    else:
+        # Carry forward: this run did not earn the right to restamp.
+        exclusion_hash = _read_metadata_header(path, "exclusion_set_hash")
+        commit = _read_metadata_header(path, "test_data_commit")
+
     lines: list[str] = [
         f'training_date: "{timestamp}"',
         f"max_samples: {max_samples}",
-        "models:",
     ]
+    if exclusion_hash is not None:
+        lines.append(f'exclusion_set_hash: "{exclusion_hash}"')
+    if commit is not None:
+        lines.append(f'test_data_commit: "{commit}"')
+    lines.append("models:")
 
     for model_key in sorted(models):
         if retrained_encodings is not None:
@@ -796,19 +894,25 @@ def main() -> None:
 
     # Build exclusion set from test data
     exclusions: frozenset[str] = frozenset()
+    test_data_path: Path | None = None
     if args.skip_test_overlap:
-        test_data_path = Path(args.test_data_dir)
-        if test_data_path.is_symlink():
-            test_data_path = test_data_path.resolve()
-        if test_data_path.is_dir():
+        candidate = Path(args.test_data_dir)
+        if candidate.is_symlink():
+            candidate = candidate.resolve()
+        if candidate.is_dir():
+            test_data_path = candidate
             print("=== Building test data exclusion set ===")
             exclusions = build_exclusion_set(test_data_path)
             print(f"  {len(exclusions)} unique fingerprints from test data")
             print()
         else:
-            print(f"WARNING: test data dir not found: {test_data_path}")
+            print(f"WARNING: test data dir not found: {candidate}")
             print("  Continuing without exclusion filtering.")
             print()
+
+    # Sample provenance here, next to the exclusion set it describes, so the
+    # recorded hash and commit cannot drift apart over a long run.
+    provenance = _provenance_for_run(args, exclusions, test_data_path)
 
     # Check cache validity against exclusion set.  When the exclusion set
     # changes, filter every source cache in place — drop only articles
@@ -1037,11 +1141,36 @@ def main() -> None:
             # unconditionally, which would swallow the failure code.
             os._exit(1)
 
-        # Cache raw counts for future --from-raw-cache runs
+        # Cache raw counts for future --from-raw-cache runs.  On a subset
+        # retrain, merge into whatever is already cached: replacing it
+        # wholesale would leave the cache describing only this subset, and
+        # a later --from-raw-cache run would rebuild models.bin from it
+        # and silently drop (or, worse, resurrect superseded versions of)
+        # every other model.
+        cached_raw: dict[str, dict[tuple[int, int], int]] = {}
+        if args.encodings and raw_cache_path.is_file():
+            try:
+                with raw_cache_path.open("rb") as f:
+                    cached_raw = pickle.load(f)  # noqa: S301
+            except Exception as exc:  # any unreadable cache
+                # Unpickling raises a wide and version-dependent set of
+                # exceptions (ValueError and UnicodeDecodeError among them);
+                # none of them should discard a completed build phase.
+                print(f"  WARNING: ignoring unreadable raw cache ({exc})")
+                cached_raw = {}
+            # Drop only the legacy flat-format keys that this run replaces.
+            # Evicting every key for a retrained encoding up front would
+            # delete a model that this build skipped, leaving nothing to put
+            # back — and the lost-model guard below aborts only *after* this
+            # file is written.
+            for enc in args.encodings:
+                if any(k.split("/", 1)[-1] == enc for k in raw_models):
+                    cached_raw.pop(enc, None)
+        cached_raw.update(raw_models)
         print(f"\n  Caching raw bigram counts to {raw_cache_path}")
         with raw_cache_path.open("wb") as f:
-            pickle.dump(raw_models, f, protocol=pickle.HIGHEST_PROTOCOL)
-        print(f"  Cached {len(raw_models)} raw models")
+            pickle.dump(cached_raw, f, protocol=pickle.HIGHEST_PROTOCOL)
+        print(f"  Cached {len(cached_raw)} raw models")
         print()
 
     # Normalize and prune raw counts into final models
@@ -1155,6 +1284,7 @@ def main() -> None:
         cache_dir,
         lang_stats,
         retrained_encodings=set(args.encodings) if args.encodings else None,
+        provenance=provenance,
     )
     print(f"Metadata written: {metadata_path}")
 
