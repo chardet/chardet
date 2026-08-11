@@ -38,6 +38,16 @@ _KNOWN_FAILURES: frozenset[str] = frozenset(
         "cp858-en/culturax_00000.txt",
         "cp858-ms/culturax_00000.txt",
         "iso-8859-15-en/culturax_00002.txt",
+        # Hungarian distinguishes iso8859-2 from iso8859-16 only at the
+        # u-double-acute positions, and this file carries just four of
+        # them (0xF8, which reads as Czech r-hacek under iso8859-2), so
+        # Windows-1250 wins the near-tie on everything else.  The
+        # culturax_hu_* files added to this directory carry the same
+        # letter 8 or more times and detect as iso8859-16 outright, so
+        # the gap is one of sparse-letter weighting rather than missing
+        # arbitration.  (The iso-8859-2-hu copies of those files detect
+        # as Windows-1250, which the evaluation tables accept as a
+        # superset of iso8859-2.)
         "iso-8859-16-hu/culturax_OSCAR-2019_82421.txt",
     }
 )
@@ -50,6 +60,13 @@ _KNOWN_ERA_FILTERED_FAILURES: frozenset[str] = frozenset(
     {
         "cp500-es/culturax_mC4_87070.txt",
         "cp850-fi/culturax_00001.txt",
+        # Contains no u-double-acute bytes at all, so nothing in it can
+        # separate iso8859-2 from iso8859-16 the way Hungarian normally
+        # does.  Its only distinguishing bytes are five stray 0xA9/0xAB/
+        # 0xBB, which read as capital S-caron, T-caron, and t-caron under
+        # iso8859-2 but as copyright and guillemet punctuation under
+        # iso8859-16, and Windows-1250 takes the file on the surrounding
+        # prose regardless.
         "iso-8859-2-hu/torokorszag.blogspot.com.xml",
         "iso-8859-16-hu/culturax_OSCAR-2019_82421.txt",
         "macroman-da/culturax_mC4_83469.txt",
