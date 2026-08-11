@@ -437,32 +437,114 @@ def _read_metadata_blocks(path: Path) -> dict[str, list[str]]:
     return blocks
 
 
+#: Provenance of a set of bigram counts: the exclusion set they were
+#: filtered against, and the test-data commit it came from (when known).
+Provenance = tuple[str, str | None]
+
+#: Raw-count cache format.  v1 was a bare ``{model_key: counts}`` mapping
+#: with no record of the corpus it was built from; v2 stores per-model
+#: provenance alongside, so a ``--from-raw-cache`` rebuild can report
+#: honestly what its counts were filtered against.  ``version`` is safe as
+#: a marker because a v1 mapping is keyed by encoding or ``lang/encoding``
+#: names, and no encoding in the registry is called "version".
+_RAW_CACHE_VERSION = 2
+
+
+def _load_raw_cache(
+    path: Path,
+) -> tuple[dict[str, dict[tuple[int, int], int]], dict[str, Provenance | None]]:
+    """Load the raw-count cache as ``(counts_by_key, provenance_by_key)``.
+
+    A v1 (unversioned) file loads with no provenance, which is the honest
+    reading: those counts record nothing about the corpus behind them.
+    A file claiming an unknown version is an error rather than something
+    to guess at — misreading it would put unrelated data into models.bin.
+    """
+    with path.open("rb") as f:
+        blob = pickle.load(f)  # noqa: S301
+    if not isinstance(blob, dict):
+        msg = f"{path}: not a raw-count cache"
+        raise TypeError(msg)
+    if "version" not in blob:
+        return blob, {}
+    if blob["version"] != _RAW_CACHE_VERSION:
+        msg = (
+            f"{path}: unsupported raw-count cache version {blob['version']!r} "
+            f"(this script writes v{_RAW_CACHE_VERSION}); delete it to rebuild"
+        )
+        raise ValueError(msg)
+    if "counts" not in blob or "provenance" not in blob:
+        msg = f"{path}: raw-count cache is missing its counts or provenance"
+        raise ValueError(msg)
+    return blob["counts"], blob["provenance"]
+
+
+def _save_raw_cache(
+    path: Path,
+    counts: dict[str, dict[tuple[int, int], int]],
+    provenance: dict[str, Provenance | None],
+) -> None:
+    """Write the raw-count cache with its per-model provenance."""
+    blob = {
+        "version": _RAW_CACHE_VERSION,
+        "counts": counts,
+        "provenance": provenance,
+    }
+    with path.open("wb") as f:
+        pickle.dump(blob, f, protocol=pickle.HIGHEST_PROTOCOL)
+
+
 def _provenance_for_run(
     args: argparse.Namespace,
     exclusions: frozenset[str],
     test_data_dir: Path | None,
-) -> tuple[str, str | None] | None:
-    """Return the provenance this run may record, or ``None``.
+    cache_dir: Path,
+) -> Provenance | None:
+    """Return the provenance that models built by *this run* carry.
 
-    Only a run that rebuilt *every* model against a cache that was
-    actually filtered against *exclusions* may stamp the metadata.  Each
-    disqualifier below would otherwise let the guard certify models that
-    were never filtered against the recorded test data:
+    ``None`` means the models this run builds cannot be said to have been
+    filtered against any particular test data:
 
-    * ``--encodings`` — a subset retrain leaves most models untouched;
-    * ``--from-raw-cache`` — models come from counts built earlier, under
-      whatever exclusion set was current then;
-    * ``--keep-cache`` — skips the filtering pass, so excluded articles
-      may still be in the corpus;
-    * ``--no-skip-test-overlap`` or an empty/missing test-data directory —
-      nothing was excluded at all, and recording the empty set's hash
-      would let it match another empty run and read as verified.
+    * ``--no-skip-test-overlap``, an empty exclusion set, or a missing
+      test-data directory means nothing was excluded at all — and
+      recording the empty set's hash would let it match another empty run
+      and read as verified;
+    * ``--keep-cache`` skips the filtering pass, so excluded articles may
+      still be sitting in the corpus — unless the cache sentinel already
+      records this exact exclusion set, which is direct evidence that a
+      previous run filtered the corpus against it (and the reason the
+      filtering pass would have been a no-op anyway).
+
+    Subset retrains and ``--from-raw-cache`` are *not* disqualified here.
+    What they build (or reuse) carries its own provenance, and whether the
+    shipped models as a whole can be stamped is decided by
+    :func:`_consensus_provenance` across every model in models.bin.
     """
-    if args.encodings or args.from_raw_cache or args.keep_cache:
-        return None
     if not args.skip_test_overlap or not exclusions or test_data_dir is None:
         return None
+    if args.keep_cache and not check_cache_validity(cache_dir, exclusions):
+        return None
     return hash_exclusion_set(exclusions), _git_head(test_data_dir)
+
+
+def _consensus_provenance(values: list[Provenance | None]) -> Provenance | None:
+    """Return the provenance shared by *every* value, else ``None``.
+
+    The metadata's record claims that every model in models.bin was
+    filtered against one exclusion set, so a single unknown or dissenting
+    model makes the whole set unverifiable.  Commits may legitimately
+    differ where the hash agrees (two commits with identical test-data
+    content), in which case the hash is recorded without a commit.
+    """
+    if not values or any(v is None for v in values):
+        return None
+    hashes = {v[0] for v in values}
+    if len(hashes) != 1:
+        return None
+    # An unrecorded commit is missing information, not disagreement: keep a
+    # commit the recorded ones agree on so the file list stays available.
+    commits = {v[1] for v in values if v[1] is not None}
+    return hashes.pop(), commits.pop() if len(commits) == 1 else None
 
 
 def _read_metadata_header(path: Path, field: str) -> str | None:
@@ -533,24 +615,19 @@ def _write_training_metadata(  # noqa: PLR0913
     cache, which records ``samples_used: 0`` for every language whose
     corpus is no longer on disk even though the shipped model is unchanged.
 
-    *provenance* is ``(exclusion_set_hash, test_data_commit_or_None)`` and
-    may only be supplied by a run that rebuilt **every** model against a
-    freshly filtered cache (see :func:`_provenance_for_run`).  Any other
-    run carries the existing file's values forward verbatim, so the
-    recorded hash always describes a state that every shipped model has
-    been filtered against — never a newer one that only some were.  A
-    guard that over-claims is worse than none: it would certify
-    carried-over models as clean against test data they predate.
+    *provenance* is ``(exclusion_set_hash, test_data_commit_or_None)``,
+    already reduced by :func:`_consensus_provenance` to a state that
+    *every* model in *models* was filtered against — including models
+    merged in from a previous models.bin, which inherit that file's
+    record.  ``None`` means no such shared state exists and the fields are
+    omitted, so the absence reads as unverifiable.  It is deliberately not
+    carried forward from the existing file: a guard that over-claims is
+    worse than none, since it would certify models as clean against test
+    data they predate.
     """
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     previous = _read_metadata_blocks(path) if retrained_encodings else {}
-
-    if provenance is not None:
-        exclusion_hash, commit = provenance
-    else:
-        # Carry forward: this run did not earn the right to restamp.
-        exclusion_hash = _read_metadata_header(path, "exclusion_set_hash")
-        commit = _read_metadata_header(path, "test_data_commit")
+    exclusion_hash, commit = provenance if provenance is not None else (None, None)
 
     lines: list[str] = [
         f'training_date: "{timestamp}"',
@@ -912,7 +989,7 @@ def main() -> None:
 
     # Sample provenance here, next to the exclusion set it describes, so the
     # recorded hash and commit cannot drift apart over a long run.
-    provenance = _provenance_for_run(args, exclusions, test_data_path)
+    run_provenance = _provenance_for_run(args, exclusions, test_data_path, cache_dir)
 
     # Check cache validity against exclusion set.  When the exclusion set
     # changes, filter every source cache in place — drop only articles
@@ -1021,13 +1098,26 @@ def main() -> None:
 
     # raw_models: model_key -> raw frequency dict (not yet normalized)
     raw_models: dict[str, dict[tuple[int, int], int]] = {}
+    # What each of those count sets was filtered against.
+    raw_provenance: dict[str, Provenance | None] = {}
     skipped: list[str] = []
 
     if args.from_raw_cache and raw_cache_path.is_file():
         print("=== Loading raw bigram counts from cache ===")
-        with raw_cache_path.open("rb") as f:
-            raw_models = pickle.load(f)  # noqa: S301
+        try:
+            raw_models, raw_provenance = _load_raw_cache(raw_cache_path)
+        except Exception as exc:  # any unreadable cache
+            print(f"ERROR: cannot read {raw_cache_path}: {exc}")
+            # os._exit, not SystemExit: the atexit cleanup handler exits 0
+            # unconditionally, which would swallow the failure code.
+            os._exit(1)
         print(f"  Loaded {len(raw_models)} raw models from {raw_cache_path}")
+        unrecorded = sum(1 for k in raw_models if raw_provenance.get(k) is None)
+        if unrecorded:
+            print(
+                f"  {unrecorded} of them carry no record of the test data they "
+                "were filtered against; the metadata will report unverified"
+            )
         print()
     else:
         print(f"=== Building bigram models ({args.build_workers} workers) ===")
@@ -1070,6 +1160,7 @@ def main() -> None:
             )
             if freqs:
                 raw_models[key] = freqs
+                raw_provenance[key] = run_provenance
                 print(
                     f"  {key}: {len(freqs)} raw bigrams from "
                     f"{samples} samples ({total_bytes:,} bytes{r_str})"
@@ -1148,16 +1239,17 @@ def main() -> None:
         # and silently drop (or, worse, resurrect superseded versions of)
         # every other model.
         cached_raw: dict[str, dict[tuple[int, int], int]] = {}
+        cached_prov: dict[str, Provenance | None] = {}
+        cache_readable = True
         if args.encodings and raw_cache_path.is_file():
             try:
-                with raw_cache_path.open("rb") as f:
-                    cached_raw = pickle.load(f)  # noqa: S301
+                cached_raw, cached_prov = _load_raw_cache(raw_cache_path)
             except Exception as exc:  # any unreadable cache
                 # Unpickling raises a wide and version-dependent set of
                 # exceptions (ValueError and UnicodeDecodeError among them);
                 # none of them should discard a completed build phase.
-                print(f"  WARNING: ignoring unreadable raw cache ({exc})")
-                cached_raw = {}
+                print(f"  WARNING: unreadable raw cache ({exc})")
+                cached_raw, cached_prov, cache_readable = {}, {}, False
             # Drop only the legacy flat-format keys that this run replaces.
             # Evicting every key for a retrained encoding up front would
             # delete a model that this build skipped, leaving nothing to put
@@ -1166,11 +1258,23 @@ def main() -> None:
             for enc in args.encodings:
                 if any(k.split("/", 1)[-1] == enc for k in raw_models):
                     cached_raw.pop(enc, None)
+                    cached_prov.pop(enc, None)
         cached_raw.update(raw_models)
-        print(f"\n  Caching raw bigram counts to {raw_cache_path}")
-        with raw_cache_path.open("wb") as f:
-            pickle.dump(cached_raw, f, protocol=pickle.HIGHEST_PROTOCOL)
-        print(f"  Cached {len(cached_raw)} raw models")
+        cached_prov.update(raw_provenance)
+        if cache_readable:
+            print(f"\n  Caching raw bigram counts to {raw_cache_path}")
+            _save_raw_cache(raw_cache_path, cached_raw, cached_prov)
+            print(f"  Cached {len(cached_raw)} raw models")
+        else:
+            # Writing now would replace a whole (unreadable but possibly
+            # recoverable) cache with just this subset, and a later
+            # --from-raw-cache run would then ship a models.bin missing
+            # everything else.  Leave it for inspection instead.
+            print(
+                f"\n  Leaving {raw_cache_path} untouched: overwriting it with "
+                f"only this subset would lose every other model.  Delete it "
+                f"and run a full retrain to rebuild."
+            )
         print()
 
     # Normalize and prune raw counts into final models
@@ -1220,6 +1324,38 @@ def main() -> None:
         existing.update(models)
         models = existing
         print(f"  Merged {len(models)} total models ({len(args.encodings)} retrained)")
+
+    # Decide what provenance the shipped models.bin as a whole can claim.
+    # Every model must have been filtered against the same exclusion set:
+    # those built (or reloaded) this run carry their own record, and any
+    # model merged in from the previous models.bin inherits that file's
+    # recorded provenance — which is sound because only a run whose models
+    # all agreed was allowed to write it in the first place.
+    metadata_path = output_path.with_name("training_metadata.yaml")
+    carried_provenance: Provenance | None = None
+    carried_hash = _read_metadata_header(metadata_path, "exclusion_set_hash")
+    if carried_hash is not None:
+        carried_provenance = (
+            carried_hash,
+            _read_metadata_header(metadata_path, "test_data_commit"),
+        )
+    # Discriminate on membership in raw_models, not raw_provenance: a key
+    # this run built or loaded but has no record for is *unknown*, and must
+    # not silently inherit the previous file's stamp.  (Every v1 cache entry
+    # is exactly that case.)
+    provenance = _consensus_provenance(
+        [
+            raw_provenance.get(key) if key in raw_models else carried_provenance
+            for key in models
+        ]
+    )
+    if provenance is None:
+        print(
+            "  Provenance: unverified (models were not all filtered against "
+            "one known test-data state)"
+        )
+    else:
+        print(f"  Provenance: exclusion set {provenance[0][:12]}")
 
     # Serialize
     print("=== Serializing models ===")
@@ -1276,7 +1412,6 @@ def main() -> None:
         f"Confusion data:   {confusion_size:,} bytes ({confusion_size / 1024:.1f} KB)"
     )
 
-    metadata_path = output_path.with_name("training_metadata.yaml")
     _write_training_metadata(
         metadata_path,
         models,

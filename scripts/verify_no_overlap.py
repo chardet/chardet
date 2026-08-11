@@ -114,8 +114,8 @@ def report_training_provenance(test_data_dir: Path, metadata_path: Path) -> bool
     the exclusion set recorded at training time against today's closes
     that gap.
 
-    ``train.py`` records provenance only for a run that rebuilt every
-    model against a freshly filtered cache, so a match here means every
+    ``train.py`` records provenance only when *every* model in models.bin
+    was filtered against one exclusion set, so a match here means every
     shipped model was filtered against exactly this test data.  An absent
     record means unverifiable, never verified.
 
@@ -126,8 +126,8 @@ def report_training_provenance(test_data_dir: Path, metadata_path: Path) -> bool
         print(
             "UNVERIFIED: the training metadata records no exclusion set, so "
             "whether the shipped models were filtered against the current "
-            "test data cannot be determined.  A full retrain (no "
-            "--encodings/--from-raw-cache/--keep-cache) records it."
+            "test data cannot be determined.  A retrain covering every model "
+            "(or one whose reused counts all carry the same record) sets it."
         )
         return False
 
