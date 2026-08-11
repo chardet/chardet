@@ -1,4 +1,4 @@
-training_date: "2026-08-10T22:03:38Z"
+training_date: "2026-08-11T02:07:34Z"
 max_samples: 25000
 models:
   ar/cp1256:
@@ -290,6 +290,7 @@ models:
       culturax: 25000
       madlad400: 0
       wikipedia: 0
+      artpacks: 0
     test_articles_excluded: 0
   cs/cp852:
     language: cs
@@ -300,6 +301,7 @@ models:
       culturax: 25000
       madlad400: 0
       wikipedia: 0
+      artpacks: 0
     test_articles_excluded: 0
   cs/iso8859-2:
     language: cs
@@ -310,6 +312,7 @@ models:
       culturax: 25000
       madlad400: 0
       wikipedia: 0
+      artpacks: 0
     test_articles_excluded: 0
   cs/mac-latin2:
     language: cs
@@ -320,6 +323,7 @@ models:
       culturax: 25000
       madlad400: 0
       wikipedia: 0
+      artpacks: 0
     test_articles_excluded: 0
   cs/utf-8:
     language: cs
@@ -1530,6 +1534,7 @@ models:
       culturax: 25000
       madlad400: 0
       wikipedia: 0
+      artpacks: 0
     test_articles_excluded: 0
   hr/cp852:
     language: hr
@@ -1540,6 +1545,7 @@ models:
       culturax: 25000
       madlad400: 0
       wikipedia: 0
+      artpacks: 0
     test_articles_excluded: 0
   hr/iso8859-16:
     language: hr
@@ -1550,6 +1556,7 @@ models:
       culturax: 25000
       madlad400: 0
       wikipedia: 0
+      artpacks: 0
     test_articles_excluded: 0
   hr/iso8859-2:
     language: hr
@@ -1560,6 +1567,7 @@ models:
       culturax: 25000
       madlad400: 0
       wikipedia: 0
+      artpacks: 0
     test_articles_excluded: 0
   hr/mac-latin2:
     language: hr
@@ -1570,6 +1578,7 @@ models:
       culturax: 25000
       madlad400: 0
       wikipedia: 0
+      artpacks: 0
     test_articles_excluded: 0
   hr/utf-8:
     language: hr
@@ -1590,6 +1599,7 @@ models:
       culturax: 25000
       madlad400: 0
       wikipedia: 0
+      artpacks: 0
     test_articles_excluded: 0
   hu/cp852:
     language: hu
@@ -1600,6 +1610,7 @@ models:
       culturax: 25000
       madlad400: 0
       wikipedia: 0
+      artpacks: 0
     test_articles_excluded: 0
   hu/iso8859-16:
     language: hu
@@ -1610,6 +1621,7 @@ models:
       culturax: 25000
       madlad400: 0
       wikipedia: 0
+      artpacks: 0
     test_articles_excluded: 0
   hu/iso8859-2:
     language: hu
@@ -1620,6 +1632,7 @@ models:
       culturax: 25000
       madlad400: 0
       wikipedia: 0
+      artpacks: 0
     test_articles_excluded: 0
   hu/mac-latin2:
     language: hu
@@ -1630,6 +1643,7 @@ models:
       culturax: 25000
       madlad400: 0
       wikipedia: 0
+      artpacks: 0
     test_articles_excluded: 0
   hu/utf-8:
     language: hu
@@ -2640,6 +2654,7 @@ models:
       culturax: 25000
       madlad400: 0
       wikipedia: 0
+      artpacks: 0
     test_articles_excluded: 0
   pl/cp852:
     language: pl
@@ -2650,6 +2665,7 @@ models:
       culturax: 25000
       madlad400: 0
       wikipedia: 0
+      artpacks: 0
     test_articles_excluded: 0
   pl/iso8859-16:
     language: pl
@@ -2660,6 +2676,7 @@ models:
       culturax: 25000
       madlad400: 0
       wikipedia: 0
+      artpacks: 0
     test_articles_excluded: 0
   pl/iso8859-2:
     language: pl
@@ -2670,6 +2687,7 @@ models:
       culturax: 25000
       madlad400: 0
       wikipedia: 0
+      artpacks: 0
     test_articles_excluded: 0
   pl/mac-latin2:
     language: pl
@@ -2680,6 +2698,7 @@ models:
       culturax: 25000
       madlad400: 0
       wikipedia: 0
+      artpacks: 0
     test_articles_excluded: 0
   pl/utf-8:
     language: pl
@@ -2820,6 +2839,7 @@ models:
       culturax: 25000
       madlad400: 0
       wikipedia: 0
+      artpacks: 0
     test_articles_excluded: 0
   ro/cp852:
     language: ro
@@ -2830,16 +2850,18 @@ models:
       culturax: 25000
       madlad400: 0
       wikipedia: 0
+      artpacks: 0
     test_articles_excluded: 0
   ro/iso8859-16:
     language: ro
     encoding: iso8859-16
     samples_used: 25000
-    bigram_entries: 892
+    bigram_entries: 895
     sources:
       culturax: 25000
       madlad400: 0
       wikipedia: 0
+      artpacks: 0
     test_articles_excluded: 0
   ro/iso8859-2:
     language: ro
@@ -2850,6 +2872,7 @@ models:
       culturax: 25000
       madlad400: 0
       wikipedia: 0
+      artpacks: 0
     test_articles_excluded: 0
   ro/utf-8:
     language: ro
@@ -2940,6 +2963,7 @@ models:
       culturax: 25000
       madlad400: 0
       wikipedia: 0
+      artpacks: 0
     test_articles_excluded: 0
   sk/cp852:
     language: sk
@@ -2950,6 +2974,7 @@ models:
       culturax: 25000
       madlad400: 0
       wikipedia: 0
+      artpacks: 0
     test_articles_excluded: 0
   sk/iso8859-16:
     language: sk
@@ -2960,6 +2985,7 @@ models:
       culturax: 25000
       madlad400: 0
       wikipedia: 0
+      artpacks: 0
     test_articles_excluded: 0
   sk/iso8859-2:
     language: sk
@@ -2970,6 +2996,7 @@ models:
       culturax: 25000
       madlad400: 0
       wikipedia: 0
+      artpacks: 0
     test_articles_excluded: 0
   sk/mac-latin2:
     language: sk
@@ -2980,6 +3007,7 @@ models:
       culturax: 25000
       madlad400: 0
       wikipedia: 0
+      artpacks: 0
     test_articles_excluded: 0
   sk/utf-8:
     language: sk
@@ -3000,6 +3028,7 @@ models:
       culturax: 25000
       madlad400: 0
       wikipedia: 0
+      artpacks: 0
     test_articles_excluded: 0
   sl/cp852:
     language: sl
@@ -3010,6 +3039,7 @@ models:
       culturax: 25000
       madlad400: 0
       wikipedia: 0
+      artpacks: 0
     test_articles_excluded: 0
   sl/iso8859-16:
     language: sl
@@ -3020,6 +3050,7 @@ models:
       culturax: 25000
       madlad400: 0
       wikipedia: 0
+      artpacks: 0
     test_articles_excluded: 0
   sl/iso8859-2:
     language: sl
@@ -3030,6 +3061,7 @@ models:
       culturax: 25000
       madlad400: 0
       wikipedia: 0
+      artpacks: 0
     test_articles_excluded: 0
   sl/mac-latin2:
     language: sl
@@ -3040,6 +3072,7 @@ models:
       culturax: 25000
       madlad400: 0
       wikipedia: 0
+      artpacks: 0
     test_articles_excluded: 0
   sl/utf-8:
     language: sl
@@ -3060,6 +3093,7 @@ models:
       culturax: 25000
       madlad400: 0
       wikipedia: 0
+      artpacks: 0
     test_articles_excluded: 0
   sr/cp1251:
     language: sr
