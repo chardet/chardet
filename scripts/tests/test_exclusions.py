@@ -6,6 +6,7 @@ from pathlib import Path
 
 from exclusions import (
     ExclusionIndex,
+    _weight,
     build_exclusion_set,
     content_hash,
     fingerprint_text,
@@ -259,3 +260,82 @@ def test_content_hash_ignores_formatting_only_differences() -> None:
         "Hello world. More text."
     )
     assert content_hash("Hello world.") != content_hash("Goodbye world.")
+
+
+def test_repeated_boilerplate_earns_credit_only_once() -> None:
+    """A candidate cannot accumulate coverage by repeating one shared line.
+
+    Summing over a list rather than a set let a document that repeated a
+    single shared sentence reach the threshold on that sentence alone.
+    """
+    shared = (
+        "This one sentence is shared with the indexed test file and is "
+        "long enough to be indexed on its own. "
+    )
+    index = _indexed(shared + _document("indexed"))
+    assert not index.overlaps(shared * 30)
+
+
+def test_coverage_is_tracked_per_test_file() -> None:
+    """Matches against different test files do not pool into one score.
+
+    Counting against the union of every test file's units let a document
+    reach the threshold without reproducing any single one of them.
+    """
+    index = ExclusionIndex()
+    for tag in ("alpha", "beta", "gamma", "delta"):
+        index.add(_document(tag, count=20))
+    # One sentence borrowed from each of four test files, carried inside a
+    # mostly original article: no single test file is substantially
+    # reproduced, and the article is mostly its own work.
+    borrowed = " ".join(
+        _document(tag, count=20).split(". ")[0] + "."
+        for tag in ("alpha", "beta", "gamma", "delta")
+    )
+    assert not index.overlaps(borrowed + " " + _document("original", count=60))
+
+
+def test_matched_text_must_clear_an_absolute_floor() -> None:
+    """A fraction alone is not enough; the shared text must be substantial."""
+    tiny = "A short shared line that is still long enough to be indexed here."
+    index = _indexed(tiny)
+    # Same text, so the fraction is 100% either way — only the floor can
+    # keep this from counting as reproduction.
+    assert _weight(tiny) < 200
+    assert not index.overlaps(tiny + " " + _document("padding", count=2))
+
+
+def test_text_without_sentence_structure_matches_as_a_whole() -> None:
+    """ANSI art and fixed-width records have no sentences to split on."""
+    art = "\n".join("|" + "=#" * 30 + "|" for _ in range(20))
+    index = _indexed(art)
+    assert index.overlaps(art)
+    assert not index.overlaps("\n".join("+" + "-o" * 30 + "+" for _ in range(20)))
+
+
+def test_empty_and_blank_text_never_overlap() -> None:
+    """Empty input is not a match, and does not poison the index."""
+    index = _indexed(_document("indexed"))
+    assert not index.overlaps("")
+    assert not index.overlaps("   \n\t  ")
+    blank = ExclusionIndex()
+    blank.add("")
+    assert not blank
+    assert not blank.overlaps("anything at all")
+
+
+def test_empty_index_matches_nothing() -> None:
+    """With no test data indexed, nothing is excluded."""
+    assert not ExclusionIndex().overlaps(_document("anything"))
+
+
+def test_identical_opening_is_enough_on_its_own() -> None:
+    """The opening hash is retained as a floor under the coverage rule.
+
+    Whatever else changes, detection stays at least as strong as the
+    prefix rule this replaced.
+    """
+    original = _document("floor", count=30)
+    index = _indexed(original)
+    # Same first 200 characters, entirely different body afterwards.
+    assert index.overlaps(original[:200] + " " + _document("divergent", count=30))
