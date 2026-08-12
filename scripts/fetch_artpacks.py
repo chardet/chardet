@@ -25,7 +25,7 @@ import sys
 from pathlib import Path
 
 from data_sources import save_article
-from exclusions import build_exclusion_set, fingerprint_text
+from exclusions import build_exclusion_set, content_hash, overlaps_exclusions
 
 RSYNC_MODULE = "rsync://16colo.rs/pack"
 
@@ -164,10 +164,13 @@ def main() -> None:
         text = prepare_article(path.read_bytes())
         if text is None:
             continue
-        fp = fingerprint_text(text)
+        # Whole-content hash, not the opening one: art files routinely share
+        # a group header, and keying dedup on the opening collapsed hundreds
+        # of distinct pieces into one.
+        fp = content_hash(text)
         if fp in seen:
             continue
-        if fp in exclusions:
+        if overlaps_exclusions(text, exclusions):
             excluded += 1
             continue
         seen.add(fp)

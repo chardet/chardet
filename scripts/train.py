@@ -33,6 +33,7 @@ import pickle
 import signal
 import struct
 import subprocess
+import sys
 import time
 import zlib
 from datetime import datetime, timezone
@@ -52,7 +53,7 @@ from data_sources import (
     write_cache_sentinel,
 )
 from data_sources import get_texts as get_texts_multi
-from exclusions import build_exclusion_set, fingerprint_text
+from exclusions import build_exclusion_set, content_hash, overlaps_exclusions
 from substitutions import (
     apply_substitutions,
     collapse_whitespace_runs,
@@ -151,6 +152,28 @@ _PREVALENCE_REVIEWED: frozenset[str] = frozenset(
         ],
     }
 )
+
+
+#: Status the atexit handler force-exits with.  HuggingFace streaming
+#: iterators hold connections open and stop the interpreter shutting down
+#: normally, so training force-exits — which, when it was hardcoded to 0,
+#: reported success for every failure that reached shutdown, including
+#: uncaught exceptions and Ctrl-C.  :func:`fail` bypasses this entirely;
+#: the handler covers everything else.
+_exit_status = 0
+
+
+def fail(*lines: str) -> None:
+    """Print an error and terminate the process non-zero.
+
+    Force-exits rather than raising: HuggingFace streaming iterators leave
+    non-daemon threads behind, and a normal ``SystemExit`` waits on them at
+    shutdown, so an error message would be followed by a hang instead of an
+    exit.
+    """
+    for line in lines:
+        print(line)
+    os._exit(1)
 
 
 def encode_text(text: str, codec_name: str) -> bytes | None:
@@ -926,11 +949,22 @@ def main() -> None:
     # HuggingFace streaming iterators can hold connections open and prevent
     # normal Python shutdown, so we force-exit via os._exit as a last resort.
     def cleanup():
-        """Kill all threads and subprocesses on exit."""
-        os._exit(0)
+        """Kill all threads and subprocesses on exit, keeping the status."""
+        os._exit(_exit_status)
 
     atexit.register(cleanup)
-    signal.signal(signal.SIGTERM, lambda s, f: cleanup())
+    # A signal or an uncaught exception is a failure: without these the
+    # handler above would force-exit 0 and report a killed or crashed run
+    # as a successful one.
+    signal.signal(signal.SIGTERM, lambda _s, _f: os._exit(1))
+    signal.signal(signal.SIGINT, lambda _s, _f: os._exit(1))
+
+    def _crashed(exc_type, exc, tb):  # noqa: ANN001
+        global _exit_status  # noqa: PLW0603 - process-wide exit status
+        _exit_status = 1
+        sys.__excepthook__(exc_type, exc, tb)
+
+    sys.excepthook = _crashed
 
     # Filter to requested encodings (or all)
     if args.encodings:
@@ -938,7 +972,7 @@ def main() -> None:
         if unknown:
             print(f"ERROR: Unknown encodings: {', '.join(unknown)}")
             print(f"Available: {', '.join(sorted(ENCODING_LANG_MAP))}")
-            raise SystemExit(1)
+            fail()
         encoding_map = {e: ENCODING_LANG_MAP[e] for e in args.encodings}
     else:
         encoding_map = ENCODING_LANG_MAP
@@ -999,50 +1033,83 @@ def main() -> None:
     # 600s download window cannot refill dozens of corpora, and the build
     # phase then consumed empty snapshots while the download threads were
     # still filling them.
-    if exclusions and not args.keep_cache:
-        if not check_cache_validity(cache_dir, exclusions):
+    #
+    # Deduplication is *not* gated on the exclusion set: duplicates are a
+    # property of the corpus, not of the test data, so a valid sentinel
+    # must not skip the pass.  It once did, and a retrain then ran on
+    # 4,140 duplicate Breton articles.  Only the languages this run uses
+    # are scanned, keeping a subset retrain cheap.
+    if not args.keep_cache:
+        filter_excluded = bool(exclusions) and not check_cache_validity(
+            cache_dir, exclusions
+        )
+        # Exclusion filtering covers *every* language, not just this run's:
+        # the sentinel written below records that the whole cache was
+        # filtered against this test set, and a later run trusts it.  A
+        # subset retrain that filtered only its own languages while
+        # stamping the cache-wide sentinel would leave the rest permanently
+        # unfiltered.  Deduplication is per-run-language because nothing
+        # records it and the next run redoes it.
+        deduped_langs = {*sorted_langs, _ART_PSEUDO_LANG}
+        if filter_excluded:
             print("  Exclusion set changed — filtering article caches")
-            for source in (*DOWNLOADABLE_SOURCES, "artpacks"):
-                source_dir = cache_dir / source
-                if not source_dir.is_dir():
+        print("  Checking article caches for duplicates")
+        for source in (*DOWNLOADABLE_SOURCES, "artpacks"):
+            source_dir = cache_dir / source
+            if not source_dir.is_dir():
+                continue
+            removed = 0
+            deduped = 0
+            for lang_dir in sorted(source_dir.iterdir()):
+                if not lang_dir.is_dir():
                     continue
-                removed = 0
-                for lang_dir in sorted(source_dir.iterdir()):
-                    if not lang_dir.is_dir():
+                dedupe_here = lang_dir.name in deduped_langs
+                if not (filter_excluded or dedupe_here):
+                    continue
+                kept: list[Path] = []
+                # A corpus slice can hold the same document many times over
+                # (one Breton article occurred 567 times), and every copy is
+                # counted again in each bigram it feeds, pulling the model
+                # toward whatever happens to be duplicated.
+                seen: set[str] = set()
+                for article in sorted(lang_dir.glob("*.txt")):
+                    try:
+                        text = article.read_text(encoding="utf-8")
+                    except (UnicodeDecodeError, OSError):
+                        # A corrupt or truncated cache file is as good as
+                        # excluded; drop it and let the next download top
+                        # the cache back up.
+                        article.unlink()
+                        removed += 1
                         continue
-                    kept: list[Path] = []
-                    for article in sorted(lang_dir.glob("*.txt")):
-                        try:
-                            text = article.read_text(encoding="utf-8")
-                        except (UnicodeDecodeError, OSError):
-                            # A corrupt or truncated cache file is as good
-                            # as excluded; drop it and let the next
-                            # download top the cache back up.
+                    if filter_excluded and overlaps_exclusions(text, exclusions):
+                        article.unlink()
+                        removed += 1
+                        continue
+                    if dedupe_here:
+                        digest = content_hash(text)
+                        if digest in seen:
                             article.unlink()
-                            removed += 1
+                            deduped += 1
                             continue
-                        if fingerprint_text(text) in exclusions:
-                            article.unlink()
-                            removed += 1
-                        else:
-                            kept.append(article)
-                    # Renumber compactly: the download layer resumes at
-                    # index len(cached), so numbering gaps would make it
-                    # overwrite kept articles and permanently undercount
-                    # the cache.  Each target index is <= its source
-                    # index, so replace() never clobbers an unprocessed
-                    # file.  The shortfall is topped up by the next
-                    # download pass; as with any count-based resume, a
-                    # few re-streamed articles may repeat cached content
-                    # — bounded by the number removed, and harmless at
-                    # corpus scale.
-                    for i, article in enumerate(kept):
-                        target = lang_dir / f"{i:06d}.txt"
-                        if article != target:
-                            article.replace(target)
-                if removed:
-                    print(f"    {source}: removed {removed} newly-excluded articles")
-        write_cache_sentinel(cache_dir, exclusions)
+                        seen.add(digest)
+                    kept.append(article)
+                # Renumber compactly: the download layer resumes at index
+                # len(cached), so numbering gaps would make it overwrite
+                # kept articles and permanently undercount the cache.  Each
+                # target index is <= its source index, so replace() never
+                # clobbers an unprocessed file.  The shortfall is topped up
+                # by the next download pass.
+                for i, article in enumerate(kept):
+                    target = lang_dir / f"{i:06d}.txt"
+                    if article != target:
+                        article.replace(target)
+            if removed:
+                print(f"    {source}: removed {removed} newly-excluded articles")
+            if deduped:
+                print(f"    {source}: removed {deduped} duplicate articles")
+        if exclusions:
+            write_cache_sentinel(cache_dir, exclusions)
 
     print(f"Training bigram models for {len(encoding_map)} encodings")
     print(f"Languages needed: {sorted_langs}")
@@ -1108,15 +1175,14 @@ def main() -> None:
             raw_models, raw_provenance = _load_raw_cache(raw_cache_path)
         except Exception as exc:  # any unreadable cache
             print(f"ERROR: cannot read {raw_cache_path}: {exc}")
-            # os._exit, not SystemExit: the atexit cleanup handler exits 0
-            # unconditionally, which would swallow the failure code.
-            os._exit(1)
+            fail()
         print(f"  Loaded {len(raw_models)} raw models from {raw_cache_path}")
         unrecorded = sum(1 for k in raw_models if raw_provenance.get(k) is None)
         if unrecorded:
             print(
-                f"  {unrecorded} of them carry no record of the test data they "
-                "were filtered against; the metadata will report unverified"
+                f"  {unrecorded} of them carry no record of which test set was "
+                "excluded when they were built; the metadata will report "
+                "unverified"
             )
         print()
     else:
@@ -1202,9 +1268,7 @@ def main() -> None:
                     "(a transient worker death cost uk/mac-cyrillic once); "
                     "re-run the training command."
                 )
-                # os._exit, not SystemExit: the atexit cleanup handler exits
-                # 0 unconditionally, which would swallow the failure code.
-                os._exit(1)
+                fail()
 
         # Retention guard (ADR-0004): a registry-declared (language, encoding)
         # pair whose corpus mostly fails to encode is a config or
@@ -1228,9 +1292,7 @@ def main() -> None:
                 "to represent its corpus; fix the registry languages or the "
                 "preprocessing (substitutions/transliteration). See ADR-0004."
             )
-            # os._exit, not SystemExit: the atexit cleanup handler exits 0
-            # unconditionally, which would swallow the failure code.
-            os._exit(1)
+            fail()
 
         # Cache raw counts for future --from-raw-cache runs.  On a subset
         # retrain, merge into whatever is already cached: replacing it
@@ -1318,9 +1380,7 @@ def main() -> None:
                 "languages is likely empty or incomplete.  models.bin was "
                 "not modified."
             )
-            # os._exit, not SystemExit: the atexit cleanup handler exits 0
-            # unconditionally, which would swallow the failure code.
-            os._exit(1)
+            fail()
         existing.update(models)
         models = existing
         print(f"  Merged {len(models)} total models ({len(args.encodings)} retrained)")
@@ -1351,11 +1411,11 @@ def main() -> None:
     )
     if provenance is None:
         print(
-            "  Provenance: unverified (models were not all filtered against "
-            "one known test-data state)"
+            "  Provenance: unverified (the models were not all built with "
+            "one known test set excluded)"
         )
     else:
-        print(f"  Provenance: exclusion set {provenance[0][:12]}")
+        print(f"  Provenance: built with test set {provenance[0][:12]} excluded")
 
     # Serialize
     print("=== Serializing models ===")

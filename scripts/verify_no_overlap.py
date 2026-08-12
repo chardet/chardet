@@ -17,22 +17,22 @@ import sys
 from pathlib import Path
 
 from data_sources import TEXT_SOURCES, hash_exclusion_set
-from exclusions import build_exclusion_set, fingerprint_text
+from exclusions import build_exclusion_set, overlaps_exclusions
 
 
 def check_overlap(
     test_data_dir: Path,
     cache_dir: Path,
-) -> list[tuple[str, str]]:
+) -> list[str]:
     """Check for overlapping content between training cache and test data.
 
-    Returns list of (training_file, fingerprint) tuples for overlapping articles.
+    Returns the paths of training articles that reproduce a test file.
     """
-    test_fingerprints = build_exclusion_set(test_data_dir)
-    if not test_fingerprints:
+    test_index = build_exclusion_set(test_data_dir)
+    if not test_index:
         return []
 
-    overlaps: list[tuple[str, str]] = []
+    overlaps: list[str] = []
 
     for source in TEXT_SOURCES:
         source_dir = cache_dir / source
@@ -45,10 +45,9 @@ def check_overlap(
                 if article_file.suffix != ".txt":
                     continue
                 text = article_file.read_text(encoding="utf-8")
-                fp = fingerprint_text(text)
-                if fp in test_fingerprints:
+                if overlaps_exclusions(text, test_index):
                     rel_path = f"{source}/{lang_dir.name}/{article_file.name}"
-                    overlaps.append((rel_path, fp))
+                    overlaps.append(rel_path)
 
     return overlaps
 
@@ -104,20 +103,20 @@ def _differing_test_files(test_data_dir: Path, commit: str) -> list[str] | None:
 
 
 def report_training_provenance(test_data_dir: Path, metadata_path: Path) -> bool:
-    """Report whether the models were filtered against the current test data.
+    """Report whether every test file today was excluded from training.
 
     The overlap scan above compares the *current* article cache against
     test data, which cannot see the one contamination direction that
     matters here: a test file created from a corpus article, with the
     source article then removed from the cache, leaves the scan clean
     while the shipped models were still trained on that text.  Comparing
-    the exclusion set recorded at training time against today's closes
-    that gap.
+    the set of test files excluded at training time against today's
+    closes that gap.
 
     ``train.py`` records provenance only when *every* model in models.bin
-    was filtered against one exclusion set, so a match here means every
-    shipped model was filtered against exactly this test data.  An absent
-    record means unverifiable, never verified.
+    was built from a corpus with one exclusion set removed, so a match
+    here means today's entire test set was kept out of training.  An
+    absent record means unverifiable, never verified.
 
     :returns: ``True`` only when provenance is recorded *and* matches.
     """
@@ -125,19 +124,22 @@ def report_training_provenance(test_data_dir: Path, metadata_path: Path) -> bool
     if recorded_hash is None:
         print(
             "UNVERIFIED: the training metadata records no exclusion set, so "
-            "whether the shipped models were filtered against the current "
-            "test data cannot be determined.  A retrain covering every model "
-            "(or one whose reused counts all carry the same record) sets it."
+            "whether today's test files were all excluded from training "
+            "cannot be determined.  A retrain covering every model (or one "
+            "whose reused counts all carry the same record) sets it."
         )
         return False
 
     current_hash = hash_exclusion_set(build_exclusion_set(test_data_dir))
     if current_hash == recorded_hash:
-        print("Models were trained against exactly this test data.")
+        print(
+            "VERIFIED: every model was trained with today's entire test set "
+            "excluded from its corpus."
+        )
         return True
 
     print()
-    print("WARNING: test data differs from what the models were filtered against.")
+    print("WARNING: today's test set is not the one that was excluded during training.")
     commit = _read_metadata_field(metadata_path, "test_data_commit")
     differing = _differing_test_files(test_data_dir, commit) if commit else None
     if differing:
@@ -155,9 +157,10 @@ def report_training_provenance(test_data_dir: Path, metadata_path: Path) -> bool
     else:
         print(f"  Cannot list files: {test_data_dir} is not a git checkout.")
     print(
-        "  Any test file taken from a training corpus is train/test overlap "
-        "the scan above cannot detect.  Retrain every encoding whose "
-        "languages include theirs before trusting accuracy numbers."
+        "  A test file added after training may have been trained on, which "
+        "the scan above cannot detect once its source article is gone from "
+        "the cache.  Retrain every encoding whose languages include theirs "
+        "before trusting accuracy numbers."
     )
     return False
 
@@ -205,8 +208,8 @@ def main() -> None:
 
     if overlaps:
         print(f"FAIL: Found {len(overlaps)} overlapping articles:")
-        for path, fp in overlaps:
-            print(f"  {path} (fingerprint: {fp[:16]}...)")
+        for path in overlaps:
+            print(f"  {path}")
         sys.exit(1)
 
     print("PASS: No overlap detected between training cache and test data.")

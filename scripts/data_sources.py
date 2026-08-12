@@ -8,11 +8,10 @@ HuggingFace -> fingerprint-check -> cache accepted articles.
 from __future__ import annotations
 
 import functools
-import hashlib
 from dataclasses import dataclass
 from pathlib import Path
 
-from exclusions import is_excluded
+from exclusions import ExclusionIndex, content_hash, is_excluded
 
 print = functools.partial(print, flush=True)  # noqa: A001
 
@@ -29,6 +28,10 @@ WIKIPEDIA_DATASET = "wikimedia/wikipedia"
 # it lives here so a new source cannot be added to one consumer and
 # silently skipped by the others.
 TEXT_SOURCES = ("culturax", "madlad400", "wikipedia", "artpacks")
+
+#: Sentinel for "read the whole cache", for callers that need every cached
+#: article rather than the first N.
+_ALL_CACHED_ARTICLES = 1 << 62
 
 # The subset train.py can rebuild by itself (streamed from HuggingFace).
 # The artpack cache is produced by scripts/fetch_artpacks.py and must not
@@ -175,13 +178,12 @@ def save_article(cache_dir: Path, index: int, text: str) -> None:
 _SENTINEL_FILE = ".exclusion_set_hash"
 
 
-def hash_exclusion_set(exclusions: frozenset[str]) -> str:
-    """Compute a deterministic hash of the exclusion set."""
-    combined = "\n".join(sorted(exclusions))
-    return hashlib.sha256(combined.encode("utf-8")).hexdigest()
+def hash_exclusion_set(exclusions: ExclusionIndex) -> str:
+    """Compute a deterministic hash of the indexed test content."""
+    return exclusions.digest()
 
 
-def write_cache_sentinel(cache_dir: Path, exclusions: frozenset[str]) -> None:
+def write_cache_sentinel(cache_dir: Path, exclusions: ExclusionIndex) -> None:
     """Write the exclusion set hash to a sentinel file."""
     cache_dir.mkdir(parents=True, exist_ok=True)
     (cache_dir / _SENTINEL_FILE).write_text(
@@ -190,7 +192,7 @@ def write_cache_sentinel(cache_dir: Path, exclusions: frozenset[str]) -> None:
     )
 
 
-def check_cache_validity(cache_dir: Path, exclusions: frozenset[str]) -> bool:
+def check_cache_validity(cache_dir: Path, exclusions: ExclusionIndex) -> bool:
     """Check if the cached data matches the current exclusion set."""
     sentinel = cache_dir / _SENTINEL_FILE
     if not sentinel.is_file():
@@ -212,7 +214,7 @@ def _stream_from_hf(  # noqa: PLR0913
     source_name: str,
     needed: int,
     cache_dir: Path,
-    exclusions: frozenset[str],
+    exclusions: ExclusionIndex,
     start_index: int,
     resume_stream_index: int = 0,
     data_files: dict[str, str] | None = None,
@@ -249,8 +251,24 @@ def _stream_from_hf(  # noqa: PLR0913
         print(f"  WARNING: Could not load {dataset} ({config}): {exc}")
         return [], 0
 
+    # Content hashes already in this language's cache.  A corpus slice can
+    # repeat the same document many times (one Breton article occurred 567
+    # times), and each copy would be counted again in every bigram it
+    # feeds — skewing the model toward whatever happens to be duplicated,
+    # and consuming sample slots in exactly the low-resource languages that
+    # have none to spare.
+    # Every cached article, not a slice of them: capping this at a multiple
+    # of what is still needed leaves the rest of the cache invisible, and a
+    # duplicate of an unread article is saved as if it were new.  That is
+    # how a deduplicated Breton cache refilled with 4,140 fresh duplicates.
+    seen: set[str] = {
+        content_hash(cached)
+        for cached in load_cached_articles(cache_dir, _ALL_CACHED_ARTICLES)
+    }
+
     new_texts: list[str] = []
     skipped = 0
+    duplicates = 0
     try:
         for stream_idx, example in enumerate(ds):
             if stream_idx < resume_stream_index:
@@ -265,6 +283,11 @@ def _stream_from_hf(  # noqa: PLR0913
             ):
                 skipped += 1
                 continue
+            digest = content_hash(text)
+            if digest in seen:
+                duplicates += 1
+                continue
+            seen.add(digest)
             save_article(cache_dir, start_index + len(new_texts), text)
             new_texts.append(text)
     except Exception as exc:
@@ -272,6 +295,8 @@ def _stream_from_hf(  # noqa: PLR0913
 
     if skipped:
         print(f"    Skipped {skipped} excluded articles from {source_name}")
+    if duplicates:
+        print(f"    Skipped {duplicates} duplicate articles from {source_name}")
     return new_texts, skipped
 
 
@@ -293,7 +318,7 @@ def get_culturax_texts(
     lang: str,
     needed: int,
     cache_dir: Path,
-    exclusions: frozenset[str],
+    exclusions: ExclusionIndex,
 ) -> tuple[list[str], int]:
     """Download CulturaX texts, skipping excluded articles.
 
@@ -333,7 +358,7 @@ def get_madlad_texts(
     lang: str,
     needed: int,
     cache_dir: Path,
-    exclusions: frozenset[str],
+    exclusions: ExclusionIndex,
 ) -> tuple[list[str], int]:
     """Download MADLAD-400 texts, skipping excluded articles.
 
@@ -382,7 +407,7 @@ def get_wikipedia_texts(
     lang: str,
     needed: int,
     cache_dir: Path,
-    exclusions: frozenset[str],
+    exclusions: ExclusionIndex,
 ) -> tuple[list[str], int]:
     """Download Wikipedia texts, skipping excluded articles.
 
@@ -446,7 +471,7 @@ def get_texts(
     lang: str,
     max_samples: int,
     cache_dir: Path,
-    exclusions: frozenset[str],
+    exclusions: ExclusionIndex,
 ) -> tuple[list[str], SourceStats]:
     """Download texts from multiple sources, filling to max_samples.
 
