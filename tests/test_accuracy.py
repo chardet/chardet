@@ -38,17 +38,6 @@ _KNOWN_FAILURES: frozenset[str] = frozenset(
         "cp858-en/culturax_00000.txt",
         "cp858-ms/culturax_00000.txt",
         "iso-8859-15-en/culturax_00002.txt",
-        # Hungarian distinguishes iso8859-2 from iso8859-16 only at the
-        # u-double-acute positions, and this file carries just four of
-        # them (0xF8, which reads as Czech r-hacek under iso8859-2), so
-        # Windows-1250 wins the near-tie on everything else.  The
-        # culturax_hu_* files added to this directory carry the same
-        # letter 8 or more times and detect as iso8859-16 outright, so
-        # the gap is one of sparse-letter weighting rather than missing
-        # arbitration.  (The iso-8859-2-hu copies of those files detect
-        # as Windows-1250, which the evaluation tables accept as a
-        # superset of iso8859-2.)
-        "iso-8859-16-hu/culturax_OSCAR-2019_82421.txt",
     }
 )
 
@@ -68,7 +57,16 @@ _KNOWN_ERA_FILTERED_FAILURES: frozenset[str] = frozenset(
         # iso8859-16, and Windows-1250 takes the file on the surrounding
         # prose regardless.
         "iso-8859-2-hu/torokorszag.blogspot.com.xml",
-        "iso-8859-16-hu/culturax_OSCAR-2019_82421.txt",
+        # One 0xDD is the pair's whole distinguishing evidence, and the
+        # rescore reads it under mac-turkish's Turkish model (a very
+        # common dotless i) rather than mac-roman's Danish one — the pair
+        # models disjoint languages, so the language restriction falls
+        # back to comparing every variant.  The category vote does get it
+        # right, but at (margin 4, 1 demotion event) it clears neither
+        # half of the decisive-override gate, which needs margin 8 and 2
+        # events.  Loosening either threshold to reach this file would
+        # re-enable single-byte overrides across every in-band pair,
+        # which is exactly what those constants exist to prevent.
         "macroman-da/culturax_mC4_83469.txt",
     }
 )

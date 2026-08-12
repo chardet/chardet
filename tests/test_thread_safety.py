@@ -95,6 +95,7 @@ def test_cold_cache_concurrent_init():
         # Clear all caches to cold state.
         _models._load_models_data.cache_clear()
         _models.get_enc_index.cache_clear()
+        _confusion._modelled_languages.cache_clear()
         _confusion.load_confusion_data.cache_clear()
         _registry.lookup_encoding.cache_clear()
         _registry.get_candidates.cache_clear()
@@ -105,6 +106,7 @@ def test_cold_cache_concurrent_init():
         # Clear and let caches re-populate naturally on next use.
         _models._load_models_data.cache_clear()
         _models.get_enc_index.cache_clear()
+        _confusion._modelled_languages.cache_clear()
         _confusion.load_confusion_data.cache_clear()
         _registry.lookup_encoding.cache_clear()
         _registry.get_candidates.cache_clear()

@@ -17,7 +17,7 @@ import pytest
 
 import chardet
 from chardet.models import _load_models_data, get_enc_index, get_rowmax
-from chardet.pipeline.confusion import load_confusion_data
+from chardet.pipeline.confusion import _modelled_languages, load_confusion_data
 from chardet.registry import get_candidates, lookup_encoding
 
 # ---------------------------------------------------------------------------
@@ -99,6 +99,7 @@ def _clear_all_caches():
     get_candidates.cache_clear()
     lookup_encoding.cache_clear()
     load_confusion_data.cache_clear()
+    _modelled_languages.cache_clear()
 
 
 def _make_scaled_input(base: bytes, target_bytes: int) -> bytes:

@@ -525,7 +525,15 @@ def _promote_mac_on_cr_line_endings(
         if top.confidence - r.confidence > _CR_MAC_BAND:
             break
         if r.encoding is not None and _era_rank(r.encoding) == _LEGACY_MAC_ERA:
-            if confusion_pair_winner(data, top.encoding, r.encoding) == top.encoding:
+            # Pass both languages so the veto arbitrates this pair under
+            # the same rule confusion resolution just applied to it.
+            langs = frozenset(
+                lang for lang in (top.language, r.language) if lang is not None
+            )
+            if (
+                confusion_pair_winner(data, top.encoding, r.encoding, langs)
+                == top.encoding
+            ):
                 # Byte-level evidence says the top beats the best-ranked
                 # Mac candidate: stop entirely rather than letting a
                 # lower-ranked sibling take the promotion just because it

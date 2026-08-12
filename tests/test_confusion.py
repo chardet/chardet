@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 import chardet.pipeline.confusion as confusion_mod
+from chardet.models import BigramProfile, get_enc_index
 from chardet.pipeline import DetectionResult
 
 # Ukrainian text in koi8-u encoding; bytes 0xa6/0xa7 are in the koi8-r vs koi8-u
@@ -328,3 +329,153 @@ def test_resolve_confusion_groups_no_swap_when_winner_is_top():
 
     assert resolved[0].encoding == "cp1252"
     assert resolved[1].encoding == "iso8859-1"
+
+
+# Hungarian text whose u-double-acute letters land on 0xF8 in iso8859-16 —
+# the one position separating it from iso8859-2, which reads that byte as
+# the Czech r-hacek.
+_HUNGARIAN_ISO8859_16 = (
+    "A műszerfal és a hűtőrács kitűnt a szürkeségből, "
+    "krómbetűkkel díszítve, fűtött üléssel. "
+) * 4
+
+# Cyrillic prose in cp866.  cp866 cannot encode BYELORUSSIAN-UKRAINIAN I
+# (U+0456) at all — that gap is exactly what cp1125 exists to fill — so
+# the sample stays within the letters cp866 covers; the languages under
+# test come from the constructed results, not from these bytes.
+_CYRILLIC_CP866 = (
+    "Родная мова не только средство общения, но и сокровище культуры. "
+    "Это язык наших предков и наших детей. "
+).encode("cp866") * 3
+
+
+def test_comparable_languages_unrestricted_without_languages():
+    """No reported languages means the unrestricted comparison."""
+    assert (
+        confusion_mod._comparable_languages("iso8859-2", "iso8859-16", frozenset())
+        is None
+    )
+
+
+def test_comparable_languages_excludes_what_one_side_cannot_model():
+    """The shared set drops languages only one encoding models.
+
+    iso8859-2 models Czech and iso8859-16 does not, so a pair judged on
+    Hungarian must not be scored against a Czech model.
+    """
+    shared = confusion_mod._comparable_languages(
+        "iso8859-2", "iso8859-16", frozenset({"hu"})
+    )
+    assert shared is not None
+    assert "hu" in shared
+    assert "cs" not in shared
+
+
+def test_comparable_languages_falls_back_when_a_language_is_unshared():
+    """A reported language outside the shared set disables the restriction.
+
+    cp1125 models only Ukrainian, so a Belarusian cp866 document shares
+    just ``uk`` with it.  Restricting there would score the right encoding
+    under the wrong language, so the pair is compared unrestricted.
+    """
+    assert (
+        confusion_mod._comparable_languages("cp866", "cp1125", frozenset({"uk", "be"}))
+        is None
+    )
+
+
+def test_comparable_languages_restricts_when_every_language_is_shared():
+    """Both reported languages inside the shared set enables the restriction."""
+    assert confusion_mod._comparable_languages(
+        "cp866", "cp1125", frozenset({"uk"})
+    ) == frozenset({"uk"})
+
+
+def test_bigram_rescore_judges_hungarian_under_hungarian():
+    """The pair is compared in the language both results report."""
+    maps = confusion_mod.load_confusion_data()
+    diff_bytes, _ = maps[("iso8859-2", "iso8859-16")]
+    data = _HUNGARIAN_ISO8859_16.encode("iso8859-16")
+    assert (
+        confusion_mod.resolve_by_bigram_rescore(
+            data, "iso8859-2", "iso8859-16", diff_bytes, frozenset({"hu"})
+        )
+        == "iso8859-16"
+    )
+
+
+def test_comparable_languages_keeps_the_art_model():
+    """The art pseudo-language survives the shared-language intersection.
+
+    cp437 is the only encoding with a ``zxx`` model, so a plain
+    intersection would strip box-drawing evidence from every restricted
+    rescore cp437 takes part in.
+    """
+    shared = confusion_mod._comparable_languages("cp850", "cp437", frozenset({"en"}))
+    assert shared is not None
+    assert "zxx" in shared
+    assert "zxx" not in confusion_mod._modelled_languages("cp850")
+
+
+def test_best_variant_score_none_means_every_variant():
+    """``None`` scores every variant; a restriction can only score lower.
+
+    Also pins the ``default=0.0`` branch: a language the encoding does not
+    model scores nothing, which loses the comparison rather than
+    abstaining — the reason callers must not use it as an abstention.
+    """
+    index = get_enc_index()
+    profile = BigramProfile(_HUNGARIAN_ISO8859_16.encode("iso8859-16"))
+    every = confusion_mod._best_variant_score(profile, index, "iso8859-2", None)
+    one = confusion_mod._best_variant_score(
+        profile, index, "iso8859-2", frozenset({"cs"})
+    )
+    assert one > 0.0
+    assert every >= one
+    assert (
+        confusion_mod._best_variant_score(
+            profile, index, "iso8859-2", frozenset({"vi"})
+        )
+        == 0.0
+    )
+
+
+def test_resolve_confusion_groups_passes_both_languages_to_the_rescore():
+    """Both results' languages reach the rescore, not just the champion's.
+
+    Uses differing ISO codes so dropping either side is detectable — the
+    pipeline fills ``.language`` from model keys ('uk', 'be'), never from
+    display names.
+    """
+    seen: list[frozenset[str]] = []
+    original = confusion_mod.resolve_by_bigram_rescore
+
+    def spy(
+        data: bytes,
+        enc_a: str,
+        enc_b: str,
+        diff_bytes: frozenset[int],
+        languages: frozenset[str] = frozenset(),
+    ) -> str | None:
+        seen.append(languages)
+        return original(data, enc_a, enc_b, diff_bytes, languages)
+
+    results = [
+        DetectionResult(encoding="cp1125", confidence=0.80, language="uk"),
+        DetectionResult(encoding="cp866", confidence=0.80, language="be"),
+    ]
+    with patch.object(confusion_mod, "resolve_by_bigram_rescore", spy):
+        confusion_mod.resolve_confusion_groups(_CYRILLIC_CP866, results)
+
+    assert seen == [frozenset({"uk", "be"})]
+
+
+def test_resolve_confusion_groups_promotes_on_the_restricted_rescore():
+    """The restriction reaches a real promotion through the ranked scan."""
+    data = _HUNGARIAN_ISO8859_16.encode("iso8859-16")
+    results = [
+        DetectionResult(encoding="iso8859-2", confidence=0.50, language="hu"),
+        DetectionResult(encoding="iso8859-16", confidence=0.50, language="hu"),
+    ]
+    resolved = confusion_mod.resolve_confusion_groups(data, results)
+    assert resolved[0].encoding == "iso8859-16"

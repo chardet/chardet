@@ -77,7 +77,10 @@ A pre-computed mapping of (encoding-pair) → (set of bytes whose Unicode catego
 A confusion-resolution mechanism. For each *occurrence* of a distinguishing byte, vote for the encoding whose Unicode-category reading is more plausible **in context**: a letter reading is demoted below punctuation when its neighbors give it no word shape (no letter neighbors, or a lowercase letter jammed against a following capital). Votes earned by demoting an impossible letter reading form the **demotion margin**.
 
 **Bigram rescoring**:
-The model-evidence confusion-resolution mechanism: rescore the tied candidates against their bigram profiles, restricted to data positions containing distinguishing bytes. Decides the pair unless the category vote's demotion margin is decisive — evidence *against* an impossible reading outranks the rescore's prose-typicality, but a vote won on naive letter preference defers to it.
+The model-evidence confusion-resolution mechanism: rescore the tied candidates against their bigram profiles, restricted twice over — to data positions containing distinguishing bytes, and to the language models the pair can be compared in (see **Comparable languages**). Decides the pair unless the category vote's demotion margin is decisive — evidence *against* an impossible reading outranks the rescore's prose-typicality, but a vote won on naive letter preference defers to it.
+
+**Comparable languages**:
+The language models a confusion pair may be scored under. Taking the best score over *every* variant lets an encoding win on language coverage its rival lacks — a Hungarian document scores higher against iso8859-2's Czech model than against iso8859-16's Hungarian one — so the comparison drops languages only one side models. This makes confusion resolution a consumer of `DetectionResult.language`: the restriction applies only when both results report languages inside the shared set, and otherwise falls back to comparing every variant. The art pseudo-language is exempt, since it is not a language.
 
 **Art-model exemption**:
 Confusion resolution never reviews a result won by the art model's pseudo-language (no linguistic content): voting and rescoring reason about prose, which box-drawing data is not.

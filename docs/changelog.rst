@@ -13,6 +13,15 @@ Changelog
 
 **Bug Fixes:**
 
+- Fixed Hungarian text being handed to a Czech reading.  When confusion
+  resolution rescored a tied pair, it took each encoding's best score
+  across *all* its language models, so an encoding could win on language
+  coverage its rival lacked: 0xF8 is a common r-hacek in Czech and a
+  u-double-acute in Hungarian, so iso8859-2's Czech model outscored
+  iso8859-16's Hungarian one on plainly Hungarian text.  The rescore now
+  compares the pair only under models both encodings have, whenever both
+  results agree on a language inside that set.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 - Fixed space-padded text matching a degenerate Serbian model at up to
   0.93 confidence.  The ``sr/cp1250`` training corpus is Cyrillic, which
   mostly fails to encode into cp1250, so the model learned whitespace

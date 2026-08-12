@@ -339,7 +339,12 @@ def _vote_with_margin(
     return None, 0, 0, 0
 
 
-def confusion_pair_winner(data: bytes, enc_x: str, enc_y: str) -> str | None:
+def confusion_pair_winner(
+    data: bytes,
+    enc_x: str,
+    enc_y: str,
+    languages: frozenset[str] = frozenset(),
+) -> str | None:
     """Return the byte-evidence winner between two encodings, or ``None``.
 
     Mirrors the in-band pairwise rule of :func:`resolve_confusion_groups`
@@ -348,6 +353,11 @@ def confusion_pair_winner(data: bytes, enc_x: str, enc_y: str) -> str | None:
     line-ending promotion, whose platform prior must not override
     distinguishing-byte evidence.  Returns ``None`` when the pair has no
     distinguishing map or the evidence is inconclusive.
+
+    *languages* must carry what the two results being compared report, or
+    the mirror breaks: the rescore would arbitrate the same pair under a
+    different rule than the confusion stage just did, and a veto built on
+    that answer can reverse a promotion the stage had settled.
     """
     maps = load_confusion_data()
     pair_key = _find_pair_key(maps, enc_x, enc_y)
@@ -365,7 +375,7 @@ def confusion_pair_winner(data: bytes, enc_x: str, enc_y: str) -> str | None:
         and len(diff_bytes) < _CROSS_FAMILY_MIN_DIFFS
     ):
         return cat_winner
-    bigram_winner = resolve_by_bigram_rescore(data, enc_a, enc_b, diff_bytes)
+    bigram_winner = resolve_by_bigram_rescore(data, enc_a, enc_b, diff_bytes, languages)
     if len(diff_bytes) >= _CROSS_FAMILY_MIN_DIFFS:
         # Cross-family pairs: corroboration required (see the strict rule
         # in resolve_confusion_groups).
@@ -409,18 +419,97 @@ def _pair_byte_tables(diff_bytes: frozenset[int]) -> tuple[bytes, bytes]:
     return non_diff, bytes(member)
 
 
+#: Pseudo-language for models trained on data with no linguistic content
+#: (ANSI art / box drawing).  Not a language, so language-fairness rules
+#: do not apply to it.
+_ART_LANGUAGE = "zxx"
+
+
+@functools.cache
+def _modelled_languages(enc: str) -> frozenset[str]:
+    """Languages *enc* has a bigram model for."""
+    return frozenset(
+        lang for lang, _, _ in get_enc_index().get(enc, []) if lang is not None
+    )
+
+
+def _comparable_languages(
+    enc_a: str,
+    enc_b: str,
+    languages: frozenset[str],
+) -> frozenset[str] | None:
+    """Languages to score *enc_a* and *enc_b* under, or ``None`` for all.
+
+    ``None`` means *unrestricted* — score every variant, the original
+    max-over-models comparison.  It is not an abstention.
+
+    An encoding should not win on language coverage the other side lacks.
+    On a Hungarian document the u-double-acute bytes score 0.014 against
+    iso8859-2's *Czech* model (which reads them as a common r-hacek) and
+    only 0.006 against iso8859-16's Hungarian one, so max-over-variants
+    hands Hungarian text to the Czech reading.  Dropping the languages
+    only one side models removes that particular unfairness.
+
+    This is deliberately a narrow rule, and two tempting generalisations
+    were measured and rejected against the accuracy suite:
+
+    * Restricting to *languages* themselves rather than the shared set
+      costs 12 tests.  As a consequence the restriction is a no-op for
+      pairs whose language coverage already matches (67 of the 236
+      confusion pairs), which is accepted — those pairs have no coverage
+      asymmetry to correct in the first place.
+    * Restricting when *languages* is not wholly inside the shared set
+      costs 6 tests: cp1125 models only Ukrainian, so a Belarusian cp866
+      document shares just ``uk`` with it, and scoring the *right*
+      encoding under the *wrong* language loses to cp1125.  Falling back
+      to unrestricted is also what keeps a Vietnamese windows-1258
+      document, whose rival cp1252 models no Vietnamese, resolving
+      correctly.  The cost is that pairs modelling disjoint languages
+      (koi8-r/koi8-u, mac-roman/mac-turkish) never restrict at all —
+      about 20% of calls over the corpus.
+    """
+    if not languages:
+        return None
+    langs_a = _modelled_languages(enc_a)
+    langs_b = _modelled_languages(enc_b)
+    shared = langs_a & langs_b
+    if not languages <= shared:
+        return None
+    # The art pseudo-language is not a language, so the fairness argument
+    # above does not reach it: cp437 is the only encoding carrying a zxx
+    # model, which means a plain intersection would strip box-drawing
+    # evidence from every restricted rescore it takes part in.  Keeping it
+    # for whichever side has it preserves the art protection the module
+    # maintains elsewhere (see the zxx guard in resolve_confusion_groups).
+    if _ART_LANGUAGE in langs_a or _ART_LANGUAGE in langs_b:
+        return shared | {_ART_LANGUAGE}
+    return shared
+
+
 def _best_variant_score(
     profile: BigramProfile,
     index: dict[str, list[tuple[str | None, bytes, str]]],
     enc: str,
+    languages: frozenset[str] | None,
 ) -> float:
-    """Return the best bigram score across all language variants for *enc*."""
+    """Return the best bigram score for *enc*, restricted to *languages*.
+
+    *languages* of ``None`` means every variant, the unrestricted
+    max-over-models comparison.  The ``default`` guards a caller-supplied
+    set that names no variant of *enc*; note that scoring 0.0 hands the
+    comparison to the rival rather than abstaining, so callers wanting an
+    abstention must not rely on it.
+    """
     variants = index.get(enc)
     if not variants:
         return 0.0
     return max(
-        score_with_profile(profile, model, model_key)
-        for _, model, model_key in variants
+        (
+            score_with_profile(profile, model, model_key)
+            for lang, model, model_key in variants
+            if languages is None or lang in languages
+        ),
+        default=0.0,
     )
 
 
@@ -429,18 +518,31 @@ def resolve_by_bigram_rescore(
     enc_a: str,
     enc_b: str,
     diff_bytes: frozenset[int],
+    languages: frozenset[str] = frozenset(),
 ) -> str | None:
     """Resolve between two encodings by re-scoring only distinguishing bigrams.
 
     Builds a focused bigram profile containing only bigrams where at least one
-    byte is a distinguishing byte, then scores both encodings against their
-    best language model.
+    byte is a distinguishing byte, then scores both encodings under the
+    languages they can be compared in (see :func:`_comparable_languages`).
+
+    There is no abstention path here: when the pair has no comparable
+    language the comparison widens to every variant rather than declining
+    to answer.  That is why a Danish mac-roman/mac-turkish document, whose
+    pair models disjoint languages, is still decided by the Turkish model
+    the rescore has no business consulting — the caller's category vote is
+    better placed on such evidence, and overriding this to abstain was
+    measured as costing more accuracy than it recovers.
 
     :param data: The raw byte data to examine.
     :param enc_a: First encoding name.
     :param enc_b: Second encoding name.
     :param diff_bytes: Byte values where the two encodings differ.
-    :returns: The winning encoding name, or ``None`` if tied.
+    :param languages: Languages the ranked results report for this pair;
+        empty when the caller has no ranking to draw on, which scores
+        every variant.
+    :returns: The winning encoding name, or ``None`` if tied or if no
+        distinguishing byte occurs in *data*.
     """
     if len(data) < 2:
         return None
@@ -452,6 +554,8 @@ def resolve_by_bigram_rescore(
     non_diff, is_diff = _pair_byte_tables(diff_bytes)
     if not data.translate(None, non_diff):
         return None
+
+    comparable = _comparable_languages(enc_a, enc_b, languages)
 
     idf = get_idf_weights()
     freq: dict[int, int] = {}
@@ -469,8 +573,8 @@ def resolve_by_bigram_rescore(
     profile = BigramProfile.from_weighted_freq(freq)
 
     index = get_enc_index()
-    best_a = _best_variant_score(profile, index, enc_a)
-    best_b = _best_variant_score(profile, index, enc_b)
+    best_a = _best_variant_score(profile, index, enc_a, comparable)
+    best_b = _best_variant_score(profile, index, enc_b, comparable)
 
     if best_a > best_b:
         return enc_a
@@ -564,6 +668,11 @@ def resolve_confusion_groups(
 
     champion_idx = 0
     champion = top
+    # Tracked alongside ``champion`` as a narrowed ``str``.  Rebinding
+    # ``champion`` on promotion widens ``.encoding`` back to ``str | None``
+    # for the type checker, and both values it can hold — ``top`` and a
+    # promoted ``candidate`` — are None-checked before they get here.
+    champion_enc = top.encoding
     for i in range(1, len(results)):
         candidate = results[i]
         if candidate.encoding is None:
@@ -577,7 +686,7 @@ def resolve_confusion_groups(
         ):
             break
 
-        pair_key = _find_pair_key(maps, champion.encoding, candidate.encoding)
+        pair_key = _find_pair_key(maps, champion_enc, candidate.encoding)
         if pair_key is None:
             continue
 
@@ -611,7 +720,17 @@ def resolve_confusion_groups(
         ):
             winner = cat_winner
         else:
-            bigram_winner = resolve_by_bigram_rescore(data, enc_a, enc_b, diff_bytes)
+            # When both results read the document as the same language,
+            # the rescore compares them in it rather than under whichever
+            # language happens to like the distinguishing bytes most.
+            langs = frozenset(
+                lang
+                for lang in (champion.language, candidate.language)
+                if lang is not None
+            )
+            bigram_winner = resolve_by_bigram_rescore(
+                data, enc_a, enc_b, diff_bytes, langs
+            )
             if in_band and len(diff_bytes) < _CROSS_FAMILY_MIN_DIFFS:
                 winner = bigram_winner if bigram_winner is not None else cat_winner
             # Strict rule (out-of-band candidates, and cross-family pairs
@@ -646,6 +765,7 @@ def resolve_confusion_groups(
         # top-anchored code could not arbitrate those either.
         champion_idx = i
         champion = candidate
+        champion_enc = candidate.encoding
 
     if champion_idx == 0:
         return results
