@@ -201,6 +201,13 @@ _DECISIVE_MIN_EVENTS = 2
 # nature; the cap only bounds pathological inputs.
 _MAX_VOTE_OCCURRENCES = 256
 
+# Density at which the focused-profile scan stops paying off.  Below one
+# distinguishing byte per this many input bytes, locating the hits with a
+# C-level scan beats walking every byte in Python; above it, the set of
+# start indices costs more than the straight loop it replaces.  Only 62 of
+# 2,170 rescore calls over the test corpus are that dense.
+_DENSE_HIT_DIVISOR = 4
+
 
 @functools.cache
 def _letter_case_table(encoding: str) -> bytes:
@@ -552,20 +559,42 @@ def resolve_by_bigram_rescore(
     # Deleting the *non*-distinguishing bytes leaves a result that is tiny
     # (usually empty) rather than a near-full copy of the input.
     non_diff, is_diff = _pair_byte_tables(diff_bytes)
-    if not data.translate(None, non_diff):
+    hits = len(data.translate(None, non_diff))
+    if not hits:
         return None
 
     comparable = _comparable_languages(enc_a, enc_b, languages)
 
     idf = get_idf_weights()
     freq: dict[int, int] = {}
-    for i in range(len(data) - 1):
-        b1 = data[i]
-        b2 = data[i + 1]
-        if not (is_diff[b1] | is_diff[b2]):
-            continue
-        idx = (b1 << 8) | b2
-        freq[idx] = freq.get(idx, 0) + idf[idx]
+    limit = len(data) - 1
+    if hits * _DENSE_HIT_DIVISOR < len(data):
+        # Sparse case, which is nearly all of them: locate the hits with
+        # bytes.find rather than walking every byte.  Each hit at position
+        # p belongs to the bigrams starting at p-1 and p; collecting start
+        # indices counts a bigram whose bytes are both distinguishing once,
+        # exactly as the dense scan below does.
+        starts: set[int] = set()
+        for bv in frozenset(data.translate(None, non_diff)):
+            needle = bytes((bv,))
+            pos = data.find(needle)
+            while pos >= 0:
+                if pos:
+                    starts.add(pos - 1)
+                if pos < limit:
+                    starts.add(pos)
+                pos = data.find(needle, pos + 1)
+        for i in starts:
+            idx = (data[i] << 8) | data[i + 1]
+            freq[idx] = freq.get(idx, 0) + idf[idx]
+    else:
+        for i in range(limit):
+            b1 = data[i]
+            b2 = data[i + 1]
+            if not (is_diff[b1] | is_diff[b2]):
+                continue
+            idx = (b1 << 8) | b2
+            freq[idx] = freq.get(idx, 0) + idf[idx]
 
     if not freq:
         return None
