@@ -45,7 +45,7 @@ Accuracy
    * - **chardet 7.6.0 (mypyc)**
      - **3113/3121**
      - **99.7%**
-     - **2,675 files/s**
+     - **3,036 files/s**
    * - chardet 6.0.0
      - 2638/3121
      - 84.5%
@@ -53,11 +53,11 @@ Accuracy
    * - charset-normalizer 3.5.0 (mypyc)
      - 2702/3121
      - 86.6%
-     - 2,100 files/s
+     - 2,173 files/s
    * - cchardet 3.2.0
      - 1876/3121
      - 60.1%
-     - 4,075 files/s
+     - 4,074 files/s
 
 chardet leads all detectors on accuracy: **+15.2pp** vs chardet 6.0.0,
 **+13.1pp** vs charset-normalizer 3.5.0, and **+39.6pp** vs cchardet 3.2.0.
@@ -146,26 +146,26 @@ Speed
      - p95
      - p99
    * - cchardet 3.2.0
-     - 4,075
+     - 4,074
      - 0.25ms
      - 0.04ms
      - 0.71ms
-     - 1.00ms
-     - 2.06ms
+     - 1.02ms
+     - 2.13ms
    * - **chardet 7.6.0 (mypyc)**
-     - **2,675**
-     - **0.37ms**
-     - **0.15ms**
-     - **0.70ms**
-     - **1.01ms**
-     - **3.72ms**
+     - **3,036**
+     - **0.33ms**
+     - **0.13ms**
+     - **0.62ms**
+     - **0.89ms**
+     - **3.41ms**
    * - charset-normalizer 3.5.0 (mypyc)
-     - 2,100
-     - 0.48ms
-     - 0.32ms
-     - 1.03ms
-     - 1.53ms
-     - 2.76ms
+     - 2,173
+     - 0.46ms
+     - 0.31ms
+     - 1.00ms
+     - 1.49ms
+     - 2.65ms
    * - chardet 6.0.0
      - 10
      - 103.27ms
@@ -174,19 +174,19 @@ Speed
      - 507.98ms
      - 1636.79ms
 
-With mypyc and the Cython scoring kernel, chardet 7.6.0 is **279x
+With mypyc and the Cython scoring kernel, chardet 7.6.0 is **313x
 faster** than chardet 6.0.0 at the mean.
 
 Against charset-normalizer 3.5.0, chardet leads everywhere except the
-far tail: **1.3x on aggregate throughput** (2,675 vs 2,100 files/s),
-**2.1x at the median** (0.15ms vs 0.32ms), 1.5x at p90 and 1.5x at p95,
-with a worst case 2.8x lower (12.0ms vs 33.8ms). charset-normalizer
-keeps p99 (2.76ms vs 3.72ms). See `Latency by Script Family`_ --- that
+far tail: **1.4x on aggregate throughput** (3,036 vs 2,173 files/s),
+**2.4x at the median** (0.13ms vs 0.31ms), 1.6x at p90 and 1.7x at p95,
+with a worst case 3.0x lower (10.6ms vs 31.7ms). charset-normalizer
+keeps p99 (2.65ms vs 3.41ms). See `Latency by Script Family`_ --- that
 remaining gap is concentrated in legacy CJK.
 
-cchardet 3.2.0 still leads aggregate throughput, at 1.5x chardet (4,075
-vs 2,675 files/s), and holds the better p99 (2.06ms vs 3.72ms); chardet's
-worst case is 2.1x lower (12.0ms vs 25.0ms). The trade remains accuracy:
+cchardet 3.2.0 still leads aggregate throughput, at 1.3x chardet (4,074
+vs 3,036 files/s), and holds the better p99 (2.13ms vs 3.41ms); chardet's
+worst case is 2.3x lower (10.6ms vs 24.3ms). The trade remains accuracy:
 cchardet detects 39.6pp fewer files correctly, and reports no language
 at all.
 
@@ -213,43 +213,44 @@ Splitting the same measurements:
    * - **chardet 7.6.0**
      - **CJK**
      - 222
-     - **0.17ms**
-     - 1.18ms
-     - 8.22ms
-     - 10.26ms
+     - **0.15ms**
+     - 1.03ms
+     - 7.16ms
+     - 7.78ms
    * - **chardet 7.6.0**
      - **non-CJK**
      - 2,899
-     - **0.15ms**
-     - 1.01ms
-     - 3.70ms
-     - 12.03ms
+     - **0.13ms**
+     - 0.87ms
+     - 3.41ms
+     - 10.57ms
    * - charset-normalizer 3.5.0
      - CJK
      - 222
      - 0.32ms
-     - 1.07ms
-     - 1.54ms
-     - 2.00ms
+     - 1.02ms
+     - 1.48ms
+     - 1.92ms
    * - charset-normalizer 3.5.0
      - non-CJK
      - 2,899
-     - 0.32ms
-     - 1.58ms
-     - 2.77ms
-     - 33.81ms
+     - 0.31ms
+     - 1.52ms
+     - 2.73ms
+     - 31.72ms
 
-chardet leads on the median in both groups (0.17ms vs 0.32ms on CJK,
-0.15ms vs 0.32ms elsewhere) --- escape sequences and clear multi-byte
-structure resolve immediately --- and on p95 in both. The one place
-charset-normalizer is ahead is the CJK tail: p99 1.54ms against
-chardet's 8.22ms. That single group is where the aggregate p99 gap in
+chardet leads on the median in both groups (0.15ms vs 0.32ms on CJK,
+0.13ms vs 0.31ms elsewhere) --- escape sequences and clear multi-byte
+structure resolve immediately --- and on p95 outside CJK (0.87ms vs
+1.52ms; on CJK the two are level at about 1.0ms). The one place
+charset-normalizer is clearly ahead is the CJK tail: p99 1.48ms against
+chardet's 7.16ms. That single group is where the aggregate p99 gap in
 `Speed`_ comes from; on non-CJK files, which are 93% of the suite, the
-gap narrows to 3.70ms against 2.77ms.
+gap narrows to 3.41ms against 2.73ms.
 
 The stakes stay bounded in absolute terms --- chardet's slowest CJK
-file completes in 10ms, and its worst case overall is 2.8x lower than
-charset-normalizer's (12.0ms vs 33.8ms).
+file completes in under 8ms, and its worst case overall is 3.0x lower
+than charset-normalizer's (10.6ms vs 31.7ms).
 
 Percentiles over a mixed corpus are sensitive to how much CJK it
 contains: this suite is 7.1% CJK (222/3,121), so a CJK-heavier corpus
@@ -273,10 +274,10 @@ Memory
      - Peak Memory
      - RSS
    * - **chardet 7.6.0**
-     - **7.3ms**
+     - **6.1ms**
      - **1,024 KiB** :sup:`*`
      - **27.7 MiB**
-     - **158.9 MiB**
+     - **160.0 MiB**
    * - charset-normalizer 3.5.0
      - 5.0ms
      - 1.8 MiB
@@ -471,63 +472,63 @@ Benchmarked with 3,121 files, ``encoding_era=ALL``:
      - 4 threads
      - 8 threads
    * - 3.13 (pure)
-     - 5,540ms
+     - 5,390ms
      - 5,570ms
-     - 5,520ms
-     - 5,470ms
+     - 5,560ms
+     - 5,510ms
    * - 3.13 (compiled)
+     - 930ms
      - 940ms
-     - 950ms
-     - 930ms
-     - 930ms
+     - 970ms
+     - 1,050ms
    * - 3.13t (pure)
-     - 6,490ms
-     - 3,540ms (1.8x)
-     - 1,990ms (3.3x)
-     - 1,540ms (4.2x)
+     - 6,670ms
+     - 3,670ms (1.8x)
+     - 2,180ms (3.1x)
+     - 1,530ms (4.4x)
    * - 3.14 (pure)
-     - 4,900ms
-     - 4,860ms
-     - 4,860ms
-     - 4,900ms
+     - 5,030ms
+     - 5,120ms
+     - 4,980ms
+     - 5,030ms
    * - 3.14 (compiled)
-     - 1,020ms
      - 1,030ms
-     - 1,020ms
-     - 1,040ms
+     - 1,070ms
+     - 1,060ms
+     - 1,070ms
    * - 3.14t (pure)
-     - 5,430ms
-     - 2,800ms (1.9x)
-     - 1,490ms (3.6x)
-     - 1,110ms (4.9x)
+     - 5,550ms
+     - 2,920ms (1.9x)
+     - 1,580ms (3.5x)
+     - 1,040ms (5.3x)
    * - **3.14t (compiled)**
-     - 1,140ms
-     - 630ms (1.8x)
-     - 380ms (3.0x)
-     - **340ms (3.4x)**
+     - 1,160ms
+     - 640ms (1.8x)
+     - 410ms (2.8x)
+     - **330ms (3.5x)**
    * - 3.15 (pure)
-     - 4,780ms
-     - 4,760ms
-     - 4,730ms
-     - 4,760ms
+     - 4,840ms
+     - 4,880ms
+     - 4,820ms
+     - 4,950ms
    * - 3.15 (compiled)
-     - 1,010ms
-     - 1,030ms
-     - 1,030ms
-     - 1,030ms
+     - 1,040ms
+     - 1,040ms
+     - 1,050ms
+     - 1,050ms
    * - 3.15t (pure)
-     - 5,420ms
-     - 2,810ms (1.9x)
+     - 5,390ms
+     - 2,780ms (1.9x)
      - 1,490ms (3.6x)
-     - 1,020ms (5.3x)
+     - 1,010ms (5.3x)
    * - **3.15t (compiled)**
-     - 1,090ms
+     - 1,100ms
      - 610ms (1.8x)
      - 380ms (2.9x)
      - **380ms (2.9x)**
 
 **3.14t compiled at 8 threads is the fastest configuration measured**
---- 340ms for the whole suite, about 9,200 files/s.
+--- 330ms for the whole suite, about 9,500 files/s.
 
 Scaling here depends on the Cython kernel declaring itself safe without
 the GIL. An extension that does not is enough to make CPython re-enable
@@ -571,15 +572,15 @@ it finds.
      - Files/s
      - Speedup
    * - Pure Python
-     - 645
+     - 634
      - baseline
    * - mypyc + Cython kernel
-     - 3,149
-     - **4.9x**
+     - 3,036
+     - **4.8x**
 
 Both rows are the CPython 3.14 measurements from the cross-version table
-below, so they are directly comparable to each other; the small gap
-against the headline table above is run-to-run variance.
+below, so they are directly comparable to each other; the compiled row
+is the same measurement as the headline table above.
 
 Pure-Python wheels are always available for PyPy and platforms without
 prebuilt binaries, and cost nothing relative to earlier releases: the
@@ -748,133 +749,133 @@ builds (99.7% encoding, 91.8% language); only speed varies.
      - p95
    * - CPython 3.10
      - mypyc
-     - 1,108ms
-     - 2,817
+     - 1,118ms
+     - 2,792
      - 0.36ms
      - 0.20ms
-     - 0.56ms
-     - 0.84ms
+     - 0.58ms
+     - 0.85ms
    * - CPython 3.10
      - pure
-     - 6,251ms
-     - 499
-     - 2.00ms
-     - 0.88ms
-     - 4.64ms
-     - 6.73ms
+     - 6,177ms
+     - 505
+     - 1.98ms
+     - 0.87ms
+     - 4.57ms
+     - 6.66ms
    * - CPython 3.11
      - mypyc
-     - 1,093ms
-     - 2,855
+     - 1,094ms
+     - 2,853
      - 0.35ms
      - 0.20ms
-     - 0.55ms
-     - 0.83ms
+     - 0.56ms
+     - 0.81ms
    * - CPython 3.11
      - pure
      - 4,833ms
      - 646
      - 1.55ms
      - 0.68ms
-     - 3.51ms
-     - 5.12ms
+     - 3.53ms
+     - 5.09ms
    * - CPython 3.12
      - mypyc
-     - 963ms
-     - 3,241
+     - 956ms
+     - 3,265
      - 0.31ms
      - 0.13ms
-     - 0.53ms
-     - 0.86ms
+     - 0.54ms
+     - 0.84ms
    * - CPython 3.12
      - pure
-     - 5,030ms
+     - 5,034ms
      - 620
      - 1.61ms
      - 0.67ms
-     - 3.69ms
-     - 5.36ms
+     - 3.72ms
+     - 5.34ms
    * - **CPython 3.13**
      - **mypyc**
-     - **899ms**
-     - **3,472**
+     - **900ms**
+     - **3,468**
      - **0.29ms**
      - **0.13ms**
-     - **0.49ms**
+     - **0.51ms**
      - **0.77ms**
    * - CPython 3.13
      - pure
      - 5,355ms
      - 583
      - 1.72ms
-     - 0.71ms
-     - 3.94ms
-     - 5.90ms
+     - 0.70ms
+     - 3.96ms
+     - 5.87ms
    * - CPython 3.14
      - mypyc
-     - 991ms
-     - 3,149
-     - 0.32ms
-     - 0.14ms
-     - 0.56ms
-     - 0.86ms
+     - 1,028ms
+     - 3,036
+     - 0.33ms
+     - 0.13ms
+     - 0.62ms
+     - 0.89ms
    * - CPython 3.14
      - pure
-     - 4,836ms
-     - 645
-     - 1.55ms
+     - 4,921ms
+     - 634
+     - 1.58ms
      - 0.64ms
-     - 3.56ms
-     - 5.10ms
+     - 3.67ms
+     - 5.15ms
    * - CPython 3.15
      - mypyc
-     - 1,000ms
-     - 3,121
+     - 998ms
+     - 3,127
      - 0.32ms
-     - 0.14ms
-     - 0.57ms
-     - 0.87ms
+     - 0.13ms
+     - 0.59ms
+     - 0.88ms
    * - CPython 3.15
      - pure
-     - 4,731ms
-     - 660
+     - 4,743ms
+     - 658
      - 1.52ms
-     - 0.64ms
-     - 3.46ms
+     - 0.63ms
+     - 3.50ms
      - 5.06ms
    * - PyPy 3.10
      - pure
-     - 8,973ms
-     - 348
-     - 2.88ms
-     - 0.17ms
-     - 3.15ms
-     - 7.60ms
+     - 9,191ms
+     - 340
+     - 2.95ms
+     - 0.18ms
+     - 3.29ms
+     - 7.69ms
    * - PyPy 3.11
      - pure
-     - 8,560ms
-     - 365
-     - 2.74ms
-     - 0.18ms
-     - 3.01ms
-     - 7.21ms
+     - 8,801ms
+     - 355
+     - 2.82ms
+     - 0.19ms
+     - 3.16ms
+     - 7.25ms
 
-**CPython 3.13 compiled is the fastest combination** at 3,472 files/s,
-with 3.12 about 7% behind. Compilation is worth 4.4--5.7x across CPython
-versions. 3.14 and 3.15 land together, both about 10% behind 3.13
-compiled while being the *fastest* pure-Python versions (645 and 660
-files/s) --- all six measured back-to-back to rule out drift.
+**CPython 3.13 compiled is the fastest combination** at 3,468 files/s,
+with 3.12 about 6% behind. Compilation is worth 4.4--5.9x across CPython
+versions. 3.14 and 3.15 land 10--12% behind 3.13 compiled; interpreted,
+3.15 is the quickest (658 files/s), with 3.11 and 3.14 close behind ---
+all six compiled builds measured back-to-back to rule out drift.
 
 CPython 3.15 (3.15.0rc1) needs no changes: both compilers build against
 it, accuracy is identical, and it is marginally the quickest interpreted
 build in the table.
 
 PyPy needs reading by percentile rather than by throughput. Its
-aggregate (348--365 files/s) is the lowest here, yet its **median is
-among the best measured anywhere on this page** --- 0.17ms, level with
+aggregate (340--355 files/s) is the lowest here, yet its **median is
+among the best measured anywhere on this page** --- 0.18ms, level with
 compiled CPython's 0.13--0.20ms. The JIT wins decisively on ordinary
 files and loses badly on rare and large ones, where it never warms up:
-PyPy's p99 is 63--67ms against compiled CPython's 2.9--3.2ms. A single
+PyPy's p99 is 63--67ms against compiled CPython's 2.9--3.4ms. A single
 "PyPy reaches N% of compiled" ratio therefore misdescribes it. For
 typical documents PyPy is competitive with the compiled wheel; for a
 corpus with a heavy tail it is several times slower overall.
