@@ -440,12 +440,27 @@ def test_best_variant_score_none_means_every_variant():
     )
 
 
+@pytest.mark.skipif(
+    confusion_mod.__file__.endswith((".so", ".pyd")),
+    reason=(
+        "spies on an internal call; mypyc compiles resolve_confusion_groups' "
+        "call to resolve_by_bigram_rescore into a direct native call that "
+        "does not read the module global, so the patch is never observed"
+    ),
+)
 def test_resolve_confusion_groups_passes_both_languages_to_the_rescore():
     """Both results' languages reach the rescore, not just the champion's.
 
     Uses differing ISO codes so dropping either side is detectable — the
     pipeline fills ``.language`` from model keys ('uk', 'be'), never from
     display names.
+
+    Interpreted builds only.  Monkeypatching a module global cannot reach
+    a compiled module's internal calls, so under mypyc this would assert
+    on an empty list rather than fail loudly on a real regression.  The
+    behaviour it guards is covered end to end in the compiled build by
+    ``tests/test_accuracy.py`` --- iso-8859-16-hu/culturax_OSCAR-2019_82421
+    detects correctly only when both languages reach the rescore.
     """
     seen: list[frozenset[str]] = []
     original = confusion_mod.resolve_by_bigram_rescore

@@ -20,6 +20,7 @@ tests/data
 tests/data/
 .claude/settings.local.json
 .worktrees/
+.claude/worktrees/
 uv.lock
 src/chardet/_version.py
 .benchmark_results/
