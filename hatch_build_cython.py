@@ -30,11 +30,19 @@ setup(
     name="chardet-kernel",
     ext_modules=cythonize(
         [r"{source}"],
-        # annotation_typing off: the .py carries PEP 484 annotations for
-        # humans, mypy and ruff, while _kernel.pxd is the sole authority for
-        # C types.  With it on, "idx: object" would contradict the .pxd's
-        # "int[::1] idx" and Cython rejects the signature.
-        compiler_directives={{"language_level": "3", "annotation_typing": False}},
+        compiler_directives={{
+            "language_level": "3",
+            # The .py carries PEP 484 annotations for humans, mypy and ruff;
+            # _kernel.pxd is the sole authority for C types.  With this on,
+            # "idx: object" would contradict the .pxd's "int[::1] idx".
+            "annotation_typing": False,
+            # Without this, importing the extension makes CPython re-enable
+            # the GIL on free-threaded builds -- with a RuntimeWarning -- and
+            # detection stops scaling with threads entirely.  The declaration
+            # is honest: these functions take their arguments, touch no shared
+            # mutable state, and return a value.
+            "freethreading_compatible": True,
+        }},
     ),
 )
 """

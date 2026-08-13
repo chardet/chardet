@@ -1489,7 +1489,15 @@ def _run_for_python_version(  # noqa: PLR0913
             subprocess.run(
                 build_cmd,
                 check=True,
-                env={**os.environ, "HATCH_BUILD_HOOK_ENABLE_MYPYC": "true"},
+                # Both hooks: mypyc for the pipeline modules, the custom hook
+                # for the Cython scoring kernel.  Enabling only the first
+                # builds a wheel that runs the packed buffers through the
+                # interpreter, which benchmarks ~30% slower than this one.
+                env={
+                    **os.environ,
+                    "HATCH_BUILD_HOOK_ENABLE_MYPYC": "true",
+                    "HATCH_BUILD_HOOK_ENABLE_CUSTOM": "true",
+                },
             )
         finally:
             stale = _clean_inplace_mypyc_artifacts(Path(project_root))
