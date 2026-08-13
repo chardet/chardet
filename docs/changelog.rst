@@ -11,6 +11,32 @@ Changelog
 7.6.0 (unreleased)
 -------------------
 
+**Performance:**
+
+- Stopped generating cross-family confusion pairs.  These paired
+  encodings whose byte tables differ wholesale but that serve a common
+  language, and measurement showed they earn nothing: sweeping the
+  overlap threshold from 0.45 to off entirely never moved lenient or
+  strict accuracy, and disabling the tier changed exactly one
+  detection in 3,121 — a file that is wrong either way.  They were not
+  free, growing ``confusion.bin`` from 8 KB to 60 KB and costing 11% of
+  detection wall clock, because every additional pair is one more that
+  arbitrates instead of returning early.  Pass ``overlap_threshold`` to
+  ``compute_distinguishing_maps`` to restore them.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+- Stopped allocating a dense 65536-entry table for the focused bigram
+  profiles confusion resolution builds from a median of eight bigrams.
+  Worth about 3% of detection under mypyc.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+- Sped up the bigram rescore on the pure-Python build by about 20% by
+  locating distinguishing bytes with ``bytes.find`` rather than walking
+  every byte of the input; over the test corpus that loop scanned 57 MB
+  to reach the 0.9 MB that could contribute.  Compiled builds pay ~1.4%
+  for this, since mypyc already compiled the walk to native code —
+  taken because PyPy and every platform without a prebuilt wheel run
+  the interpreted path.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+
 **Bug Fixes:**
 
 - Fixed Hungarian text being handed to a Czech reading.  When confusion

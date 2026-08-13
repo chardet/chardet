@@ -44,32 +44,34 @@ How is chardet different from charset-normalizer?
 `charset-normalizer <https://github.com/jawah/charset_normalizer>`_ is
 an alternative encoding detector. Key differences:
 
-- **Accuracy:** chardet achieves 99.4% vs charset-normalizer's 85.4% on
+- **Accuracy:** chardet achieves 99.7% vs charset-normalizer's 86.6% on
   the same test suite.
-- **Speed:** 2.8x faster overall with mypyc (2,903 vs 1,054 files/s),
-  and 3.2-3.7x faster across the latency distribution on our test
-  suite: 3.2x at the median (0.17 vs 0.55ms), 3.7x at p95, and 3.5x at
-  p99.  Legacy CJK multi-byte encodings are the one subset where
-  charset-normalizer keeps a flatter tail (p99 1.53 vs our 4.22ms) ---
-  a difference of a few milliseconds at worst. See :doc:`performance`.
-- **Accuracy convention:** our 99.4% credits supersets (Windows-1252 for
-  ISO-8859-1); scored on exact matches only it is 84.6% against
-  charset-normalizer's 75.9%. Both columns are published, but we
+- **Speed:** mixed, and it changed with charset-normalizer 3.5.0, which
+  roughly halved its own latency. chardet is 1.6x faster at the median
+  (0.19 vs 0.31ms) and level through the body of the distribution, but
+  charset-normalizer is 2.0x faster at p99 (2.63 vs our 5.24ms) and
+  slightly ahead in aggregate (2,157 vs 1,998 files/s). chardet's worst
+  case is 2.4x lower (13.7 vs 33.3ms). The tail gap is concentrated in
+  legacy CJK, where their p99 is 1.48ms against our 9.00ms. See
+  :doc:`performance`.
+- **Accuracy convention:** our 99.7% credits supersets (Windows-1252 for
+  ISO-8859-1); scored on exact matches only it is 82.4% against
+  charset-normalizer's 78.4%. Both columns are published, but we
   consider the superset the correct answer: detection reads at most the
   first 200 KB, and only the superset is guaranteed to decode the rest
   of the file --- the same reasoning behind the WHATWG/W3C Encoding
   Standard's rule that browsers decode ``ascii`` and ``iso-8859-1``
   content as ``windows-1252``. The strict gap is the convention, not
   the detector: with superset remapping disabled
-  (``prefer_superset=False``) chardet scores 92.0% strict, still ahead
+  (``prefer_superset=False``) chardet scores 92.1% strict, still ahead
   of charset-normalizer. See :doc:`performance`.
-- **Memory:** chardet uses 2.5x less peak memory (27.5 vs 69.9 MiB) and
+- **Memory:** chardet uses 2.6x less peak memory (27.6 vs 71.7 MiB) and
   1.7x less RSS. Per ``detect()`` call the ordering reverses ---
-  charset-normalizer allocates 57 KiB at the median against chardet's
-  530 KiB, but its p99 grows 7x while chardet's stays flat. See
-  :doc:`performance` for the full distribution.
-- **Language detection:** chardet detects language with 95.7% accuracy vs
-  charset-normalizer's 59.2%.
+  charset-normalizer allocates 58 KiB at the median against chardet's
+  532 KiB, but its p99 grows 14x to 785 KiB while chardet's stays flat
+  at 690 KiB. See :doc:`performance` for the full distribution.
+- **Language detection:** chardet detects language with 91.8% accuracy vs
+  charset-normalizer's 54.6%.
 
 How is chardet different from cchardet?
 ----------------------------------------
@@ -77,12 +79,12 @@ How is chardet different from cchardet?
 `cchardet <https://github.com/faust-streaming/faust-cchardet>`_ wraps
 Mozilla's uchardet C/C++ library. Key differences:
 
-- **Accuracy:** chardet achieves 99.4% vs cchardet's 56.1%.
-- **Speed:** cchardet 3.1.0 is 1.8x faster in aggregate (0.48s vs
-  0.87s across 2,517 files) and edges the tail (p99 1.64ms vs our
-  1.77ms), but chardet's worst case is 2.2x lower (10ms vs 22ms).
-- **Memory:** chardet's peak footprint is 2.3x smaller (27.5 vs
-  64.0 MiB traced) with lower RSS (126 vs 154 MiB).
+- **Accuracy:** chardet achieves 99.7% vs cchardet's 60.1%.
+- **Speed:** cchardet 3.2.0 is 2.0x faster in aggregate (0.77s vs
+  1.56s across 3,121 files) and holds the better tail (p99 2.10ms vs
+  our 5.24ms), but chardet's worst case is 1.8x lower (13.7 vs 25.2ms).
+- **Memory:** chardet's peak footprint is 2.3x smaller (27.6 vs
+  64.5 MiB traced) with lower RSS (159 vs 186 MiB).
 - **Encoding breadth:** chardet supports 49 more encodings than cchardet,
   including EBCDIC, Mac, Baltic, and BOM-less UTF-16/32.
 - **Dependencies:** chardet is pure Python with zero dependencies.
