@@ -53,6 +53,20 @@ exclude = ["tests/data/", "data/"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/chardet"]
+# _kernel.pxd carries C type declarations that Cython reads at build time.
+# Nothing imports it at runtime, so it has no business in the wheel.
+exclude = ["src/chardet/*.pxd"]
+
+[tool.hatch.build.targets.wheel.hooks.custom]
+# Off by default, like the mypyc hook below.  Without this, Cython and
+# setuptools become unconditional *build* requirements of every source
+# install --- including PyPy and any platform with no prebuilt wheel, which
+# would download and build Cython for a wheel this hook does nothing to.
+# A compiled build therefore enables both hooks:
+#   HATCH_BUILD_HOOK_ENABLE_MYPYC=true HATCH_BUILD_HOOK_ENABLE_CUSTOM=true
+enable-by-default = false
+path = "hatch_build_cython.py"
+dependencies = ["Cython>=3.0", "setuptools"]
 
 [tool.hatch.build.targets.wheel.hooks.mypyc]
 enable-by-default = false
@@ -121,6 +135,12 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
+# Build hook: hatchling fixes the method signatures, and the only subprocess
+# it runs is a setup script this file generates itself.
+"hatch_build_cython.py" = [
+    "ARG002",  # unused args are required by BuildHookInterface
+    "S603",    # the subprocess input is our own generated script
+]
 "tests/**" = [
     "S101",    # assert is standard in tests
     "S603",    # subprocess security not relevant in tests

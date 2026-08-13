@@ -178,10 +178,17 @@ def test_ratio_cold_vs_warm_model_loading():
     chardet.detect(CYRILLIC_WIN1251)
     cold = time.perf_counter() - start
 
+    # Absolute ceiling first: this is the assertion that actually guards cold
+    # start.  The ratio below inflates with every warm-path win -- pruning
+    # doubled it once, the packed kernel again -- so on its own it loosens
+    # exactly when detection gets faster, which is backwards for a regression
+    # guard.  Cold start is model loading and is ~0.05s; 0.5s is a 10x cushion.
+    assert cold < 0.5, f"Cold start too slow in absolute terms: {cold:.3f}s"
+
     ratio = cold / warm
-    # Warm statistical detection is ~2x faster since upper-bound pruning,
-    # which doubled this ratio (measured: ~29x compiled, ~12x pure).
-    assert ratio < 50, f"Cold start too slow vs warm: {ratio:.1f}x (max 50x)"
+    # Kept as a shape check rather than a tight bound.  Measured after the
+    # packed kernel: ~47x compiled under `-n auto`, ~45x standalone, ~13x pure.
+    assert ratio < 75, f"Cold start too slow vs warm: {ratio:.1f}x (max 75x)"
 
 
 # ---------------------------------------------------------------------------

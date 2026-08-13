@@ -13,7 +13,18 @@ import struct
 import warnings
 import zlib
 
+import array
+
+from chardet._kernel import build_freq, dot_packed, pack_profile
 from chardet.registry import REGISTRY, lookup_encoding
+
+#: Shared empty packed buffers for profiles scored through another path.
+#: Safe to share because nothing ever writes to a profile's packed
+#: buffers --- dot_packed only reads them, and pack_profile always
+#: returns fresh arrays.  Rebuilding these per profile allocated four
+#: throwaway arrays on the focused-profile path, which the surrounding
+#: code exists to keep allocation-free.
+_EMPTY_PACKED = (array.array("i"), array.array("i"))
 
 _unpack_uint32 = struct.Struct(">I").unpack_from
 _unpack_float64 = struct.Struct(">d").unpack_from
@@ -333,24 +344,44 @@ class BigramProfile:
     Computing this once and reusing it across all models reduces per-model
     scoring from O(n) to O(distinct_bigrams).
 
-    Stores a dense ``freq`` list of length 65536 indexed by bigram index, plus
-    a ``nonzero`` list of indices with non-zero frequency for fast iteration.
     Each bigram is weighted by its IDF (inverse document frequency) across all
     models — bigrams unique to few models get high weight, bigrams common to
-    all models get weight 1.
+    all models get weight 1.  ``nonzero`` lists the indices carrying weight,
+    in first-encounter order.
 
-    ``row_freq`` aggregates ``freq`` by lead byte (256 entries) and
+    The weights themselves are reachable three ways, and which one a profile
+    fills depends on how it was built:
+
+    * ``idx_arr``/``val_arr`` — parallel ``array('i')`` buffers, what
+      :func:`score_with_profile` reads for a streaming profile.  Filled by
+      the streaming constructor only.
+    * ``values`` — a plain list parallel to ``nonzero``, filled by
+      :meth:`from_weighted_freq` for the small focused profiles confusion
+      resolution builds, which are scored inline instead.
+    * ``freq`` — the dense 65536-entry table the streaming constructor
+      accumulates into.  Retained after construction but no longer read by
+      scoring.
+
+    ``row_freq`` aggregates the weights by lead byte (256 entries) and
     ``nonzero_rows`` lists the lead bytes with non-zero total; together with
     per-model row maxima (:func:`get_rowmax`) they let statistical scoring
     compute a cheap upper bound on a model's score.
+
+    **Input limit.** Weights are packed as int32, which holds any value an
+    input of at most 16 MB can produce (``255`` per occurrence against a
+    2.1-billion ceiling).  Detection truncates to ``max_bytes`` long before
+    that; construct a profile directly from a larger buffer and packing
+    raises :exc:`OverflowError`.
     """
 
     __slots__ = (
         "freq",
+        "idx_arr",
         "input_norm",
         "nonzero",
         "nonzero_rows",
         "row_freq",
+        "val_arr",
         "values",
         "weight_sum",
     )
@@ -372,6 +403,7 @@ class BigramProfile:
             self.freq: list[int] = []
             self.nonzero: list[int] = []
             self.values: list[int] = []
+            self.idx_arr, self.val_arr = _EMPTY_PACKED
             self.row_freq: list[int] = []
             self.nonzero_rows: list[int] = []
             self.weight_sum: int = 0
@@ -380,23 +412,11 @@ class BigramProfile:
 
         idf = get_idf_weights()
         freq: list[int] = [0] * 65536
-        nonzero: list[int] = []
-        w_sum = 0
-        for i in range(total_bigrams):
-            b1 = data[i]
-            b2 = data[i + 1]
-            # Skip repeated-whitespace bigrams (equivalent to collapsing
-            # whitespace runs, which training does before counting): padding
-            # and indentation carry no encoding signal, and models trained
-            # on lossy transcodes can carry spurious weight for them.
-            if b1 == b2 and _ASCII_WHITESPACE_TABLE[b1]:
-                continue
-            idx = (b1 << 8) | b2
-            w = idf[idx]
-            if freq[idx] == 0:
-                nonzero.append(idx)
-            freq[idx] += w
-            w_sum += w
+        # Repeated-whitespace bigrams are skipped inside build_freq (equivalent
+        # to collapsing whitespace runs, which training does before counting):
+        # padding and indentation carry no encoding signal, and models trained
+        # on lossy transcodes can carry spurious weight for them.
+        nonzero, w_sum = build_freq(data, idf, _ASCII_WHITESPACE_TABLE, freq)
         # No ``values``: this path already has the dense table, and
         # materializing a parallel list over every nonzero bigram costs
         # more than the sparse constructor's allocation saves.
@@ -414,11 +434,13 @@ class BigramProfile:
         Single finalization path shared by both constructors so pruning
         fields cannot silently diverge between them.
 
-        A profile carries its weights one of two ways, never both.  The
-        streaming constructor keeps the dense *freq* table it already had
-        to build and leaves *values* empty; the sparse constructor fills
+        Exactly one of *freq* and *values* carries the weights, never both.
+        The streaming constructor keeps the dense *freq* table it already
+        had to build and leaves *values* empty; the sparse constructor fills
         *values* parallel to *nonzero* and passes no table, which is what
-        lets it skip a 65536-entry allocation per call.
+        lets it skip a 65536-entry allocation per call.  Whichever arrives,
+        this method derives the norm and row aggregates from it, then packs
+        the streaming case into ``idx_arr``/``val_arr`` for scoring.
         """
         self.freq = freq
         self.nonzero = nonzero
@@ -439,6 +461,12 @@ class BigramProfile:
         self.input_norm = math.sqrt(norm_sq)
         self.row_freq = row_freq
         self.nonzero_rows = [b1 for b1 in range(256) if row_freq[b1]]
+        # Dense profiles are scored through the packed kernel; sparse ones
+        # (a median of eight bigrams) are scored inline and skip the packing.
+        if values:
+            self.idx_arr, self.val_arr = _EMPTY_PACKED
+        else:
+            self.idx_arr, self.val_arr = pack_profile(nonzero, freq)
 
     @classmethod
     def from_weighted_freq(cls, weighted_freq: dict[int, int]) -> "BigramProfile":
@@ -498,16 +526,17 @@ def score_with_profile(
         model_norm = math.sqrt(sq_sum)
     if model_norm == 0.0:
         return 0.0
-    dot = 0
     nonzero = profile.nonzero
     values = profile.values
     if values:
+        # Focused confusion profiles hold a median of eight bigrams, so this
+        # branch stays inline: a call into _kernel would cost about what the
+        # loop does.  It measured 1.3% of compiled runtime.
+        dot = 0
         for i in range(len(nonzero)):
             dot += model[nonzero[i]] * values[i]
     else:
-        freq = profile.freq
-        for idx in nonzero:
-            dot += model[idx] * freq[idx]
+        dot = dot_packed(profile.idx_arr, profile.val_arr, model)
     return dot / (model_norm * profile.input_norm)
 
 

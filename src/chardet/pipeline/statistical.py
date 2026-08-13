@@ -5,6 +5,7 @@ this module is compiled with mypyc, which does not support PEP 563 string
 annotations.
 """
 
+from chardet._kernel import dot_rowmax
 from chardet.models import (
     BigramProfile,
     _get_model_norms,
@@ -90,10 +91,7 @@ def _split_variants(
                 mb_entries.append((enc.name, lang, table, key, vi))
             continue
         for vi, (lang, table, key) in enumerate(variants):
-            rm = rowmax[key]
-            ub_dot = 0
-            for b1 in nonzero_rows:
-                ub_dot += rm[b1] * row_freq[b1]
+            ub_dot = dot_rowmax(nonzero_rows, row_freq, rowmax[key])
             model_norm = norms.get(key)
             if model_norm is None:
                 # Unknown norm: cannot bound the score, so never skip.

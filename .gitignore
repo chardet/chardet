@@ -7,6 +7,8 @@ build/
 .eggs/
 *.egg
 *.so
+# Cython-generated C from the _kernel build hook
+src/chardet/*.c
 *.pyd
 .venv/
 .env
