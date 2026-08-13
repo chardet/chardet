@@ -8,9 +8,12 @@ bytes: get back the encoding, confidence, language, and MIME type.
 
    import chardet
 
-   result = chardet.detect("It\u2019s a lovely day \u2014 let\u2019s grab coffee.".encode("utf-8"))
+   result = chardet.detect(
+       "It\u2019s a truth universally acknowledged that text arrives "
+       "without a declared encoding.".encode("utf-8")
+   )
    print(result)
-   # {'encoding': 'utf-8', 'confidence': 0.99, 'language': 'es', 'mime_type': 'text/plain'}
+   # {'encoding': 'utf-8', 'confidence': 0.84, 'language': 'en', 'mime_type': 'text/plain'}
 
 chardet 7 is a ground-up, 0BSD-licensed rewrite. Same package name, same
 public API, drop-in replacement for chardet 5.x/6.x. Python 3.10+, zero
