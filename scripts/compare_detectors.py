@@ -162,6 +162,31 @@ def _get_cache_dir() -> Path:
     return cache_dir
 
 
+def _clean_inplace_mypyc_artifacts(project_root: Path) -> list[Path]:
+    """Delete compiled extensions the mypyc build hook leaves in ``src/``.
+
+    hatch-mypyc compiles in place, so building a wheel with ``--mypyc``
+    leaves ``.so``/``.pyd`` files sitting next to the ``.py`` sources they
+    were built from.  Python imports an extension in preference to the
+    module beside it, so anything run from the source tree afterwards
+    silently gets the compiled build: a later source edit appears to do
+    nothing, a ``--pure`` measurement is not pure, and the files are
+    gitignored so ``git status`` stays clean while it happens.
+
+    The wheel already contains its own copies, so removing them here
+    costs nothing.  Returns the paths removed, for logging.
+    """
+    src_dir = project_root / "src"
+    if not src_dir.is_dir():
+        return []
+    removed: list[Path] = []
+    for pattern in ("*.so", "*.pyd"):
+        for path in sorted(src_dir.rglob(pattern)):
+            path.unlink()
+            removed.append(path)
+    return removed
+
+
 def _cache_filename(  # noqa: PLR0913
     detector_name: str,
     detector_version: str,
@@ -1460,11 +1485,19 @@ def _run_for_python_version(  # noqa: PLR0913
         ]
         if python_version:
             build_cmd.extend(["--python", python_version])
-        subprocess.run(
-            build_cmd,
-            check=True,
-            env={**os.environ, "HATCH_BUILD_HOOK_ENABLE_MYPYC": "true"},
-        )
+        try:
+            subprocess.run(
+                build_cmd,
+                check=True,
+                env={**os.environ, "HATCH_BUILD_HOOK_ENABLE_MYPYC": "true"},
+            )
+        finally:
+            stale = _clean_inplace_mypyc_artifacts(Path(project_root))
+            if stale:
+                print(
+                    f"  Removed {len(stale)} in-place mypyc artifact(s) "
+                    f"from {Path(project_root) / 'src'}"
+                )
         wheels = list(mypyc_wheel_dir.glob("*.whl"))
         if not wheels:
             print("ERROR: mypyc wheel build produced no .whl file", file=sys.stderr)
