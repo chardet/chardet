@@ -479,3 +479,72 @@ def test_resolve_confusion_groups_promotes_on_the_restricted_rescore():
     ]
     resolved = confusion_mod.resolve_confusion_groups(data, results)
     assert resolved[0].encoding == "iso8859-16"
+
+
+def test_rescore_dense_and_sparse_paths_agree():
+    """Both focused-profile scans build the same profile.
+
+    The rescore locates distinguishing bytes with ``bytes.find`` when they
+    are sparse and walks every byte when they are not.  Forcing each path
+    over identical data pins the claim that they are interchangeable.
+    A huge divisor makes the density test fail for any input, selecting
+    the straight scan; the shipped value selects the sparse one.
+    """
+    maps = confusion_mod.load_confusion_data()
+    diff_bytes, _ = maps[("koi8-r", "koi8-u")]
+    # Distinguishing bytes interleaved with plain ASCII: dense enough to
+    # exercise the straight scan's skip branch, sparse enough that the
+    # find-based path has non-hits to step over.
+    mixed = (bytes(sorted(diff_bytes)) + b" plain ascii text ") * 12
+    samples = (mixed, _UKRAINIAN_KOI8U, b"no distinguishing bytes here at all")
+
+    results = {}
+    for label, divisor in (("sparse", 4), ("dense", 10**9)):
+        with patch.object(confusion_mod, "_DENSE_HIT_DIVISOR", divisor):
+            results[label] = [
+                confusion_mod.resolve_by_bigram_rescore(
+                    data, "koi8-r", "koi8-u", diff_bytes
+                )
+                for data in samples
+            ]
+    assert results["sparse"] == results["dense"]
+
+
+def test_rescore_dense_path_skips_non_distinguishing_bigrams():
+    """The straight scan drops bigrams that touch no distinguishing byte."""
+    maps = confusion_mod.load_confusion_data()
+    diff_bytes, _ = maps[("koi8-r", "koi8-u")]
+    data = (bytes(sorted(diff_bytes)) + b" plain ascii text ") * 12
+    with patch.object(confusion_mod, "_DENSE_HIT_DIVISOR", 10**9):
+        assert confusion_mod.resolve_by_bigram_rescore(
+            data, "koi8-r", "koi8-u", diff_bytes
+        ) in ("koi8-r", "koi8-u", None)
+        # No distinguishing byte at all -> empty profile -> no verdict.
+        assert (
+            confusion_mod.resolve_by_bigram_rescore(
+                b"ordinary ascii, nothing to arbitrate",
+                "koi8-r",
+                "koi8-u",
+                diff_bytes,
+            )
+            is None
+        )
+
+
+def test_confusion_pair_winner_reads_distinguishing_bytes():
+    """The pairwise helper resolves a sibling pair from byte evidence.
+
+    postprocess calls this for the classic-Mac line-ending promotion, and
+    with only sibling-tier pairs shipped no corpus file reaches it, so it
+    is exercised here directly.
+    """
+    assert confusion_mod.confusion_pair_winner(
+        _UKRAINIAN_KOI8U, "koi8-r", "koi8-u"
+    ) in ("koi8-r", "koi8-u", None)
+
+
+def test_confusion_pair_winner_without_a_map_declines():
+    """A pair with no distinguishing map yields no verdict."""
+    assert (
+        confusion_mod.confusion_pair_winner(_UKRAINIAN_KOI8U, "utf-8", "koi8-u") is None
+    )
