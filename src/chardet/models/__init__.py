@@ -33,6 +33,13 @@ _EMPTY_PACKED = (array.array("i"), array.array("i"))
 #: A build with mypyc but no Cython would otherwise get the packed layout
 #: with an interpreted loop -- measured 3.5x slower than either path
 #: alone -- so profiles keep the dense table instead when it is absent.
+#:
+#: This flag makes two scoring paths and two storage shapes live in one
+#: file, and **no single test run exercises both**: a compiled run never
+#: takes the dense branch, an interpreted run never takes the packed one.
+#: Running the suite against both builds is therefore load-bearing rather
+#: than thorough --- it is the only thing standing between these branches
+#: and silently diverging.  Change either one and check the other.
 _KERNEL_COMPILED = _kernel.__file__.endswith((".so", ".pyd"))
 
 _unpack_uint32 = struct.Struct(">I").unpack_from
