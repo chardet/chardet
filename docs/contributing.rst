@@ -124,15 +124,30 @@ Model format: binary file ``src/chardet/models/models.bin`` — sparse
 bigram tables loaded via ``struct.unpack``. Each model is a 65,536-byte
 lookup table indexed by ``(b1 << 8) | b2``.
 
-Optional mypyc Compilation
---------------------------
+Optional Compiled Builds
+------------------------
 
-Hot-path modules can be compiled to C extensions with
-`mypyc <https://mypyc.readthedocs.io>`_:
+Hot-path modules can be compiled to C extensions. Two hooks do it, and
+both should be enabled --- turning on only one is not wrong, just
+unoptimized:
 
 .. code-block:: bash
 
-   HATCH_BUILD_HOOK_ENABLE_MYPYC=true uv build
+   HATCH_BUILD_HOOK_ENABLE_MYPYC=true HATCH_BUILD_HOOK_ENABLE_CUSTOM=true uv build
+
+`mypyc <https://mypyc.readthedocs.io>`_ compiles the modules listed
+below. `Cython <https://cython.org>`_ compiles ``_kernel.py`` alone ---
+the bigram scoring loop --- using the build-time-only declarations in
+``_kernel.pxd``. Keep that kernel small: an earlier version also held
+the profile builder and the row-max bound, and moving those out of
+their mypyc modules made a mypyc-only build *slower* than compiling
+nothing, because mypyc stopped seeing those loops.
+
+A compiled build leaves nothing in the source tree. The Cython hook's
+``finalize`` deletes every in-tree extension, mypyc's included: a
+leftover ``.so`` shadows the ``.py`` beside it, is gitignored so
+``git status`` stays clean, and quietly makes later edits and
+"pure-Python" test runs meaningless.
 
 Compiled modules: ``models/__init__.py``, ``pipeline/structural.py``,
 ``pipeline/validity.py``, ``pipeline/statistical.py``,

@@ -46,14 +46,12 @@ an alternative encoding detector. Key differences:
 
 - **Accuracy:** chardet achieves 99.7% vs charset-normalizer's 86.6% on
   the same test suite.
-- **Speed:** mixed, and it changed with charset-normalizer 3.5.0, which
-  roughly halved its own latency. chardet is 1.6x faster at the median
-  (0.19 vs 0.31ms) and level through the body of the distribution, but
-  charset-normalizer is 2.0x faster at p99 (2.63 vs our 5.24ms) and
-  slightly ahead in aggregate (2,157 vs 1,998 files/s). chardet's worst
-  case is 2.4x lower (13.7 vs 33.3ms). The tail gap is concentrated in
-  legacy CJK, where their p99 is 1.48ms against our 9.00ms. See
-  :doc:`performance`.
+- **Speed:** chardet leads everywhere except the far tail --- 1.3x in
+  aggregate (2,675 vs 2,100 files/s), 2.1x at the median (0.15 vs
+  0.32ms), and 1.5x at both p90 and p95, with a worst case 2.8x lower
+  (12.0 vs 33.8ms). charset-normalizer keeps p99 (2.76 vs our 3.72ms),
+  a gap concentrated in legacy CJK where their p99 is 1.54ms against
+  our 8.22ms. See :doc:`performance`.
 - **Accuracy convention:** our 99.7% credits supersets (Windows-1252 for
   ISO-8859-1); scored on exact matches only it is 82.4% against
   charset-normalizer's 78.4%. Both columns are published, but we
@@ -65,11 +63,11 @@ an alternative encoding detector. Key differences:
   the detector: with superset remapping disabled
   (``prefer_superset=False``) chardet scores 92.1% strict, still ahead
   of charset-normalizer. See :doc:`performance`.
-- **Memory:** chardet uses 2.6x less peak memory (27.6 vs 71.7 MiB) and
-  1.7x less RSS. Per ``detect()`` call the ordering reverses ---
+- **Memory:** chardet uses 2.6x less peak memory (27.7 vs 71.7 MiB) and
+  1.6x less RSS. Per ``detect()`` call the ordering reverses ---
   charset-normalizer allocates 58 KiB at the median against chardet's
-  532 KiB, but its p99 grows 14x to 785 KiB while chardet's stays flat
-  at 690 KiB. See :doc:`performance` for the full distribution.
+  533 KiB, but its p99 grows 14x to 785 KiB while chardet's stays flat
+  at 684 KiB. See :doc:`performance` for the full distribution.
 - **Language detection:** chardet detects language with 91.8% accuracy vs
   charset-normalizer's 54.6%.
 
@@ -80,11 +78,11 @@ How is chardet different from cchardet?
 Mozilla's uchardet C/C++ library. Key differences:
 
 - **Accuracy:** chardet achieves 99.7% vs cchardet's 60.1%.
-- **Speed:** cchardet 3.2.0 is 2.0x faster in aggregate (0.77s vs
-  1.56s across 3,121 files) and holds the better tail (p99 2.10ms vs
-  our 5.24ms), but chardet's worst case is 1.8x lower (13.7 vs 25.2ms).
-- **Memory:** chardet's peak footprint is 2.3x smaller (27.6 vs
-  64.5 MiB traced) with lower RSS (159 vs 186 MiB).
+- **Speed:** cchardet 3.2.0 is 1.5x faster in aggregate (0.77s vs
+  1.17s across 3,121 files) and holds the better tail (p99 2.06ms vs
+  our 3.72ms), but chardet's worst case is 2.1x lower (12.0 vs 25.0ms).
+- **Memory:** chardet's peak footprint is 2.3x smaller (27.7 vs
+  64.5 MiB traced) with lower RSS (159 vs 187 MiB).
 - **Encoding breadth:** chardet supports 49 more encodings than cchardet,
   including EBCDIC, Mac, Baltic, and BOM-less UTF-16/32.
 - **Dependencies:** chardet is pure Python with zero dependencies.
@@ -107,5 +105,14 @@ Does chardet work on PyPy?
 ---------------------------
 
 Yes. chardet is pure Python and works on PyPy without modification.
-The optional mypyc compilation is CPython-only; PyPy uses the pure-Python
-code path automatically.
+The optional compiled builds (mypyc and Cython) are CPython-only; PyPy
+uses the pure-Python code path automatically, and pays nothing for their
+existence --- the compiled scoring kernel is the only consumer of the
+data layout it introduces, so an interpreted install takes the same path
+it always did.
+
+PyPy is best judged by percentile rather than throughput. Its median
+detection (0.17ms) is level with compiled CPython, but its p99 is
+63--67ms against 2.9--3.2ms, because the JIT never warms up on rare,
+large inputs. On typical documents it is competitive with the compiled
+wheel; on a corpus with a heavy tail it is several times slower overall.
