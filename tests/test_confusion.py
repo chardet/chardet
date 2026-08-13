@@ -11,6 +11,18 @@ import chardet.pipeline.confusion as confusion_mod
 from chardet.models import BigramProfile, get_enc_index
 from chardet.pipeline import DetectionResult
 
+#: mypyc resolves a compiled module's calls to functions defined in (or
+#: imported into) that same module at compile time, so patching those names
+#: has no effect: the patch is silently ignored and the test exercises the
+#: real code path while appearing to exercise the mock.  Patching module
+#: *data* attributes and attributes of uncompiled modules still works, so
+#: only tests that replace an internally-called function need this.
+#: Verified by audit — see the note in tests/test_orchestrator.py.
+_needs_interpreted_build = pytest.mark.skipif(
+    confusion_mod.__file__.endswith((".so", ".pyd")),
+    reason="patches a function the compiled module calls natively",
+)
+
 # Ukrainian text in koi8-u encoding; bytes 0xa6/0xa7 are in the koi8-r vs koi8-u
 # distinguishing set (Ukrainian letters i-with-macron/yi, box-drawing in koi8-r).
 _UKRAINIAN_KOI8U = (
@@ -309,6 +321,7 @@ def test_bigram_rescore_no_variants_for_one_encoding():
     assert result == "koi8-u"
 
 
+@_needs_interpreted_build
 def test_resolve_confusion_groups_no_swap_when_winner_is_top():
     """When the winner matches the top result, no swap should happen."""
     top = DetectionResult(encoding="cp1252", confidence=0.95, language="English")
@@ -440,14 +453,7 @@ def test_best_variant_score_none_means_every_variant():
     )
 
 
-@pytest.mark.skipif(
-    confusion_mod.__file__.endswith((".so", ".pyd")),
-    reason=(
-        "spies on an internal call; mypyc compiles resolve_confusion_groups' "
-        "call to resolve_by_bigram_rescore into a direct native call that "
-        "does not read the module global, so the patch is never observed"
-    ),
-)
+@_needs_interpreted_build
 def test_resolve_confusion_groups_passes_both_languages_to_the_rescore():
     """Both results' languages reach the rescore, not just the champion's.
 

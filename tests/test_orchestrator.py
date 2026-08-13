@@ -3,9 +3,23 @@ from __future__ import annotations
 
 import pytest
 
+import chardet.pipeline.orchestrator as _orchestrator_mod
 from chardet.enums import EncodingEra
 from chardet.pipeline import DetectionResult
 from chardet.pipeline.orchestrator import run_pipeline
+
+#: mypyc compiles a module's calls to functions defined in (or imported
+#: into) that same module into direct native calls, so replacing those
+#: names has no effect on a compiled build.  A test that mocks one to force
+#: an otherwise-unreachable branch then runs the real path instead and
+#: still passes, reporting coverage it does not have.  Audited: patching
+#: module *data* attributes (e.g. confusion._DENSE_HIT_DIVISOR) and
+#: attributes of uncompiled modules (e.g. importlib.resources.files) is
+#: observed on both builds and needs no guard.
+_needs_interpreted_build = pytest.mark.skipif(
+    _orchestrator_mod.__file__.endswith((".so", ".pyd")),
+    reason="patches a function the compiled module calls natively",
+)
 
 
 def test_empty_input():
@@ -217,6 +231,7 @@ def test_confidence_clamped_to_one():
         assert r.confidence <= 1.0
 
 
+@_needs_interpreted_build
 def test_fallback_when_no_valid_candidates(monkeypatch: pytest.MonkeyPatch):
     """When validity filtering eliminates all candidates, return fallback."""
     from chardet.pipeline import orchestrator  # noqa: PLC0415
@@ -228,6 +243,7 @@ def test_fallback_when_no_valid_candidates(monkeypatch: pytest.MonkeyPatch):
     assert result[0].encoding is not None  # fallback, not None
 
 
+@_needs_interpreted_build
 def test_fallback_when_cjk_gate_eliminates_all(monkeypatch: pytest.MonkeyPatch):
     """When CJK gating eliminates all candidates, return fallback."""
     from chardet.pipeline import orchestrator  # noqa: PLC0415
