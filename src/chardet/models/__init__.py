@@ -5,6 +5,7 @@ this module is compiled with mypyc, which does not support PEP 563 string
 annotations.
 """
 
+import array
 import functools
 import hashlib
 import importlib.resources
@@ -12,8 +13,6 @@ import math
 import struct
 import warnings
 import zlib
-
-import array
 
 from chardet._kernel import build_freq, dot_packed, pack_profile
 from chardet.registry import REGISTRY, lookup_encoding
@@ -349,8 +348,8 @@ class BigramProfile:
     all models get weight 1.  ``nonzero`` lists the indices carrying weight,
     in first-encounter order.
 
-    The weights themselves are reachable three ways, and which one a profile
-    fills depends on how it was built:
+    The weights are reachable two ways, and which one a profile fills
+    depends on how it was built:
 
     * ``idx_arr``/``val_arr`` — parallel ``array('i')`` buffers, what
       :func:`score_with_profile` reads for a streaming profile.  Filled by
@@ -358,10 +357,6 @@ class BigramProfile:
     * ``values`` — a plain list parallel to ``nonzero``, filled by
       :meth:`from_weighted_freq` for the small focused profiles confusion
       resolution builds, which are scored inline instead.
-    * ``freq`` — the dense 65536-entry table the streaming constructor
-      accumulates into.  Retained after construction but no longer read by
-      scoring.
-
     ``row_freq`` aggregates the weights by lead byte (256 entries) and
     ``nonzero_rows`` lists the lead bytes with non-zero total; together with
     per-model row maxima (:func:`get_rowmax`) they let statistical scoring
@@ -375,7 +370,6 @@ class BigramProfile:
     """
 
     __slots__ = (
-        "freq",
         "idx_arr",
         "input_norm",
         "nonzero",
@@ -397,10 +391,7 @@ class BigramProfile:
         """
         total_bigrams = len(data) - 1
         if total_bigrams <= 0:
-            # Use empty lists (not [0]*65536) to avoid a 256KB allocation
-            # for no-op profiles.  Safe because score_with_profile returns
-            # early when input_norm == 0.0, so freq is never indexed.
-            self.freq: list[int] = []
+            # Empty lists, not [0]*65536: a no-op profile allocates nothing.
             self.nonzero: list[int] = []
             self.values: list[int] = []
             self.idx_arr, self.val_arr = _EMPTY_PACKED
@@ -435,14 +426,16 @@ class BigramProfile:
         fields cannot silently diverge between them.
 
         Exactly one of *freq* and *values* carries the weights, never both.
-        The streaming constructor keeps the dense *freq* table it already
-        had to build and leaves *values* empty; the sparse constructor fills
+        The streaming constructor passes the dense *freq* table it had to
+        build and leaves *values* empty; the sparse constructor fills
         *values* parallel to *nonzero* and passes no table, which is what
-        lets it skip a 65536-entry allocation per call.  Whichever arrives,
-        this method derives the norm and row aggregates from it, then packs
-        the streaming case into ``idx_arr``/``val_arr`` for scoring.
+        lets it skip a 65536-entry allocation per call.
+
+        Neither is retained.  *freq* is read here to derive the norm, the row
+        aggregates and the packed buffers, and is then dropped -- scoring
+        reads ``idx_arr``/``val_arr`` or ``values``, never the dense table,
+        so keeping it alive would pin 512 KB per profile for nothing.
         """
-        self.freq = freq
         self.nonzero = nonzero
         self.values = values
         self.weight_sum = weight_sum
