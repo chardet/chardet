@@ -24,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14", "3.15"]
         os: [ubuntu-latest]
         include:
           - python-version: "3.14"
@@ -65,7 +65,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.13t", "3.14t"]
+        python-version: ["3.13t", "3.14t", "3.15t"]
         os: [ubuntu-latest, macos-latest]
     steps:
       - uses: actions/checkout@v4
@@ -77,6 +77,25 @@ jobs:
       - run: uv sync
       - name: Verify GIL is disabled
         run: uv run python -c "import sys; assert not sys._is_gil_enabled(), 'GIL is not disabled'"
+      # The steps above exercise the pure-Python build, which cannot re-enable
+      # the GIL.  Only a compiled extension can, and CPython does so for the
+      # whole process, silently reverting free-threaded installs to
+      # single-threaded speed.  3.13t is skipped because mypyc cannot build
+      # for it: its free-threaded runtime needs _PyObject_XDecRefDelayed,
+      # which CPython only provides from 3.14t onward.
+      - name: Verify the compiled build keeps the GIL disabled
+        if: matrix.python-version != '3.13t'
+        run: |
+          HATCH_BUILD_HOOK_ENABLE_MYPYC=true \
+          HATCH_BUILD_HOOK_ENABLE_CUSTOM=true \
+          uv build --wheel -o dist-ft
+          uv venv --python ${{ matrix.python-version }} .venv-ft
+          VIRTUAL_ENV=.venv-ft uv pip install dist-ft/*.whl
+          .venv-ft/bin/python -W error -c "
+          import sys, chardet
+          assert not sys._is_gil_enabled(), 'importing chardet re-enabled the GIL'
+          print('compiled build keeps the GIL disabled')
+          "
       - name: Run thread-safety tests
         run: uv run pytest tests/test_thread_safety.py -v -s -W error::pytest.PytestUnhandledThreadExceptionWarning
       - name: Run full test suite

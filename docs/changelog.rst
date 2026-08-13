@@ -13,6 +13,37 @@ Changelog
 
 **Performance:**
 
+- Compiled wheels now score bigram profiles through a Cython kernel,
+  measured **1.41x faster** end to end against the previous compiled
+  build (1.480s to 1.053s over the 3,121-file suite, interleaved).
+  ``_kernel.py`` holds the scoring loop, which
+  is roughly a third of compiled runtime, as ordinary Python with no
+  third-party imports; ``_kernel.pxd`` supplies C types at build time and
+  ships nothing.  The ``.py`` remains the only implementation, so PyPy
+  and pure-Python wheels run the same code interpreted and pay nothing
+  for the kernel's existence.  Detection output is bit-identical.
+
+  Compiled builds now need both hooks::
+
+      HATCH_BUILD_HOOK_ENABLE_MYPYC=true HATCH_BUILD_HOOK_ENABLE_CUSTOM=true uv build
+
+  Enabling only one is unoptimized rather than wrong.  Neither is
+  required for a pure-Python source install, so Cython and mypyc stay
+  off the build requirements of a ``pip install`` on PyPy or a platform
+  with no prebuilt wheel.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+- On free-threaded Python, the compiled kernel declares itself safe
+  without the GIL.  Without that declaration CPython re-enables the GIL
+  for the entire process when the extension is imported, which silently
+  reverts free-threaded installs to single-threaded speed.  With it,
+  3.14t scales to **340ms across 8 threads** (about 9,200 files/s), the
+  fastest configuration measured and 1.5x better than before the kernel.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+- Added support for **CPython 3.15**, including its free-threaded build.
+  No code changes were needed: both compilers build against it, accuracy
+  is identical, and it is marginally the fastest interpreted build
+  measured.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 - Stopped generating cross-family confusion pairs.  These paired
   encodings whose byte tables differ wholesale but that serve a common
   language, and measurement showed they earn nothing: sweeping the
