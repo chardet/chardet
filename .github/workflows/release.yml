@@ -68,8 +68,10 @@ jobs:
         env:
           CIBW_ARCHS_LINUX: ${{ matrix.cibw_archs_linux }}
           CIBW_BUILD: ${{ matrix.cibw_build || '*' }}
-          CIBW_ENVIRONMENT_PASS_LINUX: HATCH_BUILD_HOOK_ENABLE_MYPYC
+          CIBW_ENVIRONMENT_PASS_LINUX: HATCH_BUILD_HOOK_ENABLE_MYPYC HATCH_BUILD_HOOK_ENABLE_CUSTOM
           HATCH_BUILD_HOOK_ENABLE_MYPYC: "true"
+          # Cython scoring kernel; without it the wheel is ~1.4x slower.
+          HATCH_BUILD_HOOK_ENABLE_CUSTOM: "true"
       # --break-system-packages: the RISE runner image marks its system
       # Python as externally managed (PEP 668); there is no setup-python
       # for riscv64, so installing into it is intentional.
@@ -80,8 +82,10 @@ jobs:
         env:
           CIBW_ARCHS_LINUX: riscv64
           CIBW_BUILD: ${{ matrix.cibw_build }}
-          CIBW_ENVIRONMENT_PASS_LINUX: HATCH_BUILD_HOOK_ENABLE_MYPYC
+          CIBW_ENVIRONMENT_PASS_LINUX: HATCH_BUILD_HOOK_ENABLE_MYPYC HATCH_BUILD_HOOK_ENABLE_CUSTOM
           HATCH_BUILD_HOOK_ENABLE_MYPYC: "true"
+          # Cython scoring kernel; without it the wheel is ~1.4x slower.
+          HATCH_BUILD_HOOK_ENABLE_CUSTOM: "true"
       - uses: actions/upload-artifact@v4
         with:
           name: dist-mypyc-${{ matrix.name }}
@@ -118,6 +122,8 @@ jobs:
       - uses: pypa/cibuildwheel@v3.3
         env:
           HATCH_BUILD_HOOK_ENABLE_MYPYC: "true"
+          # Cython scoring kernel; without it the wheel is ~1.4x slower.
+          HATCH_BUILD_HOOK_ENABLE_CUSTOM: "true"
       - uses: actions/upload-artifact@v4
         with:
           name: dist-mypyc-windows-latest

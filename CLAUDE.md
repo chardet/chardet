@@ -73,13 +73,21 @@ uv run python scripts/generate_encoding_table.py > docs/supported-encodings.rst 
 
 Docs use Sphinx with Furo theme. API reference is auto-generated from source docstrings via autodoc. Published to ReadTheDocs on tag push (`.readthedocs.yaml`). Source files are in `docs/`; `docs/plans/` is excluded from the build.
 
-### Building with mypyc (optional)
+### Compiled builds (optional)
+
+Two compilers, two hooks. **Enable both** — enabling one alone is not wrong, just unoptimized:
 
 ```bash
-HATCH_BUILD_HOOK_ENABLE_MYPYC=true uv build  # compile hot-path modules
+HATCH_BUILD_HOOK_ENABLE_MYPYC=true HATCH_BUILD_HOOK_ENABLE_CUSTOM=true uv build
 ```
 
-Compiled modules: `models/__init__.py`, `pipeline/structural.py`, `pipeline/validity.py`, `pipeline/statistical.py`, `pipeline/utf1632.py`, `pipeline/utf8.py`, `pipeline/escape.py`, `pipeline/orchestrator.py`, `pipeline/confusion.py`, `pipeline/magic.py`, `pipeline/ascii.py`, `pipeline/language.py`, `pipeline/postprocess.py`. These modules cannot use `from __future__ import annotations` (FA100 is ignored for them in ruff config).
+**mypyc** compiles 13 modules: `models/__init__.py`, `pipeline/structural.py`, `pipeline/validity.py`, `pipeline/statistical.py`, `pipeline/utf1632.py`, `pipeline/utf8.py`, `pipeline/escape.py`, `pipeline/orchestrator.py`, `pipeline/confusion.py`, `pipeline/magic.py`, `pipeline/ascii.py`, `pipeline/language.py`, `pipeline/postprocess.py`. These cannot use `from __future__ import annotations` (FA100 is ignored for them in ruff config).
+
+**Cython** compiles `_kernel.py` alone — the bigram scoring loop, ~36% of compiled runtime — using the build-time-only types in `_kernel.pxd`. Worth about 1.4x. The `.py` is the single implementation and runs interpreted on PyPy and in pure wheels; `models` detects which it has and picks the matching scoring path.
+
+Both hooks are `enable-by-default = false` so their build dependencies stay off pure source installs. Keep the kernel small: an earlier version also held the profile builder and the row-max bound, and moving those out of their mypyc modules made a mypyc-only build **slower than compiling nothing**, because mypyc stopped seeing those loops.
+
+A compiled build leaves nothing behind — the Cython hook's `finalize` deletes every in-tree extension, mypyc's included. That matters: a leftover `.so` shadows the `.py` beside it, is gitignored so `git status` stays clean, and silently makes later edits and "pure" test runs meaningless.
 
 ## Architecture
 
