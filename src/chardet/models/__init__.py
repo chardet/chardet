@@ -14,7 +14,8 @@ import struct
 import warnings
 import zlib
 
-from chardet._kernel import build_freq, dot_packed, pack_profile
+from chardet import _kernel
+from chardet._kernel import dot_packed, pack_profile
 from chardet.registry import REGISTRY, lookup_encoding
 
 #: Shared empty packed buffers for profiles scored through another path.
@@ -24,6 +25,15 @@ from chardet.registry import REGISTRY, lookup_encoding
 #: throwaway arrays on the focused-profile path, which the surrounding
 #: code exists to keep allocation-free.
 _EMPTY_PACKED = (array.array("i"), array.array("i"))
+
+#: Whether _kernel was compiled into an extension for this install.
+#: The packed buffers only pay off when it was: read from C they are two
+#: contiguous int32 arrays, but read from the interpreter every element
+#: access boxes an int, which is slower than the dense list it replaced.
+#: A build with mypyc but no Cython would otherwise get the packed layout
+#: with an interpreted loop -- measured 3.5x slower than either path
+#: alone -- so profiles keep the dense table instead when it is absent.
+_KERNEL_COMPILED = _kernel.__file__.endswith((".so", ".pyd"))
 
 _unpack_uint32 = struct.Struct(">I").unpack_from
 _unpack_float64 = struct.Struct(">d").unpack_from
@@ -370,6 +380,7 @@ class BigramProfile:
     """
 
     __slots__ = (
+        "freq",
         "idx_arr",
         "input_norm",
         "nonzero",
@@ -392,6 +403,7 @@ class BigramProfile:
         total_bigrams = len(data) - 1
         if total_bigrams <= 0:
             # Empty lists, not [0]*65536: a no-op profile allocates nothing.
+            self.freq: list[int] = []
             self.nonzero: list[int] = []
             self.values: list[int] = []
             self.idx_arr, self.val_arr = _EMPTY_PACKED
@@ -403,11 +415,23 @@ class BigramProfile:
 
         idf = get_idf_weights()
         freq: list[int] = [0] * 65536
-        # Repeated-whitespace bigrams are skipped inside build_freq (equivalent
-        # to collapsing whitespace runs, which training does before counting):
-        # padding and indentation carry no encoding signal, and models trained
-        # on lossy transcodes can carry spurious weight for them.
-        nonzero, w_sum = build_freq(data, idf, _ASCII_WHITESPACE_TABLE, freq)
+        nonzero: list[int] = []
+        w_sum = 0
+        for i in range(total_bigrams):
+            b1 = data[i]
+            b2 = data[i + 1]
+            # Skip repeated-whitespace bigrams (equivalent to collapsing
+            # whitespace runs, which training does before counting): padding
+            # and indentation carry no encoding signal, and models trained
+            # on lossy transcodes can carry spurious weight for them.
+            if b1 == b2 and _ASCII_WHITESPACE_TABLE[b1]:
+                continue
+            idx = (b1 << 8) | b2
+            w = idf[idx]
+            if freq[idx] == 0:
+                nonzero.append(idx)
+            freq[idx] += w
+            w_sum += w
         # No ``values``: this path already has the dense table, and
         # materializing a parallel list over every nonzero bigram costs
         # more than the sparse constructor's allocation saves.
@@ -454,12 +478,15 @@ class BigramProfile:
         self.input_norm = math.sqrt(norm_sq)
         self.row_freq = row_freq
         self.nonzero_rows = [b1 for b1 in range(256) if row_freq[b1]]
-        # Dense profiles are scored through the packed kernel; sparse ones
-        # (a median of eight bigrams) are scored inline and skip the packing.
-        if values:
+        # Dense profiles are scored through the packed kernel when it is
+        # compiled; sparse ones (a median of eight bigrams) are scored inline
+        # either way and skip the packing.
+        if values or not _KERNEL_COMPILED:
             self.idx_arr, self.val_arr = _EMPTY_PACKED
         else:
             self.idx_arr, self.val_arr = pack_profile(nonzero, freq)
+        # Retained only when scoring will read it -- see _KERNEL_COMPILED.
+        self.freq = [] if (values or _KERNEL_COMPILED) else freq
 
     @classmethod
     def from_weighted_freq(cls, weighted_freq: dict[int, int]) -> "BigramProfile":
@@ -528,8 +555,15 @@ def score_with_profile(
         dot = 0
         for i in range(len(nonzero)):
             dot += model[nonzero[i]] * values[i]
-    else:
+    elif _KERNEL_COMPILED:
         dot = dot_packed(profile.idx_arr, profile.val_arr, model)
+    else:
+        # No compiled kernel: the dense table beats packed buffers here,
+        # because a list returns a cached int where array('i') boxes a new one.
+        dot = 0
+        freq = profile.freq
+        for idx in nonzero:
+            dot += model[idx] * freq[idx]
     return dot / (model_norm * profile.input_norm)
 
 

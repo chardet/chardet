@@ -1,9 +1,10 @@
 """Wheel build hook that compiles ``src/chardet/_kernel.py`` with Cython.
 
 Runs alongside the mypyc hook: mypyc compiles the 13 pipeline modules, this
-compiles the one hot-loop module whose types live in ``_kernel.pxd``.  Both are
-opt-in via ``HATCH_BUILD_HOOK_ENABLE_MYPYC``; a pure-Python wheel gets neither
-and ships ``_kernel.py`` as ordinary Python.
+compiles the one scoring-loop module whose types live in ``_kernel.pxd``.
+Each is opt-in via its own ``HATCH_BUILD_HOOK_ENABLE_*`` variable; a
+pure-Python wheel gets neither and ships ``_kernel.py`` as ordinary Python,
+which ``models`` detects and scores through its dense in-module loop instead.
 """
 
 from __future__ import annotations

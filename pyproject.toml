@@ -58,12 +58,19 @@ packages = ["src/chardet"]
 exclude = ["src/chardet/*.pxd"]
 
 [tool.hatch.build.targets.wheel.hooks.custom]
-# Off by default, like the mypyc hook below.  Without this, Cython and
-# setuptools become unconditional *build* requirements of every source
-# install --- including PyPy and any platform with no prebuilt wheel, which
-# would download and build Cython for a wheel this hook does nothing to.
-# A compiled build therefore enables both hooks:
+# Off by default, like the mypyc hook below, so Cython and setuptools are not
+# build requirements of every source install --- including PyPy and any
+# platform with no prebuilt wheel, which would otherwise fetch Cython for a
+# wheel this hook does nothing to.  A compiled build enables both:
 #   HATCH_BUILD_HOOK_ENABLE_MYPYC=true HATCH_BUILD_HOOK_ENABLE_CUSTOM=true
+#
+# Enabling only one is safe, merely unoptimized: _kernel holds nothing but the
+# scoring loop, and models falls back to the dense in-module loop when the
+# extension is absent, so a mypyc-only wheel matches what it was before this
+# kernel existed.  Keeping the kernel that small is the point --- an earlier
+# version also moved the profile builder and the row-max bound out of their
+# mypyc modules, and a mypyc-only build of *that* was 1.5x slower than
+# compiling neither, because mypyc no longer saw those loops.
 enable-by-default = false
 path = "hatch_build_cython.py"
 dependencies = ["Cython>=3.0", "setuptools"]

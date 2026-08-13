@@ -1,4 +1,4 @@
-"""Hot numeric kernels, shared by the pure-Python and compiled builds.
+"""The hot scoring kernel, shared by the pure-Python and compiled builds.
 
 This module is ordinary Python with no third-party imports: it runs as-is on
 PyPy and in pure-Python installs.  When a compiled wheel is built,
@@ -36,36 +36,6 @@ def dot_packed(idx: array.array, vals: array.array, model: bytes) -> int:
     return dot
 
 
-def build_freq(data: bytes, idf: bytes, whitespace: bytes, freq: list) -> tuple:
-    """Fill *freq* with IDF-weighted bigram counts for *data*.
-
-    Repeated-whitespace bigrams are skipped, matching the whitespace-run
-    collapsing that training does before counting.
-
-    :param data: Raw bytes to profile (at least two bytes long).
-    :param idf: 65536-byte IDF weight table.
-    :param whitespace: 256-entry table, non-zero at each skipped byte value.
-    :param freq: Zeroed 65536-entry list, filled in place.
-    :returns: A ``(nonzero, weight_sum)`` tuple.
-    """
-    nonzero = []
-    w_sum = 0
-    n = len(data) - 1
-    for i in range(n):
-        b1 = data[i]
-        b2 = data[i + 1]
-        if b1 == b2 and whitespace[b1]:
-            continue
-        idx = (b1 << 8) | b2
-        w = idf[idx]
-        c = freq[idx]
-        if c == 0:
-            nonzero.append(idx)
-        freq[idx] = c + w
-        w_sum += w
-    return nonzero, w_sum
-
-
 def pack_profile(nonzero: list, freq: list) -> tuple:
     """Return parallel ``array('i')`` index/value buffers for a dense profile.
 
@@ -84,18 +54,3 @@ def pack_profile(nonzero: list, freq: list) -> tuple:
     for i in range(n):
         vals[i] = freq[nonzero[i]]
     return array.array("i", nonzero), vals
-
-
-def dot_rowmax(nonzero_rows: list, row_freq: list, rowmax: bytes) -> int:
-    """Return the row-maxima upper bound for a profile against one model.
-
-    :param nonzero_rows: Lead bytes with non-zero total weight.
-    :param row_freq: 256-entry per-lead-byte weight totals.
-    :param rowmax: 256-byte per-lead-byte model maxima.
-    :returns: Sum of ``rowmax[b] * row_freq[b]`` over ``b`` in *nonzero_rows*.
-    """
-    dot = 0
-    for b1 in nonzero_rows:
-        v = row_freq[b1]
-        dot += rowmax[b1] * v
-    return dot
