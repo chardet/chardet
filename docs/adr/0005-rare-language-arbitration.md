@@ -18,3 +18,50 @@ Caveat honestly held: 123 sampled pages is a search, not a proof, and the early 
 The boundary is guarded by **sentinels, not memory**: eight short genuine Celtic files in test-data whose margins sit near the gate (the closest at margin 0.05, confidence 0.11). Widening the gate or drifting the models turns them red instead of quietly demoting real files.
 
 Resist generalizing the rare set casually — every addition demotes a language's coin-flip wins, and the set's legitimacy rests on the deployment evidence being written down and revisable. If a pairing is merely *uncommon*, leave it alone; the gate exists for pairings with no documented population at all.
+
+## Addendum (2026-08): re-measured after the dedup retrain; a fill-side band
+
+The original thresholds were tuned on models trained with duplicated br/gd
+corpora. Re-measured on the deduplicated models against the 3,121-file suite:
+the gate fires exactly once, on the motivating Croatian `.po` (demoted
+correctly, gd/iso8859-14 to hr/ISO-8859-2), with zero harmful firings. The
+nearest genuine sentinel sits at margin 0.049, confidence 0.104, which is
+2.5x outside the 0.02 margin bound. The 0.02/0.15 thresholds stand unchanged.
+
+The same audit found that the language *fill* (`fill_languages`) had no
+arbitration at all: `score_best_language` was a plain argmax, and on short
+apostrophe-rich English input the gd/br UTF-8 models win by hair margins.
+Measured mislabels ("It's a lovely day, so let's grab coffee and chat." with
+curly apostrophes fills as gd) win by +0.002 to +0.021. No margin/score band
+separates those from the genuine Irish gettext catalogues, which sit at
++0.007 to +0.023 when scored over their 2 KB window. Length does separate
+them: the smallest genuine rare-language files in the corpus are 253 bytes
+(a Breton file on the legacy path) and 560 bytes (Breton, on the fill path
+the band governs), while the mislabels are snippet-length, and genuine
+gd/cy snippets keep margins of 0.07+ even at 40 characters. The headroom
+over the 128-byte gate is therefore 2x at its thinnest, not the comfortable
+multiple a larger floor would suggest; raising the length bound needs those
+two files re-measured first.
+
+The fill therefore demotes a rare winner only when the *original* input is
+under 128 bytes *and* its lead over the best prevalent-language variant is
+under 0.03 (`demote_thin_rare` in `models.score_best_language`; the caller
+judges length, because tier 3 transcodes to UTF-8 and curly punctuation
+inflates 3x on the way). The flag is opt-in and the returned score is
+unchanged, so the encoding-ranking caller in `pipeline.statistical` stays
+byte-identical. Labels that stage already attached are not exempt:
+`fill_languages` re-derives a rare label on a thin input through the same
+banded scoring, and accepts the result only as a demotion, never as a swap
+of one rare label for another. An encoding whose variant set is all-Celtic
+(iso8859-14) can never offer the band a prevalent rival, so a thin rare
+label there escalates to the UTF-8 models for the deciding vote. "zxx" is
+excluded as a demotion target: the band must not convert a rare label into
+"no linguistic content".
+
+The measured casualty class is a sub-50-character Breton or Irish snippet
+with a thin margin, accepted on the same prevalence grounds as the encoding
+gate; Irish at that length was near coin-flip already. Corpus effect: zero
+changed outcomes on the test suite, verified by an A/B recount. The audited
+rare set now lives in `chardet.models.RARE_LANGUAGES`, imported by both
+gates, so it cannot drift into two sets; `scripts/train.py` points its
+review warning at that name.

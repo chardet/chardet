@@ -21,7 +21,7 @@ annotations.
 """
 
 from chardet._utils import decodes_without_error
-from chardet.models import get_enc_index
+from chardet.models import RARE_LANGUAGES, get_enc_index
 from chardet.pipeline import DetectionResult
 from chardet.pipeline.confusion import (
     confusion_pair_winner,
@@ -444,8 +444,9 @@ def _promote_superset_on_dead_heat(
 # measures safely outside the arbitration gate: genuine Celtic text has no
 # prevalent-language rival anywhere near it.  Revision protocol per
 # ADR-0005: any new genuine specimen goes into test-data and forces a
-# re-audit of this set.
-_RARE_LANGUAGES: frozenset[str] = frozenset({"gd", "cy", "ga", "br"})
+# re-audit of the set.  The set itself is :data:`chardet.models.RARE_LANGUAGES`
+# — one definition, used by this gate and by the language fill's thin-margin
+# band, so the two can never drift apart.  Membership changes happen there.
 
 # Maximum lead over the best prevalent-language candidate for a
 # rare-language winner to count as a coin flip rather than evidence.
@@ -462,10 +463,10 @@ def _arbitrate_rare_language(
 ) -> list[DetectionResult]:
     """Demote a rare-language winner that leads a prevalent rival by a coin flip.
 
-    Fires only when the winner's language is in :data:`_RARE_LANGUAGES`,
-    its absolute confidence is inside the evidence-free zone, and a
-    prevalent-language candidate sits within
-    :data:`_RARE_ARBITRATION_MARGIN`.  Genuine rare-language text fails
+    Fires only when the winner's language is in
+    :data:`~chardet.models.RARE_LANGUAGES`, its absolute confidence is
+    inside the evidence-free zone, and a prevalent-language candidate sits
+    within :data:`_RARE_ARBITRATION_MARGIN`.  Genuine rare-language text fails
     both gates: even short files score confidently, and their entire
     neighborhood is same-language variants.
     """
@@ -473,7 +474,7 @@ def _arbitrate_rare_language(
     if (
         top is None
         or top.encoding is None
-        or top.language not in _RARE_LANGUAGES
+        or top.language not in RARE_LANGUAGES
         or top.confidence >= _RARE_ARBITRATION_MAX_CONFIDENCE
         or len(results) < 2
     ):
@@ -484,7 +485,7 @@ def _arbitrate_rare_language(
             break
         if r.encoding is None or r.language is None:
             continue
-        if r.language not in _RARE_LANGUAGES:
+        if r.language not in RARE_LANGUAGES:
             promoted = DetectionResult(
                 r.encoding, top.confidence, r.language, r.mime_type
             )

@@ -574,10 +574,40 @@ def score_with_profile(
     return dot / (model_norm * profile.input_norm)
 
 
+#: ADR-0005's hand-audited rare-language set, shared with the encoding-side
+#: arbitration gate in ``pipeline.postprocess``.  One set, two gates: the
+#: deployment evidence that justifies membership is recorded in the ADR and
+#: any new genuine specimen forces a re-audit of both.
+RARE_LANGUAGES: frozenset[str] = frozenset({"gd", "cy", "ga", "br"})
+
+#: The ANSI/ASCII-art pseudo-language.  Never a valid demotion target for
+#: the thin-rare band: swapping a rare label for "zxx" would tell the
+#: orchestrator the text has no linguistic content at all.
+ART_LANGUAGE = "zxx"
+
+#: The thin-margin band for ``demote_thin_rare``: inputs shorter than this
+#: are where bigram cosines stop discriminating (apostrophe-rich English
+#: snippets score as Gaelic).  The smallest genuine rare-language files in
+#: the test corpus are 253 bytes (legacy path) and 560 bytes (fill path),
+#: 2x and 4.4x above this gate; the callers in ``pipeline.language`` own
+#: the length judgment because only they know the pre-transcoding size.
+_THIN_RARE_MAX_BYTES = 128
+
+#: Maximum lead over the best prevalent-language variant for a rare win on
+#: a short input to count as noise.  Measured mislabels win by <= 0.021.
+#: This is NOT a safety floor: genuine gd/cy snippets measure 0.07+ and the
+#: nearest measured genuine escape is Welsh at 0.043, but short Breton and
+#: Irish can sit inside the band and are the accepted casualty class per
+#: ADR-0005's addendum — widening the margin widens that class.
+_THIN_RARE_MARGIN = 0.03
+
+
 def score_best_language(
     data: bytes,
     encoding: str,
     profile: BigramProfile | None = None,
+    *,
+    demote_thin_rare: bool = False,
 ) -> tuple[float, str | None]:
     """Score data against all language variants of an encoding.
 
@@ -590,8 +620,21 @@ def score_best_language(
     :param data: The raw byte data to score.
     :param encoding: The canonical encoding name to match against.
     :param profile: Optional pre-computed :class:`BigramProfile` to reuse.
-    :returns: A ``(score, language)`` tuple with the best cosine-similarity
-        score and the corresponding language code (or ``None``).
+    :param demote_thin_rare: Pass true only when the caller has judged the
+        *original* input thin (under :data:`_THIN_RARE_MAX_BYTES` before
+        any transcoding).  A :data:`RARE_LANGUAGES` winner that leads the
+        best prevalent-language variant by less than the measured noise
+        band is then reported under the prevalent language instead.  The
+        length judgment deliberately lives with the caller: this function
+        may receive transcoded bytes or a profile without its source data,
+        so ``len(data)`` here is not a reliable proxy for input size.
+        Language-fill callers pass this; encoding-ranking callers must not,
+        so that candidate ordering stays byte-identical.
+    :returns: A ``(score, language)`` tuple.  The score is always the best
+        cosine similarity across variants; the language matches it except
+        when ``demote_thin_rare`` fires, in which case the label is the
+        best prevalent-language variant's while the score remains the
+        rare winner's.
     """
     if not data and profile is None:
         return 0.0, None
@@ -606,10 +649,29 @@ def score_best_language(
 
     best_score = 0.0
     best_lang: str | None = None
+    best_prevalent = 0.0
+    best_prevalent_lang: str | None = None
     for lang, model, model_key in variants:
         s = score_with_profile(profile, model, model_key)
         if s > best_score:
             best_score = s
             best_lang = lang
+        if (
+            demote_thin_rare
+            and lang not in RARE_LANGUAGES
+            and lang != ART_LANGUAGE
+            and s > best_prevalent
+        ):
+            best_prevalent = s
+            best_prevalent_lang = lang
+
+    if (
+        demote_thin_rare
+        and best_lang is not None
+        and best_lang in RARE_LANGUAGES
+        and best_prevalent_lang is not None
+        and best_score - best_prevalent < _THIN_RARE_MARGIN
+    ):
+        best_lang = best_prevalent_lang
 
     return best_score, best_lang

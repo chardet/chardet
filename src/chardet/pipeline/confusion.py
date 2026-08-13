@@ -18,6 +18,7 @@ import unicodedata
 import warnings
 
 from chardet.models import (
+    ART_LANGUAGE,
     BigramProfile,
     get_enc_index,
     get_idf_weights,
@@ -428,8 +429,8 @@ def _pair_byte_tables(diff_bytes: frozenset[int]) -> tuple[bytes, bytes]:
 
 #: Pseudo-language for models trained on data with no linguistic content
 #: (ANSI art / box drawing).  Not a language, so language-fairness rules
-#: do not apply to it.
-_ART_LANGUAGE = "zxx"
+#: do not apply to it.  Canonically defined beside the model tables.
+_ART_LANGUAGE = ART_LANGUAGE
 
 
 @functools.cache

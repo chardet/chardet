@@ -70,6 +70,18 @@ Changelog
 
 **Bug Fixes:**
 
+- Fixed short apostrophe-rich English input being labeled Scottish
+  Gaelic or Breton.  The language fill picked the best-scoring model
+  with no tiebreak, and on inputs of a few dozen bytes the Celtic
+  models' fondness for curly apostrophes wins by margins as thin as
+  0.002.  A rare-language label on an input under 128 bytes now needs
+  a 0.03 lead over the best prevalent language — whether the fill
+  computed the label or the statistical stage attached it — mirroring
+  the encoding-side arbitration in ADR-0005.  Genuine Gaelic and Welsh
+  snippets measure well outside the band; the accepted trade is that a
+  very short Breton or Irish snippet, already near coin-flip, can
+  demote.  Detection on the test corpus is unchanged file for file.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 - Fixed Hungarian text being handed to a Czech reading.  When confusion
   resolution rescored a tied pair, it took each encoding's best score
   across *all* its language models, so an encoding could win on language

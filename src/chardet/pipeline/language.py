@@ -10,6 +10,8 @@ annotations.
 """
 
 from chardet.models import (
+    _THIN_RARE_MAX_BYTES,
+    RARE_LANGUAGES,
     BigramProfile,
     has_model_variants,
     infer_language,
@@ -50,8 +52,13 @@ def fill_languages(
     Tier 2: multi-language encodings via statistical bigram scoring (lazy).
     Tier 3: decode to UTF-8, score against UTF-8 language models (universal fallback).
 
-    Binary results (``encoding is None``) are passed through unchanged, as are
-    results that already have a non-``None`` language.
+    Binary results (``encoding is None``) are passed through unchanged, as
+    are results that already have a non-``None`` language — except a
+    :data:`~chardet.models.RARE_LANGUAGES` label on a thin input, which is
+    re-derived through the same scoring so the thin-rare demotion band
+    applies to statistically-attached labels too, not only to labels this
+    function computes.  A re-derivation can only *demote* to a prevalent
+    language; it never swaps one rare label for another.
 
     :param data: The raw byte data the results were produced from.  Truncated
         to the first 2 KB internally — bigram language models converge quickly.
@@ -59,29 +66,62 @@ def fill_languages(
     :returns: A list of results with ``language`` filled in where possible.
     """
     data = data[:_LANG_SCORE_MAX_BYTES]
+    # Thinness is judged once, on the bytes the caller actually has.  Tier 3
+    # transcodes to UTF-8 before scoring, which can inflate curly punctuation
+    # 3x — judging length after that would exempt exactly the inputs the
+    # band exists for.
+    thin = 0 < len(data) < _THIN_RARE_MAX_BYTES
     filled: list[DetectionResult] = []
     profile: BigramProfile | None = None
     utf8_profile: BigramProfile | None = None
+    utf8_profile_src: bytes | None = None
     for result in results:
-        if result.language is not None or result.encoding is None:
+        recheck = (
+            thin
+            and result.language is not None
+            and result.language in RARE_LANGUAGES
+            and result.encoding is not None
+        )
+        if result.encoding is None or (result.language is not None and not recheck):
             filled.append(result)
             continue
         encoding = result.encoding
-        # Tier 1: single-language encoding
-        lang = infer_language(encoding)
+        # Tier 1: single-language encoding (skipped on re-check: the label
+        # exists; only the scored tiers can justify a demotion)
+        lang = None if recheck else infer_language(encoding)
         # Tier 2: statistical scoring for multi-language encodings
         if lang is None and data and has_model_variants(encoding):
             if profile is None:
                 profile = BigramProfile(data)
-            _, lang = score_best_language(data, encoding, profile=profile)
-        # Tier 3: decode to UTF-8, score against UTF-8 language models
-        if lang is None and data and has_model_variants("utf-8"):
+            _, lang = score_best_language(
+                data, encoding, profile=profile, demote_thin_rare=thin
+            )
+        # Tier 3: decode to UTF-8, score against UTF-8 language models.
+        # Also entered by a thin rare Tier-2 label: an encoding whose
+        # variant set is all-Celtic (iso8859-14) can never offer the band a
+        # prevalent rival, so the utf-8 models — which always have one —
+        # get the deciding vote.  Their verdict is only accepted as a
+        # demotion; a rare verdict leaves the Tier-2 label in place.
+        escalate = thin and lang is not None and lang in RARE_LANGUAGES
+        if (lang is None or escalate) and data and has_model_variants("utf-8"):
             utf8_data = _to_utf8(data, encoding)
             if utf8_data:
-                if utf8_profile is None or encoding != "utf-8":
+                if utf8_data != utf8_profile_src:
                     utf8_profile = BigramProfile(utf8_data)
-                _, lang = score_best_language(utf8_data, "utf-8", profile=utf8_profile)
-        if lang is None:
+                    utf8_profile_src = utf8_data
+                _, utf8_lang = score_best_language(
+                    utf8_data, "utf-8", profile=utf8_profile, demote_thin_rare=thin
+                )
+                if lang is None or (
+                    utf8_lang is not None and utf8_lang not in RARE_LANGUAGES
+                ):
+                    lang = utf8_lang
+        if recheck and (lang is None or lang in RARE_LANGUAGES):
+            # The band did not fire (or scoring was unavailable): the
+            # original label stands.  Never replace one rare label with
+            # another — the re-check's only authority is the demotion.
+            filled.append(result)
+        elif lang is None:
             filled.append(result)
         else:
             filled.append(

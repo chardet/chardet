@@ -91,7 +91,7 @@ _ART_PSEUDO_LANG = "zxx"
 ENCODING_LANG_MAP["cp437"] = [*ENCODING_LANG_MAP["cp437"], _ART_PSEUDO_LANG]
 
 # Languages that have been reviewed for the rare-language arbitration set
-# (``postprocess._RARE_LANGUAGES``, see ADR-0005).  Training warns when a
+# (``chardet.models.RARE_LANGUAGES``, see ADR-0005).  Training warns when a
 # model is built for a language not in this list, so a newly added language
 # gets a deliberate prevalence classification instead of silence.  After
 # reviewing (add to the arbitration set or deliberately leave it out),
@@ -990,8 +990,8 @@ def main() -> None:
         print(
             f"WARNING: language(s) not yet reviewed for rare-language "
             f"arbitration (ADR-0005): {', '.join(unreviewed)} — classify "
-            "them in postprocess._RARE_LANGUAGES or record the decision in "
-            "_PREVALENCE_REVIEWED"
+            "them in chardet.models.RARE_LANGUAGES or record the decision "
+            "in _PREVALENCE_REVIEWED"
         )
     art_cache = cache_dir / "artpacks" / _ART_PSEUDO_LANG
     if (
