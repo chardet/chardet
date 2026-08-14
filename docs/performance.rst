@@ -17,7 +17,10 @@ CPython 3.14 unless noted.
    releases may reflect the faster machine, the larger corpus, the
    faster code, or any combination. Comparisons *within* a table are
    valid --- every detector, Python version, and build in a given table
-   was measured on the same machine against the same files.
+   was measured on the same machine against the same files.  Every
+   detector receives the complete file bytes and applies its own
+   defaults; chardet examines at most the first 200 KB (``max_bytes``),
+   charset-normalizer applies its own chunk sampling.
 
 Detecting a superset of the expected encoding is counted as correct,
 since the superset decodes the data without loss (e.g., detecting
@@ -62,6 +65,16 @@ Accuracy
 chardet leads all detectors on accuracy: **+15.2pp** vs chardet 6.0.0,
 **+13.1pp** vs charset-normalizer 3.5.0, and **+39.6pp** vs cchardet 3.2.0.
 Only cchardet is faster, and it detects 39.6pp fewer files correctly.
+
+One capability difference is big enough to move that headline: 145 of
+the 3,121 files (4.6%) are BOM-less utf-7, which charset-normalizer
+documents as out of scope for detection (utf-7 sits in its
+supported-encodings inventory, but is only identified when a signature
+announces it).  chardet detects all 145; charset-normalizer detects
+none of them.  Scored without those files, charset-normalizer reaches
+90.8% (2702/2976) while chardet stays at 99.7% (2968/2976), so the
++13.1pp lead reads as +8.9pp for anyone who takes BOM-less utf-7 off
+the table.
 
 Strict (Exact-Match) Scoring
 ----------------------------
@@ -307,6 +320,13 @@ its 27.6 MiB peak is the smallest on the table. (cchardet 2.2.1 used to
 report a near-zero traced peak because its C allocations were invisible
 to ``tracemalloc``; 3.2.0's are visible.)
 
+Read the table knowing the two APIs do different amounts of work:
+charset-normalizer's result carries the decoded text (retaining the
+``str`` is part of its design), while chardet returns only the
+encoding name.  A caller who needs the text pays chardet's numbers
+plus one ``bytes.decode`` afterward; charset-normalizer's numbers
+include it.
+
 chardet 6.0.0 is omitted from this table: its memory benchmark
 instruments every ``detect()`` call with ``tracemalloc``, and at 103ms
 per file on the current suite that run does not complete in reasonable
@@ -409,7 +429,16 @@ so we can compare both detectors on charset-normalizer's own ground
 truth. We filed
 `an issue <https://github.com/Ousret/char-dataset/issues/1>`_ about
 the 5 files we excluded (4 ambiguous Cyrillic files and 1 corrupted
-Vietnamese file) and 2 we relabeled (UTF-8-SIG, not UTF-8).
+Vietnamese file) and 2 we relabeled (UTF-8-SIG, not UTF-8).  The
+outcome: the corrupted Vietnamese file was fixed upstream, the
+ambiguous Cyrillic files stay by design (charset-normalizer scores
+itself on whether the label appears anywhere in its candidate list, so
+an unverifiable label costs it nothing, but that also makes them
+unusable as top-answer ground truth, so we keep them excluded), and
+the UTF-8-SIG relabels are a standing convention difference:
+charset-normalizer holds that a signature does not make a different
+encoding and reports ``utf-8`` plus a BOM property, while we report
+the distinct Python codec, because the two decode differently.
 
 .. list-table::
    :header-rows: 1
@@ -448,11 +477,12 @@ prefix of the file has been examined. Whichever convention you prefer,
 it should be applied to both detectors --- which is the point of
 publishing both columns.
 
-For the record, the two corpora are not independent: 472 of
-char-dataset's 477 files (99%) are byte-identical to files in the
-chardet test suite, and the encoding labels agree on 442 of them. The
-disagreements are mostly the same superset question resolved the other
-way (17 files we label ``iso8859-8`` and they label ``cp1255``).
+For the record, the two corpora are not independent: as of
+char-dataset's Vietnamese fix, 463 of its 472 files (98%) are
+byte-identical to files in the chardet test suite, and the encoding
+labels agree on 437 of them. The disagreements are mostly the same
+superset question resolved the other way (17 files we label
+``iso8859-8`` and they label ``cp1255``).
 
 You can reproduce these numbers with
 ``python scripts/compare_detectors.py --cn-dataset --cn --mypyc``.

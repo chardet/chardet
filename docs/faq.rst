@@ -42,10 +42,30 @@ How is chardet different from charset-normalizer?
 --------------------------------------------------
 
 `charset-normalizer <https://github.com/jawah/charset_normalizer>`_ is
-an alternative encoding detector. Key differences:
+an alternative encoding detector.  The design difference comes first,
+because the numbers follow from it: charset-normalizer decodes
+candidate encodings and scores the decoded text for "mess" and
+coherence, with no trained models.  chardet scores raw bytes against
+per-language bigram models inside a staged pipeline (structure,
+validity, statistics).  Each choice has a cost the other avoids:
+chardet's wheel carries about 1 MB of model data against
+charset-normalizer's roughly 250 KB, and chardet improves by
+retraining where charset-normalizer improves by refining heuristics.
+Credit where due on packaging: charset-normalizer proved the
+compiled-wheel pattern for this problem space, shipping optional
+mypyc-compiled wheels with a pure-Python fallback in 2022, years
+before chardet 7 took the same approach.  They have since replaced
+mypyc entirely with Cython, and the speed they recovered with that
+switch is what prompted chardet's own Cython experiments; chardet now
+compiles thirteen pipeline modules with mypyc and one scoring kernel
+with Cython.
+
+The measured differences:
 
 - **Accuracy:** chardet achieves 99.7% vs charset-normalizer's 86.6% on
-  the same test suite.
+  the same test suite (90.8% excluding the BOM-less utf-7 files
+  charset-normalizer documents as out of scope --- see
+  :doc:`performance`).
 - **Speed:** chardet leads everywhere except the far tail --- 1.5x in
   aggregate (3,201 vs 2,173 files/s), 2.4x at the median (0.13 vs
   0.31ms), and 1.8x at p90 and p95, with a worst case 3.1x lower
