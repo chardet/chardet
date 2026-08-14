@@ -644,8 +644,9 @@ Python on CPython 3.14 for versions before 7.0; mypyc-compiled for
 7.0+, matching what ``pip install chardet`` delivers. Language column
 shows "---" for versions that did not support language detection.
 
-Every row here was re-measured in a single session against the current
-test suite, so the table is internally consistent end to end. It is
+Every pre-7.6 row was re-measured in a single session against the
+3,121-file suite; the 7.6.0 row is the release-day measurement on the
+3,125-file suite the rest of this page uses. It is
 **not** comparable to the same table in earlier editions of these docs:
 the suite grew from 2,517 to 3,121 files, and the added files are
 harder and larger on average. That alone moved the pre-7.0 rows down by
@@ -760,9 +761,9 @@ code change.
      - 90.4%
    * - **chardet 7.6.0 (compiled)**
      - **2026-08**
-     - **3113/3121**
+     - **3117/3125**
      - **99.7%**
-     - **2,675**
+     - **2,793**
      - **91.8%**
 
 chardet 3.0.1--3.0.4 had identical accuracy and speed; only 3.0.4 is
