@@ -209,6 +209,16 @@ worst case is 2.4x lower (10.2ms vs 24.3ms). The trade remains accuracy:
 cchardet detects 39.6pp fewer files correctly, and reports no language
 at all.
 
+Relative orderings can shift with microarchitecture, so the repo carries
+a manually-triggered ``benchmark-x86`` workflow that reruns the
+chardet/charset-normalizer comparison interleaved on a GitHub x86_64
+runner. The first run (Intel Xeon Platinum 8573C, three rounds within
+1%) shows the same ordering as this page through p95: chardet at
+0.72ms mean, 0.26ms median, and 1.97ms p95 against charset-normalizer's
+0.79ms, 0.55ms, and 2.52ms. charset-normalizer's own CI, on its own
+corpus, reports the tail percentiles closer than that; corpus
+composition moves tails more than instruction sets do.
+
 Latency by Script Family
 ------------------------
 
