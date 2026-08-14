@@ -584,7 +584,9 @@ same public API — drop-in replacement for chardet 5.x/6.x.
 - ``EncodingEra`` filtering via new ``encoding_era`` parameter
   (`Dan Blanchard <https://github.com/dan-blanchard>`_)
 - ``max_bytes`` and ``chunk_size`` parameters for ``detect()``,
-  ``detect_all()``, and ``UniversalDetector``
+  ``detect_all()``, and ``UniversalDetector``; chunked processing was
+  proposed by `deedy5 <https://github.com/deedy5>`_ in
+  `#284 <https://github.com/chardet/chardet/issues/284>`_
   (`Dan Blanchard <https://github.com/dan-blanchard>`_)
 - ``-e``/``--encoding-era`` CLI flag
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)

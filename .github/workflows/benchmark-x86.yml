@@ -1,0 +1,55 @@
+name: Benchmark x86
+
+# Manually-triggered speed comparison on a GitHub x86_64 runner.  The
+# published benchmark tables in docs/performance.rst are measured on Apple
+# Silicon; relative percentile ordering can differ by microarchitecture
+# (see jawah/charset_normalizer#790), so this job exists to check claims
+# on the other one.  Rounds are interleaved because sequential runs on a
+# shared runner drift; compare within a round, not across rounds.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  benchmark-x86:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.14"
+      - name: Clone benchmark corpus
+        run: git clone --depth 1 https://github.com/chardet/test-data tests/data
+      - name: Build compiled chardet wheel
+        run: HATCH_BUILD_HOOK_ENABLE_MYPYC=true HATCH_BUILD_HOOK_ENABLE_CUSTOM=true uv build --wheel -o dist
+      - name: Set up detector environment
+        run: |
+          uv venv bench-venv --python 3.14
+          uv pip install --python bench-venv/bin/python dist/chardet-*.whl charset-normalizer
+      - name: Record machine
+        run: |
+          {
+            echo "## Machine"
+            echo '```'
+            grep -m1 'model name' /proc/cpuinfo || true
+            uname -m
+            bench-venv/bin/python --version
+            bench-venv/bin/python -c "import charset_normalizer; print('charset-normalizer', charset_normalizer.__version__)"
+            bench-venv/bin/python -c "import chardet; print('chardet', chardet.__version__)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Interleaved benchmark rounds
+        run: |
+          for round in 1 2 3; do
+            for detector in chardet charset-normalizer; do
+              echo "## Round $round: $detector" >> "$GITHUB_STEP_SUMMARY"
+              echo '```' >> "$GITHUB_STEP_SUMMARY"
+              bench-venv/bin/python scripts/benchmark_time.py \
+                --detector "$detector" --data-dir tests/data \
+                --encoding-era all | tail -20 >> "$GITHUB_STEP_SUMMARY"
+              echo '```' >> "$GITHUB_STEP_SUMMARY"
+            done
+          done
