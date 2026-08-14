@@ -548,7 +548,7 @@ def _promote_mac_on_cr_line_endings(
 
 
 def _decodes_under_public_names(data: bytes, encoding: str) -> bool:
-    """True if *data* decodes completely under *encoding* and its output name.
+    """Check that *data* decodes completely under *encoding* and its output name.
 
     The flip's promise is that the caller's ``data.decode(result)`` works,
     and the caller sees the *public* name: ``compat_names=True`` (the

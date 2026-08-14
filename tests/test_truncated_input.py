@@ -124,7 +124,7 @@ def test_decodes_completely_rejects_the_tail_tolerance_gap():
 
 
 def test_dangling_tail_helper_classifies_evidence():
-    """The flip's evidence test: non-empty ASCII prefix plus a deferred tail.
+    r"""The flip's evidence test: non-empty ASCII prefix plus a deferred tail.
 
     ``b"mam\\xe1"`` decodes to ASCII ``mam`` with ``0xE1`` deferred: True.
     A clipped emoji is one dangling sequence with *nothing* decoded, which
