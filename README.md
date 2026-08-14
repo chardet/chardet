@@ -14,15 +14,15 @@ Python 3.10+, zero runtime dependencies, works on PyPy.
 
 ## Why chardet 7?
 
-**99.7% accuracy** on 3,121 test files. **313x faster** than chardet 6.0.0,
+**99.7% accuracy** on 3,121 test files. **331x faster** than chardet 6.0.0,
 and **+13.1pp more accurate** than charset-normalizer 3.5.0 while being
-1.4x faster. **Language detection** for every result. **MIME type detection** for
+1.5x faster. **Language detection** for every result. **MIME type detection** for
 binary files. **0BSD licensed.**
 
 |                        | chardet 7.6.0 (compiled) | chardet 6.0.0 | [charset-normalizer] 3.5.0 |
 | ---------------------- | :--------------------: | :-----------: | :-------------------------: |
 | Accuracy (3,121 files) |       **99.7%**        |     84.5%     |            86.6%            |
-| Speed                  | **3,036 files/s** (634 pure) |  10 files/s   |        2,173 files/s        |
+| Speed                  | **3,201 files/s** (657 pure) |  10 files/s   |        2,173 files/s        |
 | Language detection     |       **91.8%**        |     38.5%     |            54.6%            |
 | Peak memory            |     **27.7 MiB**       |      n/a      |          71.7 MiB           |
 | Streaming detection    |        **yes**         |      yes      |             no              |
@@ -146,13 +146,13 @@ cat somefile.txt | chardetect
 
 - **0BSD license** (previous versions were LGPL)
 - **Ground-up rewrite:** 13-stage detection pipeline using BOM detection, magic number identification, structural probing, byte validity filtering, and bigram statistical models
-- **313x faster** than chardet 6.0.0 when compiled, and 1.4x faster than charset-normalizer 3.5.0 overall (2.4x at the median) while being far more accurate
+- **331x faster** than chardet 6.0.0 when compiled, and 1.5x faster than charset-normalizer 3.5.0 overall (2.4x at the median) while being far more accurate
 - **99.7% accuracy:** +15.2pp vs chardet 6.0.0, +13.1pp vs charset-normalizer 3.5.0
 - **Language detection:** 91.8% accuracy across 49 languages, returned with every result
 - **MIME type detection:** identifies 40+ binary file formats (images, audio/video, archives, documents, executables, fonts) via magic number signatures, plus `text/html`, `text/xml`, and `text/x-python` for markup
 - **Encoding filters:** `include_encodings` and `exclude_encodings` parameters to restrict or exclude specific encodings from the candidate set
 - **99 encodings:** full coverage including EBCDIC, Mac, DOS, and Baltic/Central European families
-- **Optional compiled builds:** mypyc plus a Cython scoring kernel, 4.8x additional speedup on CPython
+- **Optional compiled builds:** mypyc plus a Cython scoring kernel, 4.9x additional speedup on CPython
 - **Thread-safe:** `detect()` and `detect_all()` are safe to call concurrently; scales on free-threaded Python
 - **Same API:** `detect()`, `detect_all()`, `UniversalDetector`, and the `chardetect` CLI all work as before
 

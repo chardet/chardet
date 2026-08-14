@@ -20,8 +20,8 @@ public API, drop-in replacement for chardet 5.x/6.x. Python 3.10+, zero
 runtime dependencies, works on PyPy.
 
 - **99.7% accuracy** on 3,121 test files
-- **313x faster** than chardet 6.0.0 when compiled
-- **+13.1pp more accurate** than charset-normalizer 3.5.0, and 1.4x faster
+- **331x faster** than chardet 6.0.0 when compiled
+- **+13.1pp more accurate** than charset-normalizer 3.5.0, and 1.5x faster
 - **Language detection** for every result (91.8% accuracy)
 - **99 encodings** across six encoding eras
 - **Encoding filters** — include/exclude specific encodings
