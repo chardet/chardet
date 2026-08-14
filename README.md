@@ -14,7 +14,7 @@ Python 3.10+, zero runtime dependencies, works on PyPy.
 
 ## Why chardet 7?
 
-**99.7% accuracy** on 3,121 test files. **331x faster** than chardet 6.0.0,
+**99.7% accuracy** on 3,121 test files. **314x faster** than chardet 6.0.0,
 and **+13.1pp more accurate** than charset-normalizer 3.5.0 while being
 1.5x faster. **Language detection** for every result. **MIME type detection** for
 binary files. **0BSD licensed.**
@@ -146,7 +146,7 @@ cat somefile.txt | chardetect
 
 - **0BSD license** (previous versions were LGPL)
 - **Ground-up rewrite:** 13-stage detection pipeline using BOM detection, magic number identification, structural probing, byte validity filtering, and bigram statistical models
-- **331x faster** than chardet 6.0.0 when compiled, and 1.5x faster than charset-normalizer 3.5.0 overall (2.4x at the median) while being far more accurate
+- **314x faster** than chardet 6.0.0 when compiled, and 1.5x faster than charset-normalizer 3.5.0 overall (2.4x at the median) while being far more accurate
 - **99.7% accuracy:** +15.2pp vs chardet 6.0.0, +13.1pp vs charset-normalizer 3.5.0
 - **Language detection:** 91.8% accuracy across 49 languages, returned with every result
 - **MIME type detection:** identifies 40+ binary file formats (images, audio/video, archives, documents, executables, fonts) via magic number signatures, plus `text/html`, `text/xml`, and `text/x-python` for markup

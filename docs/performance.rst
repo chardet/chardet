@@ -174,8 +174,14 @@ Speed
      - 507.98ms
      - 1636.79ms
 
-With mypyc and the Cython scoring kernel, chardet 7.6.0 is **331x
-faster** than chardet 6.0.0 at the mean.
+With mypyc and the Cython scoring kernel, chardet 7.6.0 is **314x
+faster** than chardet 6.0.0 at the mean. Unlike the rest of this table,
+that ratio is measured with six interleaved rounds timing both
+detectors back to back in one session: per-round ratios stayed inside
+311--317x while absolute timings drifted a few percent with machine
+temperature. A ratio derived from this table's cells instead would
+inherit that drift, which is why earlier editions of this page quoted
+anywhere from 279x to 331x for the same code.
 
 Against charset-normalizer 3.5.0, chardet leads everywhere except the
 far tail: **1.5x on aggregate throughput** (3,201 vs 2,173 files/s),
