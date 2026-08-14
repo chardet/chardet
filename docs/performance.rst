@@ -62,6 +62,13 @@ Accuracy
      - 60.0%
      - 4,096 files/s
 
+The suite's 8 binary files count as correct for any detector that
+declines them (``encoding=None``).  chardet additionally identifies
+their format --- every result carries a ``mime_type``, matched against
+40+ magic-number signatures --- which no other detector here offers.
+That is a capability rather than an accuracy difference, so it appears
+nowhere else in these tables; see :doc:`supported-mime-types`.
+
 chardet leads all detectors on accuracy: **+15.3pp** vs chardet 6.0.0,
 **+13.1pp** vs charset-normalizer 3.5.0, and **+39.7pp** vs cchardet 3.2.0.
 Only cchardet is faster, and it detects 39.7pp fewer files correctly.

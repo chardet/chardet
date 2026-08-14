@@ -91,6 +91,13 @@ The measured differences:
   at 697 KiB. See :doc:`performance` for the full distribution.
 - **Language detection:** chardet detects language with 91.8% accuracy vs
   charset-normalizer's 54.6%.
+- **Binary files and MIME types:** both detectors decline binary input
+  (``encoding=None``), but chardet also identifies *what* the file is:
+  every result carries a ``mime_type``, matched against 40+ magic-number
+  signatures for images, audio/video, archives, documents, executables,
+  and fonts, plus ``text/html``, ``text/xml``, and ``text/x-python`` for
+  markup (see :doc:`supported-mime-types`).  charset-normalizer offers
+  ``is_binary()``, a yes/no answer with no type identification.
 
 How is chardet different from cchardet?
 ----------------------------------------
@@ -106,6 +113,8 @@ Mozilla's uchardet C/C++ library. Key differences:
   64.5 MiB traced) with lower RSS (159 vs 187 MiB).
 - **Encoding breadth:** chardet supports 49 more encodings than cchardet,
   including EBCDIC, Mac, Baltic, and BOM-less UTF-16/32.
+- **Binary files:** chardet declines binary input with a ``mime_type``
+  identifying the format; cchardet has no binary handling at all.
 - **Dependencies:** chardet is pure Python with zero dependencies.
   cchardet requires a C compiler to build from source.
 
