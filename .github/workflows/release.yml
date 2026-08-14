@@ -5,6 +5,18 @@ on:
     tags:
       - "[0-9]+.[0-9]*"
   workflow_dispatch:
+    inputs:
+      version-override:
+        description: >-
+          Build wheels for an already-tagged version from current main
+          (sets SETUPTOOLS_SCM_PRETEND_VERSION).  Use only when main's
+          src/ is identical to that tag; publish skips existing files,
+          so only new wheels upload.
+        required: false
+        default: ""
+
+env:
+  SETUPTOOLS_SCM_PRETEND_VERSION: ${{ inputs.version-override || '' }}
 
 permissions:
   contents: read
@@ -54,6 +66,7 @@ jobs:
           - { os: ubuntu-24.04-riscv, name: linux-riscv64-312,  cibw_archs_linux: riscv64, cibw_build: "cp312-*" }
           - { os: ubuntu-24.04-riscv, name: linux-riscv64-313,  cibw_archs_linux: riscv64, cibw_build: "cp313-*" }
           - { os: ubuntu-24.04-riscv, name: linux-riscv64-314,  cibw_archs_linux: riscv64, cibw_build: "cp314-*" }
+          - { os: ubuntu-24.04-riscv, name: linux-riscv64-315,  cibw_archs_linux: riscv64, cibw_build: "cp315-*" }
           - { os: macos-latest,       name: macos,              cibw_archs_linux: auto    }
     steps:
       - uses: actions/checkout@v4
@@ -68,7 +81,7 @@ jobs:
         env:
           CIBW_ARCHS_LINUX: ${{ matrix.cibw_archs_linux }}
           CIBW_BUILD: ${{ matrix.cibw_build || '*' }}
-          CIBW_ENVIRONMENT_PASS_LINUX: HATCH_BUILD_HOOK_ENABLE_MYPYC HATCH_BUILD_HOOK_ENABLE_CUSTOM
+          CIBW_ENVIRONMENT_PASS_LINUX: HATCH_BUILD_HOOK_ENABLE_MYPYC HATCH_BUILD_HOOK_ENABLE_CUSTOM SETUPTOOLS_SCM_PRETEND_VERSION
           HATCH_BUILD_HOOK_ENABLE_MYPYC: "true"
           # Cython scoring kernel; without it the wheel is ~1.4x slower.
           HATCH_BUILD_HOOK_ENABLE_CUSTOM: "true"
@@ -82,7 +95,7 @@ jobs:
         env:
           CIBW_ARCHS_LINUX: riscv64
           CIBW_BUILD: ${{ matrix.cibw_build }}
-          CIBW_ENVIRONMENT_PASS_LINUX: HATCH_BUILD_HOOK_ENABLE_MYPYC HATCH_BUILD_HOOK_ENABLE_CUSTOM
+          CIBW_ENVIRONMENT_PASS_LINUX: HATCH_BUILD_HOOK_ENABLE_MYPYC HATCH_BUILD_HOOK_ENABLE_CUSTOM SETUPTOOLS_SCM_PRETEND_VERSION
           HATCH_BUILD_HOOK_ENABLE_MYPYC: "true"
           # Cython scoring kernel; without it the wheel is ~1.4x slower.
           HATCH_BUILD_HOOK_ENABLE_CUSTOM: "true"

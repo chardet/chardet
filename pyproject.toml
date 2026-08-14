@@ -243,8 +243,11 @@ exclude_lines = [
 ]
 
 [tool.cibuildwheel]
-build = "cp310-* cp311-* cp312-* cp313-* cp314-*"
+build = "cp310-* cp311-* cp312-* cp313-* cp314-* cp315-*"
 skip = "*-musllinux_*"
+# 3.15 is at release-candidate stage; the ABI is stable from rc1, so
+# publishing cp315 wheels now is safe (#381).  Harmless once 3.15 is final.
+enable = ["cpython-prerelease"]
 build-frontend = "build[uv]"
 test-command = "python -c \"import chardet; print(chardet.detect(b'hello world'))\""
 
