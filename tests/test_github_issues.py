@@ -213,6 +213,68 @@ class TestEscapeSequences:
         for run in (b"+200", b"+99", b"+2000000"):
             _assert_detection(b"the value is " + run + b" units\n", "ascii")
 
+    def test_plus_uppercase_word_not_utf7(self) -> None:
+        """Issue #371 follow-up: pipe-delimited ASCII with "+LAY" runs.
+
+        Three uppercase base64 characters can pass the padding and surrogate
+        checks by accident (``LAY`` decodes to U+2C06, Glagolitic).  Guard D
+        now requires a dash-less single-unit block to decode into
+        U+0080-U+07FF, where every genuine lone accented character in the
+        utf-7 corpus lives and accidental uppercase runs do not.
+        """
+        _assert_detection(b"|16847+|\n|NAME,+LAY|\n" * 20, "ascii")
+        _assert_detection(
+            b"ID|AMOUNT|NAME\n16847+|100|SMITH,+JONES\n29383+|250|NAME,+LAY\n",
+            "ascii",
+        )
+
+    def test_lone_accent_still_utf7(self) -> None:
+        """Guard D must keep genuine sparse utf-7: lone accents amid ASCII.
+
+        Mirrors the three corpus files whose only shifted blocks are
+        dash-less single accented letters (all decode to U+0080-U+00FF).
+        """
+        data = "\u00e8 bello qui, \u00e0 Paris si va, \u00f9 pure\n".encode("utf-7") * 4
+        _assert_detection(data, "utf-7")
+
+    def test_utf7_signature_detected(self) -> None:
+        """A UTF-7 signature (U+FEFF as "+/v8-") must not read as ASCII."""
+        data = "\ufeffHello there, signed utf-7 content here.".encode("utf-7")
+        assert data.startswith(b"+/v8")
+        _assert_detection(data, "utf-7")
+
+    def test_utf7_signature_prefix_alone_is_not_utf7(self) -> None:
+        """ASCII that merely starts with signature bytes must stay ASCII.
+
+        The four UTF-7 signature prefixes are ordinary ASCII; a diff of V8
+        source paths begins with ``+/v8``.  The BOM entry therefore demands
+        the whole buffer decode as UTF-7 before it believes the prefix.
+        """
+        _assert_detection(
+            b"+/v8/src/api.cc\n+/v8/src/objects.h\nthese lines were added\n",
+            "ascii",
+        )
+        _assert_detection(b"+/v9 is the new deps path for the build\n", "ascii")
+
+    def test_dash_terminated_uppercase_run_not_utf7(self) -> None:
+        """Guard D applies with or without the dash: "+LAY-AWAY" stays ASCII."""
+        _assert_detection(b"|16847+|\n|NAME,+LAY-AWAY|\n" * 20, "ascii")
+        _assert_detection(
+            b"SOME NAME,+LAY THEN MORE TEXT FOLLOWS HERE OK\n" * 10, "ascii"
+        )
+
+    def test_lone_punctuation_and_cjk_units_stay_utf7(self) -> None:
+        """Dash-less lone em dashes, ellipses, and kanji are genuine UTF-7.
+
+        Python's encoder emits ``+IBQ`` (em dash) and ``+ZeU`` (kanji)
+        without dash terminators before direct characters; a guard that
+        only allowed Latin-supplement lone units flipped these to ASCII.
+        """
+        western = "The result — good.\nThe cost … high, but fine.\n" * 6
+        japanese = "The kanji for day is 日 in Japanese text.\n" * 5
+        _assert_detection(western.encode("utf-7"), "utf-7")
+        _assert_detection(japanese.encode("utf-7"), "utf-7")
+
 
 # =========================================================================
 # UTF-16 / UTF-32 ISSUES

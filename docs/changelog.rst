@@ -39,6 +39,24 @@ Changelog
 
 **Bug Fixes:**
 
+- Fixed delimited ASCII data like ``|NAME,+LAY|`` misdetecting as
+  UTF-7, a follow-up to `#371
+  <https://github.com/chardet/chardet/issues/371>`_.  Two new checks:
+  the whole buffer must actually decode as UTF-7 (``+|`` is an illegal
+  shift, so tabular data fails immediately), and a block encoding a
+  single code unit must land in a script range where a lone shifted
+  character plausibly occurs.  ``+LAY`` decodes to U+2C06, Glagolitic;
+  no genuine lone block in the corpus lands anywhere like it, while em
+  dashes, ellipses, kanji, and accented letters all pass.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+- Signed UTF-7 no longer reads as ASCII.  The BOM stage recognizes the
+  four UTF-7 signature prefixes (``+/v8-`` and friends) when the rest
+  of the buffer decodes as UTF-7 --- the prefix alone is ordinary ASCII
+  (a diff of V8 source paths starts with ``+/v8``).  This is a
+  deliberate divergence from WHATWG's browser-security exclusion of
+  UTF-7: chardet already detects the unsigned form, so refusing only
+  the signed one made no sense.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 - ``detect()`` no longer returns an encoding that cannot decode the
   input it was given
   (`#380 <https://github.com/chardet/chardet/issues/380>`_).  When the

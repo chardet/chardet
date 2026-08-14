@@ -10,6 +10,7 @@ this module is compiled with mypyc, which does not support PEP 563 string
 annotations.
 """
 
+from chardet._utils import decodes_without_error
 from chardet.pipeline import DETERMINISTIC_CONFIDENCE, DetectionResult
 
 
@@ -135,6 +136,28 @@ def _is_embedded_in_base64(data: bytes, pos: int) -> bool:
     return count >= 4
 
 
+def _single_unit(b64_data: bytes) -> int:
+    """Decode the first (only) UTF-16 code unit of a single-unit block."""
+    return (
+        (_B64_DECODE[b64_data[0]] << 12)
+        | (_B64_DECODE[b64_data[1]] << 6)
+        | _B64_DECODE[b64_data[2]]
+    ) >> 2
+
+
+def _plausible_lone_unit(unit: int) -> bool:
+    """Script ranges where a lone shifted character plausibly occurs."""
+    return (
+        0x0080 <= unit <= 0x07FF  # Latin supp. .. Arabic
+        or 0x0E00 <= unit <= 0x0FFF  # Thai, Lao, Tibetan
+        or 0x2000 <= unit <= 0x2BFF  # punctuation .. arrows (em dash, euro)
+        or 0x3000 <= unit <= 0x30FF  # CJK punctuation, kana
+        or 0x4E00 <= unit <= 0x9FFF  # CJK unified
+        or 0xAC00 <= unit <= 0xD7A3  # Hangul
+        or 0xFF00 <= unit <= 0xFFEF  # fullwidth forms
+    )
+
+
 def _has_valid_utf7_sequences(data: bytes) -> bool:
     """Check that *data* contains at least one valid UTF-7 shifted sequence.
 
@@ -194,6 +217,22 @@ def _has_valid_utf7_sequences(data: bytes) -> bool:
         # prevents false positives).  Terminator can be '-', any non-Base64
         # byte, or end of data — all per RFC 2152.
         if b64_len >= 3 and _is_valid_utf7_b64(b64_data):
+            # Guard D: a block encoding a *single* code unit — with or
+            # without a dash terminator — must decode into a script range
+            # where a lone shifted character plausibly occurs.  The corpus's
+            # single-unit blocks live in Latin/Greek/Cyrillic/Hebrew/Arabic
+            # supplements, Thai, general punctuation through arrows (em
+            # dashes and ellipses dominate), CJK, kana, Hangul, and
+            # fullwidth forms.  An accidental uppercase run like "+LAY"
+            # (issue #371) decodes to U+2C06, Glagolitic — no genuine lone
+            # block in 149 corpus files lands in such a range.  Multi-unit
+            # blocks are untouched: accidental ASCII does not survive the
+            # padding and surrogate checks for long runs.
+            if (b64_len * 6) // 16 == 1:
+                unit = _single_unit(b64_data)
+                if not _plausible_lone_unit(unit):
+                    start = i
+                    continue
             return True
         start = max(pos, i)
 
@@ -269,8 +308,18 @@ def detect_escape_encoding(data: bytes) -> DetectionResult | None:
 
     # UTF-7: plus-sign shifts into Base64-encoded Unicode.
     # UTF-7 is a 7-bit encoding (RFC 2152): every byte must be in 0x00-0x7F.
-    # Data with any byte > 0x7F cannot be UTF-7.
-    if has_plus and max(data) < 0x80 and _has_valid_utf7_sequences(data):
+    # Data with any byte > 0x7F cannot be UTF-7.  The whole buffer must
+    # also *decode* as UTF-7: tabular ASCII like "|16847+|" contains "+|",
+    # which is illegal (a shift must be followed by base64 or "-"), so the
+    # decode gate kills the delimited-data false-positive class outright
+    # while genuine UTF-7 — which real encoders emit as valid streams —
+    # always passes.  The decoder fails fast on the first bad sequence.
+    if (
+        has_plus
+        and max(data) < 0x80
+        and decodes_without_error(data, "utf-7")
+        and _has_valid_utf7_sequences(data)
+    ):
         return DetectionResult(
             encoding="utf-7",
             confidence=DETERMINISTIC_CONFIDENCE,

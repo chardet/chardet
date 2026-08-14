@@ -29,7 +29,9 @@ from chardet.pipeline.utf8 import detect_utf8
 # Note the use of bare ``utf-16``/``utf-32`` (not ``-le``/``-be``): when a
 # BOM is present, chardet returns the Python codec name that strips the BOM
 # on decode.  See ``tests/test_python_stdlib_limitations.py`` for the pinned
-# CPython behavior that makes this correct.
+# CPython behavior that makes this correct.  UTF-7 is the one exception to
+# the strip property: Python has no ``utf-7-sig`` codec, so decoding with
+# the reported name leaves a leading U+FEFF for the caller to drop.
 EXPECTED_BOM_SET: frozenset[tuple[bytes, str]] = frozenset(
     {
         (b"\xef\xbb\xbf", "utf-8-sig"),
@@ -37,6 +39,16 @@ EXPECTED_BOM_SET: frozenset[tuple[bytes, str]] = frozenset(
         (b"\xff\xfe", "utf-16"),
         (b"\x00\x00\xfe\xff", "utf-32"),
         (b"\xff\xfe\x00\x00", "utf-32"),
+        # Deliberate divergence from WHATWG: the UTF-7 signature (U+FEFF in
+        # UTF-7, four prefixes per RFC 2152).  WHATWG excludes UTF-7 from
+        # browsers entirely as a security posture, but chardet already
+        # detects unsigned UTF-7 through the escape stage, and refusing only
+        # the *signed* variant would be incoherent -- a signed file would
+        # read as ASCII with a literal "+/v8-" at the front.
+        (b"+/v8", "utf-7"),
+        (b"+/v9", "utf-7"),
+        (b"+/v+", "utf-7"),
+        (b"+/v/", "utf-7"),
     }
 )
 
@@ -46,12 +58,13 @@ def test_bom_table_matches_spec_set_exactly() -> None:
     extras = actual - EXPECTED_BOM_SET
     missing = EXPECTED_BOM_SET - actual
     assert actual == EXPECTED_BOM_SET, (
-        "pipeline.bom._BOMS must match the WHATWG decode algorithm's BOM "
-        "sniff set (UTF-8, UTF-16BE, UTF-16LE, UTF-32BE, UTF-32LE) plus "
-        "their BOM-stripping Python codec names. Adding new entries "
-        "requires a deliberate spec-compliance decision -- see the "
-        "GB18030 pin in tests/test_python_stdlib_limitations.py for an "
-        "example of a BOM chardet intentionally does NOT sniff.\n"
+        "pipeline.bom._BOMS must match this deliberately-pinned sniff set: "
+        "the WHATWG decode algorithm's BOMs (UTF-8, UTF-16BE, UTF-16LE) "
+        "plus chardet's documented divergences (UTF-32, and the payload-"
+        "validated UTF-7 signature). Adding new entries requires a "
+        "deliberate spec-compliance decision -- see the GB18030 pin in "
+        "tests/test_python_stdlib_limitations.py for an example of a BOM "
+        "chardet intentionally does NOT sniff.\n"
         f"  extras:  {sorted(extras)}\n"
         f"  missing: {sorted(missing)}"
     )
