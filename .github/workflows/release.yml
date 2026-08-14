@@ -77,7 +77,7 @@ jobs:
       # which has no riscv64 binaries. On native riscv64 runners, invoke
       # cibuildwheel directly with the system Python instead.
       - if: "!startsWith(matrix.name, 'linux-riscv64')"
-        uses: pypa/cibuildwheel@v3.3
+        uses: pypa/cibuildwheel@v4.2.0
         env:
           CIBW_ARCHS_LINUX: ${{ matrix.cibw_archs_linux }}
           CIBW_BUILD: ${{ matrix.cibw_build || '*' }}
@@ -132,7 +132,7 @@ jobs:
       - name: Restore clean git state for version derivation
         run: git update-index --assume-unchanged pyproject.toml
       - uses: astral-sh/setup-uv@v7
-      - uses: pypa/cibuildwheel@v3.3
+      - uses: pypa/cibuildwheel@v4.2.0
         env:
           HATCH_BUILD_HOOK_ENABLE_MYPYC: "true"
           # Cython scoring kernel; without it the wheel is ~1.4x slower.
