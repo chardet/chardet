@@ -13,218 +13,108 @@ Changelog
 
 **Performance:**
 
-- Compiled wheels now score bigram profiles through a Cython kernel,
-  measured **1.41x faster** end to end against the previous compiled
-  build (1.480s to 1.053s over the 3,121-file suite, interleaved).
-  ``_kernel.py`` holds the scoring loop, which
-  is roughly a third of compiled runtime, as ordinary Python with no
-  third-party imports; ``_kernel.pxd`` supplies C types at build time and
-  ships nothing.  The ``.py`` remains the only implementation, so PyPy
-  and pure-Python wheels run the same code interpreted and pay nothing
-  for the kernel's existence.  Detection output is bit-identical.
-
-  Compiled builds now need both hooks::
+- Compiled wheels now score bigram profiles through a small Cython
+  kernel, 1.41x faster end to end than the previous compiled build.
+  ``_kernel.py`` stays plain Python (PyPy and pure wheels run it
+  interpreted, unchanged), ``_kernel.pxd`` adds C types at build time
+  and ships nothing, and detection output is bit-identical.  Compiled
+  builds now need both hooks::
 
       HATCH_BUILD_HOOK_ENABLE_MYPYC=true HATCH_BUILD_HOOK_ENABLE_CUSTOM=true uv build
 
-  Enabling only one is unoptimized rather than wrong.  Neither is
-  required for a pure-Python source install, so Cython and mypyc stay
-  off the build requirements of a ``pip install`` on PyPy or a platform
-  with no prebuilt wheel.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
-- On free-threaded Python, the compiled kernel declares itself safe
-  without the GIL.  Without that declaration CPython re-enables the GIL
-  for the entire process when the extension is imported, which silently
-  reverts free-threaded installs to single-threaded speed.  With it,
-  3.14t scales to **340ms across 8 threads** (about 9,200 files/s), the
-  fastest configuration measured and 1.5x better than before the kernel.
+- The kernel declares itself safe without the GIL, so free-threaded
+  CPython actually scales instead of silently re-enabling the GIL on
+  import: 3.14t runs the whole suite in ~340ms across 8 threads, the
+  fastest configuration measured.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
-- Added support for **CPython 3.15**, including its free-threaded build.
-  No code changes were needed: both compilers build against it, accuracy
-  is identical, and it is marginally the fastest interpreted build
-  measured.
+- Added support for CPython 3.15, including the free-threaded build.
+  No code changes were needed.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
-- Stopped generating cross-family confusion pairs.  These paired
-  encodings whose byte tables differ wholesale but that serve a common
-  language, and measurement showed they earn nothing: sweeping the
-  overlap threshold from 0.45 to off entirely never moved lenient or
-  strict accuracy, and disabling the tier changed exactly one
-  detection in 3,121 — a file that is wrong either way.  They were not
-  free, growing ``confusion.bin`` from 8 KB to 60 KB and costing 11% of
-  detection wall clock, because every additional pair is one more that
-  arbitrates instead of returning early.  Pass ``overlap_threshold`` to
-  ``compute_distinguishing_maps`` to restore them.
-  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
-- Stopped allocating a dense 65536-entry table for the focused bigram
-  profiles confusion resolution builds from a median of eight bigrams.
-  Worth about 3% of detection under mypyc.
-  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
-- Sped up the bigram rescore on the pure-Python build by about 20% by
-  locating distinguishing bytes with ``bytes.find`` rather than walking
-  every byte of the input; over the test corpus that loop scanned 57 MB
-  to reach the 0.9 MB that could contribute.  Compiled builds pay ~1.4%
-  for this, since mypyc already compiled the walk to native code —
-  taken because PyPy and every platform without a prebuilt wheel run
-  the interpreted path.
+- Confusion resolution got cheaper: focused rescore profiles skip the
+  dense 65536-entry table (~3% of detection), and the pure-Python
+  rescore finds distinguishing bytes with ``bytes.find`` instead of
+  walking every byte (~20% faster interpreted).
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 
 **Bug Fixes:**
 
-- Fixed short apostrophe-rich English input being labeled Scottish
-  Gaelic or Breton.  The language fill picked the best-scoring model
-  with no tiebreak, and on inputs of a few dozen bytes the Celtic
-  models' fondness for curly apostrophes wins by margins as thin as
-  0.002.  A rare-language label on an input under 128 bytes now needs
-  a 0.03 lead over the best prevalent language — whether the fill
-  computed the label or the statistical stage attached it — mirroring
-  the encoding-side arbitration in ADR-0005.  Genuine Gaelic and Welsh
-  snippets measure well outside the band; the accepted trade is that a
-  very short Breton or Irish snippet, already near coin-flip, can
-  demote.  Detection on the test corpus is unchanged file for file.
+- ``detect()`` no longer returns an encoding that cannot decode the
+  input it was given
+  (`#380 <https://github.com/chardet/chardet/issues/380>`_).  When the
+  whole input has been examined and the winner's only multi-byte
+  evidence is an incomplete trailing sequence, the best candidate that
+  decodes the input completely wins instead.  Genuinely truncated data
+  keeps its answer: CJK cut mid-character, or input sliced at
+  ``max_bytes``.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
-- Fixed Hungarian text being handed to a Czech reading.  When confusion
-  resolution rescored a tied pair, it took each encoding's best score
-  across *all* its language models, so an encoding could win on language
-  coverage its rival lacked: 0xF8 is a common r-hacek in Czech and a
-  u-double-acute in Hungarian, so iso8859-2's Czech model outscored
-  iso8859-16's Hungarian one on plainly Hungarian text.  The rescore now
-  compares the pair only under models both encodings have, whenever both
-  results agree on a language inside that set.
+- Short apostrophe-heavy English is no longer labeled Scottish Gaelic
+  or Breton.  A rare-language label on an input under 128 bytes now
+  needs a 0.03 lead over the best mainstream language, mirroring the
+  encoding-side arbitration in ADR-0005.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
-- Fixed space-padded text matching a degenerate Serbian model at up to
-  0.93 confidence.  The ``sr/cp1250`` training corpus is Cyrillic, which
-  mostly fails to encode into cp1250, so the model learned whitespace
-  residue instead of Serbian; ANSI art and column-aligned ``.po`` files
-  then matched it on runs of spaces alone.  Statistical scoring now
-  skips repeated-whitespace bigrams, mirroring the whitespace collapse
-  the training pipeline already applies.  Fixed 21 files in the expanded
-  test suite plus a long-standing GB2312 known failure.
+- Hungarian text no longer loses to a Czech reading: confusion
+  rescoring compares tied pairs only under language models both
+  encodings have.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
-- Fixed EBCDIC text being invisible to the early pipeline stages.
-  EBCDIC uses 0x05 and 0x15 as tab and newline, which the binary stage
-  counted as binary indicators, so cp1026 and cp875 pages came back as
-  ``encoding=None``.  Charset declarations inside EBCDIC-encoded markup
-  (``<meta charset="cp1026">``) were also unreadable to the ASCII
-  markup regexes.  The binary stage now treats those controls as
-  whitespace when the data is high-byte-dominated, and the markup stage
-  scans a cp037 decode of the head for declarations, which works for
-  every EBCDIC variant because letters and digits sit at the same code
-  points in all of them.
+- Space-padded text no longer matches a degenerate Serbian model at
+  high confidence.  Statistical scoring now skips repeated-whitespace
+  bigrams, matching the whitespace collapse training already applies.
+  Fixed 21 files plus a long-standing GB2312 known failure.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
-- Fixed the last two EBCDIC sibling misdetections from the expanded
-  test suite.  A record dump came back as cp273 because three
-  backslashes read as Ö under the German page, and a German historic
-  file came back as cp500 because the correct sibling sat outside the
-  near-tie band that confusion resolution scanned.
-  Letter-over-punctuation votes are no longer treated as evidence (a
-  backslash between capitals is a plausible path separator, unlike
-  box-drawing inside a word), and when no model scores above 0.2 the
-  scan now extends down to candidates at half the top confidence,
-  requiring the vote and the rescore to agree before overturning the
-  ranking.
+- EBCDIC text is no longer invisible to the early pipeline.  The
+  binary stage treats EBCDIC's 0x05/0x15 tab and newline as whitespace
+  when the data is high-byte-dominated, and the markup stage reads
+  charset declarations through a cp037 decode of the head.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
-- Fixed a training normalization gap that biased Romanian detection
-  toward Windows-1250.  About a third of the Romanian corpus uses
-  legacy cedilla forms, which ISO-8859-16 cannot encode, so they were
-  silently dropped from its models while cp1250 kept every occurrence
-  at the very same byte positions (both pages put the s form at 0xBA
-  and the t form at 0xFE).  Cedilla now folds to comma-below when
-  training ISO-8859-16, giving both siblings identical weight at the
-  shared bytes.  The one test file still disagreeing turned out to be
-  mislabeled: its 0x89 bytes sit right after election percentages,
-  which is a per-mille sign under cp1250 and an unprintable control
-  under ISO-8859-16, so it moved to ``windows-1250-ro``.
+- Fixed the last two EBCDIC sibling misdetections: a letter reading
+  beating punctuation is no longer evidence by itself, and
+  low-confidence near-ties scan deeper but need the category vote and
+  the bigram rescore to agree.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
-- Fixed the same normalization gap for the euro sign.  Euro-bearing
-  text was silently dropped when encoding to the 26 pre-euro
-  encodings, leaving their euro-updated siblings (cp1140 over cp500,
-  cp858 over cp850, ISO-8859-15 over ISO-8859-1) better fed at exactly
-  the byte that should discriminate them.  The euro now folds to the
-  generic currency sign wherever it cannot be encoded natively, which
-  also fixed an Estonian ISO-8859-13 file whose Baltic near-tie the
-  bias had flipped.
+- Fixed training normalization gaps that starved ISO-8859-16 (legacy
+  cedilla forms) and the 26 pre-euro encodings (the euro sign) at
+  exactly the bytes that discriminate them from their siblings.
+  Cedilla folds to comma-below and the euro to the currency sign
+  wherever the target encoding cannot represent them.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 
 **Improvements:**
 
-- All bigram models retrained on a refreshed corpus (25,000 CulturaX
-  articles per language) with the training pipeline hardened per
-  ADR-0004: whitespace collapses after encoding instead of before, a
-  retention guard hard-fails any (language, encoding) pair whose corpus
-  mostly fails to encode, Serbian gets genuine Latin-script text by
-  Gaj transliteration (``sr/cp1250`` went from 119 whitespace-residue
-  bigrams to 941 real ones), and CP1006 gains the sixteen Urdu letters
-  its substitution table was missing.
+- Retrained every bigram model on a refreshed, deduplicated corpus
+  with the ADR-0004 hardening: whitespace collapses after encoding,
+  retention guards hard-fail mostly unencodable corpora, Serbian gets
+  real Latin-script text, CP1006 gains its sixteen missing Urdu
+  letters, and wiki markup is stripped before bigram counting.
+  Training provenance is now recorded per model, so test data added
+  after a retrain is detectable as such.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
-- New ANSI-art model.  Prose models carry no signal for box-drawing
-  and shading bytes, so artpack files landed on arbitrary winners.
-  cp437 detection now includes a bigram profile trained on 16,621
-  text-mode art files from the `16colo.rs <https://16colo.rs/>`_
-  archive, keyed under the ISO 639 ``zxx`` pseudo-language (no
-  linguistic content) and reported with ``language=None``.  The test
-  suite's wild artpacks were excluded from training by content
-  fingerprint.
+- New ANSI-art model.  cp437 detection now includes a profile trained
+  on 16,621 text-mode art files from `16colo.rs <https://16colo.rs/>`_,
+  keyed under the ``zxx`` pseudo-language and reported with
+  ``language=None``.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
-- Rare-language arbitration: a statistical winner from a language with
-  no documented legacy-encoding population (Scottish Gaelic, Welsh,
-  Irish, and Breton — ISO-8859-14 was standardized in 1998 but never
-  measurably deployed) now yields to a mainstream-language candidate
-  scoring within 0.02, when the winner's own confidence is below 0.15.
-  Genuine Celtic text is unaffected: it wins by landslides, and eight
-  new boundary sentinel files in the test suite guard the gate against
-  future drift.  Fixes a Croatian ``.po`` file detected as Scottish
-  Gaelic.  Design, evidence, and revision protocol in ADR-0005.
+- Rare-language arbitration: a low-confidence statistical winner from a
+  language with no documented legacy-encoding population (Scottish
+  Gaelic, Welsh, Irish, Breton) yields to a near-tied mainstream
+  candidate.  Genuine Celtic text wins by landslides and is unaffected;
+  eight boundary sentinels in the test suite guard the gate.  Design
+  and evidence in ADR-0005.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
-- Wiki-markup artifacts are now stripped from training text.  The
-  major-language corpora are clean, but low-resource CulturaX slices
-  are heavily wiki-derived: the Breton cache alone carried ~3,000
-  ``]]``, enough to cross the model weight-preservation threshold and
-  plant phantom ``]]`` bigrams on EBCDIC distinguishing bytes, flipping
-  cp500/cp1140 resolution on unrelated files.  Doubled link brackets,
-  template braces, table pipes, and bold/italic quote runs collapse to
-  single characters before bigram counting — markup is not natural
-  language in any language.
-  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
-- Confusion-group resolution is now context-aware.  Category voting
-  votes per occurrence and demotes letter readings that have no word
-  shape (a "letter" quoted between apostrophes, or a lowercase letter
-  jammed against a following capital — how EBCDIC record data reads
-  under the wrong sibling page).  A vote whose margin comes from such
-  demotions overrides the bigram rescore; one won on the naive
-  letters-beat-punctuation preference defers to it.  Art-model wins are
-  exempt from resolution entirely, since both mechanisms reason about
-  prose.  Fixes twelve EBCDIC and Latin files the retrain had left
-  hanging on single-byte coin flips.
+- Confusion-group resolution is context-aware: votes are counted per
+  occurrence, letter readings with no word shape are demoted, and
+  art-model wins are exempt.  Fixed twelve EBCDIC and Latin files that
+  were riding single-byte coin flips.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 - Statistical dead heats no longer resolve by candidate enumeration
-  order.  The English models of cp437, cp850, Windows-1252, and MacRoman
-  score identically on ASCII-dominated data, so files with almost no
-  high-byte evidence (an ``ioreg`` dump with a single 0xD5 byte, a
-  ReadMe with classic-Mac line endings) came back as whichever encoding
-  the registry happened to list first.  Three post-processing rules now
-  break these ties: prefer the Windows superset (``CP932`` over
-  ``SHIFT_JIS``), prefer the more prevalent encoding era when the winner
-  has no high-byte evidence at all, and prefer a classic-Mac candidate
-  when line endings are bare ``\r``.
+  order.  Three tiebreaks: prefer the Windows superset, prefer the more
+  prevalent era when there is no high-byte evidence, and prefer a
+  classic-Mac candidate when line endings are bare ``\r``.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
-- Confusion resolution now covers cross-family near-ties.  Pair
-  generation adds a second tier: encodings that share a registry
-  language and at least 45% of their byte table (cp850 and
-  Windows-1252 on Spanish, ISO-8859-4 and Windows-1257 on Estonian),
-  growing the shipped pair set from 95 to 236.  The language-overlap
-  gate keeps cross-script pairs out.  Cross-family pairs demand
-  corroboration before acting: the category vote and the bigram
-  rescore must agree, and the decisive-vote override stays
-  within-family, where sibling models are too similar for the rescore
-  to arbitrate on its own.
-  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
-- Training pipeline hardening after a cache-loss post-mortem: worker
-  build failures and subset retrains that would drop an existing model
-  now abort loudly instead of shipping without it, exclusion-set
-  changes filter the article caches in place instead of deleting them
-  wholesale, subset retrains preserve metadata provenance for models
-  they did not rebuild, and the artpack fetcher builds into a
-  temporary directory so a failed sync cannot destroy a good corpus.
+- Training pipeline hardening after a cache-loss post-mortem: retrains
+  that would silently drop a model now abort loudly, caches filter in
+  place instead of being deleted wholesale, and the artpack fetcher
+  builds into a temporary directory.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 
 7.5.1 (2026-08-06)
