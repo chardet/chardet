@@ -116,6 +116,7 @@ class UniversalDetector:
             empty_input_encoding, "empty_input_encoding"
         )
         self._buffer = bytearray()
+        self._input_truncated = False
         self._done = False
         self._closed = False
         self._result: DetectionResult | None = None
@@ -139,6 +140,11 @@ class UniversalDetector:
         remaining = self._max_bytes - len(self._buffer)
         if remaining > 0:
             self._buffer.extend(byte_str[:remaining])
+        if len(byte_str) > max(remaining, 0):
+            # Bytes beyond the cap were dropped: the buffer is a truncated
+            # view of the caller's stream, which the pipeline cannot infer
+            # from the buffer length alone (it equals max_bytes exactly).
+            self._input_truncated = True
         if len(self._buffer) >= self._max_bytes:
             self._done = True
 
@@ -157,6 +163,7 @@ class UniversalDetector:
                 data,
                 self._encoding_era,
                 max_bytes=self._max_bytes,
+                input_truncated=self._input_truncated,
                 include_encodings=self._include_encodings,
                 exclude_encodings=self._exclude_encodings,
                 no_match_encoding=self._no_match_encoding,
@@ -169,6 +176,7 @@ class UniversalDetector:
     def reset(self) -> None:
         """Reset the detector to its initial state for reuse."""
         self._buffer = bytearray()
+        self._input_truncated = False
         self._done = False
         self._closed = False
         self._result = None

@@ -526,3 +526,29 @@ class TestNullSeparators:
         result = chardet.detect(data)
         assert result["encoding"] == "ascii"
         assert result["confidence"] == 0.99
+
+
+class TestIssue380:
+    r"""Issue #380: complete input detected as an encoding that cannot decode it.
+
+    ``b"mam\xe1"`` (iso-8859-1 ``mamá``) ranked utf-8 a hair above the
+    Latin candidates, and utf-8 cannot decode the dangling ``0xE1`` --- the
+    caller's very next ``.decode()`` raised.  When chardet has seen the
+    caller's entire input and the winner's only multi-byte evidence is the
+    dangling tail itself, the best rival that decodes completely now wins.
+    """
+
+    def test_mama_returns_an_encoding_that_decodes(self) -> None:
+        data = "mamá".encode("iso-8859-1")
+        result = chardet.detect(data)
+        assert result["encoding"] is not None
+        assert data.decode(result["encoding"]) == "mamá"
+
+    def test_dangling_tail_words_decode(self) -> None:
+        """The class, not just the instance: accented-final words round-trip."""
+        for word in ("mamá", "papá", "café olé", "groß"):
+            data = word.encode("iso-8859-1")
+            result = chardet.detect(data)
+            assert result["encoding"] is not None, word
+            decoded = data.decode(result["encoding"])
+            assert decoded, word

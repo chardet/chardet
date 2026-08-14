@@ -17,9 +17,16 @@ from __future__ import annotations
 import pytest
 
 import chardet
-from chardet._utils import DEFAULT_MAX_BYTES, decodes_without_error
+from chardet import UniversalDetector
+from chardet._utils import (
+    DEFAULT_MAX_BYTES,
+    dangling_tail_with_ascii_prefix,
+    decodes_completely,
+    decodes_without_error,
+)
 from chardet.enums import EncodingEra
 from chardet.pipeline.markup import _validate_bytes, detect_markup_charset
+from chardet.pipeline.postprocess import _decodes_under_public_names
 from chardet.pipeline.validity import filter_by_validity
 from chardet.registry import get_candidates
 
@@ -106,3 +113,125 @@ def test_detection_survives_the_max_bytes_cut():
         assert (result["encoding"] or "").lower().startswith("gb"), (
             f"pad={pad} detected as {result['encoding']}"
         )
+
+
+def test_decodes_completely_rejects_the_tail_tolerance_gap():
+    """The strict sibling: same bytes, final=True flips the verdict."""
+    dangling = "mamá".encode("iso-8859-1")  # ends in a lone 0xE1 lead
+    assert decodes_without_error(dangling, "utf-8")
+    assert not decodes_completely(dangling, "utf-8")
+    assert decodes_completely(dangling, "windows-1250")
+
+
+def test_dangling_tail_helper_classifies_evidence():
+    """The flip's evidence test: non-empty ASCII prefix plus a deferred tail.
+
+    ``b"mam\\xe1"`` decodes to ASCII ``mam`` with ``0xE1`` deferred: True.
+    A clipped emoji is one dangling sequence with *nothing* decoded, which
+    is zero evidence rather than ASCII evidence: False.  A mid-cut CJK
+    fragment decodes real multi-byte characters first: False.
+    """
+    assert dangling_tail_with_ascii_prefix(b"mam\xe1", "utf-8")
+    assert not dangling_tail_with_ascii_prefix(b"\xf0\x9f\x98", "utf-8")
+    cjk = "こんにちは".encode("shift_jis")[:-1]
+    assert not dangling_tail_with_ascii_prefix(cjk, "shift_jis")
+    # Complete input has no deferred tail, so it is not a dangling shape.
+    assert not dangling_tail_with_ascii_prefix(b"mama", "utf-8")
+
+
+def test_flip_verifies_the_public_name_too():
+    """A rival must decode under the name the caller will actually use.
+
+    ``euc_jis_2004`` decodes JIS X 0213 pairs that plain ``EUC-JP`` (its
+    ``compat_names=True`` display name) rejects, so promoting it would
+    re-create the issue-380 symptom under the public name.
+    """
+    data = b"hello \xa2\xaf"
+    assert decodes_completely(data, "euc_jis_2004")
+    assert not decodes_completely(data, "EUC-JP")
+    assert not _decodes_under_public_names(data, "euc_jis_2004")
+
+
+def test_internal_slicing_keeps_the_prefix_tolerance():
+    """When chardet itself sliced, a dangling tail is chardet's own cut.
+
+    The same four bytes that flip to a decodable Latin answer as complete
+    input stay utf-8 when they are a ``max_bytes`` slice of longer data ---
+    the caller's input goes on past the cut, so the strict-decode question
+    does not apply to the slice.
+
+    The utf-8 assertion pins the current statistical coin flip over the
+    Latin candidates deliberately: it is the only observable difference
+    from the complete-input path (which flips to Windows-1250).  If a
+    model retrain moves the coin flip, update the string here, not the
+    invariant.
+    """
+    data = "mamá mamá mamá".encode("iso-8859-1")
+    result = chardet.detect(data, max_bytes=4)
+    assert result["encoding"] == "utf-8"
+
+
+def test_internal_slicing_tolerance_is_structural_too():
+    """Retrain-proof variant: sliced utf-8 keeps utf-8 via structure alone.
+
+    Real multi-byte content before the cut resolves through the utf-8
+    structural stage regardless of statistical models, so this pin cannot
+    move under a retrain.
+    """
+    data = ("héllo wörld " * 50).encode()
+    cut = 100
+    while data[cut - 1] < 0x80:  # land the slice mid-character
+        cut += 1
+    result = chardet.detect(data, max_bytes=cut)
+    assert result["encoding"] == "utf-8"
+
+
+def test_streaming_buffer_cap_keeps_the_prefix_tolerance():
+    """UniversalDetector's cap is chardet-made truncation (issue #380 review).
+
+    ``feed()`` stops at exactly ``max_bytes``, so the pipeline cannot see
+    the cut in ``len(data)``; the detector must say so itself.  Overflowed
+    streams keep the tolerance and agree with ``detect()`` on the same
+    call, and an exactly-filled buffer with nothing dropped counts as
+    complete, also agreeing with ``detect()``.
+    """
+    data = "mamá mamá mamá".encode("iso-8859-1")
+
+    overflowed = UniversalDetector(max_bytes=4)
+    overflowed.feed(data)
+    assert (
+        overflowed.close()["encoding"] == chardet.detect(data, max_bytes=4)["encoding"]
+    )
+
+    exact = UniversalDetector(max_bytes=4)
+    exact.feed(b"mam\xe1")
+    assert (
+        exact.close()["encoding"] == chardet.detect(b"mam\xe1", max_bytes=4)["encoding"]
+    )
+
+
+def test_streaming_truncation_flag_resets():
+    """reset() must clear the truncation memory along with the buffer."""
+    det = UniversalDetector(max_bytes=4)
+    det.feed("mamá mamá".encode("iso-8859-1"))
+    det.close()
+    det.reset()
+    det.feed(b"mam\xe1")
+    result = det.close()
+    assert result["encoding"] == chardet.detect(b"mam\xe1", max_bytes=4)["encoding"]
+
+
+def test_truncated_cjk_chunk_keeps_its_answer():
+    """A mid-character CJK cut must not flip to a low-confidence Latin codec.
+
+    The guard is evidence, not confidence: a CJK winner has decoded real
+    multi-byte characters before the cut, so its tolerant decode is not
+    pure ASCII and the decode-safety flip never touches it.  A 5-40 byte
+    sweep measured zero correct answers lost under this rule, against 34
+    lost under a confidence-band rule.
+    """
+    chunk = (_JA * 8).encode("shift_jis")
+    while decodes_completely(chunk, "shift_jis"):
+        chunk = chunk[:-1]
+    result = chardet.detect(chunk, encoding_era=EncodingEra.ALL)
+    assert (result["encoding"] or "").lower().startswith(("shift_jis", "cp932"))

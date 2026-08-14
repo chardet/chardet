@@ -232,9 +232,11 @@ def _run_pipeline_core(  # noqa: PLR0913
     no_match_encoding: str = "cp1252",
     empty_input_encoding: str = "utf-8",
     full_ranking: bool = False,
+    input_truncated: bool = False,
 ) -> list[DetectionResult]:
     """Core pipeline logic. Returns list of results sorted by confidence."""
     ctx = PipelineContext()
+    input_truncated = input_truncated or len(data) > max_bytes
     data = data[:max_bytes]
 
     # Build candidate set once — used for both early-exit gating and
@@ -374,7 +376,9 @@ def _run_pipeline_core(  # noqa: PLR0913
                 full_ranking=full_ranking,
             )
             if results:
-                return postprocess_results(data, results)
+                return postprocess_results(
+                    data, results, input_truncated=input_truncated
+                )
 
     # Stage 3: Statistical scoring for all remaining candidates.
     # Bigram models converge quickly and don't benefit from scanning
@@ -386,7 +390,7 @@ def _run_pipeline_core(  # noqa: PLR0913
     if not results:
         return _make_fallback_or_none(no_match_encoding, allowed, "no_match_encoding")
 
-    return postprocess_results(data, results)
+    return postprocess_results(data, results, input_truncated=input_truncated)
 
 
 def run_pipeline(  # noqa: PLR0913
@@ -399,6 +403,7 @@ def run_pipeline(  # noqa: PLR0913
     no_match_encoding: str = "cp1252",
     empty_input_encoding: str = "utf-8",
     full_ranking: bool = False,
+    input_truncated: bool = False,
 ) -> list[DetectionResult]:
     """Run the full detection pipeline.
 
@@ -413,12 +418,18 @@ def run_pipeline(  # noqa: PLR0913
         candidate so the returned list is complete (``detect_all`` needs
         this).  When ``False``, candidates that provably cannot affect the
         top of the ranking may be omitted from the tail.
+    :param input_truncated: Pass ``True`` when *data* is already a truncated
+        view of the caller's input (``UniversalDetector`` caps its buffer at
+        ``max_bytes``, which this function cannot see from ``len(data)``
+        alone).  Truncation by the ``max_bytes`` slice here is detected
+        either way; the flag only ever widens it.
     :returns: A list of :class:`DetectionResult` sorted by confidence descending.
     """
     results = _run_pipeline_core(
         data,
         encoding_era,
         max_bytes,
+        input_truncated=input_truncated,
         include_encodings=include_encodings,
         exclude_encodings=exclude_encodings,
         no_match_encoding=no_match_encoding,

@@ -40,6 +40,26 @@ def _warn_deprecated_chunk_size(chunk_size: int, stacklevel: int = 3) -> None:
         )
 
 
+def _incremental_decoder(
+    encoding: str,
+) -> codecs.IncrementalDecoder | None:
+    """Return a fresh incremental decoder for *encoding*, or ``None``.
+
+    The class lookup is cached; ``None`` means the codec does not exist.
+    Every decode below catches ``UnicodeError`` rather than
+    ``UnicodeDecodeError`` because the utf-16/utf-32 incremental decoders
+    raise a bare ``UnicodeError`` when the stream does not start with a BOM.
+    """
+    decoder_class = _INCREMENTAL_DECODERS.get(encoding)
+    if decoder_class is None:
+        try:
+            decoder_class = codecs.getincrementaldecoder(encoding)
+        except LookupError:
+            return None
+        _INCREMENTAL_DECODERS[encoding] = decoder_class
+    return decoder_class()
+
+
 def decodes_without_error(data: bytes, encoding: str) -> bool:
     """Return ``True`` if *data* decodes cleanly under *encoding*.
 
@@ -62,21 +82,73 @@ def decodes_without_error(data: bytes, encoding: str) -> bool:
     :param encoding: Name of the codec to test *data* against.
     :returns: ``True`` if *data* decodes without error, ``False`` otherwise.
     """
-    decoder_class = _INCREMENTAL_DECODERS.get(encoding)
-    if decoder_class is None:
-        try:
-            decoder_class = codecs.getincrementaldecoder(encoding)
-        except LookupError:
-            return False
-        _INCREMENTAL_DECODERS[encoding] = decoder_class
+    decoder = _incremental_decoder(encoding)
+    if decoder is None:
+        return False
     try:
-        decoder_class().decode(data, final=False)
-    except (UnicodeError, LookupError):
-        # UnicodeError rather than UnicodeDecodeError: the utf-16/utf-32
-        # incremental decoders raise a bare UnicodeError when the stream does
-        # not start with a BOM.
+        decoder.decode(data, final=False)
+    except UnicodeError:
         return False
     return True
+
+
+def decodes_completely(data: bytes, encoding: str) -> bool:
+    """Return ``True`` if *data* decodes under *encoding* with nothing deferred.
+
+    The strict sibling of :func:`decodes_without_error`: ``final=True`` makes
+    an incomplete multi-byte sequence at the end of *data* an error rather
+    than a deferred tail.  This is the question that matters when *data* is
+    the caller's entire input --- ``data.decode(encoding)`` will make exactly
+    this judgment.
+
+    :param data: The raw byte data to test.
+    :param encoding: Name of the codec to test *data* against.
+    :returns: ``True`` if *data* decodes completely, ``False`` otherwise.
+    """
+    decoder = _incremental_decoder(encoding)
+    if decoder is None:
+        return False
+    try:
+        decoder.decode(data, final=True)
+    except UnicodeError:
+        return False
+    return True
+
+
+def dangling_tail_with_ascii_prefix(data: bytes, encoding: str) -> bool:
+    """Return ``True`` if *data* is ASCII text plus an incomplete tail.
+
+    One decode pass answers both halves of the decode-safety question:
+    the tolerant (``final=False``) decode yields the text before any
+    deferred tail, and flushing the decoder afterwards raises exactly when
+    a deferred tail existed.  True means the candidate decoded real ASCII
+    characters and then hit an incomplete multi-byte sequence at the end
+    --- its only *non-ASCII* evidence is the undecodable tail itself.
+
+    Deliberately False when the tolerant decode yields nothing at all
+    (the entire input is one dangling sequence): that candidate has zero
+    decoded evidence, not ASCII evidence, and a clipped multi-byte
+    fragment is better served by the ranking's own judgment.
+
+    :param data: The raw byte data to test.
+    :param encoding: Name of the codec to decode *data* with.
+    :returns: ``True`` if *data* decodes to non-empty pure ASCII with an
+        incomplete sequence deferred at the end.
+    """
+    decoder = _incremental_decoder(encoding)
+    if decoder is None:
+        return False
+    try:
+        text = decoder.decode(data, final=False)
+    except UnicodeError:
+        return False
+    if not text or not text.isascii():
+        return False
+    try:
+        decoder.decode(b"", final=True)
+    except UnicodeError:
+        return True
+    return False
 
 
 def _validate_max_bytes(max_bytes: int) -> None:
