@@ -14,27 +14,21 @@ Changelog
 **Performance:**
 
 - Compiled wheels now score bigram profiles through a small Cython
-  kernel, 1.41x faster end to end than the previous compiled build.
-  ``_kernel.py`` stays plain Python (PyPy and pure wheels run it
-  interpreted, unchanged), ``_kernel.pxd`` adds C types at build time
-  and ships nothing, and detection output is bit-identical.  Compiled
-  builds now need both hooks::
+  kernel alongside mypyc, and the pair is 4.7x faster than the pure
+  wheel on CPython 3.14.  ``_kernel.py`` stays plain Python (PyPy and
+  pure wheels run it interpreted, unchanged), ``_kernel.pxd`` adds C
+  types at build time and ships nothing, and detection output is
+  bit-identical.  The kernel declares itself safe without the GIL, so
+  free-threaded CPython scales instead of silently re-enabling the GIL
+  on import: 3.14t runs the whole suite in ~340ms across 8 threads,
+  the fastest configuration measured.  Compiled builds now need both
+  hooks::
 
       HATCH_BUILD_HOOK_ENABLE_MYPYC=true HATCH_BUILD_HOOK_ENABLE_CUSTOM=true uv build
 
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
-- The kernel declares itself safe without the GIL, so free-threaded
-  CPython actually scales instead of silently re-enabling the GIL on
-  import: 3.14t runs the whole suite in ~340ms across 8 threads, the
-  fastest configuration measured.
-  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 - Added support for CPython 3.15, including the free-threaded build.
   No code changes were needed.
-  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
-- Confusion resolution got cheaper: focused rescore profiles skip the
-  dense 65536-entry table (~3% of detection), and the pure-Python
-  rescore finds distinguishing bytes with ``bytes.find`` instead of
-  walking every byte (~20% faster interpreted).
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 
 **Bug Fixes:**
