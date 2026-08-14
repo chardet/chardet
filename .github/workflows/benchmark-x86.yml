@@ -39,17 +39,19 @@ jobs:
             bench-venv/bin/python --version
             bench-venv/bin/python -c "import charset_normalizer; print('charset-normalizer', charset_normalizer.__version__)"
             bench-venv/bin/python -c "import chardet; print('chardet', chardet.__version__)"
+            bench-venv/bin/python -c "import chardet.pipeline.orchestrator as m; import chardet._kernel as k; print('orchestrator:', m.__file__.rsplit('.', 1)[-1], ' kernel:', k.__file__.rsplit('.', 1)[-1])"
             echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Interleaved benchmark rounds
         run: |
+          set -o pipefail
           for round in 1 2 3; do
             for detector in chardet charset-normalizer; do
-              echo "## Round $round: $detector" >> "$GITHUB_STEP_SUMMARY"
+              echo "## Round $round: $detector" | tee -a "$GITHUB_STEP_SUMMARY"
               echo '```' >> "$GITHUB_STEP_SUMMARY"
               bench-venv/bin/python scripts/benchmark_time.py \
                 --detector "$detector" --data-dir tests/data \
-                --encoding-era all | tail -20 >> "$GITHUB_STEP_SUMMARY"
+                --encoding-era all | tail -20 | tee -a "$GITHUB_STEP_SUMMARY"
               echo '```' >> "$GITHUB_STEP_SUMMARY"
             done
           done

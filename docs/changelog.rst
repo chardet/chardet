@@ -540,7 +540,9 @@ same public API — drop-in replacement for chardet 5.x/6.x.
 - **12-stage detection pipeline** — BOM, UTF-16/32 patterns, escape
   sequences, binary detection, markup charset, ASCII, UTF-8 validation,
   byte validity, CJK gating, structural probing, statistical scoring,
-  post-processing
+  post-processing; the markup stage's PEP 263 declaration sniffing was
+  requested by `patrikha <https://github.com/patrikha>`_ in
+  `#249 <https://github.com/chardet/chardet/issues/249>`_
 - **Bigram frequency models** trained on CulturaX multilingual corpus
   data for all supported language/encoding pairs
 - **Optional mypyc compilation** — 1.49x additional speedup on CPython
