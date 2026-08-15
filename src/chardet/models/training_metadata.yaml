@@ -1,7 +1,5 @@
-training_date: "2026-08-12T00:07:40Z"
+training_date: "2026-08-15T20:17:49Z"
 max_samples: 25000
-exclusion_set_hash: "802db04c4921e9ceed191c7bc227d3ebd2603da316e3f3499b0c4fca619a37db"
-test_data_commit: "783397b92142c50a27dbab7dde1780f1695024a8"
 models:
   ar/cp1256:
     language: ar
@@ -1657,7 +1655,7 @@ models:
     language: he
     encoding: iso8859-8
     samples_used: 25000
-    bigram_entries: 1405
+    bigram_entries: 1771
     sources:
       culturax: 25000
       madlad400: 0

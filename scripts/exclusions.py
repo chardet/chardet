@@ -7,6 +7,8 @@ import hashlib
 import re
 from pathlib import Path
 
+from bidi_order import VISUAL_ORDER_DUAL_ENCODINGS, reorder_visual
+
 #: Characters a transcode is most likely to have replaced.  A test file is
 #: fingerprinted from its *decoded* bytes, after the generator substituted
 #: whatever its target encoding could not represent, while a corpus article
@@ -286,6 +288,20 @@ def build_exclusion_set(test_data_dir: Path) -> ExclusionIndex:
         if codec is None:
             continue
 
+        # Dual-convention encodings store test files in either bidi order,
+        # but the training corpus is always logical, so a visual-order test
+        # file's fingerprints would never match its own source article.
+        # Index the forward reordering of every file in such directories as
+        # well.  UBA is NOT exactly its own inverse (measured: a trailing
+        # parenthetical clause can land elsewhere in the line), but sentence
+        # units are matched individually and re-reordering recovers 91-100%
+        # of a visual file's logical units (measured on the converted
+        # corpus) -- far above the coverage the overlap check needs.
+        try:
+            dual_order = codecs.lookup(codec).name in VISUAL_ORDER_DUAL_ENCODINGS
+        except LookupError:
+            dual_order = False
+
         for filepath in sorted(encoding_dir.iterdir()):
             if not filepath.is_file():
                 continue
@@ -300,6 +316,8 @@ def build_exclusion_set(test_data_dir: Path) -> ExclusionIndex:
                 continue
 
             index.add(text)
+            if dual_order:
+                index.add(reorder_visual(text))
 
     return index
 

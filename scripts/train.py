@@ -39,6 +39,7 @@ import zlib
 from datetime import datetime, timezone
 from pathlib import Path
 
+from bidi_order import VISUAL_ORDER_DUAL_ENCODINGS, reorder_visual
 from confusion_training import (
     compute_distinguishing_maps,
     serialize_confusion_data,
@@ -828,6 +829,11 @@ def _build_one_model(
 
     enc_cache = _worker_encodable_cache.setdefault(codec, {})
 
+    # Dual-convention encodings get every sample in both storage orders,
+    # one copy each, so the model explains wild files of either kind.
+    # See bidi_order.py for the evidence behind the set.
+    dual_order = enc_name in VISUAL_ORDER_DUAL_ENCODINGS
+
     # Normalize, substitute, filter, and encode all texts
     encoded: list[bytes] = []
     kept_alpha = 0
@@ -840,9 +846,14 @@ def _build_one_model(
         filtered, kept, total = _filter_encodable(text, codec, enc_cache)
         kept_alpha += kept
         total_alpha += total
-        result = encode_text(collapse_whitespace_runs(filtered), codec)
+        collapsed = collapse_whitespace_runs(filtered)
+        result = encode_text(collapsed, codec)
         if result is not None:
             encoded.append(result)
+        if dual_order:
+            visual = encode_text(reorder_visual(collapsed), codec)
+            if visual is not None:
+                encoded.append(visual)
 
     retention = kept_alpha / total_alpha if total_alpha else None
 

@@ -8,6 +8,26 @@ Changelog
    Dan directed the design, reviewed all output, and takes responsibility for
    the result. Unmarked entries by Dan were written without AI assistance.
 
+Unreleased
+----------
+
+**Accuracy:**
+
+- Visual-order Hebrew is now detected.  ISO-8859-8 text on the 1990s
+  web was usually stored in visual order, bytes in display order for
+  browsers with no bidi engine, while the same charset labeled
+  ISO-8859-8-I stored logical order.  The ``he/iso8859-8`` model now
+  trains on both conventions, so visual input is detected as
+  ISO-8859-8 and logical input prefers Windows-1255.  Reporting the
+  storage convention through the encoding name follows the approach
+  Mozilla's universal charset detector algorithm laid out for Hebrew,
+  here falling out of the statistics rather than a dedicated prober.
+  Training reorders text with the Unicode Bidirectional Algorithm
+  (python-bidi, with macOS ICU as a fallback), and the exclusion
+  machinery indexes both orders of dual-convention test files so
+  train/test separation survives the reordering.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+
 7.6.0 (2026-08-14)
 -------------------
 
