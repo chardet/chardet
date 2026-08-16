@@ -251,8 +251,10 @@ def write_model_artifacts(
     ``models.bin`` is written at *models_path* (whatever its basename);
     ``rowmax.bin`` and ``idf.bin`` are written beside it under their fixed
     names.  ``rowmax.bin`` embeds the SHA-256 of the exact ``models.bin``
-    bytes written here, so no member of the set can be regenerated alone —
-    a mismatched member is rejected at load time.
+    bytes written here and is deliberately written **last**: it is the
+    commit marker for the whole set, so an interrupted run leaves a digest
+    mismatch that :func:`parse_rowmax_bin` rejects at load time instead of
+    a silently stale sibling (``idf.bin`` is validated by size only).
 
     :param models: Mapping of model key to sparse ``{(b1, b2): weight}``.
     :param models_path: Destination path for models.bin.
@@ -265,7 +267,7 @@ def write_model_artifacts(
     header = bytearray(MODELS_MAGIC)
     header += struct.pack("!I", len(sorted_names))
     tables = bytearray()
-    dense_tables: list[bytes] = []
+    rowmax_rows: list[bytes] = []
     for name in sorted_names:
         # Expand sparse dict to dense 65536-byte table and compute L2 norm
         table = bytearray(65536)
@@ -276,20 +278,23 @@ def write_model_artifacts(
         name_bytes = name.encode("utf-8")
         header += struct.pack("!I", len(name_bytes)) + name_bytes
         header += struct.pack("!d", math.sqrt(sq_sum))
-        tables.extend(table)
-        dense_tables.append(bytes(table))
+        # Freeze once and derive the row maxima from the exact bytes being
+        # serialized, so the two can never describe different tables.
+        frozen = bytes(table)
+        tables += frozen
+        rowmax_rows.append(rowmax_from_table(frozen))
 
     models_blob = bytes(header) + zlib.compress(bytes(tables), 9)
     models_path.write_bytes(models_blob)
 
-    rowmax_blob = bytearray(ROWMAX_MAGIC)
-    rowmax_blob += hashlib.sha256(models_blob).digest()
-    for dense in dense_tables:
-        rowmax_blob += rowmax_from_table(dense)
-    models_path.with_name("rowmax.bin").write_bytes(rowmax_blob)
-
     idf_table = _idf_table(models)
     models_path.with_name("idf.bin").write_bytes(idf_table)
+
+    rowmax_blob = bytearray(ROWMAX_MAGIC)
+    rowmax_blob += hashlib.sha256(models_blob).digest()
+    for row in rowmax_rows:
+        rowmax_blob += row
+    models_path.with_name("rowmax.bin").write_bytes(rowmax_blob)
 
     return {
         "models.bin": len(models_blob),

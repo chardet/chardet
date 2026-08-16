@@ -5,10 +5,11 @@ from __future__ import annotations
 import codecs
 import hashlib
 import re
+import sys
 from pathlib import Path
 
-from arabic_shape import SHAPED_VISUAL_ENCODINGS
-from bidi_order import VISUAL_ORDER_DUAL_ENCODINGS, reorder_visual
+from arabic_shape import is_shaped_visual
+from bidi_order import is_dual_order, reorder_visual
 
 #: Characters a transcode is most likely to have replaced.  A test file is
 #: fingerprinted from its *decoded* bytes, after the generator substituted
@@ -273,6 +274,7 @@ def build_exclusion_set(test_data_dir: Path) -> ExclusionIndex:
     if not test_data_dir.is_dir():
         return index
 
+    reorder_available = True
     for encoding_dir in sorted(test_data_dir.iterdir()):
         if not encoding_dir.is_dir():
             continue
@@ -305,23 +307,29 @@ def build_exclusion_set(test_data_dir: Path) -> ExclusionIndex:
         # units on prose, overlaps() False across the board.  Their
         # directories instead carry a `_logical_source/` sidecar with the
         # exact pre-shaping text, indexed verbatim below.
-        try:
-            canonical = codecs.lookup(codec).name
-        except LookupError:
-            canonical = ""
-        dual_order = canonical in VISUAL_ORDER_DUAL_ENCODINGS
-        if canonical in SHAPED_VISUAL_ENCODINGS:
+        dual_order = is_dual_order(codec)
+        if is_shaped_visual(codec):
             sidecar = encoding_dir / "_logical_source"
-            if sidecar.is_dir():
-                for source_path in sorted(sidecar.iterdir()):
-                    if not source_path.is_file():
-                        continue
-                    try:
-                        source_text = source_path.read_text("utf-8")
-                    except (UnicodeDecodeError, OSError):
-                        continue
-                    if len(source_text) >= 10:
-                        index.add(source_text)
+            if not sidecar.is_dir():
+                msg = (
+                    f"{encoding_dir.name}: shaped-visual test data has no "
+                    f"_logical_source/ sidecar.  Transform-based recovery "
+                    f"does not work for shaped text (measured 0-20% of "
+                    f"units), so without the sidecar overlap detection "
+                    f"would silently index nothing usable for this "
+                    f"encoding and training could ship a model trained on "
+                    f"its own evaluation data."
+                )
+                raise RuntimeError(msg)
+            for source_path in sorted(sidecar.iterdir()):
+                if not source_path.is_file():
+                    continue
+                try:
+                    source_text = source_path.read_text("utf-8")
+                except (UnicodeDecodeError, OSError):
+                    continue
+                if len(source_text) >= 10:
+                    index.add(source_text)
 
         for filepath in sorted(encoding_dir.iterdir()):
             if not filepath.is_file():
@@ -337,8 +345,21 @@ def build_exclusion_set(test_data_dir: Path) -> ExclusionIndex:
                 continue
 
             index.add(text)
-            if dual_order:
-                index.add(reorder_visual(text))
+            if dual_order and reorder_available:
+                try:
+                    index.add(reorder_visual(text))
+                except RuntimeError:
+                    # ICU is macOS-only; the overlap CHECK degrades instead
+                    # of crashing (training itself still hard-fails, in
+                    # train.py, where reordered corpus text is mandatory).
+                    reorder_available = False
+                    print(
+                        f"WARNING: visual-order reindexing unavailable on "
+                        f"this platform (needs macOS libicucore); overlap "
+                        f"detection for {encoding_dir.name} covers logical "
+                        f"order only.",
+                        file=sys.stderr,
+                    )
 
     return index
 

@@ -1,10 +1,11 @@
 # tests/test_statistical.py
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import pytest
-from utils import collect_test_files, get_data_dir
+from utils import collect_test_files
 
 from chardet.enums import EncodingEra
 from chardet.models import BigramProfile, get_enc_index
@@ -184,17 +185,32 @@ def test_pruned_matches_full_ranking_at_top(data: bytes):
     _assert_pruning_contract(pruned, full)
 
 
+# Full-corpus parity is expensive on slow CI cells (pruned + full scoring
+# per file), so the default run takes a deterministic 1-in-N sample and the
+# accuracy CI job (and pre-release runs) set CHARDET_FULL_CORPUS_PARITY=1
+# to sweep every file.
+_CORPUS_SAMPLE_STRIDE = 20
+
+
 def _corpus_params() -> list:
-    """One param per accuracy-corpus file, id'd like the accuracy suite."""
-    return [
-        pytest.param(fp, id=f"{enc}-{lang}/{fp.name}")
-        for enc, lang, fp in collect_test_files(get_data_dir())
-    ]
+    """One param per (sampled) corpus file, id'd like the accuracy suite.
+
+    Enumeration must not touch the network: when ``tests/data`` is absent
+    this yields no cases instead of cloning at collection time, so offline
+    runs and the coverage job can collect this module's data-free tests.
+    """
+    data_dir = Path(__file__).parent / "data"
+    if not data_dir.is_dir():
+        return []
+    files = collect_test_files(data_dir)
+    if os.environ.get("CHARDET_FULL_CORPUS_PARITY") != "1":
+        files = files[::_CORPUS_SAMPLE_STRIDE]
+    return [pytest.param(fp, id=f"{enc}-{lang}/{fp.name}") for enc, lang, fp in files]
 
 
 @pytest.mark.parametrize("path", _corpus_params())
 def test_pruning_contract_holds_on_corpus(path: Path):
-    """Corpus-wide pin of the pruning contract.
+    """Corpus pin of the pruning contract.
 
     A future rank correction whose trigger or reach outgrows
     ``postprocess.scoring_floor`` / ``postprocess.forced_encodings`` turns

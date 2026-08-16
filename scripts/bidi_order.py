@@ -43,7 +43,25 @@ equivalence measurement, and never a hand-rolled reverser.
 
 from __future__ import annotations
 
+import codecs
+
 VISUAL_ORDER_DUAL_ENCODINGS: frozenset[str] = frozenset({"iso8859-8"})
+
+
+def is_dual_order(encoding_name: str) -> bool:
+    """Return whether *encoding_name* trains on both bidi storage orders.
+
+    The one membership test for :data:`VISUAL_ORDER_DUAL_ENCODINGS`:
+    every consumer (training, exclusion indexing) must resolve names the
+    same way, so membership is decided under stdlib codec canonicalization
+    here rather than per-caller.  An unknown codec is not a member.
+    """
+    try:
+        canonical = codecs.lookup(encoding_name).name
+    except LookupError:
+        return False
+    return canonical in VISUAL_ORDER_DUAL_ENCODINGS
+
 
 _icu_shape = None
 

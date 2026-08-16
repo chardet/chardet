@@ -35,8 +35,8 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-from arabic_shape import SHAPED_VISUAL_ENCODINGS, shape_for_codec
-from bidi_order import VISUAL_ORDER_DUAL_ENCODINGS, reorder_visual
+from arabic_shape import is_shaped_visual, shape_for_codec
+from bidi_order import is_dual_order, reorder_visual
 from confusion_training import (
     compute_distinguishing_maps,
     serialize_confusion_data,
@@ -676,12 +676,12 @@ def _build_one_model(
     # Dual-convention encodings get every sample in both storage orders,
     # one copy each, so the model explains wild files of either kind.
     # See bidi_order.py for the evidence behind the set.
-    dual_order = enc_name in VISUAL_ORDER_DUAL_ENCODINGS
+    dual_order = is_dual_order(enc_name)
 
     # Presentation-form pages get contextually shaped text stored in
     # visual order only -- their wild data had no logical convention.
     # See arabic_shape.py for the evidence behind the set.
-    shaped_visual = enc_name in SHAPED_VISUAL_ENCODINGS
+    shaped_visual = is_shaped_visual(enc_name)
 
     # Normalize, substitute, filter, and encode all texts
     encoded: list[bytes] = []
@@ -794,6 +794,14 @@ def main() -> None:
         default=False,
         help="Skip download and model building; load raw bigram counts from "
         "cache and re-run normalization and serialization only",
+    )
+    parser.add_argument(
+        "--accept-unverified-provenance",
+        action="store_true",
+        default=False,
+        help="Allow a run that would drop the recorded exclusion-set "
+        "provenance from training_metadata.yaml (a sticky loss that "
+        "otherwise aborts; a full retrain restores it)",
     )
     parser.add_argument(
         "--min-alpha-retention",
@@ -1274,6 +1282,24 @@ def main() -> None:
         ]
     )
     if provenance is None:
+        # Losing recorded provenance is sticky: once the metadata carries no
+        # exclusion hash, every later subset retrain inherits None until a
+        # full retrain re-establishes consensus.  A run that would cause
+        # that must say so loudly and be explicitly allowed.
+        had_any = carried_provenance is not None or any(
+            v is not None for v in raw_provenance.values()
+        )
+        if had_any and not args.accept_unverified_provenance:
+            fail(
+                "ERROR: this run would ship models.bin without verifiable provenance:",
+                "the retrained models' exclusion set differs from the one recorded in",
+                "training_metadata.yaml, so no single test-data exclusion can "
+                "be claimed",
+                "for the merged file — and the loss is sticky for every later "
+                "subset retrain.",
+                "Run a full retrain (no --encodings) to restore provenance, or pass",
+                "--accept-unverified-provenance to ship without it.",
+            )
         print(
             "  Provenance: unverified (the models were not all built with "
             "one known test set excluded)"

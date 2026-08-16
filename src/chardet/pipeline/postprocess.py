@@ -303,8 +303,10 @@ _DEAD_HEAT_SUPERSETS: dict[str, str] = {
 
 # Confidence band for the classic-Mac line-ending promotion.  Wider than the
 # dead-heat epsilon because bare-\r line endings are decisive platform
-# evidence, not just a prior.  Matches ``confusion._CONFUSION_BAND``.
-_CR_MAC_BAND = 0.005
+# evidence, not just a prior.  Structurally the confusion band: retuning
+# ``CONFUSION_BAND`` carries this promotion's reach with it, keeping the
+# band inside ``_CORRECTION_REACH`` so pruning always scores what it scans.
+_CR_MAC_BAND = CONFUSION_BAND
 
 # Minimum number of \r line endings before the classic-Mac promotion fires.
 _CR_MAC_MIN_LINES = 3
@@ -634,7 +636,7 @@ _CORRECTION_REACH = _RARE_ARBITRATION_MARGIN + 2 * CONFUSION_BAND
 
 
 def scoring_floor(top1: float, top2: float) -> float:
-    """Return the score below which no rank correction can examine a candidate.
+    """Return the score below which the rank corrections cannot examine a candidate.
 
     One half of the pruning contract statistical scoring consumes: given
     the running top two encoding scores, every candidate at or above this
@@ -646,6 +648,12 @@ def scoring_floor(top1: float, top2: float) -> float:
     to that tier's floor, because a strict-tier promotion may raise any
     candidate above the tier floor into position 0 before the other
     corrections evaluate their triggers.
+
+    One correction sits deliberately outside this floor: the decode-safety
+    flip (:func:`_prefer_decodable_on_tie`) scans the ranking *as given*,
+    including pruned-path tails whose entries may be understated or absent
+    — a measured trade-off documented in its own docstring, not a floor
+    violation to fix by widening the reach.
     """
     floor = top2 - _CORRECTION_REACH
     if top1 < STRICT_TIER_MAX_CONF:

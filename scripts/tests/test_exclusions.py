@@ -2,8 +2,13 @@
 
 from __future__ import annotations
 
+import codecs
 from pathlib import Path
 
+import exclusions as exclusions_mod
+import pytest
+from arabic_shape import SHAPED_VISUAL_ENCODINGS
+from bidi_order import VISUAL_ORDER_DUAL_ENCODINGS
 from exclusions import (
     ExclusionIndex,
     _weight,
@@ -339,3 +344,63 @@ def test_identical_opening_is_enough_on_its_own() -> None:
     index = _indexed(original)
     # Same first 200 characters, entirely different body afterwards.
     assert index.overlaps(original[:200] + " " + _document("divergent", count=30))
+
+
+def test_shaped_visual_dir_without_sidecar_raises(tmp_path: Path) -> None:
+    """A shaped-visual directory missing its _logical_source/ sidecar aborts.
+
+    The sidecar is the only working overlap-detection mechanism for shaped
+    text (transform-based recovery measures 0-20% of units), so silently
+    indexing nothing would let training ship a model trained on its own
+    evaluation data.
+    """
+    enc_dir = tmp_path / "cp864-ar"
+    enc_dir.mkdir()
+    (enc_dir / "sample.txt").write_bytes(b"plain ascii content here")
+    with pytest.raises(RuntimeError, match="_logical_source"):
+        build_exclusion_set(tmp_path)
+
+
+def test_shaped_visual_sidecar_is_indexed(tmp_path: Path) -> None:
+    """_logical_source/ text is fingerprinted for shaped-visual encodings."""
+    enc_dir = tmp_path / "cp864-ar"
+    sidecar = enc_dir / "_logical_source"
+    sidecar.mkdir(parents=True)
+    source = "A pre-shaping logical source document " * 10
+    (sidecar / "sample.txt").write_text(source, encoding="utf-8")
+    index = build_exclusion_set(tmp_path)
+    assert index.overlaps(source)
+
+
+def test_dual_order_degrades_without_icu(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Overlap indexing survives a platform without ICU, with a warning.
+
+    Training itself must still hard-fail off macOS; only the overlap CHECK
+    degrades to logical-order coverage.
+    """
+
+    def boom(_text: str) -> str:
+        msg = "visual-order reordering needs macOS libicucore"
+        raise RuntimeError(msg)
+
+    monkeypatch.setattr(exclusions_mod, "reorder_visual", boom)
+    enc_dir = tmp_path / "iso-8859-8-he"
+    enc_dir.mkdir()
+    logical = "some hebrew-page content long enough to index " * 5
+    (enc_dir / "sample.txt").write_bytes(logical.encode("iso-8859-8"))
+    index = build_exclusion_set(tmp_path)
+    assert index.overlaps(logical)
+    assert "visual-order reindexing unavailable" in capsys.readouterr().err
+
+
+def test_bidi_frozensets_members_are_canonical() -> None:
+    """Every member of both frozensets must be its own codecs-canonical name.
+
+    is_dual_order/is_shaped_visual canonicalize the *queried* name through
+    codecs.lookup; a member stored under a non-canonical spelling would
+    never match anything.
+    """
+    for member in VISUAL_ORDER_DUAL_ENCODINGS | SHAPED_VISUAL_ENCODINGS:
+        assert codecs.lookup(member).name == member

@@ -7,7 +7,6 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-
 from detector_env import _clean_inplace_artifacts, build_compiled_wheel
 
 
@@ -47,7 +46,7 @@ def test_build_enables_both_hooks_and_returns_wheel(tmp_path: Path) -> None:
     out_dir.mkdir()
     seen_env: dict[str, str] = {}
 
-    def fake_run(cmd: list[str], **kwargs: object) -> None:
+    def fake_run(_cmd: list[str], **kwargs: object) -> None:
         seen_env.update(kwargs["env"])  # type: ignore[call-overload]
         (out_dir / "chardet-0-py3-none-any.whl").write_bytes(b"wheel")
 
@@ -65,14 +64,17 @@ def test_build_raises_when_no_wheel(tmp_path: Path) -> None:
     out_dir.mkdir()
     with (
         patch("detector_env.subprocess.run"),
-        pytest.raises(RuntimeError, match="no .whl file"),
+        pytest.raises(RuntimeError, match=r"no \.whl file"),
     ):
         build_compiled_wheel(tmp_path, out_dir)
 
 
 def test_build_sweeps_even_when_build_fails(tmp_path: Path) -> None:
-    """The artifact sweep runs in a finally, so a failed build cannot
-    leave extensions shadowing the source tree (the 323a7b1 bug)."""
+    """The artifact sweep runs in a finally.
+
+    A failed build must not leave extensions shadowing the source tree
+    (the 323a7b1 bug).
+    """
     planted = _plant_artifacts(tmp_path)
     out_dir = tmp_path / "wheels"
     out_dir.mkdir()

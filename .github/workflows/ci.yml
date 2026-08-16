@@ -58,7 +58,11 @@ jobs:
         with:
           python-version: "3.14"
       - run: uv sync
-      - run: uv run pytest tests/test_accuracy.py -n auto -q --tb=short
+      # The corpus-scale jobs live together here: the accuracy suite plus
+      # the full pruning-parity sweep (sampled 1-in-20 everywhere else).
+      - run: uv run pytest tests/test_accuracy.py tests/test_statistical.py -n auto -q --tb=short
+        env:
+          CHARDET_FULL_CORPUS_PARITY: "1"
 
   free-threaded:
     runs-on: ${{ matrix.os }}

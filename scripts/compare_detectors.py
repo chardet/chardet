@@ -736,9 +736,11 @@ def _record_result(  # noqa: PLR0913
     detector_stats["per_enc"][expected_encoding]["total"] += 1
     if is_exact_match(expected_encoding, detected):
         detector_stats["strict_correct"] += 1
-    if is_correct(expected_encoding, detected) or (
-        detected is not None
-        and is_equivalent_detection(filepath.read_bytes(), expected_encoding, detected)
+    # Lazily composed on purpose, not is_acceptable(): `or` short-circuits
+    # the disk read when the name-level check already accepts, and this
+    # runs once per (file, detector) pair — thousands of reads per run.
+    if is_correct(expected_encoding, detected) or is_equivalent_detection(
+        filepath.read_bytes(), expected_encoding, detected
     ):
         detector_stats["correct"] += 1
         detector_stats["per_enc"][expected_encoding]["correct"] += 1

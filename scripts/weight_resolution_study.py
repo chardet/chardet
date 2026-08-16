@@ -59,7 +59,7 @@ import chardet.models as m
 import chardet.pipeline.confusion as conf
 import chardet.pipeline.statistical as stat
 from chardet.enums import EncodingEra
-from chardet.evaluation import is_correct, is_equivalent_detection
+from chardet.evaluation import is_acceptable
 from chardet.models import load_models
 from chardet.registry import REGISTRY, lookup_encoding
 
@@ -106,6 +106,38 @@ def _encoding_era(name: str | None) -> EncodingEra:
 # ---------------------------------------------------------------------------
 
 
+def _check_raw_cache_matches_shipped(
+    raw_counts: dict[str, dict[tuple[int, int], int]],
+    shipped: dict[str, bytes],
+) -> None:
+    """Abort when the gitignored raw cache does not cover shipped models.bin.
+
+    The cache carries no digest tying it to models.bin, and the float arms
+    read it directly, so a cache from before a retrain would fail partly
+    loudly (KeyError on new-support bigrams) and partly silently (stale
+    counts poisoning arm conclusions).  Every shipped model key and every
+    nonzero shipped bigram must exist in the cache before any arm scores.
+    """
+    stale_keys = sorted(k for k in shipped if k not in raw_counts)
+    if stale_keys:
+        msg = (
+            f"{PKL_PATH} is stale: {len(stale_keys)} shipped model(s) missing "
+            f"(e.g. {stale_keys[0]}).  Re-run scripts/train.py to rebuild the "
+            f"raw cache from the current corpus before running the study."
+        )
+        raise SystemExit(msg)
+    for key, table in shipped.items():
+        counts = raw_counts[key]
+        for i in range(65536):
+            if table[i] and (i >> 8, i & 0xFF) not in counts:
+                msg = (
+                    f"{PKL_PATH} is stale: model {key} lacks a count for "
+                    f"shipped bigram {(i >> 8, i & 0xFF)}.  Re-run "
+                    f"scripts/train.py to rebuild the raw cache."
+                )
+                raise SystemExit(msg)
+
+
 def _build_arm_data(
     arm: str,
 ) -> tuple[dict[str, array], dict[str, float], dict[str, array]]:
@@ -118,7 +150,16 @@ def _build_arm_data(
     shipped = load_models()
     if arm in ("float", "sqrt8", "log8"):
         with PKL_PATH.open("rb") as f:
-            raw_counts = pickle.load(f)["counts"]  # noqa: S301
+            raw = pickle.load(f)  # noqa: S301
+        if "counts" not in raw:
+            msg = (
+                f"{PKL_PATH} is the legacy flat-format raw cache; the study "
+                f"needs the v2 cache with per-model counts.  Re-run "
+                f"scripts/train.py to rebuild it."
+            )
+            raise SystemExit(msg)
+        raw_counts = raw["counts"]
+        _check_raw_cache_matches_shipped(raw_counts, shipped)
 
     tables: dict[str, array] = {}
     norms: dict[str, float] = {}
@@ -254,10 +295,7 @@ def _rank_metrics(
             "acc_rank": None,
             "top": [],
         }
-    ok = bool(
-        is_correct(expected, detected)
-        or is_equivalent_detection(data, expected, detected)
-    )
+    ok = is_acceptable(data, expected, detected)
     ranking = chardet.detect_all(
         data, ignore_threshold=True, encoding_era=era, prefer_superset=True
     )
@@ -266,9 +304,7 @@ def _rank_metrics(
     acc_rank = None
     for rank, r in enumerate(ranking, start=1):
         enc = r["encoding"]
-        r_ok = enc is not None and (
-            is_correct(expected, enc) or is_equivalent_detection(data, expected, enc)
-        )
+        r_ok = enc is not None and is_acceptable(data, expected, enc)
         if r_ok and best_acc is None:
             best_acc = r["confidence"]
             acc_rank = rank

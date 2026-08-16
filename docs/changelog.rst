@@ -29,7 +29,9 @@ Unreleased
 
 - The ``models.bin``/``rowmax.bin``/``idf.bin`` formats now have a
   single owner, ``chardet.models._format``, called by both the trainer
-  and the runtime loader; regenerated artifacts are byte-identical.
+  and the runtime loader; the row-maxima and IDF payloads regenerate
+  byte-identically from ``models.bin``, whose own bytes are guaranteed
+  at the decompressed level (zlib output varies across builds).
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 
 7.6.0 (2026-08-14)

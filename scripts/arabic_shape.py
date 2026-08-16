@@ -34,6 +34,7 @@ shaping and storage order carry evidence.
 
 from __future__ import annotations
 
+import codecs
 import ctypes
 import ctypes.util
 import unicodedata
@@ -41,8 +42,28 @@ import unicodedata
 #: Codecs trained on contextually shaped text stored in visual order.
 SHAPED_VISUAL_ENCODINGS: frozenset[str] = frozenset({"cp864"})
 
+
+def is_shaped_visual(encoding_name: str) -> bool:
+    """Return whether *encoding_name* trains on shaped visual-order text.
+
+    The one membership test for :data:`SHAPED_VISUAL_ENCODINGS`: every
+    consumer (training, exclusion indexing) must resolve names the same
+    way, so membership is decided under stdlib codec canonicalization here
+    rather than per-caller.  An unknown codec is not a member.
+    """
+    try:
+        canonical = codecs.lookup(encoding_name).name
+    except LookupError:
+        return False
+    return canonical in SHAPED_VISUAL_ENCODINGS
+
+
 _PRES_LO = "ﭐ"
-_PRES_HI = "﻿"
+# U+FB50..U+FEFF: the Arabic Presentation Forms A+B blocks.  The upper
+# bound is written as an escape on purpose — U+FEFF is the invisible
+# ZWNBSP/BOM, and a bare literal is indistinguishable from an empty string
+# to every reader and to BOM-stripping tools.
+_PRES_HI = "\ufeff"
 _FORMS = ("ISOLATED", "FINAL", "INITIAL", "MEDIAL")
 #: Two-form degradation: the byte a missing form borrows, in order.
 _FALLBACK: dict[str, tuple[str, ...]] = {

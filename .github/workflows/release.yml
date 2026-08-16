@@ -144,6 +144,11 @@ jobs:
 
   publish:
     name: Publish to PyPI
+    # Tag pushes and explicit version-override dispatches only: a bare
+    # "Run workflow" click on main would otherwise build for ~30 minutes
+    # and then try to publish dev-versioned artifacts (PyPI rejects local
+    # versions with a 400, or skip-existing silently no-ops on a tag).
+    if: github.ref_type == 'tag' || inputs.version-override != ''
     needs: [build-sdist, build-pure-wheel, build-mypyc-wheels, build-mypyc-wheels-windows]
     runs-on: ubuntu-latest
     environment: pypi

@@ -89,7 +89,7 @@ Confusion resolution never reviews a result won by the art model's pseudo-langua
 A ranking state where multiple encodings score within noise of each other because the data's high-byte bigrams carry no weight in the top candidate's models — the order is an artifact of candidate enumeration, not evidence.
 
 **Pruning contract**:
-The declared surface on the Post-processing stage (`scoring_floor`, `forced_encodings` in `pipeline/postprocess.py`) stating how far below the top the rank corrections can reach and which encodings they look up by name. Statistical scoring's pruned path must score exactly everything the contract covers, so `detect()` never diverges from the full ranking `detect_all` sees. Pinned corpus-wide by a parity sweep in the test suite.
+The declared surface on the Post-processing stage (`scoring_floor`, `forced_encodings` in `pipeline/postprocess.py`) stating how far below the top the rank corrections can reach and which encodings they look up by name. Statistical scoring's pruned path must score exactly everything the contract covers, so `detect()` matches the full ranking everywhere a correction can look. One deliberate exception sits outside the contract: the decode-safety flip scans the ranking as given, pruned tails included — a measured trade-off recorded in its docstring. Pinned by a corpus parity sweep in the test suite (sampled by default, full in the accuracy CI job).
 
 **Dead-heat superset promotion**:
 Postprocess rank correction. On a **statistical dead heat** between an encoding and its Windows superset (Shift_JIS/CP932, EUC-KR/CP949), promote the superset — it is never a worse answer.
@@ -143,7 +143,7 @@ Bidirectional equivalence sets in `evaluation.py`. Members are interchangeable f
 The v2 dense zlib-compressed binary file holding all **BigramProfile**s, indexed by `language/encoding` keys.
 
 **Model artifacts**:
-The digest-locked file set the trainer writes as one unit: the **model file** plus `rowmax.bin` (per-model row maxima for upper-bound prescreening) and `idf.bin` (quantized IDF weights for input-profile construction). `rowmax.bin` embeds the SHA-256 of the model file it was computed from, so a stale or independently regenerated member is detected at load time — it is never valid to rewrite one member alone.
+The digest-locked file set the trainer writes as one unit: the **model file** plus `rowmax.bin` (per-model row maxima for upper-bound prescreening) and `idf.bin` (quantized IDF weights for input-profile construction). `rowmax.bin` embeds the SHA-256 of the model file it was computed from and is written last as the set's commit marker: an interrupted or partial write leaves a digest mismatch that is rejected at load time. `idf.bin` is validated by size only, which the write order covers — it is never valid to rewrite one member alone.
 
 **Confusion data file** (`src/chardet/pipeline/confusion.bin`):
 The binary file holding pre-computed **distinguishing byte map**s for all **confusion group** pairs.

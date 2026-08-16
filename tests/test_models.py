@@ -171,22 +171,16 @@ def _expected_model_pairs() -> set[tuple[str, str]]:
     statistical (bigram) detection should have a corresponding trained model.
     """
     from chardet.registry import lookup_encoding  # noqa: PLC0415
-    from scripts.utils import get_data_dir  # noqa: PLC0415
+    from scripts.utils import collect_test_files, get_data_dir  # noqa: PLC0415
 
-    data_dir = get_data_dir()
     pairs: set[tuple[str, str]] = set()
-    for d in data_dir.iterdir():
-        if not d.is_dir():
+    for enc_display, lang, _fp in collect_test_files(get_data_dir()):
+        if enc_display is None or lang is None:
             continue
-        parts = d.name.rsplit("-", 1)
-        if len(parts) != 2 or parts[0] == "None":
-            continue
-        enc_display, lang = parts
         canonical = lookup_encoding(enc_display)
         if canonical is None or canonical in _STRUCTURAL_ENCODINGS:
             continue
-        if any(f.is_file() for f in d.iterdir()):
-            pairs.add((canonical, lang))
+        pairs.add((canonical, lang))
     return pairs
 
 
@@ -360,21 +354,29 @@ def test_roundtrip_matches_load_models(tmp_path: Path) -> None:
 
 
 def test_artifacts_regenerate_from_shipped_models_bin(tmp_path: Path) -> None:
-    """rowmax.bin and idf.bin must be exactly re-derivable from models.bin.
+    """The rowmax/idf payloads must be exactly re-derivable from models.bin.
 
-    Proves the writer agrees with the shipped model artifacts: the sibling
-    artifacts are pure integer functions of models.bin's content and must
-    match byte for byte, while models.bin itself must re-serialize to the
-    same tables and norms (compressed bytes may legitimately differ across
-    zlib builds, so that comparison is at the decompressed level).
+    Proves the writer agrees with the shipped model artifacts.  The
+    row-maxima and IDF payloads are pure integer functions of the tables
+    and must match the shipped bytes exactly.  Compressed bytes legitimately
+    differ across zlib builds (CI's Windows zlib-ng vs the training Mac), so
+    models.bin is compared at the decompressed level, and rowmax.bin's
+    embedded SHA-256 — which hashes the compressed models.bin — is validated
+    against the locally written file rather than byte-compared to the
+    shipped header.
     """
     models_dir = Path(models_mod.__file__).parent
     models = read_models(models_dir / "models.bin")
     out = tmp_path / "models.bin"
     write_model_artifacts(models, out)
-    assert (tmp_path / "rowmax.bin").read_bytes() == (
-        models_dir / "rowmax.bin"
-    ).read_bytes()
+
+    regen_rowmax = (tmp_path / "rowmax.bin").read_bytes()
+    shipped_rowmax = (models_dir / "rowmax.bin").read_bytes()
+    header_size = _format.ROWMAX_HEADER_SIZE
+    assert regen_rowmax[:4] == shipped_rowmax[:4] == _format.ROWMAX_MAGIC
+    assert regen_rowmax[header_size:] == shipped_rowmax[header_size:]
+    assert regen_rowmax[4:header_size] == hashlib.sha256(out.read_bytes()).digest()
+
     assert (tmp_path / "idf.bin").read_bytes() == (models_dir / "idf.bin").read_bytes()
     old_tables, old_norms = _format.parse_models_bin(
         (models_dir / "models.bin").read_bytes()

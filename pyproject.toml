@@ -247,9 +247,12 @@ exclude_lines = [
 [tool.cibuildwheel]
 build = "cp310-* cp311-* cp312-* cp313-* cp314-* cp315-*"
 skip = "*-musllinux_*"
-# 3.15 is at release-candidate stage; the ABI is stable from rc1, so
-# publishing cp315 wheels now is safe (#381).  Harmless once 3.15 is final.
-enable = ["cpython-prerelease"]
+# cibuildwheel 4.2.0 builds cp315 by default, so no `enable =
+# ["cpython-prerelease"]` is needed — and that flag must not return
+# unscoped: the release jobs run CIBW_BUILD='*', so an armed prerelease
+# flag would silently publish wheels against the next CPython's beta ABI
+# (immutable on PyPI) the moment the cibuildwheel pin is bumped during a
+# beta window.
 build-frontend = "build[uv]"
 test-command = "python -c \"import chardet; print(chardet.detect(b'hello world'))\""
 
