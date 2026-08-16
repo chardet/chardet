@@ -173,9 +173,7 @@ def parse_rowmax_bin(
         and len(data) == ROWMAX_HEADER_SIZE + len(model_keys) * 256
     ):
         return {
-            key: data[
-                ROWMAX_HEADER_SIZE + i * 256 : ROWMAX_HEADER_SIZE + (i + 1) * 256
-            ]
+            key: data[ROWMAX_HEADER_SIZE + i * 256 : ROWMAX_HEADER_SIZE + (i + 1) * 256]
             for i, key in enumerate(model_keys)
         }
     return None

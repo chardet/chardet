@@ -87,7 +87,7 @@ HATCH_BUILD_HOOK_ENABLE_MYPYC=true HATCH_BUILD_HOOK_ENABLE_CUSTOM=true uv build
 
 Both hooks are `enable-by-default = false` so their build dependencies stay off pure source installs. Keep the kernel small: an earlier version also held the profile builder and the row-max bound, and moving those out of their mypyc modules made a mypyc-only build **slower than compiling nothing**, because mypyc stopped seeing those loops.
 
-A compiled build leaves nothing behind — the Cython hook's `finalize` deletes every in-tree extension, mypyc's included. That matters: a leftover `.so` shadows the `.py` beside it, is gitignored so `git status` stays clean, and silently makes later edits and "pure" test runs meaningless.
+A compiled build leaves nothing behind — the Cython hook's `finalize` deletes every in-tree extension, mypyc's included. That matters: a leftover `.so` shadows the `.py` beside it, is gitignored so `git status` stays clean, and silently makes later edits and "pure" test runs meaningless. Scripts that build compiled wheels go through `scripts/detector_env.py`'s `build_compiled_wheel`, which enables both hooks and sweeps in-tree artifacts in a `finally` — never inline a `uv build` with hook env vars in a script.
 
 ## Architecture
 

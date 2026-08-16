@@ -32,6 +32,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from detector_env import build_compiled_wheel
 from utils import collect_test_files, normalize_language
 from utils import format_bytes as _format_bytes
 from utils import percentiles as _percentiles
@@ -160,31 +161,6 @@ def _get_cache_dir() -> Path:
     cache_dir = _PROJECT_ROOT / ".benchmark_results"
     cache_dir.mkdir(exist_ok=True)
     return cache_dir
-
-
-def _clean_inplace_mypyc_artifacts(project_root: Path) -> list[Path]:
-    """Delete compiled extensions the mypyc build hook leaves in ``src/``.
-
-    hatch-mypyc compiles in place, so building a wheel with ``--mypyc``
-    leaves ``.so``/``.pyd`` files sitting next to the ``.py`` sources they
-    were built from.  Python imports an extension in preference to the
-    module beside it, so anything run from the source tree afterwards
-    silently gets the compiled build: a later source edit appears to do
-    nothing, a ``--pure`` measurement is not pure, and the files are
-    gitignored so ``git status`` stays clean while it happens.
-
-    The wheel already contains its own copies, so removing them here
-    costs nothing.  Returns the paths removed, for logging.
-    """
-    src_dir = project_root / "src"
-    if not src_dir.is_dir():
-        return []
-    removed: list[Path] = []
-    for pattern in ("*.so", "*.pyd"):
-        for path in sorted(src_dir.rglob(pattern)):
-            path.unlink()
-            removed.append(path)
-    return removed
 
 
 def _cache_filename(  # noqa: PLR0913
@@ -1470,48 +1446,19 @@ def _run_for_python_version(  # noqa: PLR0913
             k: v for k, v in os.environ.items() if k != "HATCH_BUILD_HOOK_ENABLE_MYPYC"
         }
     elif args.mypyc:
-        # Build a mypyc-compiled wheel so the venv gets compiled extensions.
+        # Build a compiled wheel so the venv gets compiled extensions.
         # Passing HATCH_BUILD_HOOK_ENABLE_MYPYC via env to `uv pip install`
         # doesn't reliably trigger the build hook, so we build explicitly.
         mypyc_wheel_dir = Path(tempfile.mkdtemp(prefix="chardet-mypyc-wheel-"))
-        print("Building mypyc wheel for local chardet ...")
-        build_cmd = [
-            "uv",
-            "build",
-            "--wheel",
-            "--out-dir",
-            str(mypyc_wheel_dir),
-            project_root,
-        ]
-        if python_version:
-            build_cmd.extend(["--python", python_version])
         try:
-            subprocess.run(
-                build_cmd,
-                check=True,
-                # Both hooks: mypyc for the pipeline modules, the custom hook
-                # for the Cython scoring kernel.  Enabling only the first
-                # builds a wheel that runs the packed buffers through the
-                # interpreter, which benchmarks ~30% slower than this one.
-                env={
-                    **os.environ,
-                    "HATCH_BUILD_HOOK_ENABLE_MYPYC": "true",
-                    "HATCH_BUILD_HOOK_ENABLE_CUSTOM": "true",
-                },
+            wheel = build_compiled_wheel(
+                Path(project_root), mypyc_wheel_dir, python_version=python_version
             )
-        finally:
-            stale = _clean_inplace_mypyc_artifacts(Path(project_root))
-            if stale:
-                print(
-                    f"  Removed {len(stale)} in-place mypyc artifact(s) "
-                    f"from {Path(project_root) / 'src'}"
-                )
-        wheels = list(mypyc_wheel_dir.glob("*.whl"))
-        if not wheels:
-            print("ERROR: mypyc wheel build produced no .whl file", file=sys.stderr)
+        except RuntimeError as e:
+            print(f"ERROR: {e}", file=sys.stderr)
             sys.exit(1)
-        chardet_pip_args = [str(wheels[0])]
-        print(f"  Built: {wheels[0].name}")
+        chardet_pip_args = [str(wheel)]
+        print(f"  Built: {wheel.name}")
 
     # Build venv specs: (label, pip_args, env, detector_type, python_version)
     venv_specs: list[_VenvSpec] = [
