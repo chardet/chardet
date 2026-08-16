@@ -1,16 +1,16 @@
 # tests/test_statistical.py
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
+from utils import collect_test_files, get_data_dir
 
 from chardet.enums import EncodingEra
 from chardet.models import BigramProfile, get_enc_index
 from chardet.pipeline import DetectionResult
-
-# Pruned scoring guarantees exact scores for the winner, position 1, and
-# everything within the confusion band of the top score — the same band
-# resolve_confusion_groups uses.
-from chardet.pipeline.confusion import _CONFUSION_BAND as _EXACT_BAND
+from chardet.pipeline.orchestrator import _STAT_SCORE_MAX_BYTES
+from chardet.pipeline.postprocess import forced_encodings, scoring_floor
 from chardet.pipeline.statistical import (
     _MIN_NONZERO_FOR_PRESCREEN,
     score_candidates,
@@ -121,32 +121,89 @@ def test_pruning_samples_engage_pruning():
         )
 
 
-@pytest.mark.parametrize("data", _PRUNING_SAMPLES, ids=range(len(_PRUNING_SAMPLES)))
-def test_pruned_matches_full_ranking_at_top(data: bytes):
-    """Pruned scoring must return the same winner and runner-up as full scoring.
+def _assert_pruning_contract(
+    pruned: list[DetectionResult], full: list[DetectionResult]
+) -> None:
+    """Assert pruned scoring honors the pruning contract against full scoring.
 
     Pruning may drop tail results, and encodings whose variants were partly
     skipped may report an understated tail score — but the winner, position
-    1, and everything within the confusion band of the top score must be
-    identical to the full ranking, and no pruned score may ever exceed its
-    full-ranking counterpart.
+    1, everything at or above the contract's ``scoring_floor``, and every
+    ``forced_encodings`` dependent must be present with scores identical to
+    the full ranking, and no pruned score may ever exceed its full-ranking
+    counterpart.
     """
-    candidates = get_candidates(EncodingEra.ALL)
-    pruned = score_candidates(data, candidates)
-    full = score_candidates(data, candidates, full_ranking=True)
-
-    assert pruned, "pruned scoring returned no results"
+    if not full:
+        assert pruned == []
+        return
+    assert pruned, "pruned scoring returned no results where full scoring did"
     for i in range(min(2, len(full))):
         assert pruned[i].encoding == full[i].encoding
         assert pruned[i].confidence == pytest.approx(full[i].confidence, abs=1e-12)
         assert pruned[i].language == full[i].language
 
+    # Never overstated (would corrupt the ranking).
     full_by_enc = {r.encoding: r for r in full}
-    top_conf = full[0].confidence
     for r in pruned:
-        true_conf = full_by_enc[r.encoding].confidence
-        # Never overstated (would corrupt the ranking) ...
-        assert r.confidence <= true_conf + 1e-12
-        # ... and exact for anything the confusion band can examine.
-        if true_conf >= top_conf - _EXACT_BAND:
-            assert r.confidence == pytest.approx(true_conf, abs=1e-12)
+        assert r.confidence <= full_by_enc[r.encoding].confidence + 1e-12
+
+    # Present and exact for everything a rank correction can examine ...
+    top1 = full[0].confidence
+    top2 = full[1].confidence if len(full) > 1 else 0.0
+    floor = scoring_floor(top1, top2)
+    pruned_by_enc = {r.encoding: r for r in pruned}
+    near_top: list[str] = []
+    for r in full:
+        if r.confidence < floor:
+            continue
+        near_top.append(r.encoding)
+        assert r.encoding in pruned_by_enc, (
+            f"{r.encoding} pruned away above the contract floor"
+        )
+        p = pruned_by_enc[r.encoding]
+        assert p.confidence == pytest.approx(r.confidence, abs=1e-12)
+        assert p.language == r.language
+
+    # ... and for every encoding the corrections look up by name.
+    for enc in forced_encodings(near_top):
+        if enc not in full_by_enc:
+            continue
+        assert enc in pruned_by_enc, f"forced encoding {enc} pruned away"
+        assert pruned_by_enc[enc].confidence == pytest.approx(
+            full_by_enc[enc].confidence, abs=1e-12
+        )
+
+
+@pytest.mark.parametrize("data", _PRUNING_SAMPLES, ids=range(len(_PRUNING_SAMPLES)))
+def test_pruned_matches_full_ranking_at_top(data: bytes):
+    """Pruned scoring must honor the pruning contract on the tuned samples."""
+    candidates = get_candidates(EncodingEra.ALL)
+    pruned = score_candidates(data, candidates)
+    full = score_candidates(data, candidates, full_ranking=True)
+    assert pruned, "pruned scoring returned no results"
+    _assert_pruning_contract(pruned, full)
+
+
+def _corpus_params() -> list:
+    """One param per accuracy-corpus file, id'd like the accuracy suite."""
+    return [
+        pytest.param(fp, id=f"{enc}-{lang}/{fp.name}")
+        for enc, lang, fp in collect_test_files(get_data_dir())
+    ]
+
+
+@pytest.mark.parametrize("path", _corpus_params())
+def test_pruning_contract_holds_on_corpus(path: Path):
+    """Corpus-wide pin of the pruning contract.
+
+    A future rank correction whose trigger or reach outgrows
+    ``postprocess.scoring_floor`` / ``postprocess.forced_encodings`` turns
+    this red instead of surfacing as unexplained accuracy flips.  Scoring
+    is capped at the same slice the orchestrator scores, so parity here is
+    parity in production.
+    """
+    data = path.read_bytes()[:_STAT_SCORE_MAX_BYTES]
+    candidates = get_candidates(EncodingEra.ALL)
+    pruned = score_candidates(data, candidates)
+    full = score_candidates(data, candidates, full_ranking=True)
+    _assert_pruning_contract(pruned, full)

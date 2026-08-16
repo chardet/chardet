@@ -1,8 +1,16 @@
 # tests/test_postprocess.py
 from __future__ import annotations
 
+import pytest
+
 from chardet.pipeline import DetectionResult
-from chardet.pipeline.postprocess import _demote_niche_latin, _promote_koi8t
+from chardet.pipeline.confusion import CONFUSION_FLOOR_RATIO, STRICT_TIER_MAX_CONF
+from chardet.pipeline.postprocess import (
+    _demote_niche_latin,
+    _promote_koi8t,
+    forced_encodings,
+    scoring_floor,
+)
 
 
 def test_demote_niche_latin():
@@ -85,3 +93,52 @@ def test_demote_niche_latin_windows_1254():
     data = bytes([0xC0, 0xC1, 0xE9])
     demoted = _demote_niche_latin(data, results)
     assert demoted[0].encoding == "cp1252"
+
+
+# ---------------------------------------------------------------------------
+# The pruning contract (composition is pinned corpus-wide in
+# tests/test_statistical.py's parity sweep)
+# ---------------------------------------------------------------------------
+
+
+def test_scoring_floor_trails_second_best():
+    """With a confident top, the floor trails top2 by the corrections' reach."""
+    floor = scoring_floor(0.9, 0.85)
+    assert floor < 0.85
+    # The reach must at least cover the confusion band, with room to spare
+    # for rare-language arbitration's wider margin.
+    assert 0.85 - floor > 0.005
+
+
+def test_scoring_floor_ignores_top1_when_strict_tier_closed():
+    """Above the strict-tier threshold, only top2 positions the floor."""
+    assert scoring_floor(0.9, 0.5) == scoring_floor(STRICT_TIER_MAX_CONF, 0.5)
+
+
+def test_scoring_floor_extends_to_strict_tier():
+    """A low top opens the strict tier: the floor drops to its ratio floor."""
+    top1 = STRICT_TIER_MAX_CONF / 2
+    floor = scoring_floor(top1, top1)
+    assert floor == pytest.approx(top1 * CONFUSION_FLOOR_RATIO)
+
+
+def test_forced_encodings_empty_without_triggers():
+    """No demotion candidate and no koi8-r near the top forces nothing."""
+    assert forced_encodings(["cp1251", "koi8-u", "cp1252"]) == []
+
+
+def test_forced_encodings_demotion_candidate_forces_latin_trio():
+    """A niche-Latin demotion candidate near the top forces its swap targets."""
+    forced = forced_encodings(["iso8859-10"])
+    assert set(forced) == {"iso8859-1", "iso8859-15", "cp1252"}
+
+
+def test_forced_encodings_koi8r_forces_koi8t():
+    """koi8-r near the top forces koi8-t for the KOI8-T promotion."""
+    assert forced_encodings(["koi8-r"]) == ["koi8-t"]
+
+
+def test_forced_encodings_triggers_combine():
+    """Both triggers near the top force both sets."""
+    forced = forced_encodings(["cp1254", "koi8-r"])
+    assert set(forced) == {"iso8859-1", "iso8859-15", "cp1252", "koi8-t"}

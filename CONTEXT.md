@@ -88,6 +88,9 @@ Confusion resolution never reviews a result won by the art model's pseudo-langua
 **Statistical dead heat**:
 A ranking state where multiple encodings score within noise of each other because the data's high-byte bigrams carry no weight in the top candidate's models — the order is an artifact of candidate enumeration, not evidence.
 
+**Pruning contract**:
+The declared surface on the Post-processing stage (`scoring_floor`, `forced_encodings` in `pipeline/postprocess.py`) stating how far below the top the rank corrections can reach and which encodings they look up by name. Statistical scoring's pruned path must score exactly everything the contract covers, so `detect()` never diverges from the full ranking `detect_all` sees. Pinned corpus-wide by a parity sweep in the test suite.
+
 **Dead-heat superset promotion**:
 Postprocess rank correction. On a **statistical dead heat** between an encoding and its Windows superset (Shift_JIS/CP932, EUC-KR/CP949), promote the superset — it is never a worse answer.
 

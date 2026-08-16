@@ -14,26 +14,8 @@ from chardet.models import (
     score_with_profile,
 )
 from chardet.pipeline import DetectionResult
-from chardet.pipeline.confusion import (
-    _CONFUSION_BAND,
-    _CONFUSION_FLOOR_RATIO,
-    _STRICT_TIER_MAX_CONF,
-)
-from chardet.pipeline.postprocess import (
-    _COMMON_LATIN_ENCODINGS,
-    _DEMOTION_CANDIDATES,
-    _RARE_ARBITRATION_MARGIN,
-)
+from chardet.pipeline.postprocess import forced_encodings, scoring_floor
 from chardet.registry import EncodingInfo
-
-# Margin subtracted from the running second-best encoding score when deciding
-# whether a variant's upper bound rules it out.  Every result position the
-# postprocess corrections may examine must be scored exactly: position 1
-# plus all candidates within ``confusion._CONFUSION_BAND`` of the top for
-# ``resolve_confusion_groups`` (kept with a 2x cushion for float noise), and
-# all candidates within ``postprocess._RARE_ARBITRATION_MARGIN`` of the top
-# for rare-language arbitration.
-_PRUNE_MARGIN = _RARE_ARBITRATION_MARGIN + 2 * _CONFUSION_BAND
 
 # Below this many distinct bigrams the upper-bound prescreen costs about as
 # much as the full dot products it would avoid, so score everything directly.
@@ -119,10 +101,9 @@ def _score_pruned(
     boost their confidence based on structural coverage, so no raw-score
     bound can rule them out.  Single-byte variants are scored in descending
     upper-bound order (see :func:`_split_variants`) and skipped once their
-    bound falls more than ``_PRUNE_MARGIN`` below the running second-best
-    encoding score: such variants can affect neither the winner, nor
-    position 1, nor any candidate within the confusion band of the top
-    score.
+    bound falls below the pruning contract's ``scoring_floor``: such
+    variants can affect neither the winner, nor position 1, nor any
+    candidate a rank correction can examine.
 
     Encodings that ``postprocess_results`` inspects regardless of rank
     (the common Western Latin trio for niche-Latin demotion, KOI8-T for the
@@ -170,42 +151,24 @@ def _score_pruned(
         record(enc_name, score_with_profile(profile, table, key), lang, vi)
 
     for ub, vi, enc_name, lang, table, key in sb_entries:
-        # The strict confusion tier scans candidates down to
-        # _CONFUSION_FLOOR_RATIO of the top confidence whenever the top
-        # ends up below _STRICT_TIER_MAX_CONF, so while the running top is
-        # that low the pruning threshold must extend down to the tier's
-        # floor — otherwise a strict-tier candidate could be pruned here
-        # and detect() would diverge from the unpruned full ranking.
-        threshold = top2 - _PRUNE_MARGIN
-        if top1 < _STRICT_TIER_MAX_CONF:
-            threshold = min(threshold, top1 * _CONFUSION_FLOOR_RATIO)
+        # The floor below which no rank correction can examine a candidate;
+        # everything above it must be scored exactly or detect() would
+        # diverge from the unpruned full ranking.
+        threshold = scoring_floor(top1, top2)
         if ub < threshold:
             # Sorted by descending bound and the threshold only rises, so
             # no later entry can matter either.
             break
         record(enc_name, score_with_profile(profile, table, key), lang, vi)
 
-    # Force-score the encodings postprocess_results may look up by name in
-    # the tail of the result list, when their trigger condition could fire.
-    # The trigger is any near-top encoding — everything with a score within
-    # the pruning margin of the second-best — because confusion resolution
-    # may promote any of those (position 1 or a band member) to the top
-    # before postprocess evaluates its own trigger conditions.
-    # Mirror the pruning threshold above: when the strict confusion tier
-    # can open, a strict-tier promotion may raise any candidate down to
-    # the tier floor into position 0, so the postprocess trigger scan must
-    # reach that far too — otherwise a promotion could fire with its
-    # force-scored dependents pruned away, diverging detect() from the
-    # full ranking.
-    trigger_floor = top2 - _PRUNE_MARGIN
-    if top1 < _STRICT_TIER_MAX_CONF:
-        trigger_floor = min(trigger_floor, top1 * _CONFUSION_FLOOR_RATIO)
+    # Force-score the encodings the corrections look up by name, when their
+    # trigger could fire.  The trigger scan covers everything at or above
+    # the contract floor, because confusion resolution may promote any of
+    # those candidates to the top before postprocess evaluates its own
+    # trigger conditions.
+    trigger_floor = scoring_floor(top1, top2)
     near_top = [e for e, s in best_score.items() if s >= trigger_floor]
-    forced: list[str] = []
-    if any(e in _DEMOTION_CANDIDATES for e in near_top):
-        forced.extend(_COMMON_LATIN_ENCODINGS)
-    if "koi8-r" in near_top:
-        forced.append("koi8-t")
+    forced = forced_encodings(near_top)
     if forced:
         for enc in candidates:
             if enc.name not in forced:

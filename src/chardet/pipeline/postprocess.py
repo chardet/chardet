@@ -21,10 +21,13 @@ from chardet._utils import (
     decodes_completely,
     decodes_without_error,
 )
-from chardet.models import RARE_LANGUAGES, get_enc_index
+from chardet.models import ART_LANGUAGE, RARE_LANGUAGES, get_enc_index
 from chardet.output_names import _COMPAT_NAMES
 from chardet.pipeline import DetectionResult
 from chardet.pipeline.confusion import (
+    CONFUSION_BAND,
+    CONFUSION_FLOOR_RATIO,
+    STRICT_TIER_MAX_CONF,
     confusion_pair_winner,
     resolve_confusion_groups,
 )
@@ -278,16 +281,7 @@ def _promote_koi8t(
         return results
     # Check for Tajik-specific bytes
     if len(data.translate(None, _KOI8_T_DELETE)) != len(data):
-        koi8t_result = results[koi8t_idx]
-        top_conf = results[0].confidence
-        promoted = DetectionResult(
-            koi8t_result.encoding,
-            top_conf,
-            koi8t_result.language,
-            koi8t_result.mime_type,
-        )
-        others = [r for i, r in enumerate(results) if i != koi8t_idx]
-        return [promoted, *others]
+        return _promote_to_top(results, koi8t_idx)
     return results
 
 
@@ -402,12 +396,7 @@ def _prefer_prevalent_on_dead_heat(
             best_idx = i
     if best_idx == 0:
         return results
-    chosen = results[best_idx]
-    promoted = DetectionResult(
-        chosen.encoding, top.confidence, chosen.language, chosen.mime_type
-    )
-    rest = [r for j, r in enumerate(results) if j != best_idx]
-    return [promoted, *rest]
+    return _promote_to_top(results, best_idx)
 
 
 def _promote_to_top(results: list[DetectionResult], i: int) -> list[DetectionResult]:
@@ -520,7 +509,7 @@ def _promote_mac_on_cr_line_endings(
     # veto below reasons about word shapes and prose bigrams, which
     # box-drawing data is not, and old ANSI art legitimately carries
     # bare-CR line endings.
-    if top.language == "zxx":
+    if top.language == ART_LANGUAGE:
         return results
     if data.find(b"\n") >= 0 or data.count(b"\r") < _CR_MAC_MIN_LINES:
         return results
@@ -631,6 +620,56 @@ def _prefer_decodable_on_tie(
             continue
         return _promote_to_top(results, i)
     return results
+
+
+# ---------------------------------------------------------------------------
+# The pruning contract: what statistical pruning must score exactly
+# ---------------------------------------------------------------------------
+
+#: How far below the running second-best score a candidate can sit and still
+#: be examined by a rank correction: rare-language arbitration reads margins
+#: up to ``_RARE_ARBITRATION_MARGIN`` from the top, and confusion resolution
+#: examines the band, kept with a 2x cushion for float noise.
+_CORRECTION_REACH = _RARE_ARBITRATION_MARGIN + 2 * CONFUSION_BAND
+
+
+def scoring_floor(top1: float, top2: float) -> float:
+    """Return the score below which no rank correction can examine a candidate.
+
+    One half of the pruning contract statistical scoring consumes: given
+    the running top two encoding scores, every candidate at or above this
+    floor must carry its exact full-ranking score, or a correction could
+    fire on an understated (or missing) entry and ``detect()`` would
+    diverge from the unpruned full ranking.  The floor trails the
+    second-best score by the corrections' reach; while the top is low
+    enough for confusion resolution's strict tier to open, it extends down
+    to that tier's floor, because a strict-tier promotion may raise any
+    candidate above the tier floor into position 0 before the other
+    corrections evaluate their triggers.
+    """
+    floor = top2 - _CORRECTION_REACH
+    if top1 < STRICT_TIER_MAX_CONF:
+        floor = min(floor, top1 * CONFUSION_FLOOR_RATIO)
+    return floor
+
+
+def forced_encodings(near_top: list[str]) -> list[str]:
+    """Return the encodings the corrections look up by name, given the near-top set.
+
+    The other half of the pruning contract: :func:`postprocess_results`
+    inspects some encodings wherever they rank (the common Western Latin
+    trio for niche Latin demotion, KOI8-T for the KOI8-R promotion), so
+    pruning must score every variant of these whenever a trigger encoding
+    sits at or above the :func:`scoring_floor` — confusion resolution may
+    promote any such candidate to the top before those triggers are
+    evaluated.
+    """
+    forced: list[str] = []
+    if any(e in _DEMOTION_CANDIDATES for e in near_top):
+        forced.extend(_COMMON_LATIN_ENCODINGS)
+    if "koi8-r" in near_top:
+        forced.append("koi8-t")
+    return forced
 
 
 def postprocess_results(

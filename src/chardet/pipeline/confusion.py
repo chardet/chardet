@@ -637,27 +637,31 @@ def _find_pair_key(
 # in-band near-ties.
 _CROSS_FAMILY_MIN_DIFFS = 52
 
-# Maximum confidence gap from the top result for candidates beyond
-# position 1 to participate in confusion resolution.
-_CONFUSION_BAND = 0.005
+#: Maximum confidence gap from the top result for candidates beyond
+#: position 1 to participate in confusion resolution.  Public because it
+#: is a contract fact: the pruning contract in
+#: :mod:`chardet.pipeline.postprocess` composes it into the floor that
+#: statistical pruning must score exactly.
+CONFUSION_BAND = 0.005
 
-# Minimum confidence, as a fraction of the top result's, for out-of-band
-# candidates to participate in the strict tier of confusion resolution.
-# Confusion siblings can score far apart in absolute terms while the
-# statistical ranking among them is still noise (EBCDIC record data), so
-# the strict tier extends beyond the band — but only for challengers with
-# corroborated evidence (vote and bigram agreement, or a decisive
-# demotion-driven vote).
-_CONFUSION_FLOOR_RATIO = 0.5
+#: Minimum confidence, as a fraction of the top result's, for out-of-band
+#: candidates to participate in the strict tier of confusion resolution.
+#: Confusion siblings can score far apart in absolute terms while the
+#: statistical ranking among them is still noise (EBCDIC record data), so
+#: the strict tier extends beyond the band — but only for challengers with
+#: corroborated evidence (vote and bigram agreement, or a decisive
+#: demotion-driven vote).  Public: a contract fact, see
+#: :data:`CONFUSION_BAND`.
+CONFUSION_FLOOR_RATIO = 0.5
 
-# The strict tier only opens when the top confidence is below this value.
-# A low absolute confidence means no model explains the data, so the
-# ranking among confusion siblings is noise and corroborated byte-level
-# evidence may overturn it.  A confident top means the statistics are
-# working; overriding them from far down the ranking does more harm than
-# good (correlated vote/rescore errors across the many near-scoring
-# Latin encodings).
-_STRICT_TIER_MAX_CONF = 0.2
+#: The strict tier only opens when the top confidence is below this value.
+#: A low absolute confidence means no model explains the data, so the
+#: ranking among confusion siblings is noise and corroborated byte-level
+#: evidence may overturn it.  A confident top means the statistics are
+#: working; overriding them from far down the ranking does more harm than
+#: good (correlated vote/rescore errors across the many near-scoring
+#: Latin encodings).  Public: a contract fact, see :data:`CONFUSION_BAND`.
+STRICT_TIER_MAX_CONF = 0.2
 
 
 def resolve_confusion_groups(
@@ -691,12 +695,12 @@ def resolve_confusion_groups(
     # box-drawing strong enough to outrank dominant prose statistically,
     # yet weaker than it in the diff-byte rescore — is a knife-edge regime
     # the statistical ranking already resolves whenever prose dominates.
-    if top.language == "zxx":
+    if top.language == _ART_LANGUAGE:
         return results
 
     maps = load_confusion_data()
     top_conf = top.confidence
-    floor = top_conf * _CONFUSION_FLOOR_RATIO
+    floor = top_conf * CONFUSION_FLOOR_RATIO
 
     champion_idx = 0
     champion = top
@@ -712,9 +716,9 @@ def resolve_confusion_groups(
         # Position 1 and band members use the original in-band rules;
         # candidates between the band and the floor enter the strict tier,
         # which only opens when the statistics have failed outright.
-        in_band = i == 1 or top_conf - candidate.confidence <= _CONFUSION_BAND
+        in_band = i == 1 or top_conf - candidate.confidence <= CONFUSION_BAND
         if not in_band and (
-            top_conf >= _STRICT_TIER_MAX_CONF or candidate.confidence < floor
+            top_conf >= STRICT_TIER_MAX_CONF or candidate.confidence < floor
         ):
             break
 
