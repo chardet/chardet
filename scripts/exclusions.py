@@ -7,6 +7,7 @@ import hashlib
 import re
 from pathlib import Path
 
+from arabic_shape import SHAPED_VISUAL_ENCODINGS
 from bidi_order import VISUAL_ORDER_DUAL_ENCODINGS, reorder_visual
 
 #: Characters a transcode is most likely to have replaced.  A test file is
@@ -297,10 +298,30 @@ def build_exclusion_set(test_data_dir: Path) -> ExclusionIndex:
         # units are matched individually and re-reordering recovers 91-100%
         # of a visual file's logical units (measured on the converted
         # corpus) -- far above the coverage the overlap check needs.
+        # Shaped-visual pages (cp864) cannot be recovered by transform:
+        # shaping *deletes* characters (harakat, unmapped punctuation, a
+        # measured 1.3% of letters), and content-defined units break on any
+        # in-unit deletion -- NFKC-plus-reorder recovery scored 0-20% of
+        # units on prose, overlaps() False across the board.  Their
+        # directories instead carry a `_logical_source/` sidecar with the
+        # exact pre-shaping text, indexed verbatim below.
         try:
-            dual_order = codecs.lookup(codec).name in VISUAL_ORDER_DUAL_ENCODINGS
+            canonical = codecs.lookup(codec).name
         except LookupError:
-            dual_order = False
+            canonical = ""
+        dual_order = canonical in VISUAL_ORDER_DUAL_ENCODINGS
+        if canonical in SHAPED_VISUAL_ENCODINGS:
+            sidecar = encoding_dir / "_logical_source"
+            if sidecar.is_dir():
+                for source_path in sorted(sidecar.iterdir()):
+                    if not source_path.is_file():
+                        continue
+                    try:
+                        source_text = source_path.read_text("utf-8")
+                    except (UnicodeDecodeError, OSError):
+                        continue
+                    if len(source_text) >= 10:
+                        index.add(source_text)
 
         for filepath in sorted(encoding_dir.iterdir()):
             if not filepath.is_file():

@@ -39,6 +39,7 @@ import zlib
 from datetime import datetime, timezone
 from pathlib import Path
 
+from arabic_shape import SHAPED_VISUAL_ENCODINGS, shape_for_codec
 from bidi_order import VISUAL_ORDER_DUAL_ENCODINGS, reorder_visual
 from confusion_training import (
     compute_distinguishing_maps,
@@ -834,6 +835,11 @@ def _build_one_model(
     # See bidi_order.py for the evidence behind the set.
     dual_order = enc_name in VISUAL_ORDER_DUAL_ENCODINGS
 
+    # Presentation-form pages get contextually shaped text stored in
+    # visual order only -- their wild data had no logical convention.
+    # See arabic_shape.py for the evidence behind the set.
+    shaped_visual = enc_name in SHAPED_VISUAL_ENCODINGS
+
     # Normalize, substitute, filter, and encode all texts
     encoded: list[bytes] = []
     kept_alpha = 0
@@ -843,10 +849,14 @@ def _build_one_model(
             text = transliterate_serbian_to_latin(text)
         text = normalize_text(text, enc_name)
         text = apply_substitutions(text, subs)
+        if shaped_visual:
+            text = shape_for_codec(text, codec)
         filtered, kept, total = _filter_encodable(text, codec, enc_cache)
         kept_alpha += kept
         total_alpha += total
         collapsed = collapse_whitespace_runs(filtered)
+        if shaped_visual:
+            collapsed = reorder_visual(collapsed)
         result = encode_text(collapsed, codec)
         if result is not None:
             encoded.append(result)

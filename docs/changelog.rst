@@ -13,6 +13,18 @@ Unreleased
 
 **Accuracy:**
 
+- cp864 Arabic is now trained on contextually shaped text in visual
+  order instead of a naive isolated-form mapping.  cp864 stores one
+  byte per positional glyph in IBM's two-form layout, and its
+  interchange data was display-order, so the old training text (every
+  letter forced to its isolated form, logical order) was a byte
+  pattern no real system ever wrote.  Shaping runs the Unicode
+  joining algorithm and degrades into the code page's actual
+  repertoire the way two-form renderers did (a missing medial borrows
+  the initial glyph); the pipeline was verified against ICU and a
+  first-principles joining audit before landing.  cp1006 keeps the
+  old mapping until its Urdu shaping carries the same evidence.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 - Visual-order Hebrew is now detected.  ISO-8859-8 text on the 1990s
   web was usually stored in visual order, bytes in display order for
   browsers with no bidi engine, while the same charset labeled

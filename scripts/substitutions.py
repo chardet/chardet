@@ -428,8 +428,13 @@ def get_substitutions(charset_name: str, langs: list[str]) -> dict[str, str]:
     if "fa" in langs and upper == "CP1256":
         subs.update(_CP1256_FARSI_SUBSTITUTIONS)
     # Arabic presentation forms for legacy encodings that store positional
-    # forms instead of standard Arabic letters
-    if upper in ("CP1006", "CP864"):
+    # forms instead of standard Arabic letters.  CP864 no longer uses this
+    # naive isolated-form table: its text is contextually shaped by
+    # arabic_shape.shape_for_codec in the training loop, which picks the
+    # positionally correct form and degrades into the code page's two-form
+    # repertoire.  CP1006 keeps the naive table until its Urdu shaping and
+    # storage order carry evidence (see arabic_shape.py).
+    if upper == "CP1006":
         subs.update(_ARABIC_PRESENTATION_FORM_SUBSTITUTIONS)
     # Urdu letters and CP1006 repertoire quirks, applied after the shared
     # Arabic table so its hamza-alef entries win for this code page.

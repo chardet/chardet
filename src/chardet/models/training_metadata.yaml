@@ -1,4 +1,4 @@
-training_date: "2026-08-15T20:17:49Z"
+training_date: "2026-08-15T20:59:25Z"
 max_samples: 25000
 models:
   ar/cp1256:
@@ -27,7 +27,7 @@ models:
     language: ar
     encoding: cp864
     samples_used: 25000
-    bigram_entries: 1587
+    bigram_entries: 2415
     sources:
       culturax: 25000
       madlad400: 0
