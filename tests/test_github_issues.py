@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import chardet
 from chardet.enums import EncodingEra
-from chardet.evaluation import is_correct, is_equivalent_detection
+from chardet.evaluation import is_acceptable
 
 
 def _assert_detection(
@@ -25,9 +25,9 @@ def _assert_detection(
     """Assert that chardet detects the expected encoding (or an equivalent)."""
     result = chardet.detect(data, encoding_era=era, prefer_superset=True)
     detected = result["encoding"]
-    assert is_correct(expected, detected) or is_equivalent_detection(
-        data, expected, detected
-    ), f"expected={expected}, got={detected} (confidence={result['confidence']:.2f})"
+    assert is_acceptable(data, expected, detected), (
+        f"expected={expected}, got={detected} (confidence={result['confidence']:.2f})"
+    )
 
 
 # =========================================================================

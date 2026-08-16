@@ -306,3 +306,22 @@ def is_equivalent_detection(
         return False
 
     return all(_chars_equivalent(a, b) for a, b in zip(text_exp, text_det, strict=True))
+
+
+def is_acceptable(data: bytes, expected: str | None, detected: str | None) -> bool:
+    """Check whether *detected* is an acceptable detection of *data* as *expected*.
+
+    The composed predicate every accuracy consumer wants: name-level
+    acceptance (:func:`is_correct` — exact match, byte-order group, or known
+    superset) or byte-level equivalence on this particular input
+    (:func:`is_equivalent_detection`).  Callers needing only one half, or
+    the stricter :func:`is_exact_match`, should use the primitives directly.
+
+    :param data: The raw byte data that was detected.
+    :param expected: The expected encoding name, or ``None`` for binary files.
+    :param detected: The detected encoding name, or ``None``.
+    :returns: ``True`` if the detection is acceptable for *data*.
+    """
+    return is_correct(expected, detected) or is_equivalent_detection(
+        data, expected, detected
+    )

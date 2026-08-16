@@ -17,8 +17,7 @@ import chardet
 from chardet.detector import UniversalDetector
 from chardet.enums import EncodingEra
 from chardet.evaluation import (
-    is_correct,
-    is_equivalent_detection,
+    is_acceptable,
     is_language_equivalent,
 )
 from chardet.registry import REGISTRY, lookup_encoding
@@ -127,9 +126,7 @@ def test_detect(
         )
         return
 
-    assert is_correct(expected_encoding, detected) or is_equivalent_detection(
-        data, expected_encoding, detected
-    ), (
+    assert is_acceptable(data, expected_encoding, detected), (
         f"expected={expected_encoding}, got={detected} "
         f"(confidence={result['confidence']:.2f}, "
         f"language={language}, file={test_file_path.name})"
@@ -170,9 +167,7 @@ def test_detect_era_filtered(
         )
         return
 
-    assert is_correct(expected_encoding, detected) or is_equivalent_detection(
-        data, expected_encoding, detected
-    ), (
+    assert is_acceptable(data, expected_encoding, detected), (
         f"expected={expected_encoding}, got={detected} "
         f"(era={era!r}, confidence={result['confidence']:.2f}, "
         f"language={language}, file={test_file_path.name})"

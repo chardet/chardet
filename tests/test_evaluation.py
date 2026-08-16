@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from chardet.evaluation import (
+    is_acceptable,
     is_correct,
     is_equivalent_detection,
     is_language_equivalent,
@@ -183,3 +184,27 @@ def test_language_equivalent_unknown_language():
     """Unknown language code returns False."""
     assert is_language_equivalent("xx", "yy") is False
     assert is_language_equivalent("en", "fr") is False
+
+
+def test_is_acceptable_binary_expectation():
+    """A binary expectation (None) is met only by a None detection."""
+    assert is_acceptable(b"\x00\x01", None, None) is True
+    assert is_acceptable(b"\x00\x01", None, "utf-8") is False
+
+
+def test_is_acceptable_via_name_level_acceptance():
+    """A known superset is acceptable regardless of the data's bytes."""
+    assert is_acceptable(b"Hello", "ascii", "utf-8") is True
+
+
+def test_is_acceptable_via_byte_level_equivalence():
+    """Unrelated names are acceptable when this data decodes identically."""
+    data = b"plain ascii text"
+    assert is_correct("cp1250", "cp1252") is False
+    assert is_acceptable(data, "cp1250", "cp1252") is True
+
+
+def test_is_acceptable_rejects_differing_decodes():
+    """Neither half accepts encodings that read this data differently."""
+    data = "Привет мир".encode("cp1251")
+    assert is_acceptable(data, "cp1251", "cp1252") is False

@@ -18,10 +18,7 @@ from utils import collect_test_files
 
 import chardet
 from chardet.enums import EncodingEra
-from chardet.evaluation import (
-    is_correct,
-    is_equivalent_detection,
-)
+from chardet.evaluation import is_acceptable
 from chardet.registry import lookup_encoding
 
 # ---------------------------------------------------------------------------
@@ -88,9 +85,7 @@ def main() -> None:
         total += 1
         enc_total[norm_expected] += 1
 
-        if is_correct(expected_encoding, detected) or is_equivalent_detection(
-            data, expected_encoding, detected
-        ):
+        if is_acceptable(data, expected_encoding, detected):
             correct += 1
             enc_correct[norm_expected] += 1
         else:

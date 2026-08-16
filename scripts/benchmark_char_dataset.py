@@ -30,7 +30,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import chardet
 from chardet.enums import EncodingEra
-from chardet.evaluation import is_correct, is_equivalent_detection
+from chardet.evaluation import is_acceptable
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
@@ -64,7 +64,14 @@ def clone_char_dataset(dest: Path) -> None:
 
 
 def _normalize_codec(name: str) -> str:
-    """Normalize an encoding name via codecs.lookup()."""
+    """Normalize an encoding name via codecs.lookup().
+
+    Deliberately NOT ``chardet.evaluation.is_exact_match``: Tier 1 referees
+    a cross-library comparison, and normalizing through chardet's own
+    registry would bias the strict tier toward chardet's naming
+    conventions.  The stdlib codec registry is the neutral ground both
+    libraries' outputs pass through.
+    """
     return codecs.lookup(name).name
 
 
@@ -340,11 +347,7 @@ def score_results(
             scores.per_encoding[enc_k]["tier1"] += 1
 
         # Tier 2: Tier 1 OR chardet equivalences
-        t2 = (
-            t1
-            or is_correct(expected, detected)
-            or is_equivalent_detection(data_bytes, expected, detected)
-        )
+        t2 = t1 or is_acceptable(data_bytes, expected, detected)
         if t2:
             scores.tier2 += 1
             scores.per_encoding[enc_k]["tier2"] += 1
@@ -363,8 +366,7 @@ def score_results(
             t4 = detected is None
         else:
             t4 = any(
-                is_correct(expected, cand)
-                or is_equivalent_detection(data_bytes, expected, cand)
+                is_acceptable(data_bytes, expected, cand)
                 for cand in result.all_encodings
             )
         if t4:
