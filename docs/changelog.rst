@@ -13,31 +13,16 @@ Unreleased
 
 **Accuracy:**
 
-- cp864 Arabic is now trained on contextually shaped text in visual
-  order instead of a naive isolated-form mapping.  cp864 stores one
-  byte per positional glyph in IBM's two-form layout, and its
-  interchange data was display-order, so the old training text (every
-  letter forced to its isolated form, logical order) was a byte
-  pattern no real system ever wrote.  Shaping runs the Unicode
-  joining algorithm and degrades into the code page's actual
-  repertoire the way two-form renderers did (a missing medial borrows
-  the initial glyph); the pipeline was verified against ICU and a
-  first-principles joining audit before landing.  cp1006 keeps the
-  old mapping until its Urdu shaping carries the same evidence.
+- cp864 Arabic now trains on contextually shaped text in visual
+  order.  The old training text forced every letter to its isolated
+  presentation form in logical order, a byte pattern no real cp864
+  system ever wrote.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
-- Visual-order Hebrew is now detected.  ISO-8859-8 text on the 1990s
-  web was usually stored in visual order, bytes in display order for
-  browsers with no bidi engine, while the same charset labeled
-  ISO-8859-8-I stored logical order.  The ``he/iso8859-8`` model now
-  trains on both conventions, so visual input is detected as
-  ISO-8859-8 and logical input prefers Windows-1255.  Reporting the
-  storage convention through the encoding name follows the approach
-  Mozilla's universal charset detector algorithm laid out for Hebrew,
-  here falling out of the statistics rather than a dedicated prober.
-  Training reorders text with the Unicode Bidirectional Algorithm
-  (ICU's implementation, via macOS libicucore), and the exclusion
-  machinery indexes both orders of dual-convention test files so
-  train/test separation survives the reordering.
+- Visual-order Hebrew is now detected.  The ``he/iso8859-8`` model
+  trains on both bidi conventions, so 1990s visual-order pages are
+  detected as ISO-8859-8 while logical text prefers Windows-1255,
+  the name signaling the storage convention as in Mozilla's
+  universal charset detector algorithm.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 
 7.6.0 (2026-08-14)
