@@ -11,7 +11,11 @@ import struct
 import unicodedata
 from pathlib import Path
 
-from chardet.pipeline.confusion import _CATEGORY_TO_INT, DistinguishingMaps
+from chardet.pipeline.confusion import (
+    CATEGORY_TO_INT,
+    DistinguishingMaps,
+    deserialize_confusion_data_from_bytes,
+)
 from chardet.registry import REGISTRY
 
 
@@ -229,8 +233,8 @@ def serialize_confusion_data(maps: DistinguishingMaps, output_path: Path) -> int
                     struct.pack(
                         "!BBB",
                         bv,
-                        _CATEGORY_TO_INT.get(cat_a, 29),
-                        _CATEGORY_TO_INT.get(cat_b, 29),
+                        CATEGORY_TO_INT.get(cat_a, 29),
+                        CATEGORY_TO_INT.get(cat_b, 29),
                     )
                 )
     return output_path.stat().st_size
@@ -238,9 +242,5 @@ def serialize_confusion_data(maps: DistinguishingMaps, output_path: Path) -> int
 
 def deserialize_confusion_data(input_path: Path) -> DistinguishingMaps:
     """Load confusion group data from binary format."""
-    from chardet.pipeline.confusion import (  # noqa: PLC0415
-        deserialize_confusion_data_from_bytes,
-    )
-
     data = input_path.read_bytes()
     return deserialize_confusion_data_from_bytes(data)

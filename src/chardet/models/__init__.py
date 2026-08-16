@@ -10,12 +10,11 @@ import functools
 import hashlib
 import importlib.resources
 import math
-import struct
 import warnings
-import zlib
 
 from chardet import _kernel
 from chardet._kernel import dot_packed, pack_profile
+from chardet.models._format import parse_models_bin, parse_rowmax_bin, rowmax_from_table
 from chardet.registry import REGISTRY, lookup_encoding
 
 #: Shared empty packed buffers for profiles scored through another path.
@@ -42,9 +41,6 @@ _EMPTY_PACKED = (array.array("i"), array.array("i"))
 #: and silently diverging.  Change either one and check the other.
 _KERNEL_COMPILED = _kernel.__file__.endswith((".so", ".pyd"))
 
-_unpack_uint32 = struct.Struct(">I").unpack_from
-_unpack_float64 = struct.Struct(">d").unpack_from
-
 # 256-entry membership table for whitespace bytes whose runs training
 # collapsed — native byte indexing under mypyc, used in the bigram-profile
 # hot loop.  Covers the ASCII whitespace bytes (space, tab, LF, VT, FF, CR)
@@ -57,10 +53,6 @@ _unpack_float64 = struct.Struct(">d").unpack_from
 _ASCII_WHITESPACE_TABLE = bytes(
     1 if b in (0x20, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0xA0) else 0 for b in range(256)
 )
-_V2_MAGIC = b"CMD2"
-#: rowmax.bin format: magic + SHA-256 of the matching models.bin + one
-#: 256-byte row-maxima table per model, in models.bin header order.
-_ROWMAX_MAGIC = b"CRM1"
 
 # Encodings that map to exactly one language, derived from the registry.
 # Keyed by canonical name only — callers always use canonical names.
@@ -68,127 +60,6 @@ _SINGLE_LANG_MAP: dict[str, str] = {}
 for _enc in REGISTRY.values():
     if len(_enc.languages) == 1:
         _SINGLE_LANG_MAP[_enc.name] = _enc.languages[0]
-
-
-def _decompress_tables(
-    data: bytes, offset: int, names: list[str], chunk_size: int = 262144
-) -> dict[str, bytes]:
-    """Decompress the model tables from ``data[offset:]``, one per name.
-
-    Each model is stored as its own bytes object rather than a memoryview
-    slice of one big blob: mypyc compiles bytes indexing in the scoring hot
-    loop to a native C array access, while memoryview indexing goes through
-    a boxed generic call.  Decompression is incremental, one 64 KB table at
-    a time — materializing the whole multi-megabyte blob and slicing it
-    would transiently double the allocation and strand the freed pages in
-    process RSS.  Trailing compressed bytes are ignored, as with whole-blob
-    ``zlib.decompress``; the decompressed size is validated instead.
-
-    :raises ValueError: If the decompressed size is not exactly
-        ``len(names) * 65536``.
-    """
-    num_models = len(names)
-    expected_size = num_models * 65536
-    decomp = zlib.decompressobj()
-    models: dict[str, bytes] = {}
-    table = bytearray()
-    produced = 0
-    pos = offset
-    end = len(data)
-    flushed = False
-    while len(models) < num_models:
-        need = 65536 - len(table)
-        if decomp.unconsumed_tail:
-            piece = decomp.decompress(decomp.unconsumed_tail, need)
-        elif pos < end:
-            chunk = data[pos : pos + chunk_size]
-            pos += len(chunk)
-            piece = decomp.decompress(chunk, need)
-        elif not flushed:
-            flushed = True
-            piece = decomp.flush()
-            if not piece:
-                break  # stream exhausted early -> size mismatch below
-        else:
-            break  # stream exhausted early -> size mismatch below
-        produced += len(piece)
-        table += piece
-        if len(table) == 65536:
-            models[names[len(models)]] = bytes(table)
-            table.clear()
-        elif len(table) > 65536:
-            break  # oversized flush -> size mismatch below
-    if len(models) == num_models:
-        # Drain any leftover decompressed output so extra data is caught,
-        # including surplus tables in compressed input not yet fed to the
-        # decompressor.  Bytes after the stream's end marker (decomp.eof)
-        # are ignored, matching whole-blob zlib.decompress behavior.
-        extra = b""
-        if decomp.unconsumed_tail:
-            extra = decomp.decompress(decomp.unconsumed_tail, 1)
-        while not extra and not decomp.eof and pos < end:
-            chunk = data[pos : pos + chunk_size]
-            pos += len(chunk)
-            extra = decomp.decompress(chunk, 1)
-        if not extra and not decomp.eof and not flushed:
-            extra = decomp.flush()
-        produced += len(extra)
-    if produced != expected_size or len(models) != num_models:
-        msg = (
-            f"corrupt models.bin: decompressed size {produced} "
-            f"!= expected {expected_size}"
-        )
-        raise ValueError(msg)
-    return models
-
-
-def _parse_models_bin(
-    data: bytes,
-) -> tuple[dict[str, bytes], dict[str, float]]:
-    """Parse the v2 dense zlib-compressed models.bin format.
-
-    :param data: Raw bytes of models.bin (must be non-empty).
-    :returns: A ``(models, norms)`` tuple.
-    :raises ValueError: If the data is corrupt or truncated.
-    """
-    try:
-        if data[:4] != _V2_MAGIC:
-            msg = "corrupt models.bin: missing CMD2 magic"
-            raise ValueError(msg)
-
-        offset = 4  # skip magic
-        (num_models,) = _unpack_uint32(data, offset)
-        offset += 4
-
-        if num_models > 10_000:
-            msg = f"corrupt models.bin: num_models={num_models} exceeds limit"
-            raise ValueError(msg)
-
-        names: list[str] = []
-        norms: dict[str, float] = {}
-        for _ in range(num_models):
-            (name_len,) = _unpack_uint32(data, offset)
-            offset += 4
-            if name_len > 256:
-                msg = f"corrupt models.bin: name_len={name_len} exceeds 256"
-                raise ValueError(msg)
-            name = data[offset : offset + name_len].decode("utf-8")
-            offset += name_len
-            (norm,) = _unpack_float64(data, offset)
-            offset += 8
-            names.append(name)
-            norms[name] = norm
-
-        models = _decompress_tables(data, offset, names)
-
-    except zlib.error as e:
-        msg = f"corrupt models.bin: {e}"
-        raise ValueError(msg) from e
-    except (struct.error, UnicodeDecodeError) as e:
-        msg = f"corrupt models.bin: {e}"
-        raise ValueError(msg) from e
-
-    return models, norms
 
 
 @functools.cache
@@ -209,7 +80,7 @@ def _load_models_data() -> tuple[dict[str, bytes], dict[str, float]]:
         )
         return {}, {}
 
-    return _parse_models_bin(data)
+    return parse_models_bin(data)
 
 
 def load_models() -> dict[str, bytes]:
@@ -287,10 +158,11 @@ def get_rowmax() -> dict[str, bytes]:
     (65536 terms) — statistical scoring uses this to rule out candidate
     models without scoring them fully.
 
-    Loads the precomputed ``rowmax.bin`` (written by ``scripts/train.py`` in
-    the same model order as ``models.bin``).  The file starts with a ``CRM1``
-    magic and the SHA-256 of the ``models.bin`` it was derived from: a stale
-    or mismatched file would silently under-estimate row maxima and break
+    Loads the precomputed ``rowmax.bin`` (written by
+    ``chardet.models._format.write_model_artifacts`` in the same model
+    order as ``models.bin``).  The file starts with a ``CRM1`` magic and
+    the SHA-256 of the ``models.bin`` it was derived from: a stale or
+    mismatched file would silently under-estimate row maxima and break
     the upper bound that pruning depends on, so anything that does not match
     the *current* ``models.bin`` byte-for-byte is rejected and the tables
     are derived from the models directly (slower, but always correct).
@@ -305,17 +177,10 @@ def get_rowmax() -> dict[str, bytes]:
     except (FileNotFoundError, OSError):
         data = b""
         models_digest = b""
-    header_size = 4 + 32
-    if (
-        data[:4] == _ROWMAX_MAGIC
-        and data[4:header_size] == models_digest
-        and len(data) == header_size + len(models) * 256
-    ):
-        # models preserves models.bin header order, matching rowmax.bin.
-        return {
-            key: data[header_size + i * 256 : header_size + (i + 1) * 256]
-            for i, key in enumerate(models)
-        }
+    # models preserves models.bin header order, matching rowmax.bin.
+    tables = parse_rowmax_bin(data, models_digest, list(models))
+    if tables is not None:
+        return tables
     if models:
         warnings.warn(
             "chardet rowmax.bin is missing or does not match models.bin; "
@@ -323,10 +188,7 @@ def get_rowmax() -> dict[str, bytes]:
             RuntimeWarning,
             stacklevel=2,
         )
-    return {
-        key: bytes(max(table[start : start + 256]) for start in range(0, 65536, 256))
-        for key, table in models.items()
-    }
+    return {key: rowmax_from_table(table) for key, table in models.items()}
 
 
 @functools.cache

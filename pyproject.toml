@@ -83,6 +83,7 @@ dependencies = ["hatch-mypyc>=0.16.0", "mypy>=1.19"]
 require-runtime-dependencies = false
 include = [
     "/src/chardet/models/__init__.py",
+    "/src/chardet/models/_format.py",
     "/src/chardet/pipeline/structural.py",
     "/src/chardet/pipeline/validity.py",
     "/src/chardet/pipeline/statistical.py",
@@ -210,6 +211,7 @@ ignore = [
 ]
 # mypyc-compiled modules cannot use `from __future__ import annotations`
 "src/chardet/models/__init__.py" = ["FA100"]
+"src/chardet/models/_format.py" = ["FA100"]
 "src/chardet/pipeline/structural.py" = ["FA100"]
 "src/chardet/pipeline/validity.py" = ["FA100"]
 "src/chardet/pipeline/statistical.py" = ["FA100"]

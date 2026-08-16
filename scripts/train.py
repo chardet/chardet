@@ -25,17 +25,13 @@ import concurrent.futures
 
 # Ensure progress output is visible when piped through tee.
 import functools
-import hashlib
 import itertools
-import math
 import os
 import pickle
 import signal
-import struct
 import subprocess
 import sys
 import time
-import zlib
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -64,6 +60,7 @@ from substitutions import (
     transliterate_serbian_to_latin,
 )
 
+from chardet.models._format import read_models, write_model_artifacts
 from chardet.registry import REGISTRY
 
 print = functools.partial(print, flush=True)  # noqa: A001
@@ -215,7 +212,7 @@ def add_html_samples(
 
 
 # ---------------------------------------------------------------------------
-# Bigram computation and serialization
+# Bigram computation
 # ---------------------------------------------------------------------------
 
 
@@ -258,160 +255,6 @@ def normalize_and_prune(
         elif (pair[0] >= 0x80 or pair[1] >= 0x80) and count >= 300:
             result[pair] = 1
     return result
-
-
-def deserialize_models(
-    input_path: Path,
-) -> dict[str, dict[tuple[int, int], int]]:
-    """Load existing models from binary format (v1 or v2)."""
-    if not input_path.is_file():
-        return {}
-
-    data = input_path.read_bytes()
-
-    if not data:
-        return {}
-
-    # Detect format version by magic bytes
-    if data[:4] == b"CMD2":
-        return _deserialize_v2(data)
-    return _deserialize_v1(data)
-
-
-def _deserialize_v1(
-    data: bytes,
-) -> dict[str, dict[tuple[int, int], int]]:
-    """Load models from v1 sparse binary format."""
-    models: dict[str, dict[tuple[int, int], int]] = {}
-    try:
-        offset = 0
-        (num_encodings,) = struct.unpack_from("!I", data, offset)
-        offset += 4
-
-        if num_encodings > 10_000:
-            msg = f"Corrupt models file: num_encodings={num_encodings} exceeds limit"
-            raise ValueError(msg)
-
-        for _ in range(num_encodings):
-            (name_len,) = struct.unpack_from("!I", data, offset)
-            offset += 4
-            name = data[offset : offset + name_len].decode("utf-8")
-            offset += name_len
-            (num_entries,) = struct.unpack_from("!I", data, offset)
-            offset += 4
-
-            bigrams: dict[tuple[int, int], int] = {}
-            for _ in range(num_entries):
-                b1, b2, weight = struct.unpack_from("!BBB", data, offset)
-                offset += 3
-                bigrams[(b1, b2)] = weight
-            models[name] = bigrams
-    except (struct.error, UnicodeDecodeError) as e:
-        msg = f"Corrupt models file: {e}"
-        raise ValueError(msg) from e
-
-    if offset != len(data):
-        msg = f"Corrupt models file: {len(data) - offset} trailing bytes"
-        raise ValueError(msg)
-
-    return models
-
-
-def _deserialize_v2(
-    data: bytes,
-) -> dict[str, dict[tuple[int, int], int]]:
-    """Load models from v2 dense zlib-compressed format."""
-    try:
-        offset = 4  # skip "CMD2" magic
-        (num_models,) = struct.unpack_from("!I", data, offset)
-        offset += 4
-
-        if num_models > 10_000:
-            msg = f"Corrupt models file: num_models={num_models} exceeds limit"
-            raise ValueError(msg)
-
-        names: list[str] = []
-        for _ in range(num_models):
-            (name_len,) = struct.unpack_from("!I", data, offset)
-            offset += 4
-            if name_len > 256:
-                msg = f"Corrupt models file: name_len={name_len} exceeds 256"
-                raise ValueError(msg)
-            name = data[offset : offset + name_len].decode("utf-8")
-            offset += name_len
-            offset += 8  # skip norm (float64), not needed for sparse dict output
-            names.append(name)
-
-        dobj = zlib.decompressobj()
-        blob = dobj.decompress(data[offset:])
-        if dobj.unused_data:
-            msg = f"Corrupt models file: {len(dobj.unused_data)} trailing bytes"
-            raise ValueError(msg)
-        expected_size = num_models * 65536
-        if len(blob) != expected_size:
-            msg = (
-                f"Corrupt models file: decompressed size {len(blob)} "
-                f"!= expected {expected_size}"
-            )
-            raise ValueError(msg)
-
-        models: dict[str, dict[tuple[int, int], int]] = {}
-        for i, name in enumerate(names):
-            base = i * 65536
-            bigrams: dict[tuple[int, int], int] = {}
-            for idx in range(65536):
-                weight = blob[base + idx]
-                if weight > 0:
-                    bigrams[(idx >> 8, idx & 0xFF)] = weight
-            models[name] = bigrams
-
-    except zlib.error as e:
-        msg = f"Corrupt models file: {e}"
-        raise ValueError(msg) from e
-    except (struct.error, UnicodeDecodeError) as e:
-        msg = f"Corrupt models file: {e}"
-        raise ValueError(msg) from e
-
-    return models
-
-
-def serialize_models(
-    models: dict[str, dict[tuple[int, int], int]],
-    output_path: Path,
-) -> int:
-    """Serialize all models to v2 binary format (dense + zlib). Returns file size."""
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-
-    sorted_names = sorted(models.keys())
-
-    # Build header: magic + num_models + per-model name and norm
-    header = b"CMD2"
-    header += struct.pack("!I", len(sorted_names))
-
-    tables = bytearray()
-    for name in sorted_names:
-        bigrams = models[name]
-        name_bytes = name.encode("utf-8")
-
-        # Expand sparse dict to dense 65536-byte table and compute L2 norm
-        table = bytearray(65536)
-        sq_sum = 0
-        for (b1, b2), weight in bigrams.items():
-            table[(b1 << 8) | b2] = weight
-            sq_sum += weight * weight
-        norm = math.sqrt(sq_sum)
-
-        header += struct.pack("!I", len(name_bytes)) + name_bytes
-        header += struct.pack("!d", norm)
-        tables.extend(table)
-
-    compressed = zlib.compress(bytes(tables), 9)
-
-    with output_path.open("wb") as f:
-        f.write(header)
-        f.write(compressed)
-
-    return output_path.stat().st_size
 
 
 def verify_codec(codec_name: str) -> bool:
@@ -1372,7 +1215,7 @@ def main() -> None:
     # Merge with existing models when retraining a subset
     if args.encodings:
         print("=== Merging with existing models ===")
-        existing = deserialize_models(output_path)
+        existing = read_models(output_path)
         # Remove old models for retrained encodings (both formats)
         removed_keys: list[str] = []
         for enc in args.encodings:
@@ -1438,50 +1281,17 @@ def main() -> None:
     else:
         print(f"  Provenance: built with test set {provenance[0][:12]} excluded")
 
-    # Serialize
-    print("=== Serializing models ===")
-    file_size = serialize_models(models, output_path)
-
-    # Compute and serialize IDF weights for bigram profile construction.
-    # This is a 65536-byte table where each byte is a quantized IDF weight
-    # for the corresponding bigram index.
-    print("=== Computing IDF weights ===")
-    idf_path = output_path.parent / "idf.bin"
-    num_models = len(models)
-    doc_freq = [0] * 65536
-    for bigrams in models.values():
-        for b1, b2 in bigrams:
-            doc_freq[(b1 << 8) | b2] += 1
-    max_idf = math.log(num_models) if num_models > 1 else 1.0
-    scale = 254.0 / max_idf if max_idf > 0 else 0.0
-    idf_table = bytearray(65536)
-    for idx in range(65536):
-        df = doc_freq[idx]
-        if df > 0:
-            idf_val = math.log(num_models / df)
-            idf_table[idx] = max(1, round(idf_val * scale) + 1)
-        else:
-            idf_table[idx] = 1
-    idf_path.write_bytes(idf_table)
-    print(f"IDF weights:  {idf_path} ({len(idf_table):,} bytes)")
-
-    # Serialize per-model row maxima for upper-bound prescreening in
-    # statistical scoring.  Format: CRM1 magic, SHA-256 of the models.bin
-    # just written (so a stale rowmax.bin is detected at load time), then
-    # one 256-byte table per model (entry b1 = max weight in that model's
-    # row for lead byte b1), concatenated in the same sorted-name order as
-    # models.bin.
-    print("=== Computing row-max tables ===")
-    rowmax_path = output_path.parent / "rowmax.bin"
-    rowmax_blob = bytearray(b"CRM1")
-    rowmax_blob.extend(hashlib.sha256(output_path.read_bytes()).digest())
-    for name in sorted(models.keys()):
-        rm = [0] * 256
-        for (b1, _b2), weight in models[name].items():
-            rm[b1] = max(rm[b1], weight)
-        rowmax_blob.extend(rm)
-    rowmax_path.write_bytes(rowmax_blob)
-    print(f"Row maxima:   {rowmax_path} ({len(rowmax_blob):,} bytes)")
+    # Serialize the digest-locked model artifacts as one unit
+    print("=== Writing model artifacts ===")
+    sizes = write_model_artifacts(models, output_path)
+    file_size = sizes["models.bin"]
+    print(
+        f"IDF weights:  {output_path.with_name('idf.bin')} ({sizes['idf.bin']:,} bytes)"
+    )
+    print(
+        f"Row maxima:   {output_path.with_name('rowmax.bin')} "
+        f"({sizes['rowmax.bin']:,} bytes)"
+    )
 
     print("=== Computing confusion groups ===")
     confusion_maps = compute_distinguishing_maps(threshold=0.80)

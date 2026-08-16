@@ -25,6 +25,13 @@ Unreleased
   universal charset detector algorithm.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 
+**Build:**
+
+- The ``models.bin``/``rowmax.bin``/``idf.bin`` formats now have a
+  single owner, ``chardet.models._format``, called by both the trainer
+  and the runtime loader; regenerated artifacts are byte-identical.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+
 7.6.0 (2026-08-14)
 -------------------
 

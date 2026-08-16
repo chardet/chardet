@@ -69,8 +69,10 @@ _INT_TO_CATEGORY: dict[int, str] = {
     29: "Cn",
 }
 
-# Inverse mapping for serialization — used by scripts/confusion_training.py.
-_CATEGORY_TO_INT: dict[str, int] = {v: k for k, v in _INT_TO_CATEGORY.items()}
+#: Inverse mapping for serialization.  Public because the build side
+#: (``scripts/confusion_training.py``) must encode categories with the
+#: exact map this module decodes them with.
+CATEGORY_TO_INT: dict[str, int] = {v: k for k, v in _INT_TO_CATEGORY.items()}
 
 
 def deserialize_confusion_data_from_bytes(data: bytes) -> DistinguishingMaps:

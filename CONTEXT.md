@@ -139,6 +139,9 @@ Bidirectional equivalence sets in `evaluation.py`. Members are interchangeable f
 **Model file** (`src/chardet/models/models.bin`):
 The v2 dense zlib-compressed binary file holding all **BigramProfile**s, indexed by `language/encoding` keys.
 
+**Model artifacts**:
+The digest-locked file set the trainer writes as one unit: the **model file** plus `rowmax.bin` (per-model row maxima for upper-bound prescreening) and `idf.bin` (quantized IDF weights for input-profile construction). `rowmax.bin` embeds the SHA-256 of the model file it was computed from, so a stale or independently regenerated member is detected at load time — it is never valid to rewrite one member alone.
+
 **Confusion data file** (`src/chardet/pipeline/confusion.bin`):
 The binary file holding pre-computed **distinguishing byte map**s for all **confusion group** pairs.
 
