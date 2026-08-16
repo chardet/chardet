@@ -31,36 +31,21 @@ extend the set with evidence when that happens.
 
 Reordering is the Unicode Bidirectional Algorithm with an LTR base
 paragraph -- exactly "what a dumb LTR renderer of the era displayed",
-including mirrored brackets.  Two interchangeable backends: python-bidi
-when installed, else macOS libicucore via ctypes.  Both are real UBA
-implementations; do not replace them with a hand-rolled reverser (runs,
-digits, and neutrals will be wrong in ways an eyeball check on bidi text
-cannot catch).
+including mirrored brackets.  The backend is macOS libicucore via
+ctypes, and deliberately ONLY that: python-bidi was measured and
+rejected (its legacy module crashes on the isolate controls real corpus
+text contains; its maintained Rust module omits bracket mirroring and
+places zero-width spaces differently, diverging on 12% of corpus
+lines), and retrained models must reproduce the shipped ones byte for
+byte.  Do not substitute another UBA implementation without an
+equivalence measurement, and never a hand-rolled reverser.
 """
 
 from __future__ import annotations
 
 VISUAL_ORDER_DUAL_ENCODINGS: frozenset[str] = frozenset({"iso8859-8"})
 
-_backend: str | None = None
-_bidi_get_display = None
 _icu_shape = None
-
-
-def _load_backend() -> None:
-    global _backend, _bidi_get_display  # noqa: PLW0603
-    try:
-        try:
-            from bidi.algorithm import get_display  # noqa: PLC0415
-        except ImportError:
-            from bidi import get_display  # noqa: PLC0415
-        _bidi_get_display = get_display
-        _backend = "python-bidi"
-        return
-    except ImportError:
-        pass
-    _load_icu()
-    _backend = "icucore"
 
 
 def _load_icu() -> None:
@@ -70,10 +55,7 @@ def _load_icu() -> None:
     global _icu_shape  # noqa: PLW0603
     path = ctypes.util.find_library("icucore")
     if path is None:
-        msg = (
-            "visual-order reordering needs either the python-bidi package "
-            "or macOS libicucore; neither is available"
-        )
+        msg = "visual-order reordering needs macOS libicucore"
         raise RuntimeError(msg)
     icu = ctypes.CDLL(path)
     ubidi_open = icu.ubidi_open
@@ -130,11 +112,6 @@ def _load_icu() -> None:
 
 def reorder_visual(text: str) -> str:
     """Reorder logical-order *text* into visual order, line by line."""
-    if _backend is None:
-        _load_backend()
-    if _backend == "python-bidi":
-        return "\n".join(
-            _bidi_get_display(line, base_dir="L") if line else line
-            for line in text.split("\n")
-        )
+    if _icu_shape is None:
+        _load_icu()
     return "\n".join(_icu_shape(line) if line else line for line in text.split("\n"))

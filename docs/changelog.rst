@@ -35,7 +35,7 @@ Unreleased
   Mozilla's universal charset detector algorithm laid out for Hebrew,
   here falling out of the statistics rather than a dedicated prober.
   Training reorders text with the Unicode Bidirectional Algorithm
-  (python-bidi, with macOS ICU as a fallback), and the exclusion
+  (ICU's implementation, via macOS libicucore), and the exclusion
   machinery indexes both orders of dual-convention test files so
   train/test separation survives the reordering.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
