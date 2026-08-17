@@ -58,6 +58,15 @@ Listed in execution order. Each stage's name matches its module in `chardet.pipe
 **Encoding era** (`EncodingEra`):
 A bit-flag classification of encodings into `MODERN_WEB`, `LEGACY_ISO`, `LEGACY_MAC`, `LEGACY_REGIONAL`, `DOS`, and `MAINFRAME`. The public-API `encoding_era` parameter narrows the candidate set before detection runs.
 
+**Examination window** (`max_bytes`):
+The caller-controlled bound on how much of the input detection looks at, set by the public `max_bytes` parameter. The only public lever over how much data detection consumes. Distinct from an **evidence cap**.
+
+**Exhaustive check**:
+A detection check that is exact over every byte of the **examination window**: BOM, magic numbers, UTF-8 structural validation, ASCII, binary detection, and escape-sequence *presence*. An exhaustive check's verdict cannot be wrong about bytes it was given — chardet never calls data UTF-8 that is not valid UTF-8 throughout the window.
+
+**Evidence cap**:
+An internal, unoverridable bound on how much of the **examination window** a filtering, validation, or scoring stage consumes before its answer is considered converged (statistical scoring, language detection, postprocess evidence scans, UTF-16/32 sampling all carry one). A convergence bound, not a correctness bound: more bytes are not expected to change the answer. Evidence caps are documented, not hidden; **exhaustive checks** take none.
+
 **Encoding superset relationship**:
 A factual property between two encodings where one decodes a strict superset of the bytes the other decodes (e.g. CP932 ⊃ Shift_JIS, Windows-1252 ⊃ ISO-8859-1, GB18030 ⊃ GB2312). Lossless replacement: any byte sequence valid in the subset is valid in the superset.
 
@@ -181,4 +190,5 @@ The mechanism in `scripts/verify_no_overlap.py` that excludes any training-data 
 - **"binary"** is both an outcome (the `encoding=None` result) and a stage name (`pipeline/binary.py`). Disambiguate by saying "the **Binary detection stage**" vs. "a **binary** result".
 - **"model"** is overloaded: the **model file** holds many **BigramProfile**s, but casual prose sometimes uses "the model" for a single profile and sometimes for the whole file. Prefer **BigramProfile** for the unit, **model file** for the artifact.
 - **"BigramProfile"** collides with code: this glossary uses it for a trained (language, encoding) profile in the **model file**, but the `BigramProfile` *class* in `models/__init__.py` is the weighted bigram distribution computed from the *input data* at detection time. The trained side is a raw lookup table, not an instance of that class. When precision matters, say "trained model table" vs. "input profile".
+- **"uncapped"** is colloquial for calling with `max_bytes=len(data)`. It does *not* mean every stage examines every byte — **exhaustive checks** do, stages with an **evidence cap** do not. Avoid the word in docs and README prose; state the `max_bytes` value used instead.
 - **"language"** refers to (1) the field on **DetectionResult**, (2) the **language detection** stage that fills it, and (3) the language part of a **BigramProfile** key. Usually clear from context.
