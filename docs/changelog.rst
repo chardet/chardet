@@ -43,7 +43,16 @@ Unreleased
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 - ASCII and binary scans on large buffers no longer allocate
   input-sized transients: ``detect_ascii`` gates on ``isascii()`` and
-  ``is_binary`` counts through bounded chunks.
+  counts rather than materializing its remainder, and ``is_binary``
+  counts through bounded chunks and derives its second control-byte
+  total arithmetically instead of rescanning.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+- The UTF-7 ``+`` scan no longer goes quadratic on line-wrapped base64.
+  Its "is this ``+`` inside a base64 stream" guard skips newlines while
+  walking backward, so on PEM certificates, MIME attachments, and JWTs
+  every ``+`` rescanned everything before it.  It now stops at the
+  fourth character, which is all the verdict needs: 128 KiB of such
+  data went from 5.4 seconds to 1.2 milliseconds.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 
 **Bug Fixes:**

@@ -84,8 +84,10 @@ def test_utf7_validator_converges_on_cap() -> None:
 def test_escape_evidence_past_cap_is_not_consulted() -> None:
     """UTF-7 evidence sitting entirely past the cap no longer detects.
 
-    The documented ADR-0006 boundary: real UTF-7 shifts in and out
-    constantly, so first sequences past 256 KiB are synthetic.
+    The documented ADR-0006 boundary: the deep validators see a sequence
+    only if it both begins and ends inside the evidence window.  Real
+    UTF-7 shifts in and out constantly, so a document whose only shifted
+    sequence lands past 256 KiB is synthetic.
     """
     body = _beyond_cap(b"plain ascii filler text, nothing special here.\n")
     utf7_tail = "こんにちは".encode("utf-7") * 20
@@ -95,6 +97,62 @@ def test_escape_evidence_past_cap_is_not_consulted() -> None:
     # Within the cap it is still detected.
     head = utf7_tail + body
     assert chardet.detect(head, max_bytes=len(head))["encoding"] == "utf-7"
+
+
+def test_hz_region_straddling_the_cap_is_not_seen() -> None:
+    """A sequence that starts inside the window but ends past it is cut.
+
+    The sliced validator finds the opening ``~{`` with no closing ``~}``,
+    so this region contributes nothing.  Pinned because it is the wider
+    half of the miss-direction boundary ADR-0006 documents, not the
+    narrower "entirely past the cap" case above.
+    """
+    prefix = b"a" * (EVIDENCE_CAP_BYTES - 100)
+    region = b"~{" + b"\x3b\x3c" * 200 + b"~}"
+    straddle = prefix + region + b" tail text"
+    assert chardet.detect(straddle, max_bytes=len(straddle))["encoding"] == "ascii"
+    # The identical region wholly inside the window is still detected.
+    inside = prefix[:1000] + region + b" tail text"
+    assert chardet.detect(inside, max_bytes=len(inside))["encoding"] == "HZ-GB-2312"
+
+
+def test_utf7_accept_stays_exhaustive() -> None:
+    """A utf-7 answer is never given for data that will not decode.
+
+    The deep validator is capped, but the decode gate is not: an illegal
+    shift past the cap must still veto utf-7, or detect() hands back a
+    deterministic-confidence encoding the caller's own decode rejects.
+    """
+    unit = "こんにちは世界".encode("utf-7")
+    body = unit * ((EVIDENCE_CAP_BYTES + 20_000) // len(unit) + 1)
+    assert len(body) > EVIDENCE_CAP_BYTES
+    broken = body + b"+|illegal+|shift+|"
+    assert chardet.detect(broken, max_bytes=len(broken))["encoding"] != "utf-7"
+    # The same body without the illegal tail is still utf-7.
+    assert chardet.detect(body, max_bytes=len(body))["encoding"] == "utf-7"
+
+
+def test_valid_ascii_past_cap_keeps_utf8_candidate() -> None:
+    """Valid UTF-8 carrying no multi-byte evidence is not a rejection.
+
+    detect_utf8 returns None for pure ASCII, ASCII plus control bytes, and
+    ASCII plus a truncated tail — all valid UTF-8.  Treating that as "the
+    window is not UTF-8" stripped utf-8 from the candidate set for any
+    valid window larger than the cap.
+    """
+    body = _beyond_cap(b"plain ascii log line, nothing special here.\n")
+    assert (
+        chardet.detect(body, max_bytes=len(body), include_encodings={"utf-8"})[
+            "encoding"
+        ]
+        == "utf-8"
+    )
+    # ASCII plus a dangling lead byte: valid so far, no complete sequence.
+    dangling = body + b"\xc3"
+    assert chardet.detect(dangling, max_bytes=len(dangling))["encoding"] is not None
+    # A genuine rejection still vetoes utf-8.
+    invalid = body + b"\xff\xfe\xff"
+    assert chardet.detect(invalid, max_bytes=len(invalid))["encoding"] != "utf-8"
 
 
 def test_exhaustive_checks_still_see_everything() -> None:

@@ -5,6 +5,7 @@ this module is compiled with mypyc, which does not support PEP 563 string
 annotations.
 """
 
+from chardet._utils import count_deleted
 from chardet.pipeline import ASCII_TEXT_BYTES, DetectionResult
 
 # Maximum fraction of null bytes to still classify data as ASCII.
@@ -26,19 +27,25 @@ def detect_ascii(data: bytes) -> DetectionResult | None:
     """
     if not data:
         return None
-    # Non-ASCII data can never pass: the translate remainder would contain
-    # the high bytes.  ``isascii`` answers that in one allocation-free C
-    # scan, so large non-ASCII inputs skip the translate copy entirely.
+    # Non-ASCII data can never pass: the disallowed set includes every high
+    # byte.  ``isascii`` answers that in one allocation-free C scan, so
+    # large non-ASCII inputs skip the counting pass entirely.
     if not data.isascii():
         return None
-    remainder = data.translate(None, ASCII_TEXT_BYTES)
-    if not remainder:
+    # Count rather than materialize the remainder: on a large all-ASCII
+    # window the deletion translate would allocate an input-sized buffer
+    # just to hand back an empty result.
+    # ASCII_TEXT_BYTES is the *allowed* set, so what the deletion leaves is
+    # the disallowed bytes: count them as the complement.
+    disallowed = len(data) - count_deleted(data, ASCII_TEXT_BYTES)
+    if disallowed == 0:
         return DetectionResult(encoding="ascii", confidence=1.0, language=None)
-    # Check if the only non-allowed bytes are null separators
-    if remainder.replace(b"\x00", b""):
-        return None  # Non-null, non-ASCII bytes present
+    null_count = data.count(0)
+    # Any disallowed byte that is not a null disqualifies the data.
+    if disallowed != null_count:
+        return None
     # All non-allowed bytes are nulls — accept if sparse enough
-    null_fraction = len(remainder) / len(data)
+    null_fraction = null_count / len(data)
     if null_fraction <= _MAX_NULL_FRACTION:
         return DetectionResult(encoding="ascii", confidence=0.99, language=None)
     return None

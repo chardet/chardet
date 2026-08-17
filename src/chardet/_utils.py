@@ -17,6 +17,11 @@ DEFAULT_MAX_BYTES: int = 200_000
 #: asserts the invariant.
 EVIDENCE_CAP_BYTES: int = 256 * 1024
 
+#: Chunk size for whole-window validity decodes.  Large enough that
+#: per-chunk overhead vanishes, small enough that the transient decoded
+#: ``str`` stays bounded regardless of input size.
+_DECODE_CHUNK_SIZE: int = 1 << 20
+
 #: Default minimum confidence threshold for filtering results.
 MINIMUM_THRESHOLD: float = 0.20
 
@@ -68,6 +73,28 @@ def _incremental_decoder(
     return decoder_class()
 
 
+def count_deleted(data: bytes, table: bytes) -> int:
+    """Count how many bytes of *data* a deletion *table* would remove.
+
+    ``bytes.translate`` with a deletion table allocates an output buffer
+    proportional to the input, so counting a whole large window through one
+    call spikes memory by roughly the input size.  Chunking keeps the
+    transient bounded at one C call per chunk, and the count is identical:
+    deletion is per-byte and carries no state across the split.
+
+    :param data: The raw byte data to scan.
+    :param table: Byte values to delete.
+    :returns: The number of bytes of *data* present in *table*.
+    """
+    if len(data) <= _DECODE_CHUNK_SIZE:
+        return len(data) - len(data.translate(None, table))
+    count = 0
+    for pos in range(0, len(data), _DECODE_CHUNK_SIZE):
+        chunk = data[pos : pos + _DECODE_CHUNK_SIZE]
+        count += len(chunk) - len(chunk.translate(None, table))
+    return count
+
+
 def decodes_without_error(data: bytes, encoding: str) -> bool:
     """Return ``True`` if *data* decodes cleanly under *encoding*.
 
@@ -86,6 +113,11 @@ def decodes_without_error(data: bytes, encoding: str) -> bool:
     incremental decoder with ``final=False`` defers the partial tail instead,
     while still raising on genuine corruption anywhere before it.
 
+    Large inputs are fed in chunks and the decoded text is discarded, so a
+    whole-window check never allocates a matching ``str``.  Chunking is
+    transparent: the decoder carries its state across calls, so a sequence
+    straddling a chunk edge decodes exactly as it would in one call.
+
     :param data: The raw byte data to test.
     :param encoding: Name of the codec to test *data* against.
     :returns: ``True`` if *data* decodes without error, ``False`` otherwise.
@@ -94,7 +126,11 @@ def decodes_without_error(data: bytes, encoding: str) -> bool:
     if decoder is None:
         return False
     try:
-        decoder.decode(data, final=False)
+        if len(data) <= _DECODE_CHUNK_SIZE:
+            decoder.decode(data, final=False)
+        else:
+            for pos in range(0, len(data), _DECODE_CHUNK_SIZE):
+                decoder.decode(data[pos : pos + _DECODE_CHUNK_SIZE], final=False)
     except UnicodeError:
         return False
     return True

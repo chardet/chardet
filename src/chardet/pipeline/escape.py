@@ -50,6 +50,10 @@ _B64_UPPERCASE: frozenset[int] = frozenset(b"ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 # Lookup table mapping each Base64 byte to its 6-bit value (0-63).
 _B64_DECODE: dict[int, int] = {c: i for i, c in enumerate(_B64_CHARS)}
 
+# Consecutive base64 characters before a '+' that mark it as part of a
+# base64 stream rather than a UTF-7 shift.
+_EMBEDDED_B64_RUN: int = 4
+
 
 def _is_valid_utf7_b64(b64_bytes: bytes) -> bool:
     """Check if base64 bytes decode to valid UTF-16BE with correct padding.
@@ -119,6 +123,13 @@ def _is_embedded_in_base64(data: bytes, pos: int) -> bool:
     characters (including ``=`` for padding).  If 4 or more are found, the
     ``+`` is likely part of a PEM certificate, email attachment, or similar
     base64 blob rather than a real UTF-7 shift character.
+
+    The walk stops at the fourth character rather than running to the start
+    of the run.  Only the ``>= 4`` verdict is used, and newlines are
+    skipped rather than ending the walk, so without the early exit a
+    line-wrapped base64 blob — a PEM file, a MIME attachment, exactly what
+    this guard exists to recognize — makes each ``+`` rescan everything
+    before it, and the caller quadratic in the size of the blob.
     """
     b64_with_pad: frozenset[int] = _UTF7_BASE64 | frozenset(b"=")
     count = 0
@@ -130,10 +141,12 @@ def _is_embedded_in_base64(data: bytes, pos: int) -> bool:
             continue
         if b in b64_with_pad:
             count += 1
+            if count >= _EMBEDDED_B64_RUN:
+                return True
             i -= 1
         else:
             break
-    return count >= 4
+    return False
 
 
 def _single_unit(b64_data: bytes) -> int:
@@ -297,17 +310,27 @@ def detect_escape_encoding(data: bytes) -> DetectionResult | None:
                 language="ko",
             )
 
+    # The evidence window for the deep validators below.  They walk
+    # candidate sites in Python loops whose pathological case is
+    # *rejection* — a large tilde- or plus-heavy file that is not HZ or
+    # UTF-7 — so they converge on the evidence cap (ADR-0006).  Gates that
+    # decide whether an answer is *true* stay exhaustive over the window.
+    #
+    # A validator sees a sequence only if it both begins and ends inside
+    # this slice: one straddling the boundary is cut, so its region looks
+    # unterminated (HZ) or its base64 run looks truncated (UTF-7).  That
+    # costs a detection only when the straddling sequence is the *only*
+    # evidence in the whole window.
+    evidence = data[:EVIDENCE_CAP_BYTES]
+
     # HZ-GB-2312: tilde escapes for GB2312
     # Require valid GB2312 byte pairs (0x21-0x7E range) between ~{ and ~}
-    # markers.  Presence is checked over the whole window; the region
-    # validator walks candidate sites in a Python loop, so it converges on
-    # the evidence cap (ADR-0006) — real HZ shifts in and out constantly,
-    # and its pathological case is *rejecting* a large tilde-heavy file.
+    # markers.
     if (
         has_tilde
         and b"~{" in data
         and b"~}" in data
-        and _has_valid_hz_regions(data[:EVIDENCE_CAP_BYTES])
+        and _has_valid_hz_regions(evidence)
     ):
         return DetectionResult(
             encoding="hz",
@@ -323,15 +346,26 @@ def detect_escape_encoding(data: bytes) -> DetectionResult | None:
     # followed by base64 or "-"), so the decode gate kills the
     # delimited-data false-positive class outright while genuine UTF-7 —
     # which real encoders emit as valid streams — always passes.  The
-    # decoder fails fast on the first bad sequence.  The decode gate and the
-    # sequence validator (a Python loop over every '+' run, pathological on
-    # base64-heavy data that is *not* UTF-7) converge on the evidence cap
-    # (ADR-0006).
+    # decoder fails fast on the first bad sequence.
+    #
+    # The decode gate keeps the *whole* window: it is what makes a utf-7
+    # answer true, and this stage returns it at deterministic confidence.
+    # Capping it would let an illegal shift past the cap pass as utf-7 that
+    # the caller's own ``decode`` then rejects.
+    #
+    # It runs *after* the bounded sequence validator, which is the reverse
+    # of the obvious order.  A decode gate normally fails fast, but plain
+    # ASCII is valid UTF-7, so on the common case — a large ASCII file
+    # containing a '+' anywhere — it succeeds over every byte instead, at
+    # about a second per 272 MiB.  The validator settles the same files
+    # from bounded evidence, leaving the full decode for data that already
+    # looks like UTF-7.  Both are pure predicates, so the order changes
+    # only cost.
     if (
         has_plus
         and data.isascii()
-        and decodes_without_error(data[:EVIDENCE_CAP_BYTES], "utf-7")
-        and _has_valid_utf7_sequences(data[:EVIDENCE_CAP_BYTES])
+        and _has_valid_utf7_sequences(evidence)
+        and decodes_without_error(data, "utf-7")
     ):
         return DetectionResult(
             encoding="utf-7",

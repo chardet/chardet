@@ -35,7 +35,7 @@ from detector_env import build_compiled_wheel
 from utils import collect_test_files
 
 import chardet
-from chardet._utils import DEFAULT_MAX_BYTES
+from chardet._utils import DEFAULT_MAX_BYTES, EVIDENCE_CAP_BYTES
 from chardet.enums import EncodingEra
 from chardet.pipeline import PipelineContext
 from chardet.pipeline.ascii import detect_ascii
@@ -191,9 +191,15 @@ def run_per_file_timing(data_dir: Path, slow_count: int) -> None:
             )
             continue
 
+        # Everything below the exhaustive checks converges on the evidence
+        # cap (ADR-0006).  The orchestrator slices once and feeds that view
+        # to all of them, so this replica must too --- profiling the full
+        # window here would report costs the shipping pipeline never pays.
+        evidence = data_truncated[:EVIDENCE_CAP_BYTES]
+
         # Validity filtering
         t0 = time.perf_counter()
-        valid_candidates = filter_by_validity(data_truncated, candidates)
+        valid_candidates = filter_by_validity(evidence, candidates)
         stages["validity"] = time.perf_counter() - t0
 
         # Structural scoring (for multibyte candidates)
@@ -201,18 +207,18 @@ def run_per_file_timing(data_dir: Path, slow_count: int) -> None:
         for enc_info in valid_candidates:
             if enc_info.is_multibyte:
                 ctx = PipelineContext()
-                compute_structural_score(data_truncated, enc_info, ctx)
+                compute_structural_score(evidence, enc_info, ctx)
         stages["structural"] = time.perf_counter() - t0
 
         # Statistical scoring
         t0 = time.perf_counter()
-        stat_results = list(score_candidates(data_truncated, tuple(valid_candidates)))
+        stat_results = list(score_candidates(evidence, tuple(valid_candidates)))
         stages["statistical"] = time.perf_counter() - t0
 
         # Confusion resolution
         t0 = time.perf_counter()
         if stat_results:
-            resolve_confusion_groups(data_truncated, stat_results)
+            resolve_confusion_groups(evidence, stat_results)
         stages["confusion"] = time.perf_counter() - t0
 
         # Full detect for the actual result

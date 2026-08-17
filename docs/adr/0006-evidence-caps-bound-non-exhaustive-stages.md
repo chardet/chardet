@@ -16,6 +16,14 @@ included. Everything that filters, validates candidates, or scores
 validators) is bounded by an **evidence cap**: an internal, unoverridable
 convergence bound of 256 KiB, deliberately set *above* `DEFAULT_MAX_BYTES` and
 pinned there by a test, so every default-capped call is bit-for-bit unchanged.
+The split runs along the accept/reject axis, not the stage boundary: a gate
+that decides whether an answer is *true* stays exhaustive even inside a
+bounded stage. The escape stage's UTF-7 decode gate is the worked example —
+its Python-loop sequence validator is capped, but the decode that makes a
+`utf-7` verdict correct is not, because a capped decode would hand back
+`utf-7` at deterministic confidence for data whose next `decode()` raises.
+Bounding costs detections only in the miss direction, and only for evidence
+that does not both begin and end within the first 256 KiB.
 The caps are published in `performance.rst`, not hidden; "uncapped" is banned
 from prose because it would now be a lie in one direction and an undersell in
 the other (see the flagged ambiguity in `CONTEXT.md`).

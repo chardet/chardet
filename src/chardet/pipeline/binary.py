@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from chardet._utils import DEFAULT_MAX_BYTES
+from chardet._utils import DEFAULT_MAX_BYTES, count_deleted
 
 # Threshold: if more than this fraction of bytes are binary indicators, it's binary
 _BINARY_THRESHOLD = 0.01
@@ -12,11 +12,6 @@ _BINARY_THRESHOLD = 0.01
 # everything else.  len(data) - len(translated) gives the count in one
 # C-level pass.
 _BINARY_DELETE = bytes(range(0x09)) + bytes(range(0x0E, 0x20))
-
-# Same table minus the EBCDIC whitespace controls: 0x05 (EBCDIC HT) and
-# 0x15 (EBCDIC NL).  EBCDIC text uses these as tab and newline, so they are
-# only binary evidence when the rest of the data does not look like EBCDIC.
-_BINARY_DELETE_NON_EBCDIC = bytes(b for b in _BINARY_DELETE if b not in (0x05, 0x15))
 
 # Minimum fraction of high bytes (>= 0x80) among the *non-space* bytes for
 # data to plausibly be EBCDIC text.  EBCDIC encodes all lowercase letters
@@ -34,28 +29,13 @@ _EBCDIC_MIN_HIGH_FRACTION = 0.25
 # tab-separated record exports with no spaces are still recognized.
 _EBCDIC_MIN_SPACE_FRACTION = 0.02
 
-# The EBCDIC space and horizontal-tab bytes.
+# The EBCDIC space, horizontal-tab, and newline bytes.
 _EBCDIC_SPACE = 0x40
 _EBCDIC_HT = 0x05
+_EBCDIC_NL = 0x15
 
 # High-byte deletion table for the EBCDIC plausibility check.
 _HIGH_BYTES_DELETE = bytes(range(0x80, 0x100))
-
-# Chunk size for the counting scans below.  A deletion translate allocates
-# its output, which for these tables approaches the input size; chunking
-# keeps the transient bounded while staying one C call per chunk.
-_COUNT_CHUNK_SIZE = 1 << 20
-
-
-def _count_deleted(data: bytes, table: bytes) -> int:
-    """Count how many bytes of *data* the deletion *table* removes."""
-    if len(data) <= _COUNT_CHUNK_SIZE:
-        return len(data) - len(data.translate(None, table))
-    count = 0
-    for pos in range(0, len(data), _COUNT_CHUNK_SIZE):
-        chunk = data[pos : pos + _COUNT_CHUNK_SIZE]
-        count += len(chunk) - len(chunk.translate(None, table))
-    return count
 
 
 def is_binary(data: bytes, max_bytes: int = DEFAULT_MAX_BYTES) -> bool:
@@ -69,7 +49,7 @@ def is_binary(data: bytes, max_bytes: int = DEFAULT_MAX_BYTES) -> bool:
     if not data:
         return False
 
-    binary_count = _count_deleted(data, _BINARY_DELETE)
+    binary_count = count_deleted(data, _BINARY_DELETE)
     if binary_count / len(data) <= _BINARY_THRESHOLD:
         return False
 
@@ -77,14 +57,20 @@ def is_binary(data: bytes, max_bytes: int = DEFAULT_MAX_BYTES) -> bool:
     # whitespace, which are binary indicators in ASCII-compatible data.  If
     # the excess comes entirely from those two bytes and the data looks
     # like EBCDIC text, treat it as text.
-    hard_count = _count_deleted(data, _BINARY_DELETE_NON_EBCDIC)
+    #
+    # EBCDIC text uses 0x05 (HT) and 0x15 (NL) as tab and newline, and both
+    # are in _BINARY_DELETE, so the count excluding them is arithmetic on
+    # the count including them: no second scan of the data, and the HT
+    # count is needed for the space fraction below anyway.
+    ht_count = data.count(_EBCDIC_HT)
+    hard_count = binary_count - ht_count - data.count(_EBCDIC_NL)
     if hard_count / len(data) > _BINARY_THRESHOLD:
         return True
-    space_count = data.count(_EBCDIC_SPACE) + data.count(_EBCDIC_HT)
+    space_count = data.count(_EBCDIC_SPACE) + ht_count
     non_space = len(data) - space_count
     if non_space == 0:
         return False
-    high_count = _count_deleted(data, _HIGH_BYTES_DELETE)
+    high_count = count_deleted(data, _HIGH_BYTES_DELETE)
     if high_count / non_space < _EBCDIC_MIN_HIGH_FRACTION:
         return True
     return space_count / len(data) < _EBCDIC_MIN_SPACE_FRACTION

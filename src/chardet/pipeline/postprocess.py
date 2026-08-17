@@ -589,10 +589,8 @@ def _prefer_decodable_on_tie(
     caller's very next ``data.decode()`` will reject --- a four-byte
     ``iso-8859-1`` word ending in ``0xE1`` detected as utf-8 (issue #380).
 
-    Fires only when the input was not truncated by chardet itself (the
-    orchestrator's ``max_bytes`` slice, its evidence-cap slice, or
-    ``UniversalDetector``'s buffer cap --- either way these bytes are not
-    the whole story and the caller was told so by *input_truncated*), the tail can actually hold a
+    Fires only when *data* is the whole of what the caller handed over ---
+    *input_truncated* is False --- the tail can actually hold a
     dangling sequence (a high byte in the final four, multi-byte winner),
     and the winner's tolerant decode is **non-empty pure ASCII** --- its
     only multi-byte evidence is the dangling tail itself.  An empty
@@ -717,9 +715,12 @@ def postprocess_results(
 
     :param data: The raw byte data the results were produced from.
     :param results: A list of :class:`DetectionResult` ranked by confidence.
-    :param input_truncated: True when the caller's input was longer than
-        ``max_bytes``, i.e. *data* is a chardet-made slice rather than the
-        caller's whole input.
+    :param input_truncated: True when *data* is a chardet-made slice rather
+        than the caller's whole input --- the ``max_bytes`` slice, the
+        evidence-cap slice, or ``UniversalDetector``'s buffer cap.  Any of
+        them means the bytes here are not the whole story, so the
+        decode-safety tiebreak, which reasons about what the caller will
+        decode, stands down.
     :returns: A new list (or the same list) with rank corrections applied.
     """
     results = _promote_superset_on_dead_heat(data, results)

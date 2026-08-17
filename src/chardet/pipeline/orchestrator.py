@@ -30,7 +30,7 @@ from chardet.pipeline.structural import (
     compute_multibyte_byte_coverage,
     compute_structural_score,
 )
-from chardet.pipeline.utf8 import detect_utf8
+from chardet.pipeline.utf8 import scan_utf8
 from chardet.pipeline.utf1632 import detect_utf1632_patterns
 from chardet.pipeline.validity import filter_by_validity
 from chardet.registry import EncodingInfo, get_candidates
@@ -285,7 +285,7 @@ def _run_pipeline_core(  # noqa: PLR0913
     # codes) that would otherwise exceed the binary threshold.  We compute
     # the result now but return it at the normal pipeline position (after
     # markup) so that explicit charset declarations still take precedence.
-    utf8_precheck = detect_utf8(data)
+    utf8_valid, utf8_precheck = scan_utf8(data)
 
     # Pre-check ASCII to prevent false binary classification.  ASCII text
     # with null byte separators (e.g. find -print0 output) would exceed the
@@ -351,13 +351,16 @@ def _run_pipeline_core(  # noqa: PLR0913
     # Stage 2a: Byte validity filtering
     valid_candidates = filter_by_validity(evidence, candidates)
 
-    # The exhaustive UTF-8 check saw the whole window; when it rejected the
-    # data but the window extends past the evidence cap, the slice alone may
-    # still look like valid UTF-8 to the statistical path.  Honor the proof:
-    # chardet never calls data UTF-8 that is not valid UTF-8 throughout the
-    # window.  (Within the cap the slice is the window, so validity already
-    # agrees and this never fires.)
-    if utf8_precheck is None and len(data) > len(evidence):
+    # The exhaustive UTF-8 check saw the whole window; when it *rejected*
+    # the data but the window extends past the evidence cap, the slice
+    # alone may still look like valid UTF-8 to the statistical path.  Honor
+    # the proof: chardet never calls data UTF-8 that is not valid UTF-8
+    # throughout the window.  A missing precheck result is not a rejection
+    # — valid UTF-8 with no multi-byte evidence (pure ASCII, ASCII plus
+    # control bytes, ASCII plus a truncated tail) also returns None, and
+    # ruling utf-8 out for those would be wrong.  (Within the cap the slice
+    # is the window, so validity already agrees and this never fires.)
+    if not utf8_valid and len(data) > len(evidence):
         valid_candidates = tuple(e for e in valid_candidates if e.name != "utf-8")
 
     if not valid_candidates:

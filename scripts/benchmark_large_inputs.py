@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Benchmark detection latency on large inputs with ``max_bytes=len(data)``.
+r"""Benchmark detection latency on large inputs with ``max_bytes=len(data)``.
 
 Synthetic single-encoding buffers at several sizes, timed with the full
 examination window (no default cap).  If charset-normalizer is importable it
@@ -51,6 +51,15 @@ CORPORA = (
         "吾輩は猫である。名前はまだ無い。どこで生れたかとんと見当がつかぬ。",
         "shift_jis",
     ),
+    # Line-wrapped base64: the shape that makes the escape stage's '+' scan
+    # do the most work (PEM files, MIME attachments, JWTs, diffs).  Kept in
+    # the corpus so a relapse shows up as a benchmark regression, not as a
+    # support ticket.
+    (
+        "base64",
+        "MIIDXTCCAkWgAwIBAgIJAL+n2xQ3vBcZMA0GCSqGSIb3DQEBCwUAMEUxCzAJBgNV\n",
+        "ascii",
+    ),
 )
 
 
@@ -84,7 +93,7 @@ def _detectors() -> dict[str, Callable[[bytes], str | None]]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser = argparse.ArgumentParser(description=(__doc__ or "").splitlines()[0])
     parser.add_argument(
         "--rounds",
         type=int,
@@ -98,6 +107,8 @@ def main() -> None:
         help="Build the compiled wheel into dist/ and print the run command",
     )
     args = parser.parse_args()
+    if args.rounds < 1:
+        parser.error("--rounds must be >= 1")
 
     if args.build_compiled:
         import tempfile  # noqa: PLC0415
