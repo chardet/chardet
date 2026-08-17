@@ -68,6 +68,31 @@ def test_structural_ignores_bytes_past_cap() -> None:
     assert dirty == clean
 
 
+def test_utf7_validator_converges_on_cap() -> None:
+    """Base64-heavy ASCII (diffs, JWTs, data URIs) is wall-to-wall '+' runs
+    that are not UTF-7; the deep validator walks only the evidence window.
+    The verdict is ASCII either way — this pins it on an input far past the
+    cap, where the pre-ADR-0006 validator did O(n) Python-loop work."""
+    blob = _beyond_cap(b"+abc123def456ghi789jkl012mno345pqr678stu901vwx234yz\n")
+    result = chardet.detect(blob, max_bytes=len(blob))
+    assert result["encoding"] == "ascii"
+
+
+def test_escape_evidence_past_cap_is_not_consulted() -> None:
+    """An input whose *only* UTF-7 evidence sits past the evidence cap is no
+    longer detected as UTF-7 — the documented ADR-0006 boundary (real UTF-7
+    shifts in and out constantly; sequences only past 256 KiB are synthetic).
+    """
+    body = _beyond_cap(b"plain ascii filler text, nothing special here.\n")
+    utf7_tail = "こんにちは".encode("utf-7") * 20
+    data = body + utf7_tail
+    result = chardet.detect(data, max_bytes=len(data))
+    assert result["encoding"] != "utf-7"
+    # Within the cap it is still detected.
+    head = utf7_tail + body
+    assert chardet.detect(head, max_bytes=len(head))["encoding"] == "utf-7"
+
+
 def test_exhaustive_checks_still_see_everything() -> None:
     """The UTF-8 verdict stays exact past the cap: an invalid byte at the
     very end of a large window must still reject UTF-8 (the file is *not*

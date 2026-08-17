@@ -10,7 +10,7 @@ this module is compiled with mypyc, which does not support PEP 563 string
 annotations.
 """
 
-from chardet._utils import decodes_without_error
+from chardet._utils import EVIDENCE_CAP_BYTES, decodes_without_error
 from chardet.pipeline import DETERMINISTIC_CONFIDENCE, DetectionResult
 
 
@@ -298,8 +298,17 @@ def detect_escape_encoding(data: bytes) -> DetectionResult | None:
             )
 
     # HZ-GB-2312: tilde escapes for GB2312
-    # Require valid GB2312 byte pairs (0x21-0x7E range) between ~{ and ~} markers.
-    if has_tilde and b"~{" in data and b"~}" in data and _has_valid_hz_regions(data):
+    # Require valid GB2312 byte pairs (0x21-0x7E range) between ~{ and ~}
+    # markers.  Presence is checked over the whole window; the region
+    # validator walks candidate sites in a Python loop, so it converges on
+    # the evidence cap (ADR-0006) — real HZ shifts in and out constantly,
+    # and its pathological case is *rejecting* a large tilde-heavy file.
+    if (
+        has_tilde
+        and b"~{" in data
+        and b"~}" in data
+        and _has_valid_hz_regions(data[:EVIDENCE_CAP_BYTES])
+    ):
         return DetectionResult(
             encoding="hz",
             confidence=DETERMINISTIC_CONFIDENCE,
@@ -307,18 +316,22 @@ def detect_escape_encoding(data: bytes) -> DetectionResult | None:
         )
 
     # UTF-7: plus-sign shifts into Base64-encoded Unicode.
-    # UTF-7 is a 7-bit encoding (RFC 2152): every byte must be in 0x00-0x7F.
-    # Data with any byte > 0x7F cannot be UTF-7.  The whole buffer must
-    # also *decode* as UTF-7: tabular ASCII like "|16847+|" contains "+|",
-    # which is illegal (a shift must be followed by base64 or "-"), so the
-    # decode gate kills the delimited-data false-positive class outright
-    # while genuine UTF-7 — which real encoders emit as valid streams —
-    # always passes.  The decoder fails fast on the first bad sequence.
+    # UTF-7 is a 7-bit encoding (RFC 2152): every byte must be in 0x00-0x7F,
+    # checked over the whole window (isascii is exactly that predicate, at C
+    # scan speed).  The buffer must also *decode* as UTF-7: tabular ASCII
+    # like "|16847+|" contains "+|", which is illegal (a shift must be
+    # followed by base64 or "-"), so the decode gate kills the
+    # delimited-data false-positive class outright while genuine UTF-7 —
+    # which real encoders emit as valid streams — always passes.  The
+    # decoder fails fast on the first bad sequence.  The decode gate and the
+    # sequence validator (a Python loop over every '+' run, pathological on
+    # base64-heavy data that is *not* UTF-7) converge on the evidence cap
+    # (ADR-0006).
     if (
         has_plus
-        and max(data) < 0x80
-        and decodes_without_error(data, "utf-7")
-        and _has_valid_utf7_sequences(data)
+        and data.isascii()
+        and decodes_without_error(data[:EVIDENCE_CAP_BYTES], "utf-7")
+        and _has_valid_utf7_sequences(data[:EVIDENCE_CAP_BYTES])
     ):
         return DetectionResult(
             encoding="utf-7",
