@@ -7,7 +7,7 @@ annotations.
 
 import warnings
 
-from chardet._utils import DEFAULT_MAX_BYTES
+from chardet._utils import DEFAULT_MAX_BYTES, EVIDENCE_CAP_BYTES
 from chardet.enums import EncodingEra
 from chardet.pipeline import (
     _NONE_RESULT,
@@ -338,15 +338,30 @@ def _run_pipeline_core(  # noqa: PLR0913
     if utf8_precheck is not None and utf8_precheck.encoding in allowed:
         return [utf8_precheck]
 
+    # The filtering, gating, and probing stages below converge on bounded
+    # evidence (ADR-0006).  One slice, taken here, feeds them all: the
+    # structural analysis cache is keyed by encoding name only, so every
+    # consumer must see the same view of the data.
+    evidence = data[:EVIDENCE_CAP_BYTES]
+
     # Stage 2a: Byte validity filtering
-    valid_candidates = filter_by_validity(data, candidates)
+    valid_candidates = filter_by_validity(evidence, candidates)
+
+    # The exhaustive UTF-8 check saw the whole window; when it rejected the
+    # data but the window extends past the evidence cap, the slice alone may
+    # still look like valid UTF-8 to the statistical path.  Honor the proof:
+    # chardet never calls data UTF-8 that is not valid UTF-8 throughout the
+    # window.  (Within the cap the slice is the window, so validity already
+    # agrees and this never fires.)
+    if utf8_precheck is None and len(data) > len(evidence):
+        valid_candidates = tuple(e for e in valid_candidates if e.name != "utf-8")
 
     if not valid_candidates:
         return _make_fallback_or_none(no_match_encoding, allowed, "no_match_encoding")
 
     # Gate: eliminate CJK multi-byte candidates that lack genuine
     # multi-byte structure.  Cache structural scores for Stage 2b.
-    valid_candidates = _gate_cjk_candidates(data, valid_candidates, ctx)
+    valid_candidates = _gate_cjk_candidates(evidence, valid_candidates, ctx)
 
     if not valid_candidates:
         return _make_fallback_or_none(no_match_encoding, allowed, "no_match_encoding")
@@ -358,7 +373,7 @@ def _run_pipeline_core(  # noqa: PLR0913
         if enc.is_multibyte:
             score = ctx.mb_scores.get(enc.name)
             if score is None:  # pragma: no cover - gate always populates cache
-                score = compute_structural_score(data, enc, ctx)
+                score = compute_structural_score(evidence, enc, ctx)
             if score > 0.0:
                 structural_scores.append((enc.name, score))
 
@@ -369,7 +384,7 @@ def _run_pipeline_core(  # noqa: PLR0913
         _, best_score = structural_scores[0]
         if best_score >= _STRUCTURAL_CONFIDENCE_THRESHOLD:
             results = _score_structural_candidates(
-                data,
+                evidence,
                 structural_scores,
                 valid_candidates,
                 ctx,
@@ -377,20 +392,22 @@ def _run_pipeline_core(  # noqa: PLR0913
             )
             if results:
                 return postprocess_results(
-                    data, results, input_truncated=input_truncated
+                    evidence, results, input_truncated=input_truncated
                 )
 
     # Stage 3: Statistical scoring for all remaining candidates.
     # Bigram models converge quickly and don't benefit from scanning
     # beyond 16 KB — cap the data to avoid unnecessary work on large files.
-    stat_data = data[:_STAT_SCORE_MAX_BYTES]
+    stat_data = evidence[:_STAT_SCORE_MAX_BYTES]
     results = list(
         score_candidates(stat_data, tuple(valid_candidates), full_ranking=full_ranking)
     )
     if not results:
         return _make_fallback_or_none(no_match_encoding, allowed, "no_match_encoding")
 
-    return postprocess_results(data, results, input_truncated=input_truncated)
+    # Rank corrections reason about the same evidence window the ranking
+    # came from, which also bounds their byte-presence scans.
+    return postprocess_results(evidence, results, input_truncated=input_truncated)
 
 
 def run_pipeline(  # noqa: PLR0913

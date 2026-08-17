@@ -9,6 +9,14 @@ from collections.abc import Callable
 #: Default maximum number of bytes to examine during detection.
 DEFAULT_MAX_BYTES: int = 200_000
 
+#: Evidence cap: how much of the examination window the candidate-filtering,
+#: validation, and probing stages consume before their answer is considered
+#: converged (ADR-0006).  Exhaustive checks (BOM, magic, UTF-8, ASCII,
+#: binary, escape presence) take no cap.  Must stay >= DEFAULT_MAX_BYTES so
+#: every call using the default window is provably unaffected; a test
+#: asserts the invariant.
+EVIDENCE_CAP_BYTES: int = 256 * 1024
+
 #: Default minimum confidence threshold for filtering results.
 MINIMUM_THRESHOLD: float = 0.20
 
