@@ -25,6 +25,27 @@ Unreleased
   universal charset detector algorithm.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 
+**Performance:**
+
+- Large inputs no longer need ``max_bytes`` to stay fast.
+  ``detect(data, max_bytes=len(data))`` on a 272 MiB buffer now
+  finishes in 0.12-0.24s, down from multiple seconds, on every build
+  flavor.  UTF-8 validation is decode-based (CPython's strict decoder
+  enforces the identical rules at C speed, chunked so no matching
+  ``str`` is ever allocated) and stays exact over the whole window:
+  the UTF-8 verdict is validated, never sampled.  Candidate filtering,
+  structural probing, the UTF-7/HZ deep validators, and rank
+  corrections converge on the first 256 KB, a documented evidence cap
+  that sits above the default ``max_bytes`` so results for default
+  calls are bit-for-bit unchanged (verified against the full corpus
+  per file).  The new large-input tables in the performance docs cover
+  the details; ADR-0006 in the repo records the design.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+- ASCII and binary scans on large buffers no longer allocate
+  input-sized transients: ``detect_ascii`` gates on ``isascii()`` and
+  ``is_binary`` counts through bounded chunks.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+
 **Bug Fixes:**
 
 - ``detect_all()`` no longer resurrects a demoted niche Latin encoding.

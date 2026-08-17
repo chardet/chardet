@@ -122,8 +122,11 @@ synthetic case (real UTF-7/HZ shifts in and out constantly).
 
 ### 6. Benchmarks and docs
 
-- Add a large-file section to `scripts/benchmark_time.py`: 1 MiB / 32 MiB /
-  272 MiB, utf-8 / cp1252 / shift_jis, `max_bytes=len(data)`.
+- Add large-file benchmarks: 1 MiB / 32 MiB / 272 MiB, utf-8 / cp1252 /
+  shift_jis, `max_bytes=len(data)`. (Shipped as a dedicated
+  `scripts/benchmark_large_inputs.py` rather than a mode on
+  `benchmark_time.py`, whose CLI contract is consumed by
+  `compare_detectors.py`.)
 - A/B vs charset-normalizer must be interleaved on the same machine (thermal
   drift makes sequential runs lie by ~25%).
 - `performance.rst`: new large-input section with the measured numbers and a

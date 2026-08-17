@@ -301,6 +301,99 @@ orders of magnitude.
 is Chinese, Japanese, or Korean, because they are resolved by BOM or
 byte-pattern checks and never reach the disambiguation path.
 
+Large Inputs
+------------
+
+Everything above uses the default examination window (``max_bytes``,
+200 KB). This section measures the other extreme:
+``detect(data, max_bytes=len(data))`` on single-encoding buffers up to
+272 MiB, the size charset-normalizer's README uses for its large-content
+comparison.
+
+chardet splits its work into two tiers (ADR-0006 in the repo records the
+design). **Exhaustive checks** --- BOM, magic numbers, UTF-8 structural
+validation, ASCII, binary detection, and escape-sequence presence --- are
+exact over every byte of the window, running at C-library scan speed.
+**Evidence caps** bound what the remaining stages read: candidate
+filtering, structural probing, and rank corrections converge on the
+first 256 KB; statistical scoring on the first 16 KB; language detection
+on the first 2 KB. The caps are convergence bounds, not correctness
+bounds --- more bytes were not changing those answers --- and they sit
+above the default window, so nothing on the rest of this page depends
+on them.
+
+The practical consequence: the UTF-8 verdict is *validated*, not
+sampled. chardet never reports ``utf-8`` for data that is not valid
+UTF-8 through the entire window it was given, which costs one C-speed
+decode pass on genuinely large UTF-8 input. charset-normalizer samples
+chunks, which is faster on that one column and blind on every other:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 16 12 24 24
+
+   * - Input
+     - Size
+     - chardet 7.6.1.dev (mypyc)
+     - charset-normalizer 3.4.9
+   * - utf-8
+     - 1 MiB
+     - 1.4ms
+     - 1.1ms
+   * - utf-8
+     - 32 MiB
+     - 25.9ms
+     - **9.4ms**
+   * - utf-8
+     - 272 MiB
+     - 237.7ms
+     - **81.4ms**
+   * - cp1252
+     - 1 MiB
+     - **11.8ms**
+     - 22.3ms :sup:`*`
+   * - cp1252
+     - 32 MiB
+     - **25.5ms**
+     - 680.8ms :sup:`*`
+   * - cp1252
+     - 272 MiB
+     - **118.1ms**
+     - 7,715.3ms :sup:`*`
+   * - shift_jis
+     - 1 MiB
+     - **9.9ms**
+     - 11.7ms
+   * - shift_jis
+     - 32 MiB
+     - **22.6ms**
+     - 331.4ms
+   * - shift_jis
+     - 272 MiB
+     - **130.2ms**
+     - 2,703.2ms
+
+:sup:`*` misdetected: charset-normalizer returned ``johab`` (1 and
+32 MiB) and ``windows-1250`` (272 MiB) for French Windows-1252 text.
+
+Median of five interleaved rounds (each round times both detectors back
+to back --- thermal drift makes separate blocks incomparable), compiled
+wheel, ``charset_normalizer.detect()`` compatibility API. Buffers repeat
+a single-language sentence, so this measures the scan machinery, not
+model quality.
+
+charset-normalizer wins the large valid-UTF-8 column by about 3x ---
+the sampling-versus-validation trade purchased knowingly. Everywhere
+else chardet is **14x to 65x faster** at 32 MiB and above, while
+charset-normalizer also misidentifies the cp1252 buffers at every size.
+The asymmetry has one cause: sampling costs charset-normalizer its
+short-circuits (it keeps probing candidates over chunks of a large
+buffer), while chardet's non-UTF-8 path drops to bounded evidence after
+its C-speed exhaustive scans reject the fast answers.
+
+Reproduce with ``python scripts/benchmark_large_inputs.py`` (see its
+docstring for the compiled-wheel invocation).
+
 Memory
 ------
 

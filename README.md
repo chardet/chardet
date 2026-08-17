@@ -19,6 +19,12 @@ and **+13.1pp more accurate** than charset-normalizer 3.5.1 while being
 1.2x faster. **Language detection** for every result. **MIME type detection** for
 binary files. **0BSD licensed.**
 
+Large inputs don't need a byte cap: `detect(data, max_bytes=len(data))` on a
+272 MiB file finishes in 0.12-0.24s, and the UTF-8 verdict is validated over
+every byte examined, never sampled. See
+[the performance docs](https://chardet.readthedocs.io/en/latest/performance.html)
+for the full large-input tables.
+
 |                        | chardet 7.6.1.dev (compiled) | chardet 6.0.0 | [charset-normalizer] 3.5.1 |
 | ---------------------- | :--------------------: | :-----------: | :-------------------------: |
 | Accuracy (3,138 files) |       **99.7%**        |     84.4%     |            86.6%            |
