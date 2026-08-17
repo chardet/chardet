@@ -112,7 +112,7 @@ jobs:
         with:
           fetch-depth: 0
       # MSVC has a 16,380-char string literal limit (C2026). mypyc generates
-      # a single C file with an encoded source map that exceeds this with 11
+      # a single C file with an encoded source map that exceeds this with 15
       # modules. Use separate=true on Windows so each module gets its own
       # extension, avoiding the limit. This is ~50% slower than the
       # single-library build used on Linux/macOS.

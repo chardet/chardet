@@ -81,7 +81,7 @@ Two compilers, two hooks. **Enable both** — enabling one alone is not wrong, j
 HATCH_BUILD_HOOK_ENABLE_MYPYC=true HATCH_BUILD_HOOK_ENABLE_CUSTOM=true uv build
 ```
 
-**mypyc** compiles 14 modules: `models/__init__.py`, `models/_format.py`, `pipeline/structural.py`, `pipeline/validity.py`, `pipeline/statistical.py`, `pipeline/utf1632.py`, `pipeline/utf8.py`, `pipeline/escape.py`, `pipeline/orchestrator.py`, `pipeline/confusion.py`, `pipeline/magic.py`, `pipeline/ascii.py`, `pipeline/language.py`, `pipeline/postprocess.py`. These cannot use `from __future__ import annotations` (FA100 is ignored for them in ruff config).
+**mypyc** compiles 15 modules: `models/__init__.py`, `models/_format.py`, `pipeline/structural.py`, `pipeline/validity.py`, `pipeline/statistical.py`, `pipeline/utf1632.py`, `pipeline/utf8.py`, `pipeline/escape.py`, `pipeline/orchestrator.py`, `pipeline/confusion.py`, `pipeline/magic.py`, `pipeline/ascii.py`, `pipeline/language.py`, `pipeline/markup.py`, `pipeline/postprocess.py`. These cannot use `from __future__ import annotations` (FA100 is ignored for them in ruff config).
 
 **Cython** compiles `_kernel.py` alone — the bigram scoring loop, ~36% of compiled runtime — using the build-time-only types in `_kernel.pxd`. Worth about 1.4x. The `.py` is the single implementation and runs interpreted on PyPy and in pure wheels; `models` detects which it has and picks the matching scoring path.
 

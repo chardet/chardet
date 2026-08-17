@@ -34,6 +34,27 @@ __all__ = [
 ]
 
 
+def __getattr__(name: str) -> object:
+    """Resolve the deprecated ``chardet.equivalences`` submodule on demand.
+
+    Before the 7.5 split, ``chardet/__init__.py`` imported that module for
+    its own use, which as a side effect made ``chardet.equivalences`` work
+    without an explicit ``import chardet.equivalences``.  This package now
+    imports :mod:`chardet.output_names` instead, so the attribute is bound
+    lazily here: importing the shim eagerly would fire its deprecation
+    warning on every ``import chardet``.
+    """
+    if name == "equivalences":
+        # ``from chardet import equivalences`` would re-enter this function:
+        # the import machinery probes the parent package with ``hasattr``
+        # first.  Kept local so the shim stays off the eager import path.
+        import importlib  # noqa: PLC0415
+
+        return importlib.import_module("chardet.equivalences")
+    msg = f"module {__name__!r} has no attribute {name!r}"
+    raise AttributeError(msg)
+
+
 def detect(  # noqa: PLR0913
     byte_str: bytes | bytearray,
     should_rename_legacy: bool = False,

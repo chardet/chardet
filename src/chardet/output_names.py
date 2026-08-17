@@ -25,7 +25,10 @@ from chardet.pipeline import DetectionDict
 # API option.  When enabled, detected encoding names are replaced with the
 # Windows/CP superset that modern software actually uses (browsers, editors,
 # etc. treat these ISO subsets as their Windows counterparts).
-# Values use display-cased names (e.g. "Windows-1252") to match chardet 6.x output.
+# Values are lowercase codec names, like the keys: this table only swaps one
+# codec for another.  Display casing ("Windows-1252") is a separate step that
+# :data:`_COMPAT_NAMES` applies afterwards, and a display-cased value here
+# would reach it under a name it cannot map and no codec accepts.
 PREFERRED_SUPERSET: dict[str, str] = {
     "ascii": "cp1252",
     "euc_kr": "cp949",

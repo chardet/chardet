@@ -25,6 +25,33 @@ Unreleased
   universal charset detector algorithm.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 
+**Bug Fixes:**
+
+- ``detect_all()`` no longer resurrects a demoted niche Latin encoding.
+  The demotion moved iso-8859-10, iso-8859-14, windows-1254, or
+  HP-Roman8 to the end of the ranking but left it holding the top
+  confidence, and the sort ``detect_all()`` applies before returning put
+  it back at second place.  The demoted entry now takes the confidence
+  of the candidate it sits behind, so the ranking the pipeline returns
+  is ordered by confidence as documented.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+- Language detection now honors ``max_bytes``.  The language fill stage
+  was handed the caller's whole input and applied only its own 2 KB cap,
+  so ``detect(data, max_bytes=64)`` could still report a language derived
+  from up to 2 KB.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+- ``chardet.equivalences`` is reachable again as an attribute of the
+  package (``import chardet`` then ``chardet.equivalences.is_correct``),
+  which stopped working when ``__init__`` switched to importing
+  ``chardet.output_names``.  The shim also resolves every name the
+  pre-split module exposed, including the private tables and helpers;
+  passes rebinding through to the module that owns the name, so patching
+  a table on the shim reaches the code that reads it; and warns once per
+  name used, naming that name and its new home, instead of once per
+  process at import.  Importing the shim is no longer an error under
+  ``-W error::DeprecationWarning``.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+
 **Build:**
 
 - The ``models.bin``/``rowmax.bin``/``idf.bin`` formats now have a
@@ -32,6 +59,15 @@ Unreleased
   and the runtime loader; the row-maxima and IDF payloads regenerate
   byte-identically from ``models.bin``, whose own bytes are guaranteed
   at the decompressed level (zlib output varies across builds).
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+- ``pipeline/markup.py`` is now compiled by mypyc, bringing the list to
+  15 modules.  The markup superset promotion moved into this module out
+  of the compiled orchestrator, which left it running interpreted in
+  every compiled wheel.  Its structural comparison now scores the first
+  4 KB rather than the whole input, matching the window the charset
+  declaration itself is validated on; the decode checks still read
+  everything, since what a caller can decode is a fact about their whole
+  input.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 
 7.6.0 (2026-08-14)

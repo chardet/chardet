@@ -1,6 +1,9 @@
-"""Stage 1b: charset declaration extraction (HTML/XML/PEP 263)."""
+"""Stage 1b: charset declaration extraction (HTML/XML/PEP 263) and promotion.
 
-from __future__ import annotations
+Note: ``from __future__ import annotations`` is intentionally omitted because
+this module is compiled with mypyc, which does not support PEP 563 string
+annotations.
+"""
 
 import re
 
@@ -190,6 +193,15 @@ def promote_markup_superset(
     and the superset's structural score is materially better, return a new
     result using the superset encoding.  Otherwise return *markup_result*
     unchanged.
+
+    The two decode checks read the whole input, the structural comparison
+    only the first :data:`_SCAN_LIMIT` bytes.  That split is deliberate:
+    what a caller can actually ``.decode()`` is a fact about their entire
+    input --- capping it costs real answers, since a declared-Shift_JIS page
+    typically reaches its first CP932-only byte well past the header --- but
+    the structural score is a ranking heuristic that has converged by then,
+    and running it over 200 kB twice on every declared page is the expensive
+    part of this function.
     """
     if markup_result.encoding is None:
         return markup_result
@@ -215,9 +227,14 @@ def promote_markup_superset(
             markup_result.mime_type,
         )
     # Compare structural scores
+    # Scored on the head only.  Multi-byte structure is uniform enough that
+    # the ranking converges long before 200 kB, and this is the expensive
+    # half: two full-buffer passes on every declared page, where
+    # ``_validate_bytes`` caps the same kind of scan at _SCAN_LIMIT.
+    head = data[:_SCAN_LIMIT]
     ctx = PipelineContext()
-    base_score = compute_structural_score(data, REGISTRY[markup_result.encoding], ctx)
-    superset_score = compute_structural_score(data, superset_info, ctx)
+    base_score = compute_structural_score(head, REGISTRY[markup_result.encoding], ctx)
+    superset_score = compute_structural_score(head, superset_info, ctx)
     if superset_score > base_score:
         return DetectionResult(
             superset_name,

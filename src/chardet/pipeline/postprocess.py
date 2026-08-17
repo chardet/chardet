@@ -240,6 +240,14 @@ def _demote_niche_latin(
     encodings.  When there is no byte-level evidence for the winning
     encoding, promote the first common Western Latin candidate to the top and
     push the demoted encoding to last.
+
+    The demoted entries take the confidence of the candidate they now sit
+    behind.  Rank position alone does not survive the trip out to callers:
+    ``detect_all`` re-sorts by confidence, and a stable sort hands an entry
+    that kept its top score straight back to second place, undoing the
+    demotion.  Lowering the score also keeps the returned list genuinely
+    ordered by confidence, as :func:`~chardet.pipeline.orchestrator.run_pipeline`
+    promises.
     """
     if (
         len(results) > 1
@@ -256,7 +264,17 @@ def _demote_niche_latin(
                 others = [
                     x for x in results if x.encoding != demoted_encoding and x is not r
                 ]
-                demoted_entries = [x for x in results if x.encoding == demoted_encoding]
+                tail_conf = others[-1].confidence if others else top_conf
+                demoted_entries = [
+                    DetectionResult(
+                        x.encoding,
+                        min(x.confidence, tail_conf),
+                        x.language,
+                        x.mime_type,
+                    )
+                    for x in results
+                    if x.encoding == demoted_encoding
+                ]
                 return [promoted, *others, *demoted_entries]
     return results
 

@@ -1,14 +1,17 @@
 # tests/test_postprocess.py
 from __future__ import annotations
 
+from collections.abc import Callable
+
 import pytest
 
-from chardet.pipeline import DetectionResult
+from chardet.pipeline import DetectionResult, postprocess
 from chardet.pipeline.confusion import CONFUSION_FLOOR_RATIO, STRICT_TIER_MAX_CONF
 from chardet.pipeline.postprocess import (
     _demote_niche_latin,
     _promote_koi8t,
     forced_encodings,
+    postprocess_results,
     scoring_floor,
 )
 
@@ -93,6 +96,88 @@ def test_demote_niche_latin_windows_1254():
     data = bytes([0xC0, 0xC1, 0xE9])
     demoted = _demote_niche_latin(data, results)
     assert demoted[0].encoding == "cp1252"
+
+
+def test_demote_niche_latin_survives_a_confidence_resort():
+    """The demotion must outlive a re-sort, not just reorder the list.
+
+    ``detect_all`` re-sorts by confidence before returning.  A demoted entry
+    that keeps the top score is put straight back near the top by that
+    (stable) sort, so the demotion has to move the score too.  Needs a
+    lower-scoring tail candidate to be visible at all -- with every result
+    tied, position alone survives.
+    """
+    results = [
+        DetectionResult("iso8859-14", 0.1803, None),
+        DetectionResult("iso8859-1", 0.1803, None),
+        DetectionResult("cp1252", 0.1803, None),
+        DetectionResult("hp-roman8", 0.1136, None),
+    ]
+    data = bytes([0xC0, 0xC1, 0xC2])
+    demoted = _demote_niche_latin(data, results)
+    assert demoted[0].encoding == "iso8859-1"
+    assert demoted[-1].encoding == "iso8859-14"
+    confidences = [r.confidence for r in demoted]
+    assert confidences == sorted(confidences, reverse=True)
+    resorted = sorted(demoted, key=lambda r: r.confidence, reverse=True)
+    assert [r.encoding for r in resorted] == [r.encoding for r in demoted]
+
+
+# ---------------------------------------------------------------------------
+# The correction chain
+# ---------------------------------------------------------------------------
+
+#: Every step of :func:`postprocess_results`, in the order its docstring
+#: documents.  The order is load-bearing -- confusion resolution can promote
+#: the candidate niche-Latin demotion then reads as its swap target, and the
+#: decode-safety flip is specified to see whatever the rest settled on -- but
+#: no individual step's test can see it, since each is called directly.
+_CHAIN = (
+    "_promote_superset_on_dead_heat",
+    "_prefer_prevalent_on_dead_heat",
+    "_arbitrate_rare_language",
+    "resolve_confusion_groups",
+    "_demote_niche_latin",
+    "_promote_koi8t",
+    "_promote_mac_on_cr_line_endings",
+    "_prefer_decodable_on_tie",
+)
+
+
+def test_postprocess_results_runs_every_correction_in_order(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """Pin the chain: a dropped or reordered step shows up here."""
+    calls = []
+
+    def recorded(name: str, original: Callable[..., object]) -> Callable[..., object]:
+        def wrapper(*args: object, **kwargs: object) -> object:
+            calls.append(name)
+            return original(*args, **kwargs)
+
+        return wrapper
+
+    for name in _CHAIN:
+        monkeypatch.setattr(
+            postprocess, name, recorded(name, getattr(postprocess, name))
+        )
+
+    results = [
+        DetectionResult("iso8859-14", 0.90, None),
+        DetectionResult("cp1252", 0.85, None),
+    ]
+    postprocess.postprocess_results(bytes([0xC0, 0xC1, 0xC2]), results)
+    assert calls == list(_CHAIN)
+
+
+def test_postprocess_results_applies_the_niche_latin_demotion():
+    """The public entry point carries the corrections, not just the helpers."""
+    results = [
+        DetectionResult("iso8859-14", 0.90, None),
+        DetectionResult("cp1252", 0.85, None),
+    ]
+    processed = postprocess_results(bytes([0xC0, 0xC1, 0xC2]), results)
+    assert processed[0].encoding == "cp1252"
 
 
 # ---------------------------------------------------------------------------

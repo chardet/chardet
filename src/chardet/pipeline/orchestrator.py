@@ -436,7 +436,10 @@ def run_pipeline(  # noqa: PLR0913
         empty_input_encoding=empty_input_encoding,
         full_ranking=full_ranking,
     )
-    results = fill_languages(data, results)
+    # Same slice the core ran on: ``max_bytes`` is the caller's cap on what
+    # chardet may look at, and language fill is not exempt from it just
+    # because it applies a smaller cap of its own.
+    results = fill_languages(data[:max_bytes], results)
     # The ANSI-art model is keyed under the "zxx" pseudo-language (ISO 639
     # for "no linguistic content").  Kept internal so language fill does not
     # overwrite it; callers see language=None.

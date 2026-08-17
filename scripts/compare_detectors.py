@@ -131,16 +131,25 @@ def _compute_benchmark_hash() -> str:
     removing, or modifying test files invalidates cached results.
     """
     scripts_dir = _PROJECT_ROOT / "scripts"
-    equiv_path = _PROJECT_ROOT / "src" / "chardet" / "equivalences.py"
+    chardet_dir = _PROJECT_ROOT / "src" / "chardet"
     paths = [
         scripts_dir / "benchmark_time.py",
         scripts_dir / "benchmark_memory.py",
         scripts_dir / "utils.py",
-        equiv_path,
+        # The acceptance rules every verdict is scored against.  These moved
+        # out of the (now deprecated) equivalences.py in 7.5; hashing the
+        # shim instead would leave the baseline caches -- which, unlike
+        # chardet's own, do not rotate with a dev version string -- holding
+        # verdicts scored under superseded rules.
+        chardet_dir / "evaluation.py",
+        chardet_dir / "output_names.py",
     ]
     h = hashlib.sha256()
     for p in paths:
-        h.update(p.read_bytes())
+        # Tolerate a missing file rather than taking the whole script down
+        # with it: these paths track another module's layout, and 8.0
+        # removes one of the modules this list has already pointed at.
+        h.update(p.read_bytes() if p.is_file() else b"")
     # Include test-data commit hash (changes when files are added/modified)
     data_dir = _PROJECT_ROOT / "tests" / "data"
     if data_dir.is_dir():

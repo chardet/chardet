@@ -91,6 +91,7 @@ include = [
     "/src/chardet/pipeline/utf8.py",
     "/src/chardet/pipeline/escape.py",
     "/src/chardet/pipeline/language.py",
+    "/src/chardet/pipeline/markup.py",
     "/src/chardet/pipeline/orchestrator.py",
     "/src/chardet/pipeline/confusion.py",
     "/src/chardet/pipeline/magic.py",
@@ -223,6 +224,7 @@ ignore = [
 "src/chardet/pipeline/magic.py" = ["FA100"]
 "src/chardet/pipeline/ascii.py" = ["FA100"]
 "src/chardet/pipeline/language.py" = ["FA100"]
+"src/chardet/pipeline/markup.py" = ["FA100"]
 "src/chardet/pipeline/postprocess.py" = ["FA100"]
 
 

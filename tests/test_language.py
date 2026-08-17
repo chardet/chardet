@@ -1,17 +1,61 @@
 # tests/test_language.py
 from __future__ import annotations
 
+import pytest
+
 import chardet
 from chardet.models import RARE_LANGUAGES, score_best_language
-from chardet.pipeline import DetectionResult
+from chardet.pipeline import DetectionResult, language
 from chardet.pipeline.language import _to_utf8, fill_languages
 
+#: Plain French, ASCII-safe apart from the accents cp1252 carries.  Long
+#: enough to score decisively, so the tier tests below turn on which tier
+#: ran, not on how close the models came.
+_FRENCH = (
+    "Le chat noir de mon voisin traverse la cour chaque matin pour aller "
+    "chercher un peu de lait chez la boulangère du village."
+).encode("cp1252")
 
-def test_fill_languages_populates_single_language_encoding():
-    """fill_languages should fill in language for single-language encodings via Tier 1."""
-    results = [DetectionResult("koi8-r", 0.90, None)]
-    filled = fill_languages(b"test data", results)
-    assert filled[0].language is not None
+
+def test_fill_languages_tier1_fills_without_the_scored_tiers(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """Tier 1 fills a single-language encoding on its own.
+
+    Asserted with model scoring switched off, so only the hardcoded map can
+    supply the answer.  A bare ``language is not None`` would pass here on
+    the Tier-3 fallback alone and pin nothing.
+    """
+    monkeypatch.setattr(language, "has_model_variants", lambda _enc: False)
+    filled = fill_languages(b"test data", [DetectionResult("koi8-r", 0.90, None)])
+    assert filled[0].language == "ru"
+
+
+def test_fill_languages_tier2_scores_the_encodings_own_variants(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """Tier 2 labels a multi-language encoding without the utf-8 fallback."""
+    monkeypatch.setattr(language, "has_model_variants", lambda enc: enc != "utf-8")
+    filled = fill_languages(_FRENCH, [DetectionResult("cp1252", 0.90, None)])
+    assert filled[0].language == "fr"
+
+
+def test_fill_languages_tier3_falls_back_to_the_utf8_models(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """Tier 3 labels a candidate whose own variants cannot be scored."""
+    monkeypatch.setattr(language, "has_model_variants", lambda enc: enc == "utf-8")
+    filled = fill_languages(_FRENCH, [DetectionResult("cp1252", 0.90, None)])
+    assert filled[0].language == "fr"
+
+
+def test_fill_languages_leaves_language_unset_when_no_tier_applies(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """With every tier closed the field stays None rather than guessing."""
+    monkeypatch.setattr(language, "has_model_variants", lambda _enc: False)
+    filled = fill_languages(_FRENCH, [DetectionResult("cp1252", 0.90, None)])
+    assert filled[0].language is None
 
 
 def test_fill_languages_passes_through_existing_language():
