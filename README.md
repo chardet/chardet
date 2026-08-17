@@ -14,17 +14,17 @@ Python 3.10+, zero runtime dependencies, works on PyPy.
 
 ## Why chardet 7?
 
-**99.7% accuracy** on 3,125 test files. **312x faster** than chardet 6.0.0,
-and **+13.1pp more accurate** than charset-normalizer 3.5.0 while being
-1.3x faster. **Language detection** for every result. **MIME type detection** for
+**99.7% accuracy** on 3,138 test files. **315x faster** than chardet 6.0.0,
+and **+13.1pp more accurate** than charset-normalizer 3.5.1 while being
+1.2x faster. **Language detection** for every result. **MIME type detection** for
 binary files. **0BSD licensed.**
 
-|                        | chardet 7.6.0 (compiled) | chardet 6.0.0 | [charset-normalizer] 3.5.0 |
+|                        | chardet 7.6.1.dev (compiled) | chardet 6.0.0 | [charset-normalizer] 3.5.1 |
 | ---------------------- | :--------------------: | :-----------: | :-------------------------: |
-| Accuracy (3,125 files) |       **99.7%**        |     84.5%     |            86.6%            |
-| Speed                  | **2,793 files/s** (647 pure) |  10 files/s   |        2,210 files/s        |
-| Language detection     |       **91.8%**        |     38.5%     |            54.6%            |
-| Peak memory            |     **27.7 MiB**       |      n/a      |          71.7 MiB           |
+| Accuracy (3,138 files) |       **99.7%**        |     84.4%     |            86.6%            |
+| Speed                  | **2,641 files/s** (641 pure) |  9 files/s   |        2,250 files/s        |
+| Language detection     |       **91.8%**        |     38.7%     |            54.8%            |
+| Peak memory            |     **27.7 MiB**       |      n/a      |          71.0 MiB           |
 | Streaming detection    |        **yes**         |      yes      |             no              |
 | Encoding era filtering |        **yes**         |      no       |             no              |
 | Encoding filters       |        **yes**         |      no       |             yes             |
@@ -61,10 +61,10 @@ text = "Le café est une boisson très populaire en France et dans le monde enti
 results = chardet.detect_all(text.encode("windows-1252"))
 for r in results[:4]:
     print(r["encoding"], round(r["confidence"], 2))
-# Windows-1252 0.32
-# iso8859-15 0.32
-# ISO-8859-1 0.32
-# MacRoman 0.31
+# Windows-1252 0.31
+# iso8859-15 0.31
+# ISO-8859-1 0.31
+# MacRoman 0.3
 ```
 
 ### Streaming Detection
@@ -146,13 +146,13 @@ cat somefile.txt | chardetect
 
 - **0BSD license** (previous versions were LGPL)
 - **Ground-up rewrite:** 13-stage detection pipeline using BOM detection, magic number identification, structural probing, byte validity filtering, and bigram statistical models
-- **312x faster** than chardet 6.0.0 when compiled, and 1.3x faster than charset-normalizer 3.5.0 overall (2.0x at the median) while being far more accurate
-- **99.7% accuracy:** +15.3pp vs chardet 6.0.0, +13.1pp vs charset-normalizer 3.5.0
+- **315x faster** than chardet 6.0.0 when compiled, and 1.2x faster than charset-normalizer 3.5.1 overall (2.0x at the median) while being far more accurate
+- **99.7% accuracy:** +15.3pp vs chardet 6.0.0, +13.1pp vs charset-normalizer 3.5.1
 - **Language detection:** 91.8% accuracy across 49 languages, returned with every result
 - **MIME type detection:** identifies 40+ binary file formats (images, audio/video, archives, documents, executables, fonts) via magic number signatures, plus `text/html`, `text/xml`, and `text/x-python` for markup
 - **Encoding filters:** `include_encodings` and `exclude_encodings` parameters to restrict or exclude specific encodings from the candidate set
 - **99 encodings:** full coverage including EBCDIC, Mac, DOS, and Baltic/Central European families
-- **Optional compiled builds:** mypyc plus a Cython scoring kernel, 4.7x additional speedup on CPython
+- **Optional compiled builds:** mypyc plus a Cython scoring kernel, 4.8x additional speedup on CPython
 - **Thread-safe:** `detect()` and `detect_all()` are safe to call concurrently; scales on free-threaded Python
 - **Same API:** `detect()`, `detect_all()`, `UniversalDetector`, and the `chardetect` CLI all work as before
 
