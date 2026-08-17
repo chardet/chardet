@@ -23,7 +23,11 @@ its Python-loop sequence validator is capped, but the decode that makes a
 `utf-7` verdict correct is not, because a capped decode would hand back
 `utf-7` at deterministic confidence for data whose next `decode()` raises.
 Bounding costs detections only in the miss direction, and only for evidence
-that does not both begin and end within the first 256 KiB.
+that does not begin within the first 256 KiB. Where a sequence may *begin* and
+where it may *end* are separate bounds — the escape validators cap the first at
+the evidence window and the second a window later — because a single bound cuts
+a sequence straddling the boundary and reads it as malformed, which would lose
+the detection for any document whose only escape evidence lands there.
 The caps are published in `performance.rst`, not hidden; "uncapped" is banned
 from prose because it would now be a lie in one direction and an undersell in
 the other (see the flagged ambiguity in `CONTEXT.md`).

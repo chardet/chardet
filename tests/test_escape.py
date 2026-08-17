@@ -421,5 +421,5 @@ def test_utf7_validator_is_linear_in_base64_blobs() -> None:
     unit = b"+abc123def456ghi789jkl012mno345pqr678stu901vwx234yz\n"
     blob = (unit * (131072 // len(unit) + 1))[:131072]
     start = time.perf_counter()
-    _has_valid_utf7_sequences(blob)
+    _has_valid_utf7_sequences(blob, len(blob), len(blob))
     assert time.perf_counter() - start < 1.0

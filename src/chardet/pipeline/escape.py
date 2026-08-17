@@ -10,31 +10,44 @@ this module is compiled with mypyc, which does not support PEP 563 string
 annotations.
 """
 
-from chardet._utils import EVIDENCE_CAP_BYTES, decodes_without_error
+from chardet._utils import EVIDENCE_CAP_BYTES, count_deleted, decodes_without_error
 from chardet.pipeline import DETERMINISTIC_CONFIDENCE, DetectionResult
 
+# Byte values legal inside an HZ-GB-2312 ``~{...~}`` region.
+_HZ_GB_BYTES: bytes = bytes(range(0x21, 0x7F))
 
-def _has_valid_hz_regions(data: bytes) -> bool:
+
+def _has_valid_hz_regions(data: bytes, max_start: int, max_end: int) -> bool:
     """Check that at least one ~{...~} region contains valid GB2312 byte pairs.
 
     In HZ-GB-2312 GB mode, characters are encoded as pairs of bytes in the
     0x21-0x7E range.  We require at least one region with a non-empty, even-
     length run of such bytes.
+
+    *max_start* bounds where a region may open and *max_end* where it may
+    close.  Keeping them separate is what lets a region that opens inside
+    the evidence window close beyond it: bounding both at the same offset
+    would cut a straddling region and hide the only escape evidence a
+    document has (ADR-0006).
     """
     start = 0
     while True:
         begin = data.find(b"~{", start)
-        if begin == -1:
+        if begin == -1 or begin >= max_start:
             return False
-        end = data.find(b"~}", begin + 2)
+        end = data.find(b"~}", begin + 2, max_end)
         if end == -1:
             return False
         region = data[begin + 2 : end]
-        # Must be non-empty, even length, and all bytes in GB2312 range
+        # Must be non-empty, even length, and all bytes in GB2312 range.
+        # The range test is a C-level scan rather than a Python loop: a
+        # region may now run past the evidence window, and per-byte Python
+        # work proportional to it is exactly what the window exists to
+        # prevent.
         if (
             len(region) >= 2
             and len(region) % 2 == 0
-            and all(0x21 <= b <= 0x7E for b in region)
+            and count_deleted(region, _HZ_GB_BYTES) == len(region)
         ):
             return True
         start = end + 2
@@ -171,18 +184,26 @@ def _plausible_lone_unit(unit: int) -> bool:
     )
 
 
-def _has_valid_utf7_sequences(data: bytes) -> bool:
+def _has_valid_utf7_sequences(data: bytes, max_start: int, max_end: int) -> bool:
     """Check that *data* contains at least one valid UTF-7 shifted sequence.
 
     A valid shifted sequence is ``+<base64 chars>`` terminated by either an
     explicit ``-`` or any non-Base64 character (per RFC 2152).  The base64
     portion must decode to valid UTF-16BE with correct zero-padding bits.
     The sequence ``+-`` is a literal plus sign and is **not** counted.
+
+    *max_start* bounds where a shift may occur and *max_end* how far its
+    base64 run may reach, so a run that begins inside the evidence window
+    can finish beyond it (ADR-0006).  A run that outruns *max_end* is
+    skipped rather than judged on the part that fits: the padding and
+    surrogate checks read a cut run as a different run, and accepting on
+    evidence we did not see is the one direction this must never fail in.
     """
     start = 0
+    limit = min(len(data), max_end)
     while True:
         shift_pos = data.find(ord("+"), start)
-        if shift_pos == -1:
+        if shift_pos == -1 or shift_pos >= max_start:
             return False
         pos = shift_pos + 1  # skip the '+'
         # +- is a literal plus, not a shifted sequence
@@ -206,8 +227,12 @@ def _has_valid_utf7_sequences(data: bytes) -> bool:
             continue
         # Collect consecutive Base64 characters
         i = pos
-        while i < len(data) and data[i] in _UTF7_BASE64:
+        while i < limit and data[i] in _UTF7_BASE64:
             i += 1
+        if i == limit and limit < len(data) and data[i] in _UTF7_BASE64:
+            # The run outruns the bound — skip it (see the docstring).
+            start = i
+            continue
         b64_len = i - pos
         b64_data = data[pos:i]
         # Guard C: reject base64 blocks with no uppercase letters.
@@ -310,18 +335,18 @@ def detect_escape_encoding(data: bytes) -> DetectionResult | None:
                 language="ko",
             )
 
-    # The evidence window for the deep validators below.  They walk
-    # candidate sites in Python loops whose pathological case is
-    # *rejection* — a large tilde- or plus-heavy file that is not HZ or
-    # UTF-7 — so they converge on the evidence cap (ADR-0006).  Gates that
-    # decide whether an answer is *true* stay exhaustive over the window.
-    #
-    # A validator sees a sequence only if it both begins and ends inside
-    # this slice: one straddling the boundary is cut, so its region looks
-    # unterminated (HZ) or its base64 run looks truncated (UTF-7).  That
-    # costs a detection only when the straddling sequence is the *only*
-    # evidence in the whole window.
-    evidence = data[:EVIDENCE_CAP_BYTES]
+    # Bounds for the deep validators below.  They walk candidate sites in
+    # Python loops whose pathological case is *rejection* — a large tilde-
+    # or plus-heavy file that is neither HZ nor UTF-7 — so where a sequence
+    # may *begin* converges on the evidence cap (ADR-0006).  Where it may
+    # *end* is a separate bound, one further window on, so a sequence that
+    # opens just inside the evidence window is judged whole rather than cut
+    # by the boundary and read as malformed.  Nothing plausible sits
+    # between the two: a single escape run a quarter of a megabyte long is
+    # not text.  Gates that decide whether an answer is *true* stay
+    # exhaustive over the window.
+    max_start = min(len(data), EVIDENCE_CAP_BYTES)
+    max_end = min(len(data), 2 * EVIDENCE_CAP_BYTES)
 
     # HZ-GB-2312: tilde escapes for GB2312
     # Require valid GB2312 byte pairs (0x21-0x7E range) between ~{ and ~}
@@ -330,7 +355,7 @@ def detect_escape_encoding(data: bytes) -> DetectionResult | None:
         has_tilde
         and b"~{" in data
         and b"~}" in data
-        and _has_valid_hz_regions(evidence)
+        and _has_valid_hz_regions(data, max_start, max_end)
     ):
         return DetectionResult(
             encoding="hz",
@@ -364,7 +389,7 @@ def detect_escape_encoding(data: bytes) -> DetectionResult | None:
     if (
         has_plus
         and data.isascii()
-        and _has_valid_utf7_sequences(evidence)
+        and _has_valid_utf7_sequences(data, max_start, max_end)
         and decodes_without_error(data, "utf-7")
     ):
         return DetectionResult(

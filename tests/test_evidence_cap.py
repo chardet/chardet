@@ -99,21 +99,29 @@ def test_escape_evidence_past_cap_is_not_consulted() -> None:
     assert chardet.detect(head, max_bytes=len(head))["encoding"] == "utf-7"
 
 
-def test_hz_region_straddling_the_cap_is_not_seen() -> None:
-    """A sequence that starts inside the window but ends past it is cut.
+def test_sequence_straddling_the_cap_is_still_seen() -> None:
+    """A sequence may open inside the window and close beyond it.
 
-    The sliced validator finds the opening ``~{`` with no closing ``~}``,
-    so this region contributes nothing.  Pinned because it is the wider
-    half of the miss-direction boundary ADR-0006 documents, not the
-    narrower "entirely past the cap" case above.
+    Where a sequence may *begin* is capped; where it may *end* is a
+    separate, later bound.  Bounding both at one offset would cut a
+    straddling sequence and read it as malformed, losing the detection
+    for any document whose only escape evidence lands on the boundary.
     """
     prefix = b"a" * (EVIDENCE_CAP_BYTES - 100)
     region = b"~{" + b"\x3b\x3c" * 200 + b"~}"
     straddle = prefix + region + b" tail text"
-    assert chardet.detect(straddle, max_bytes=len(straddle))["encoding"] == "ascii"
-    # The identical region wholly inside the window is still detected.
-    inside = prefix[:1000] + region + b" tail text"
-    assert chardet.detect(inside, max_bytes=len(inside))["encoding"] == "HZ-GB-2312"
+    assert chardet.detect(straddle, max_bytes=len(straddle))["encoding"] == "HZ-GB-2312"
+
+    # Same for a UTF-7 shift whose base64 run crosses the boundary.  The
+    # padding must end on a non-base64 byte, or the '+' reads as embedded
+    # in a base64 stream and is skipped before the bounds matter at all.
+    utf7_seq = "こんにちは世界".encode("utf-7")
+    pad = (b"plain ascii text " * 20_000)[: EVIDENCE_CAP_BYTES - 5] + b" "
+    utf7_straddle = pad + utf7_seq + b" trailing ascii"
+    assert (
+        chardet.detect(utf7_straddle, max_bytes=len(utf7_straddle))["encoding"]
+        == "utf-7"
+    )
 
 
 def test_utf7_accept_stays_exhaustive() -> None:

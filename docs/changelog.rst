@@ -38,7 +38,9 @@ Unreleased
   corrections converge on the first 256 KB, a documented evidence cap
   that sits above the default ``max_bytes`` so results for default
   calls are bit-for-bit unchanged (verified against the full corpus
-  per file).  The new large-input tables in the performance docs cover
+  per file).  Escape sequences are bounded by where they *begin*, not
+  where they end, so one straddling that boundary is still judged
+  whole.  The new large-input tables in the performance docs cover
   the details; ADR-0006 in the repo records the design.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 - ASCII and binary scans on large buffers no longer allocate
