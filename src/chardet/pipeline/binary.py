@@ -41,6 +41,22 @@ _EBCDIC_HT = 0x05
 # High-byte deletion table for the EBCDIC plausibility check.
 _HIGH_BYTES_DELETE = bytes(range(0x80, 0x100))
 
+# Chunk size for the counting scans below.  A deletion translate allocates
+# its output, which for these tables approaches the input size; chunking
+# keeps the transient bounded while staying one C call per chunk.
+_COUNT_CHUNK_SIZE = 1 << 20
+
+
+def _count_deleted(data: bytes, table: bytes) -> int:
+    """Count how many bytes of *data* the deletion *table* removes."""
+    if len(data) <= _COUNT_CHUNK_SIZE:
+        return len(data) - len(data.translate(None, table))
+    count = 0
+    for pos in range(0, len(data), _COUNT_CHUNK_SIZE):
+        chunk = data[pos : pos + _COUNT_CHUNK_SIZE]
+        count += len(chunk) - len(chunk.translate(None, table))
+    return count
+
 
 def is_binary(data: bytes, max_bytes: int = DEFAULT_MAX_BYTES) -> bool:
     """Return ``True`` if *data* appears to be binary (not text) content.
@@ -53,8 +69,7 @@ def is_binary(data: bytes, max_bytes: int = DEFAULT_MAX_BYTES) -> bool:
     if not data:
         return False
 
-    clean = data.translate(None, _BINARY_DELETE)
-    binary_count = len(data) - len(clean)
+    binary_count = _count_deleted(data, _BINARY_DELETE)
     if binary_count / len(data) <= _BINARY_THRESHOLD:
         return False
 
@@ -62,15 +77,14 @@ def is_binary(data: bytes, max_bytes: int = DEFAULT_MAX_BYTES) -> bool:
     # whitespace, which are binary indicators in ASCII-compatible data.  If
     # the excess comes entirely from those two bytes and the data looks
     # like EBCDIC text, treat it as text.
-    hard_clean = data.translate(None, _BINARY_DELETE_NON_EBCDIC)
-    hard_count = len(data) - len(hard_clean)
+    hard_count = _count_deleted(data, _BINARY_DELETE_NON_EBCDIC)
     if hard_count / len(data) > _BINARY_THRESHOLD:
         return True
     space_count = data.count(_EBCDIC_SPACE) + data.count(_EBCDIC_HT)
     non_space = len(data) - space_count
     if non_space == 0:
         return False
-    high_count = len(data) - len(data.translate(None, _HIGH_BYTES_DELETE))
+    high_count = _count_deleted(data, _HIGH_BYTES_DELETE)
     if high_count / non_space < _EBCDIC_MIN_HIGH_FRACTION:
         return True
     return space_count / len(data) < _EBCDIC_MIN_SPACE_FRACTION

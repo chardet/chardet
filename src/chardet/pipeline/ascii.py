@@ -26,6 +26,11 @@ def detect_ascii(data: bytes) -> DetectionResult | None:
     """
     if not data:
         return None
+    # Non-ASCII data can never pass: the translate remainder would contain
+    # the high bytes.  ``isascii`` answers that in one allocation-free C
+    # scan, so large non-ASCII inputs skip the translate copy entirely.
+    if not data.isascii():
+        return None
     remainder = data.translate(None, ASCII_TEXT_BYTES)
     if not remainder:
         return DetectionResult(encoding="ascii", confidence=1.0, language=None)
