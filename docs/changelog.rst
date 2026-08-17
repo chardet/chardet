@@ -29,8 +29,8 @@ Unreleased
 
 - Large inputs no longer need ``max_bytes`` to stay fast.
   ``detect(data, max_bytes=len(data))`` on a 272 MiB buffer now
-  finishes in 0.12-0.24s, down from multiple seconds, on every build
-  flavor.  UTF-8 validation is decode-based (CPython's strict decoder
+  finishes in about 0.13-0.23s, down from multiple seconds, on the
+  compiled and pure-Python builds alike.  UTF-8 validation is decode-based (CPython's strict decoder
   enforces the identical rules at C speed, chunked so no matching
   ``str`` is ever allocated) and stays exact over the whole window:
   the UTF-8 verdict is validated, never sampled.  Candidate filtering,

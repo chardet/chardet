@@ -335,61 +335,86 @@ chunks, which is faster on that one column and blind on every other:
    * - Input
      - Size
      - chardet 7.6.1.dev (mypyc)
-     - charset-normalizer 3.4.9
+     - charset-normalizer 3.5.1
    * - utf-8
      - 1 MiB
      - 1.4ms
-     - 1.1ms
+     - **0.7ms**
    * - utf-8
      - 32 MiB
-     - 25.9ms
-     - **9.4ms**
+     - 27.8ms
+     - **10.2ms**
    * - utf-8
      - 272 MiB
-     - 237.7ms
-     - **81.4ms**
+     - 232.5ms
+     - **84.9ms**
    * - cp1252
      - 1 MiB
-     - **11.8ms**
-     - 22.3ms :sup:`*`
+     - **11.9ms**
+     - 33.8ms :sup:`*`
    * - cp1252
      - 32 MiB
-     - **25.5ms**
-     - 680.8ms :sup:`*`
+     - **27.1ms**
+     - 908.9ms :sup:`*`
    * - cp1252
      - 272 MiB
-     - **118.1ms**
-     - 7,715.3ms :sup:`*`
+     - **139.8ms**
+     - 8,206.7ms :sup:`*`
    * - shift_jis
      - 1 MiB
-     - **9.9ms**
-     - 11.7ms
+     - **10.0ms**
+     - 10.7ms
    * - shift_jis
      - 32 MiB
-     - **22.6ms**
-     - 331.4ms
+     - **24.3ms**
+     - 339.3ms
    * - shift_jis
      - 272 MiB
-     - **130.2ms**
-     - 2,703.2ms
+     - **131.3ms**
+     - 2,725.2ms
+   * - base64
+     - 1 MiB
+     - 1.8ms
+     - **0.1ms**
+   * - base64
+     - 32 MiB
+     - 21.7ms
+     - **1.5ms**
+   * - base64
+     - 272 MiB
+     - 175.4ms
+     - **12.4ms**
 
-:sup:`*` misdetected: charset-normalizer returned ``johab`` (1 and
-32 MiB) and ``windows-1250`` (272 MiB) for French Windows-1252 text.
+:sup:`*` misdetected: charset-normalizer returned ``windows-1250`` at
+every size for French Windows-1252 text.
 
 Median of five interleaved rounds (each round times both detectors back
 to back --- thermal drift makes separate blocks incomparable), compiled
 wheel, ``charset_normalizer.detect()`` compatibility API. Buffers repeat
-a single-language sentence, so this measures the scan machinery, not
-model quality.
+a single line or sentence, so this measures the scan machinery, not
+model quality. The ``base64`` row is line-wrapped certificate data ---
+the shape that makes chardet's escape-sequence scan work hardest.
 
-charset-normalizer wins the large valid-UTF-8 column by about 3x ---
-the sampling-versus-validation trade purchased knowingly. Everywhere
-else chardet is **14x to 65x faster** at 32 MiB and above, while
-charset-normalizer also misidentifies the cp1252 buffers at every size.
-The asymmetry has one cause: sampling costs charset-normalizer its
-short-circuits (it keeps probing candidates over chunks of a large
-buffer), while chardet's non-UTF-8 path drops to bounded evidence after
-its C-speed exhaustive scans reject the fast answers.
+The columns split by what each detector has to prove. charset-normalizer
+wins wherever a cheap structural answer settles the file: about 3x on
+large valid UTF-8, and 10-15x on base64, where chardet validates ASCII
+and scans for escape-shift evidence over the whole window while
+charset-normalizer samples chunks. Both are the sampling-versus-exactness
+trade, taken knowingly.
+
+Where the answer needs actual statistics --- legacy single-byte and
+legacy CJK, the encodings a detector exists for --- chardet is **14x to
+59x faster** at 32 MiB and above, and charset-normalizer misidentifies
+the cp1252 buffers at every size. The asymmetry has one cause: sampling
+costs charset-normalizer its short-circuits, so it keeps probing
+candidate encodings over chunks spread through a large buffer, while
+chardet's non-UTF-8 path drops to bounded evidence as soon as its
+C-speed exhaustive scans have ruled out the fast answers.
+
+The pure-Python wheel lands in the same band on these inputs (0.15s to
+0.22s at 272 MiB): past the exhaustive scans, what is left is bounded,
+so compilation moves the constant inside the window rather than the
+shape of the curve.
 
 Reproduce with ``python scripts/benchmark_large_inputs.py`` (see its
 docstring for the compiled-wheel invocation).

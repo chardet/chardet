@@ -20,8 +20,8 @@ and **+13.1pp more accurate** than charset-normalizer 3.5.1 while being
 binary files. **0BSD licensed.**
 
 Large inputs don't need a byte cap: `detect(data, max_bytes=len(data))` on a
-272 MiB file finishes in 0.12-0.24s, and the UTF-8 verdict is validated over
-every byte examined, never sampled. See
+272 MiB file finishes in about 0.13-0.23s, and the UTF-8 verdict is validated
+over every byte examined, never sampled. See
 [the performance docs](https://chardet.readthedocs.io/en/latest/performance.html)
 for the full large-input tables.
 
