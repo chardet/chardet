@@ -341,8 +341,12 @@ def _run_pipeline_core(  # noqa: PLR0913
     # The filtering, gating, and probing stages below converge on bounded
     # evidence (ADR-0006).  One slice, taken here, feeds them all: the
     # structural analysis cache is keyed by encoding name only, so every
-    # consumer must see the same view of the data.
+    # consumer must see the same view of the data.  For the decode-safety
+    # flip in postprocess, a window that outruns the cap counts as
+    # truncation — the slice's tail is a chardet-made cut, not the end of
+    # what the caller will decode.
     evidence = data[:EVIDENCE_CAP_BYTES]
+    evidence_truncated = input_truncated or len(data) > len(evidence)
 
     # Stage 2a: Byte validity filtering
     valid_candidates = filter_by_validity(evidence, candidates)
@@ -392,7 +396,7 @@ def _run_pipeline_core(  # noqa: PLR0913
             )
             if results:
                 return postprocess_results(
-                    evidence, results, input_truncated=input_truncated
+                    evidence, results, input_truncated=evidence_truncated
                 )
 
     # Stage 3: Statistical scoring for all remaining candidates.
@@ -407,7 +411,7 @@ def _run_pipeline_core(  # noqa: PLR0913
 
     # Rank corrections reason about the same evidence window the ranking
     # came from, which also bounds their byte-presence scans.
-    return postprocess_results(evidence, results, input_truncated=input_truncated)
+    return postprocess_results(evidence, results, input_truncated=evidence_truncated)
 
 
 def run_pipeline(  # noqa: PLR0913

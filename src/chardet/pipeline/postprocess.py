@@ -590,9 +590,9 @@ def _prefer_decodable_on_tie(
     ``iso-8859-1`` word ending in ``0xE1`` detected as utf-8 (issue #380).
 
     Fires only when the input was not truncated by chardet itself (the
-    orchestrator's ``max_bytes`` slice or ``UniversalDetector``'s buffer
-    cap --- either way these bytes are not the whole story and the caller
-    was told so by *input_truncated*), the tail can actually hold a
+    orchestrator's ``max_bytes`` slice, its evidence-cap slice, or
+    ``UniversalDetector``'s buffer cap --- either way these bytes are not
+    the whole story and the caller was told so by *input_truncated*), the tail can actually hold a
     dangling sequence (a high byte in the final four, multi-byte winner),
     and the winner's tolerant decode is **non-empty pure ASCII** --- its
     only multi-byte evidence is the dangling tail itself.  An empty
