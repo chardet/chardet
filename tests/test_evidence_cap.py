@@ -69,19 +69,23 @@ def test_structural_ignores_bytes_past_cap() -> None:
 
 
 def test_utf7_validator_converges_on_cap() -> None:
-    """Base64-heavy ASCII (diffs, JWTs, data URIs) is wall-to-wall '+' runs
-    that are not UTF-7; the deep validator walks only the evidence window.
-    The verdict is ASCII either way — this pins it on an input far past the
-    cap, where the pre-ADR-0006 validator did O(n) Python-loop work."""
+    """The UTF-7 deep validator walks only the evidence window.
+
+    Base64-heavy ASCII (diffs, JWTs, data URIs) is wall-to-wall '+' runs
+    that are not UTF-7.  The verdict is ASCII either way — this pins it on
+    an input far past the cap, where the pre-ADR-0006 validator did O(n)
+    Python-loop work.
+    """
     blob = _beyond_cap(b"+abc123def456ghi789jkl012mno345pqr678stu901vwx234yz\n")
     result = chardet.detect(blob, max_bytes=len(blob))
     assert result["encoding"] == "ascii"
 
 
 def test_escape_evidence_past_cap_is_not_consulted() -> None:
-    """An input whose *only* UTF-7 evidence sits past the evidence cap is no
-    longer detected as UTF-7 — the documented ADR-0006 boundary (real UTF-7
-    shifts in and out constantly; sequences only past 256 KiB are synthetic).
+    """UTF-7 evidence sitting entirely past the cap no longer detects.
+
+    The documented ADR-0006 boundary: real UTF-7 shifts in and out
+    constantly, so first sequences past 256 KiB are synthetic.
     """
     body = _beyond_cap(b"plain ascii filler text, nothing special here.\n")
     utf7_tail = "こんにちは".encode("utf-7") * 20
@@ -94,9 +98,13 @@ def test_escape_evidence_past_cap_is_not_consulted() -> None:
 
 
 def test_exhaustive_checks_still_see_everything() -> None:
-    """The UTF-8 verdict stays exact past the cap: an invalid byte at the
-    very end of a large window must still reject UTF-8 (the file is *not*
-    valid UTF-8, and chardet never claims otherwise)."""
+    """The UTF-8 verdict stays exact past the cap.
+
+    An invalid byte at the very end of a large window must still reject
+    UTF-8 (the file is *not* valid UTF-8, and chardet never claims
+    otherwise), including on the statistical path — the exhaustive check's
+    rejection vetoes utf-8 from the candidate set.
+    """
     body = _beyond_cap("héllo wörld —日本語 ".encode())
     assert chardet.detect(body, max_bytes=len(body))["encoding"] == "utf-8"
     broken = body + b"\xff"

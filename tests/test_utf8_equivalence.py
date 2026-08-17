@@ -102,14 +102,19 @@ def test_snippets(snippet: bytes) -> None:
     [b"", b"x", b"abc ", "valid ütf8 ".encode(), "日本語".encode()],
 )
 def test_snippet_after_valid_prefix(prefix: bytes, snippet: bytes) -> None:
-    """Every snippet again, preceded by valid text (exercises mid-data and
-    end-of-data positions with nonzero counts)."""
+    """Every snippet again, preceded by valid text.
+
+    Exercises mid-data and end-of-data positions with nonzero counts.
+    """
     assert_equivalent(prefix + snippet)
 
 
 def test_snippet_pairs() -> None:
-    """All ordered pairs of snippets — probes sequences straddling snippet
-    joins, garbage after valid tails, tails after garbage, etc."""
+    """All ordered pairs of snippets.
+
+    Probes sequences straddling snippet joins, garbage after valid tails,
+    tails after garbage, etc.
+    """
     for a in SNIPPETS:
         for b in SNIPPETS:
             assert_equivalent(a + b)
@@ -117,7 +122,7 @@ def test_snippet_pairs() -> None:
 
 def test_random_fuzz() -> None:
     """Seeded random buffers across byte distributions."""
-    rng = random.Random(0x5EED)
+    rng = random.Random(0x5EED)  # noqa: S311 - deterministic fuzz, not crypto
     distributions = [
         range(256),  # uniform garbage
         range(0x80),  # pure ASCII
@@ -134,7 +139,7 @@ def test_random_fuzz() -> None:
 
 def test_mutated_valid_text() -> None:
     """Valid UTF-8 text with random single-byte mutations."""
-    rng = random.Random(0xD1FF)
+    rng = random.Random(0xD1FF)  # noqa: S311 - deterministic fuzz, not crypto
     base = ("héllo wörld — 日本語のテキスト 🎉 " * 8).encode()
     for _ in range(2000):
         buf = bytearray(base)
@@ -155,8 +160,11 @@ def test_every_truncation_of_valid_text() -> None:
 )
 @pytest.mark.parametrize("straddle", [b"", "é".encode(), "🎉".encode()])
 def test_chunk_boundary(tail: bytes, straddle: bytes) -> None:
-    """Sequences straddling the incremental-decode chunk boundary, with and
-    without tolerated tails, at ASCII-fast-path and non-ASCII first chunks."""
+    """Sequences straddling the incremental-decode chunk boundary.
+
+    With and without tolerated tails, at ASCII-fast-path and non-ASCII
+    first chunks.
+    """
     for lead_in in (b"a", "é".encode()):
         for offset in (-2, -1, 0):
             filler = b"a" * (_CHUNK_SIZE + offset - len(lead_in))
@@ -164,8 +172,10 @@ def test_chunk_boundary(tail: bytes, straddle: bytes) -> None:
 
 
 def test_error_reported_in_chunk_after_lead() -> None:
-    """Lead byte at the end of one chunk, its invalid continuation in the
-    next: the absolute error offset must account for the pending bytes."""
+    """Lead byte at the end of one chunk, invalid continuation in the next.
+
+    The absolute error offset must account for the decoder's pending bytes.
+    """
     data = b"a" * (_CHUNK_SIZE - 1) + b"\xe3" + b"\xff" + b"z"
     assert_equivalent(data)
     # And the tolerated variant: overrun starts in chunk 1, garbage in chunk 2.
