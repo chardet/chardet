@@ -10,6 +10,9 @@ name: Benchmark x86
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   benchmark-x86:
     runs-on: ubuntu-latest
