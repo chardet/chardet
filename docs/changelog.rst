@@ -90,6 +90,21 @@ Unreleased
   process at import.  Importing the shim is no longer an error under
   ``-W error::DeprecationWarning``.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+- A mostly-ASCII Windows-1252 file whose only non-ASCII content is a
+  lone accented-letter pair (one ``Ö``/``ö``) no longer detects as
+  HP-Roman8.  The niche Latin demotion stood down whenever the data
+  contained any byte the candidate decodes differently from ISO-8859-1,
+  but presence is symmetric evidence: the same byte that handed
+  HP-Roman8 its sub-epsilon lead also vetoed the demotion meant to
+  correct it.  The veto now requires the distinguishing bytes to have
+  earned the winning model more confidence than the dead-heat epsilon.
+  The demotion's replacement is likewise no longer picked by sub-epsilon
+  noise: among common Latin candidates tied with the best-placed of them,
+  era prevalence chooses (Windows-1252 over ISO-8859-1), while a
+  candidate leading its rivals by a real margin is still promoted on
+  confidence.
+  (`António Afonso <https://github.com/aadsm>`_ via Claude,
+  `#383 <https://github.com/chardet/chardet/pull/383>`_)
 
 **Build:**
 
