@@ -300,6 +300,115 @@ def test_cli_without_language_flag_unchanged(
     assert "(" not in captured.out
 
 
+def test_cli_mime_type_flag(tmp_path: Path, capsys: pytest.CaptureFixture[str]):
+    """--mime-type should include the MIME type in output."""
+    f = tmp_path / "test.txt"
+    f.write_bytes(b"Hello world")
+    main(["--mime-type", str(f)])
+    captured = capsys.readouterr()
+    assert "text/plain" in captured.out
+    assert "with confidence" in captured.out
+
+
+def test_cli_mime_type_short_flag(tmp_path: Path, capsys: pytest.CaptureFixture[str]):
+    """-m should work as short form of --mime-type."""
+    f = tmp_path / "test.txt"
+    f.write_bytes(b"Hello world")
+    main(["-m", str(f)])
+    captured = capsys.readouterr()
+    assert "text/plain" in captured.out
+
+
+def test_cli_mime_type_binary_file(tmp_path: Path, capsys: pytest.CaptureFixture[str]):
+    """--mime-type on a PNG should report image/png from magic numbers."""
+    f = tmp_path / "test.png"
+    f.write_bytes(b"\x89PNG\r\n\x1a\n" + b"\x00" * 32)
+    main(["--mime-type", str(f)])
+    captured = capsys.readouterr()
+    assert "image/png" in captured.out
+
+
+def test_cli_mime_type_minimal(tmp_path: Path, capsys: pytest.CaptureFixture[str]):
+    """--mime-type + --minimal should print encoding and MIME type."""
+    f = tmp_path / "test.txt"
+    f.write_bytes(b"Hello world")
+    main(["--minimal", "--mime-type", str(f)])
+    captured = capsys.readouterr()
+    assert captured.out.strip() == "ascii text/plain"
+
+
+def test_cli_mime_type_minimal_language(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+):
+    """--minimal -l -m should print encoding, language code, and MIME type."""
+    f = tmp_path / "test.txt"
+    f.write_bytes("Héllo wörld café résumé naïve".encode())
+    main(["--minimal", "-l", "-m", str(f)])
+    captured = capsys.readouterr()
+    parts = captured.out.strip().split()
+    assert len(parts) == 3
+    assert parts[2] == "text/plain"
+
+
+def test_cli_mime_type_with_language(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+):
+    """-l -m should show language and MIME type before the confidence."""
+    f = tmp_path / "test.txt"
+    f.write_bytes("Héllo wörld café résumé naïve".encode())
+    main(["-l", "-m", str(f)])
+    captured = capsys.readouterr()
+    assert "(" in captured.out
+    assert "text/plain with confidence" in captured.out
+
+
+def test_cli_mime_type_stdin(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+):
+    """--mime-type on stdin should include MIME type in output."""
+    fake_stdin = io.TextIOWrapper(io.BytesIO(b"Hello world"))
+    monkeypatch.setattr(sys, "stdin", fake_stdin)
+    main(["--mime-type"])
+    captured = capsys.readouterr()
+    assert "text/plain" in captured.out
+    assert "with confidence" in captured.out
+
+
+def test_cli_mime_type_none_shows_octet_stream(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+):
+    """When mime_type is None, should display 'application/octet-stream'."""
+    f = tmp_path / "test.txt"
+    f.write_bytes(b"Hello world")
+    monkeypatch.setattr(
+        chardet,
+        "detect",
+        lambda *_a, **_kw: {
+            "encoding": "ascii",
+            "confidence": 1.0,
+            "language": None,
+            "mime_type": None,
+        },
+    )
+    main(["--minimal", "--mime-type", str(f)])
+    captured = capsys.readouterr()
+    assert captured.out.strip() == "ascii application/octet-stream"
+
+
+def test_cli_without_mime_type_flag_unchanged(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+):
+    """Without --mime-type, output should not contain the MIME type."""
+    f = tmp_path / "test.txt"
+    f.write_bytes(b"Hello world")
+    main([str(f)])
+    captured = capsys.readouterr()
+    assert "with confidence" in captured.out
+    assert "text/plain" not in captured.out
+
+
 def test_cli_include_encodings(tmp_path: Path, capsys: pytest.CaptureFixture[str]):
     f = tmp_path / "test.txt"
     f.write_bytes(b"Hello world")

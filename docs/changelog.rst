@@ -11,6 +11,13 @@ Changelog
 Unreleased
 ----------
 
+**Features:**
+
+- Added ``-m``/``--mime-type`` flag to ``chardetect`` CLI — shows the
+  detected MIME type alongside the encoding, similar to ``file -i``
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude,
+  `#384 <https://github.com/chardet/chardet/issues/384>`_)
+
 **Accuracy:**
 
 - cp864 Arabic now trains on contextually shaped text in visual
