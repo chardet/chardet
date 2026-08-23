@@ -15,24 +15,24 @@ _ERA_NAMES = [e.name.lower() for e in EncodingEra if e.bit_count() == 1] + ["all
 
 
 def _print_result(
-    result: DetectionDict, label: str, *, minimal: bool, language: bool
+    result: DetectionDict, label: str, *, minimal: bool, language: bool, mime_type: bool
 ) -> None:
     """Print a detection result to stdout."""
+    desc = str(result["encoding"])
     if minimal:
         if language:
-            iso = result["language"] or "und"
-            print(f"{result['encoding']} {iso}")
-        else:
-            print(result["encoding"])
-    elif language:
-        iso = result["language"] or "und"
-        name = ISO_TO_LANGUAGE.get(iso, iso).title()
-        print(
-            f"{label}: {result['encoding']} {iso} ({name}) "
-            f"with confidence {result['confidence']}"
-        )
+            desc += f" {result['language'] or 'und'}"
+        if mime_type:
+            desc += f" {result['mime_type'] or 'application/octet-stream'}"
+        print(desc)
     else:
-        print(f"{label}: {result['encoding']} with confidence {result['confidence']}")
+        if language:
+            iso = result["language"] or "und"
+            name = ISO_TO_LANGUAGE.get(iso, iso).title()
+            desc += f" {iso} ({name})"
+        if mime_type:
+            desc += f" {result['mime_type'] or 'application/octet-stream'}"
+        print(f"{label}: {desc} with confidence {result['confidence']}")
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -50,6 +50,12 @@ def main(argv: list[str] | None = None) -> None:
         "--language",
         action="store_true",
         help="Include detected language in output",
+    )
+    parser.add_argument(
+        "-m",
+        "--mime-type",
+        action="store_true",
+        help="Include detected MIME type in output",
     )
     parser.add_argument(
         "-e",
@@ -125,7 +131,11 @@ def main(argv: list[str] | None = None) -> None:
                 errors += 1
                 continue
             _print_result(
-                result, filepath, minimal=args.minimal, language=args.language
+                result,
+                filepath,
+                minimal=args.minimal,
+                language=args.language,
+                mime_type=args.mime_type,
             )
         if errors == len(args.files):
             sys.exit(1)
@@ -143,7 +153,13 @@ def main(argv: list[str] | None = None) -> None:
         except Exception as e:  # noqa: BLE001
             print(f"chardetect: stdin: detection failed: {e}", file=sys.stderr)
             sys.exit(1)
-        _print_result(result, "stdin", minimal=args.minimal, language=args.language)
+        _print_result(
+            result,
+            "stdin",
+            minimal=args.minimal,
+            language=args.language,
+            mime_type=args.mime_type,
+        )
 
 
 if __name__ == "__main__":  # pragma: no cover

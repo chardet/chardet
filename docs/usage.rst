@@ -383,6 +383,15 @@ chardet includes a ``chardetect`` command:
    chardetect --minimal -l somefile.txt
    # utf-8 en
 
+   # Include detected MIME type (similar to file -i)
+   chardetect -m somefile.txt somepic.png
+   # somefile.txt: utf-8 text/plain with confidence 0.99
+   # somepic.png: None image/png with confidence 1.0
+
+   # Minimal output with MIME type
+   chardetect --minimal -m somefile.txt
+   # utf-8 text/plain
+
    # Specific encoding era
    chardetect -e dos somefile.txt
    # somefile.txt: cp850 with confidence 0.10
