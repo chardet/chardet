@@ -665,6 +665,39 @@ def test_rowmax_stale_digest_falls_back_with_warning() -> None:
     models_mod.get_rowmax.cache_clear()
 
 
+def test_rowmax_missing_file_falls_back_with_warning() -> None:
+    """A missing rowmax.bin must fall back to deriving the tables.
+
+    An install stripped of the auxiliary file still works: the tables are
+    derived from the models directly, with a warning so packaging mistakes
+    get noticed.
+    """
+    models_mod.load_models()  # keep the models cache warm past the patch
+
+    def fake_joinpath(name: str) -> MagicMock:
+        ref = MagicMock()
+        ref.read_bytes.side_effect = FileNotFoundError(name)
+        return ref
+
+    models_mod.get_rowmax.cache_clear()
+    try:
+        with (
+            patch.object(
+                models_mod.importlib.resources,
+                "files",
+                return_value=MagicMock(joinpath=MagicMock(side_effect=fake_joinpath)),
+            ),
+            pytest.warns(RuntimeWarning, match="rowmax.bin"),
+        ):
+            derived = models_mod.get_rowmax()
+    finally:
+        models_mod.get_rowmax.cache_clear()
+
+    genuine = models_mod.get_rowmax()
+    assert derived == genuine
+    models_mod.get_rowmax.cache_clear()
+
+
 def test_score_with_profile_accepts_bytearray_and_memoryview() -> None:
     """The historical bytearray/memoryview table types must keep working.
 
@@ -678,3 +711,73 @@ def test_score_with_profile_accepts_bytearray_and_memoryview() -> None:
     expected = models_mod.score_with_profile(profile, bytes(table))
     assert models_mod.score_with_profile(profile, table) == expected
     assert models_mod.score_with_profile(profile, memoryview(bytes(table))) == expected
+
+
+def test_pack_profile_and_dot_packed_agree_with_dense_scoring() -> None:
+    """The packed kernel buffers must reproduce the dense dot product.
+
+    ``_kernel.py`` is the single implementation for both the compiled and
+    interpreted builds, so its arithmetic is checked directly against a
+    hand-computed dot product.
+    """
+    from chardet._kernel import dot_packed, pack_profile  # noqa: PLC0415
+
+    freq = [0] * 65536
+    freq[0x4142] = 3
+    freq[0x4243] = 5
+    idx, vals = pack_profile([0x4142, 0x4243], freq)
+    assert list(idx) == [0x4142, 0x4243]
+    assert list(vals) == [3, 5]
+    model = bytearray(65536)
+    model[0x4142] = 2
+    model[0x4243] = 10
+    assert dot_packed(idx, vals, bytes(model)) == 3 * 2 + 5 * 10
+
+
+def test_dense_profile_scores_identically_through_packed_kernel(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The packed-kernel scoring path must match the dense path exactly.
+
+    The module docstring calls this parity load-bearing: an interpreted run
+    never takes the packed branch on its own, so the flag is forced here to
+    pin the two branches together.  Scores must be bit-identical — same
+    integer dot product, same norms.
+    """
+    data = ("du texte français avec des accents é è ê " * 8).encode("cp1252")
+    model = bytes([1]) * 65536
+    expected = models_mod.score_with_profile(models_mod.BigramProfile(data), model)
+    assert expected > 0.0
+
+    monkeypatch.setattr(models_mod, "_KERNEL_COMPILED", True)
+    packed_profile = models_mod.BigramProfile(data)
+    assert len(packed_profile.idx_arr) > 0
+    assert models_mod.score_with_profile(packed_profile, model) == expected
+
+
+def test_decompress_tables_truncated_streams_raise() -> None:
+    """Every truncation of a two-table stream must raise, at any cut point.
+
+    Scanning all cuts pins down the exhausted-early exits, including the
+    one where ``flush()`` still yields a final mid-copy strand (the cut
+    that lands inside the back-reference crossing the first table's edge)
+    and the stream is only then found short.
+    """
+    blob = zlib.compress(b"A" * 66000)
+    for cut in range(len(blob)):
+        with pytest.raises(ValueError, match="decompressed size"):
+            _format._decompress_tables(blob[:cut], 0, ["a", "b"])
+
+
+def test_decompress_tables_accepts_unterminated_stream() -> None:
+    """A stream with all table bytes but no end marker parses successfully.
+
+    Mirrors whole-blob ``zlib.decompress`` leniency about trailing state:
+    once every table decompressed and a final flush yields nothing extra,
+    the absence of the deflate end marker is not an error.
+    """
+    payload = b"A" * 65536
+    compressor = zlib.compressobj()
+    blob = compressor.compress(payload) + compressor.flush(zlib.Z_SYNC_FLUSH)
+    tables = _format._decompress_tables(blob, 0, ["a"])
+    assert tables == {"a": payload}

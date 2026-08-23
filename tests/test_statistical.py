@@ -8,15 +8,16 @@ import pytest
 from utils import collect_test_files
 
 from chardet.enums import EncodingEra
-from chardet.models import BigramProfile, get_enc_index
+from chardet.models import BigramProfile, _get_model_norms, get_enc_index
 from chardet.pipeline import DetectionResult
 from chardet.pipeline.orchestrator import _STAT_SCORE_MAX_BYTES
 from chardet.pipeline.postprocess import forced_encodings, scoring_floor
 from chardet.pipeline.statistical import (
     _MIN_NONZERO_FOR_PRESCREEN,
+    _split_variants,
     score_candidates,
 )
-from chardet.registry import get_candidates
+from chardet.registry import REGISTRY, get_candidates
 
 
 def test_score_candidates_returns_sorted_results():
@@ -223,3 +224,40 @@ def test_pruning_contract_holds_on_corpus(path: Path):
     pruned = score_candidates(data, candidates)
     full = score_candidates(data, candidates, full_ranking=True)
     _assert_pruning_contract(pruned, full)
+
+
+def test_split_variants_unknown_norm_never_prunes():
+    """A variant whose norm is unknown gets an infinite upper bound.
+
+    An infinite bound means the prescreen can never skip the variant, so an
+    absent norm degrades to a full score instead of a silently wrong prune.
+    """
+    profile = BigramProfile("Bonjour tout le monde, voici du texte.".encode("cp1252"))
+    norms = _get_model_norms()
+    key = next(k for (_lang, _table, k) in get_enc_index()["cp1252"])
+    saved = norms.pop(key)
+    try:
+        _mb, sb_entries = _split_variants((REGISTRY["cp1252"],), profile)
+    finally:
+        norms[key] = saved
+    bounds = {entry[5]: entry[0] for entry in sb_entries}
+    assert bounds[key] == float("inf")
+
+
+def test_split_variants_zero_norm_bounds_at_zero():
+    """A zero-norm model is bounded at 0.0 instead of dividing by zero.
+
+    ``score_with_profile`` returns 0.0 for such a model, so the bound must
+    match rather than raise ``ZeroDivisionError``.
+    """
+    profile = BigramProfile("Bonjour tout le monde, voici du texte.".encode("cp1252"))
+    norms = _get_model_norms()
+    key = next(k for (_lang, _table, k) in get_enc_index()["cp1252"])
+    saved = norms[key]
+    norms[key] = 0.0
+    try:
+        _mb, sb_entries = _split_variants((REGISTRY["cp1252"],), profile)
+    finally:
+        norms[key] = saved
+    bounds = {entry[5]: entry[0] for entry in sb_entries}
+    assert bounds[key] == 0.0

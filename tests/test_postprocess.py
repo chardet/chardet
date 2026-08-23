@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from unittest.mock import patch
 
 import pytest
 
@@ -15,6 +16,14 @@ from chardet.pipeline.postprocess import (
     forced_encodings,
     postprocess_results,
     scoring_floor,
+)
+
+#: See the note in tests/test_confusion.py: mypyc resolves a compiled
+#: module's calls to functions imported into it at compile time, so patching
+#: those names only takes effect on interpreted builds.
+_needs_interpreted_build = pytest.mark.skipif(
+    postprocess.__file__.endswith((".so", ".pyd")),
+    reason="patches a function the compiled module calls natively",
 )
 
 
@@ -346,3 +355,161 @@ def test_forced_encodings_triggers_combine():
     """Both triggers near the top force both sets."""
     forced = forced_encodings(["cp1254", "koi8-r"])
     assert set(forced) == {"iso8859-1", "iso8859-15", "cp1252", "koi8-t"}
+
+
+def test_era_rank_unknown_encoding_ranks_last():
+    """An encoding missing from the registry can never win a prevalence tie."""
+    assert postprocess._era_rank("not-a-codec") == 1 << 30
+
+
+def test_high_byte_evidence_without_variants_is_absent():
+    """An encoding with no model variants has no high-byte evidence."""
+    assert postprocess._has_high_byte_evidence(b"\xe9ab", "not-a-codec", None) is False
+
+
+def test_prevalent_dead_heat_skips_binary_entries():
+    """A ``None``-encoding entry inside the dead heat is skipped, not ranked.
+
+    The evidence-free ASCII data leaves the mainframe top without high-byte
+    support, so the modern-web rival wins the heat past the binary entry.
+    """
+    results = [
+        DetectionResult("cp500", 0.30, None),
+        DetectionResult(None, 0.30, None),
+        DetectionResult("cp1252", 0.29995, None),
+    ]
+    resolved = postprocess._prefer_prevalent_on_dead_heat(b"hello", results)
+    assert resolved[0].encoding == "cp1252"
+    assert resolved[0].confidence == 0.30
+
+
+def test_superset_dead_heat_promotes_decoding_superset():
+    """cp932 within the epsilon of shift_jis takes the win."""
+    results = [
+        DetectionResult("shift_jis", 0.30, "ja"),
+        DetectionResult("cp932", 0.29995, "ja"),
+    ]
+    resolved = postprocess._promote_superset_on_dead_heat(b"hello world", results)
+    assert resolved[0].encoding == "cp932"
+    assert resolved[0].confidence == 0.30
+
+
+def test_superset_dead_heat_stops_at_the_epsilon():
+    """A superset ranked below the dead-heat band stays where it is."""
+    results = [
+        DetectionResult("shift_jis", 0.30, "ja"),
+        DetectionResult("euc_jp", 0.2999, "ja"),
+        DetectionResult("cp932", 0.10, "ja"),
+    ]
+    resolved = postprocess._promote_superset_on_dead_heat(b"hello world", results)
+    assert resolved == results
+
+
+def test_superset_dead_heat_without_superset_in_band():
+    """No superset inside the band leaves the ranking untouched."""
+    results = [
+        DetectionResult("shift_jis", 0.30, "ja"),
+        DetectionResult("euc_jp", 0.29999, "ja"),
+    ]
+    resolved = postprocess._promote_superset_on_dead_heat(b"hello world", results)
+    assert resolved == results
+
+
+def test_rare_arbitration_stops_past_the_margin():
+    """A rival trailing by more than the margin is real evidence, not a flip."""
+    results = [
+        DetectionResult("iso8859-14", 0.10, "br"),
+        DetectionResult("cp1252", 0.05, "fr"),
+    ]
+    assert postprocess._arbitrate_rare_language(results) == results
+
+
+def test_rare_arbitration_skips_unlabelled_rivals():
+    """A rival with no language cannot arbitrate; the next prevalent one can."""
+    results = [
+        DetectionResult("iso8859-14", 0.10, "br"),
+        DetectionResult("cp1250", 0.099, None),
+        DetectionResult("cp1252", 0.098, "fr"),
+    ]
+    resolved = postprocess._arbitrate_rare_language(results)
+    assert resolved[0].encoding == "cp1252"
+    assert resolved[0].confidence == 0.10
+
+
+def test_rare_arbitration_needs_a_prevalent_rival():
+    """A neighbourhood of rare-language rivals leaves the winner in place."""
+    results = [
+        DetectionResult("iso8859-14", 0.10, "br"),
+        DetectionResult("iso8859-15", 0.099, "cy"),
+    ]
+    assert postprocess._arbitrate_rare_language(results) == results
+
+
+#: Bare-\r line endings, enough of them to clear the classic-Mac gate.
+_CR_ONLY_DATA = b"line one\rline two\rline three\rline four\r"
+
+
+def test_mac_cr_promotion_skips_art_top():
+    """An art-model win is not reviewed by the prose-based Mac promotion."""
+    results = [
+        DetectionResult("cp437", 0.30, postprocess.ART_LANGUAGE),
+        DetectionResult("mac-roman", 0.299, None),
+    ]
+    resolved = postprocess._promote_mac_on_cr_line_endings(_CR_ONLY_DATA, results)
+    assert resolved == results
+
+
+def test_mac_cr_promotion_promotes_banded_mac_candidate():
+    r"""Bare-\r line endings promote the in-band classic-Mac candidate."""
+    results = [
+        DetectionResult("koi8-r", 0.30, "ru"),
+        DetectionResult("mac-roman", 0.299, None),
+    ]
+    resolved = postprocess._promote_mac_on_cr_line_endings(_CR_ONLY_DATA, results)
+    assert resolved[0].encoding == "mac-roman"
+    assert resolved[0].confidence == 0.30
+
+
+def test_mac_cr_promotion_stops_at_the_band():
+    """A Mac candidate below the confidence band is not promoted."""
+    results = [
+        DetectionResult("koi8-r", 0.30, "ru"),
+        DetectionResult("mac-roman", 0.20, None),
+    ]
+    resolved = postprocess._promote_mac_on_cr_line_endings(_CR_ONLY_DATA, results)
+    assert resolved == results
+
+
+@_needs_interpreted_build
+def test_mac_cr_promotion_vetoed_by_byte_evidence():
+    """The platform prior must not overturn distinguishing-byte evidence.
+
+    When the pairwise verdict says the current top beats the best-ranked
+    Mac candidate, the promotion stops entirely instead of falling through
+    to a lower-ranked sibling with no map to be checked against.
+    """
+    results = [
+        DetectionResult("koi8-r", 0.30, "ru"),
+        DetectionResult("mac-cyrillic", 0.299, "ru"),
+        DetectionResult("mac-roman", 0.298, None),
+    ]
+    with patch.object(postprocess, "confusion_pair_winner", return_value="koi8-r"):
+        resolved = postprocess._promote_mac_on_cr_line_endings(_CR_ONLY_DATA, results)
+    assert resolved == results
+
+
+def test_decodes_under_public_names_rejects_undecodable():
+    """A rival that cannot decode the data is no flip target."""
+    assert postprocess._decodes_under_public_names(b"\xff", "ascii") is False
+
+
+def test_decodable_tie_keeps_winner_when_no_rival_decodes():
+    """A dangling-tail winner stays on top when every rival fails to decode."""
+    results = [
+        DetectionResult("euc_kr", 0.30, "ko"),
+        DetectionResult("ascii", 0.29, None),
+    ]
+    resolved = postprocess._prefer_decodable_on_tie(
+        b"hello \xb0", results, input_truncated=False
+    )
+    assert resolved == results

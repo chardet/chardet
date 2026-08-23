@@ -163,3 +163,18 @@ def test_thin_rare_band_is_opt_in_and_score_preserving():
     assert plain_lang in RARE_LANGUAGES
     assert banded_lang not in RARE_LANGUAGES
     assert banded_score == plain_score
+
+
+def test_thin_rare_recheck_keeps_label_when_no_tier_can_score():
+    """A rare label on thin input survives when the scored tiers yield nothing.
+
+    The re-check's only authority is a demotion to a prevalent language;
+    when neither Tier 2 nor Tier 3 produces a verdict (here: an encoding
+    with no model variants that Tier 3 cannot transcode either), the
+    original result must pass through unchanged rather than losing its
+    label.
+    """
+    rare = min(RARE_LANGUAGES)
+    result = DetectionResult("not-a-codec", 0.5, rare, "text/plain")
+    filled = fill_languages(b"ab", [result])
+    assert filled == [result]

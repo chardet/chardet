@@ -69,3 +69,39 @@ def test_just_above_threshold_is_binary():
     # 2 binary bytes in 100 = 2% > 0.01
     data = b"a" * 98 + b"\x01\x02"
     assert is_binary(data) is True
+
+
+def test_ebcdic_all_padding_is_not_binary():
+    """EBCDIC data that is nothing but space padding and tabs is text.
+
+    Every byte is either the EBCDIC space (0x40) or HT (0x05), so the
+    non-space denominator of the high-byte check is zero.
+    """
+    data = b"\x40" * 97 + b"\x05" * 3
+    assert is_binary(data) is False
+
+
+def test_ebcdic_whitespace_without_high_bytes_is_binary():
+    """EBCDIC-style whitespace in low-byte data is a binary indicator.
+
+    The NL bytes push the count over the threshold, but the data has almost
+    no high bytes, so it cannot be EBCDIC text.
+    """
+    data = b"ABC" * 30 + b"\x15" * 3 + b"\x40" * 10
+    assert is_binary(data) is True
+
+
+def test_ebcdic_high_bytes_without_word_separators_is_binary():
+    """High-byte data framed with EBCDIC newlines but no spaces is binary.
+
+    A binary payload can pass the high-byte check, but text separates
+    words: with almost no 0x40/0x05 separators it is classified binary.
+    """
+    data = b"\x81" * 97 + b"\x15" * 2 + b"\x05"
+    assert is_binary(data) is True
+
+
+def test_ebcdic_text_shape_is_not_binary():
+    """High-byte data with EBCDIC spaces and newlines is EBCDIC text."""
+    data = b"\x81" * 90 + b"\x40" * 8 + b"\x15" * 2
+    assert is_binary(data) is False

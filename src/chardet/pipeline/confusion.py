@@ -599,7 +599,12 @@ def resolve_by_bigram_rescore(
             idx = (b1 << 8) | b2
             freq[idx] = freq.get(idx, 0) + idf[idx]
 
-    if not freq:
+    # Unreachable: the hit prefilter above already returned when no
+    # distinguishing byte occurs, and with len(data) >= 2 every hit byte
+    # belongs to at least one bigram, so both scan paths put a key in
+    # ``freq`` (a zero IDF weight still creates the key).  Kept so a future
+    # scan-path change cannot hand an empty profile to the scorer.
+    if not freq:  # pragma: no cover
         return None
 
     profile = BigramProfile.from_weighted_freq(freq)
