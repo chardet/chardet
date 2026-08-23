@@ -93,6 +93,16 @@ Unreleased
 
 **Build:**
 
+- Test coverage is back to 100% and CI now enforces it
+  (``fail_under = 100``).  The newly covered paths include the EBCDIC
+  plausibility checks in binary detection, charset declarations inside
+  EBCDIC-encoded markup, the packed-kernel scoring branch (pinned
+  bit-identical to the dense path), the confusion stage's decisive-vote
+  and strict-tier promotions, the classic-Mac and dead-heat rank
+  corrections, and the model-file fallback/truncation paths.  Two
+  provably unreachable defensive guards are excluded with explanatory
+  ``pragma: no cover`` comments instead of synthetic tests.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 - The ``models.bin``/``rowmax.bin``/``idf.bin`` formats now have a
   single owner, ``chardet.models._format``, called by both the trainer
   and the runtime loader; the row-maxima and IDF payloads regenerate

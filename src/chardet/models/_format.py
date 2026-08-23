@@ -79,7 +79,12 @@ def _decompress_tables(
         if len(table) == 65536:
             models[names[len(models)]] = bytes(table)
             table.clear()
-        elif len(table) > 65536:
+        # Unreachable with CPython's zlib — decompress() pieces are capped at
+        # ``need``, and a flush() strand (the tail of one back-reference cut
+        # mid-copy, at most 258 bytes) only ever lands in a fresh table —
+        # but a decompressor that flushed more than asked must not corrupt
+        # the table split silently.
+        elif len(table) > 65536:  # pragma: no cover
             break  # oversized flush -> size mismatch below
     if len(models) == num_models:
         # Drain any leftover decompressed output so extra data is caught,
