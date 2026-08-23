@@ -423,3 +423,13 @@ def test_utf7_validator_is_linear_in_base64_blobs() -> None:
     start = time.perf_counter()
     _has_valid_utf7_sequences(blob, len(blob), len(blob))
     assert time.perf_counter() - start < 1.0
+
+
+def test_utf7_base64_run_outrunning_the_bound_is_skipped() -> None:
+    """A base64 run that reaches max_end while more follows is not judged.
+
+    The run cannot be validated whole, so it must be skipped rather than
+    judged on a truncated prefix (ADR-0006).
+    """
+    data = b"+" + b"AAAA" * 10
+    assert _has_valid_utf7_sequences(data, max_start=10, max_end=5) is False
