@@ -21,21 +21,14 @@ from chardet._utils import (
     decodes_completely,
     decodes_without_error,
 )
-from chardet.models import (
-    _ASCII_WHITESPACE_TABLE,
-    ART_LANGUAGE,
-    RARE_LANGUAGES,
-    BigramProfile,
-    get_enc_index,
-    get_idf_weights,
-    score_with_profile,
-)
+from chardet.models import ART_LANGUAGE, RARE_LANGUAGES, get_enc_index
 from chardet.output_names import _COMPAT_NAMES
 from chardet.pipeline import DetectionResult
 from chardet.pipeline.confusion import (
     CONFUSION_BAND,
     CONFUSION_FLOOR_RATIO,
     STRICT_TIER_MAX_CONF,
+    arbitrate_distinguishing_bytes,
     confusion_pair_winner,
     resolve_confusion_groups,
 )
@@ -223,91 +216,120 @@ _DEMOTION_DELETE: dict[str, bytes] = {
 _KOI8_T_DELETE: bytes = bytes(_KOI8_T_DISTINGUISHING)
 
 
-def _should_demote(encoding: str, data: bytes, language: "str | None") -> bool:
-    """Return True if encoding is a demotion candidate with no real byte evidence.
+def _should_demote(data: bytes, top: DetectionResult, target: DetectionResult) -> bool:
+    """Return True if *top*, a demotion candidate, has no byte evidence over *target*.
 
-    Checks whether any byte in *data* falls in the set of byte values that
-    decode differently under the given encoding vs iso-8859-1.  If none do,
-    the data is equally valid under both encodings and there is no
-    byte-level evidence for preferring the candidate encoding.
+    Callers guarantee ``top.encoding`` is in :data:`_DEMOTION_CANDIDATES`.
+    Two questions, cheapest first.  Does *data* contain any byte the
+    candidate decodes differently from ISO-8859-1?  If not, the data is
+    equally valid under both encodings, nothing at the byte level favors
+    the candidate, and it is demoted.
 
-    Presence alone is not enough to stand the demotion down, though: a
-    mostly-ASCII Latin-1 file whose only non-ASCII bytes are one 0xD6/0xF6
-    pair carries a "distinguishing" byte (0xD6 is a lowercase letter under
-    hp-roman8, uppercase O-umlaut under Latin-1) while the winning model
-    earned less confidence from all its high-byte bigrams than the
-    dead-heat epsilon.  Such a win is statistical noise wearing a
-    distinguishing byte as a costume, so the demotion also fires when the
-    high-byte evidence contribution is at or under the noise floor.
+    If such bytes are present, do they favor the candidate?  Presence
+    alone is symmetric evidence: a Windows-1252 file whose only non-ASCII
+    letter is an ``Ö`` carries 0xD6, which HP-Roman8 reads as ``ø``, so
+    both candidates "contain" the byte and the question is which reading
+    holds up.  That is a confusion-style arbitration between the candidate
+    and its swap target on the distinguishing bytes alone (see
+    :func:`~chardet.pipeline.confusion.arbitrate_distinguishing_bytes`),
+    each side scored under the variant that actually won its slot.  The
+    models decide when they can: one Welsh ``ŵ`` keeps ISO-8859-14 because
+    the Welsh model knows that bigram and the Windows-1252 reading is a
+    ``ð`` no Welsh model has seen.  When the models are silent, word shape
+    decides: a Kven ``đ`` keeps a Finnish file on ISO-8859-10 because a
+    letter between letters beats the superscript ``¹`` Windows-1252 reads
+    there.  A lone ``Ö`` mid-word decides nothing either way, and the more
+    prevalent encoding takes the evidence-free tie.
+
+    The arbitration is only asked when the candidate's lead over the swap
+    target is within :data:`~chardet.pipeline.confusion.CONFUSION_BAND`.
+    A win by more than the band was decided on the full statistics, and
+    re-litigating it on a handful of bytes is neither sound nor free: the
+    scan is Python level, and mainstream Turkish text tops as windows-1254
+    with hundreds of distinguishing bytes and a lead of 0.2.
     """
-    delete = _DEMOTION_DELETE.get(encoding)
-    if delete is None:
-        return False
-    if len(data.translate(None, delete)) == len(data):
+    encoding = top.encoding or ""
+    if len(data.translate(None, _DEMOTION_DELETE[encoding])) == len(data):
         return True
-    return _high_byte_evidence_margin(data, encoding, language) <= _DEAD_HEAT_EPSILON
+    if top.confidence - target.confidence > CONFUSION_BAND:
+        return False
+    winner = arbitrate_distinguishing_bytes(
+        data,
+        encoding,
+        target.encoding or "",
+        _DEMOTION_CANDIDATES[encoding],
+        languages_a=None if top.language is None else frozenset((top.language,)),
+        languages_b=None if target.language is None else frozenset((target.language,)),
+    )
+    return winner != encoding
+
+
+def _swap_target(candidates: list[DetectionResult]) -> DetectionResult:
+    """Pick the common Latin candidate that replaces a demoted top.
+
+    Among the candidates within :data:`_DEAD_HEAT_EPSILON` of the
+    highest-scoring one, era prevalence chooses (windows-1252 over
+    iso-8859-1): inside that band the confidence order is noise, the very
+    premise of the demotion.  A candidate trailing the best common Latin
+    by more than the epsilon lost to it on real evidence and stays put.
+    Equal era ranks (iso-8859-1 against iso-8859-15, both legacy ISO) keep
+    confidence order, since ``min`` returns the first of equals and the
+    candidates arrive ranked.
+    """
+    lead_conf = max(r.confidence for r in candidates)
+    in_band = [r for r in candidates if lead_conf - r.confidence <= _DEAD_HEAT_EPSILON]
+    return min(in_band, key=lambda r: _era_rank(r.encoding or ""))
 
 
 def _demote_niche_latin(
     data: bytes,
     results: list[DetectionResult],
 ) -> list[DetectionResult]:
-    """Demote niche Latin encodings when no distinguishing bytes are present.
+    """Demote a niche Latin top that its distinguishing bytes do not support.
 
-    Some bigram models (e.g. iso-8859-10, iso-8859-14, windows-1254) can win
-    on data that contains only bytes shared with common Western Latin
-    encodings.  When there is no byte-level evidence for the winning
-    encoding, promote the first common Western Latin candidate to the top and
-    push the demoted encoding to last.
-
-    The replacement is the most prevalent common Latin candidate among
-    those tied with the best-scoring one (within :data:`_DEAD_HEAT_EPSILON`
-    of the highest-confidence common Latin candidate): inside that band
-    the confidence order is noise — the very premise of the demotion — so
-    era prevalence picks between e.g. iso-8859-1 and windows-1252 rather
-    than a sub-epsilon score difference.  A candidate trailing the best
-    common Latin by more than the epsilon lost to it on real evidence and
-    stays put.
+    Some bigram models (iso-8859-10, iso-8859-14, windows-1254, hp-roman8)
+    can win on data that contains only bytes shared with the common Western
+    Latin encodings, or on a lone shared byte the models cannot arbitrate.
+    When :func:`_should_demote` finds no byte-level evidence for the
+    winning encoding, promote the swap target :func:`_swap_target` picks
+    among the common Latin candidates and push the demoted encoding to
+    last.
 
     The demoted entries take the confidence of the candidate they now sit
     behind.  Rank position alone does not survive the trip out to callers:
     ``detect_all`` re-sorts by confidence, and a stable sort hands an entry
-    that kept its top score straight back to second place, undoing the
-    demotion.  Lowering the score also keeps the returned list genuinely
-    ordered by confidence, as :func:`~chardet.pipeline.orchestrator.run_pipeline`
-    promises.
+    that kept the top score its old place back.
+
+    :param data: The raw byte data the results were produced from.
+    :param results: A list of :class:`DetectionResult` ranked by confidence.
+    :returns: A new list (or the same list) with the demotion applied.
     """
-    if (
-        len(results) > 1
-        and results[0].encoding is not None
-        and _should_demote(results[0].encoding, data, results[0].language)
-    ):
-        demoted_encoding = results[0].encoding
-        top_conf = results[0].confidence
-        candidates = [r for r in results[1:] if r.encoding in _COMMON_LATIN_ENCODINGS]
-        if candidates:
-            lead_conf = candidates[0].confidence
-            in_band = [
-                r for r in candidates if lead_conf - r.confidence <= _DEAD_HEAT_EPSILON
-            ]
-            r = min(in_band, key=lambda x: _era_rank(x.encoding or ""))
-            promoted = DetectionResult(r.encoding, top_conf, r.language, r.mime_type)
-            others = [
-                x for x in results if x.encoding != demoted_encoding and x is not r
-            ]
-            tail_conf = others[-1].confidence if others else top_conf
-            demoted_entries = [
-                DetectionResult(
-                    x.encoding,
-                    min(x.confidence, tail_conf),
-                    x.language,
-                    x.mime_type,
-                )
-                for x in results
-                if x.encoding == demoted_encoding
-            ]
-            return [promoted, *others, *demoted_entries]
-    return results
+    if len(results) < 2 or results[0].encoding not in _DEMOTION_CANDIDATES:
+        return results
+    candidates = [r for r in results[1:] if r.encoding in _COMMON_LATIN_ENCODINGS]
+    if not candidates:
+        return results
+    target = _swap_target(candidates)
+    if not _should_demote(data, results[0], target):
+        return results
+    demoted_encoding = results[0].encoding
+    top_conf = results[0].confidence
+    promoted = DetectionResult(
+        target.encoding, top_conf, target.language, target.mime_type
+    )
+    others = [x for x in results if x.encoding != demoted_encoding and x is not target]
+    tail_conf = others[-1].confidence if others else top_conf
+    demoted_entries = [
+        DetectionResult(
+            x.encoding,
+            min(x.confidence, tail_conf),
+            x.language,
+            x.mime_type,
+        )
+        for x in results
+        if x.encoding == demoted_encoding
+    ]
+    return [promoted, *others, *demoted_entries]
 
 
 def _promote_koi8t(
@@ -411,58 +433,6 @@ def _has_high_byte_evidence(data: bytes, encoding: str, language: "str | None") 
             if table[idx]:
                 return True
     return False
-
-
-def _high_byte_evidence_margin(
-    data: bytes, encoding: str, language: "str | None"
-) -> float:
-    """Return the confidence *encoding*'s winning model earned from high-byte bigrams.
-
-    Measured in confidence units: the winning variant's cosine terms
-    restricted to bigrams with a byte >= 0x80, over the same scoring window
-    and with the same repeated-whitespace skip the statistical score used
-    (computed as a focused-profile score rescaled from the focused norm to
-    the full window's norm).  Used by the niche-Latin demotion, where
-    presence alone must not veto: a lone accented letter can put one
-    weight-1 bigram in some variant's table and hand the candidate a lead
-    worth less than the dead-heat epsilon itself.  Only the variant that
-    actually won (*language*) counts.  Only called on niche-Latin tops, so
-    the Python-level scan of the (capped) data is off the hot path.
-    """
-    variants = get_enc_index().get(encoding)
-    if not variants:
-        return 0.0
-    window = data[:_EVIDENCE_SCAN_MAX_BYTES]
-    full = BigramProfile(window)
-    if full.input_norm == 0.0:
-        return 0.0
-    idf = get_idf_weights()
-    freq: dict[int, int] = {}
-    prev = window[0]
-    for i in range(1, len(window)):
-        b = window[i]
-        if (prev >= 0x80 or b >= 0x80) and not (
-            prev == b and _ASCII_WHITESPACE_TABLE[b]
-        ):
-            idx = (prev << 8) | b
-            freq[idx] = freq.get(idx, 0) + idf[idx]
-        prev = b
-    if not freq:
-        return 0.0
-    focused = BigramProfile.from_weighted_freq(freq)
-    # score_with_profile normalizes by the focused profile's norm; rescale
-    # to the full window's norm so the result is the contribution these
-    # bigrams make to the candidate's actual confidence.
-    rescale = focused.input_norm / full.input_norm
-    best = 0.0
-    for lang, model, model_key in variants:
-        if language is not None and lang != language:
-            continue
-        s = score_with_profile(focused, model, model_key)
-        if s > 0.0:
-            margin = s * rescale
-            best = max(best, margin)
-    return best
 
 
 def _prefer_prevalent_on_dead_heat(

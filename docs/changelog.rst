@@ -94,15 +94,23 @@ Unreleased
   lone accented-letter pair (one ``Ö``/``ö``) no longer detects as
   HP-Roman8.  The niche Latin demotion stood down whenever the data
   contained any byte the candidate decodes differently from ISO-8859-1,
-  but presence is symmetric evidence: the same byte that handed
-  HP-Roman8 its sub-epsilon lead also vetoed the demotion meant to
-  correct it.  The veto now requires the distinguishing bytes to have
-  earned the winning model more confidence than the dead-heat epsilon.
+  but presence is symmetric: Windows-1252 reads that 0xD6 as ``Ö`` and
+  HP-Roman8 as ``ø``, so both candidates contain the byte and it alone
+  says nothing about which reading is right.  The demotion now
+  arbitrates the candidate against its swap target on the distinguishing
+  bytes the way confusion resolution arbitrates its pairs.  The bigram
+  models decide when they know the bytes, so one Welsh ``ŵ`` still keeps
+  ISO-8859-14.  Word shape decides when they do not, so a Kven ``đ`` in
+  Finnish prose keeps ISO-8859-10, a letter between letters beating the
+  superscript Windows-1252 reads there.  An evidence-free tie goes to the
+  prevalent encoding.  A candidate leading its swap target by more than
+  the confusion band is not second-guessed on a handful of bytes.
   The demotion's replacement is likewise no longer picked by sub-epsilon
   noise: among common Latin candidates tied with the best-placed of them,
   era prevalence chooses (Windows-1252 over ISO-8859-1), while a
   candidate leading its rivals by a real margin is still promoted on
-  confidence.
+  confidence.  Some corpus files that came back as ISO-8859-1 now come
+  back as Windows-1252, an accepted superset answer for them.
   (`António Afonso <https://github.com/aadsm>`_ via Claude,
   `#383 <https://github.com/chardet/chardet/pull/383>`_)
 
