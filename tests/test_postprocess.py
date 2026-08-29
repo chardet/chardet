@@ -489,6 +489,65 @@ def test_high_byte_evidence_without_variants_is_absent():
     assert postprocess._has_high_byte_evidence(b"\xe9ab", "not-a-codec", None) is False
 
 
+def test_prevalent_dead_heat_arbitrates_a_top_with_evidence():
+    """Weight on one high-byte bigram does not put the top beyond the prior.
+
+    MacRoman reads 0xC9 as an ellipsis and its English model likes that;
+    Windows-1252 reads it as ``É`` and its French model likes that more.
+    The prevalent candidate wins the arbitration and is promoted.
+    """
+    english = b"plain english sentences filling the file " * 8
+    data = english + b"the \xc9cole normale. " + english
+    results = [
+        DetectionResult("mac-roman", 0.3889, "en"),
+        DetectionResult("cp1252", 0.38885, "en"),
+    ]
+    promoted = postprocess._prefer_prevalent_on_dead_heat(data, results)
+    assert promoted[0].encoding == "cp1252"
+    assert promoted[0].confidence == 0.3889
+
+
+def test_prevalent_dead_heat_keeps_a_top_the_arbitration_cannot_fault():
+    """A tie on the differing bytes leaves the statistical order alone.
+
+    iso-8859-1 and windows-1252 differ only at 0x80 to 0x9F; data without
+    C1 bytes gives the arbitration nothing to read, and the top stays.
+    """
+    data = b"la fen\xeatre \xe9tait ferm\xe9e " * 8
+    results = [
+        DetectionResult("iso8859-1", 0.5, "fr"),
+        DetectionResult("cp1252", 0.5 - 1e-5, "fr"),
+    ]
+    assert postprocess._prefer_prevalent_on_dead_heat(data, results) is results
+
+
+def test_prevalent_dead_heat_keeps_a_top_that_wins_the_arbitration():
+    """The prevalent candidate is promoted only when it wins outright.
+
+    Scored under every variant, windows-1252's Icelandic model would win
+    ``dŵr`` by reading it as ``dðr``; the comparison is restricted to the
+    languages both encodings model, and under those iso-8859-14 wins.
+    """
+    data = "Mae dŵr yn llifo drwy'r dref. ".encode("iso8859-14") * 8
+    results = [
+        DetectionResult("iso8859-14", 0.5, "cy"),
+        DetectionResult("cp1252", 0.5 - 1e-5, "cy"),
+    ]
+    assert postprocess._prefer_prevalent_on_dead_heat(data, results) is results
+
+
+def test_lone_capital_accent_in_english_is_not_mac_roman():
+    """End to end: one ``É`` in ASCII English detects as Windows-1252."""
+    sentence = (
+        b"This is a mostly ASCII file with plain sentences that go on "
+        b"and on, describing nothing in particular, just filling space "
+        b"the way source files and configuration files usually do. "
+    )
+    for insert in (b"the \xc9cole normale. ", b"by \xc9tienne. ", b"\xc0 Paris. "):
+        data = sentence * 6 + insert + sentence * 6
+        assert detect(data)["encoding"] == "Windows-1252", insert
+
+
 def test_prevalent_dead_heat_skips_binary_entries():
     """A ``None``-encoding entry inside the dead heat is skipped, not ranked.
 

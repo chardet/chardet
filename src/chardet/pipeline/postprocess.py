@@ -28,8 +28,10 @@ from chardet.pipeline.confusion import (
     CONFUSION_BAND,
     CONFUSION_FLOOR_RATIO,
     STRICT_TIER_MAX_CONF,
+    _comparable_languages,
     arbitrate_distinguishing_bytes,
     confusion_pair_winner,
+    differing_high_bytes,
     resolve_confusion_groups,
 )
 from chardet.registry import REGISTRY
@@ -439,21 +441,34 @@ def _prefer_prevalent_on_dead_heat(
     data: bytes,
     results: list[DetectionResult],
 ) -> list[DetectionResult]:
-    """Break statistical dead heats in favour of the more prevalent era.
+    """Break statistical dead heats in favor of the more prevalent era.
 
     When several encodings score within :data:`_DEAD_HEAT_EPSILON` of the
-    top result and the top result's models carry no weight for any high-byte
-    bigram in the data, the ranking is an artifact of ASCII-bigram noise.
-    Promote the candidate from the most prevalent era (modern web > legacy
-    ISO > Mac > regional > DOS > mainframe) so evidence-free dead heats
-    resolve to the likeliest real-world answer.  A top result whose models
-    do weight observed high-byte bigrams won on real evidence and is kept,
-    however small its margin.
+    top result, the ranking among them is mostly an artifact of
+    ASCII-bigram noise.  Promote the candidate from the most prevalent era
+    (modern web > legacy ISO > Mac > regional > DOS > mainframe) so
+    evidence-free dead heats resolve to the likeliest real-world answer.
+
+    A top result whose models carry no weight for any high-byte bigram in
+    the data has no evidence at all and yields outright.  One whose models
+    do weight an observed bigram is not thereby safe: an English file with
+    one capital ``É`` ranks MacRoman first because the MacRoman model
+    reads 0xC9 as the ellipsis English text is full of, a lead worth
+    2e-5.  Such a top is arbitrated against the prevalent candidate on the
+    bytes the two read differently, under the languages the two can be
+    compared in (see :func:`~chardet.pipeline.confusion.arbitrate_distinguishing_bytes`
+    and confusion's ``_comparable_languages``): the Windows-1252 French
+    model knows ``École`` even when the English one does not, while its
+    Icelandic model may not read a Welsh ``dŵr`` as ``dðr`` against an
+    encoding that models no Icelandic.  The prevalent candidate is
+    promoted only when it wins outright; a tie keeps the top, so an
+    ISO-8859-1 result tied with Windows-1252 on data without C1 bytes
+    stays where the statistics put it.  Genuine MacRoman text never
+    reaches the arbitration, since its hundreds of distinguishing bytes
+    put Windows-1252 far outside the band.
     """
     top = results[0] if results else None
     if top is None or top.encoding is None or len(results) < 2:
-        return results
-    if _has_high_byte_evidence(data, top.encoding, top.language):
         return results
     best_idx = 0
     best_rank = _era_rank(top.encoding)
@@ -469,7 +484,29 @@ def _prefer_prevalent_on_dead_heat(
             best_idx = i
     if best_idx == 0:
         return results
-    return _promote_to_top(results, best_idx)
+    if not _has_high_byte_evidence(data, top.encoding, top.language):
+        return _promote_to_top(results, best_idx)
+    rival = results[best_idx].encoding or ""
+    comparable = _comparable_languages(
+        top.encoding,
+        rival,
+        frozenset(
+            lang
+            for lang in (top.language, results[best_idx].language)
+            if lang is not None
+        ),
+    )
+    winner = arbitrate_distinguishing_bytes(
+        data,
+        top.encoding,
+        rival,
+        differing_high_bytes(top.encoding, rival),
+        languages_a=comparable,
+        languages_b=comparable,
+    )
+    if winner == rival:
+        return _promote_to_top(results, best_idx)
+    return results
 
 
 def _promote_to_top(results: list[DetectionResult], i: int) -> list[DetectionResult]:

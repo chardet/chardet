@@ -113,6 +113,19 @@ Unreleased
   back as Windows-1252, an accepted superset answer for them.
   (`António Afonso <https://github.com/aadsm>`_ via Claude,
   `#383 <https://github.com/chardet/chardet/pull/383>`_)
+- An English file whose only non-ASCII letter is a capital ``É``, ``À``
+  or ``Ó`` no longer detects as MacRoman.  The MacRoman model reads those
+  bytes as the ellipsis and curly quotes English text is full of, which
+  handed it a lead worth 2e-5 and kept the era-prevalence prior from
+  stepping in: the prior stood down whenever the leading model weighted
+  any observed high-byte bigram.  It now arbitrates such a leader against
+  the prevalent candidate tied with it on the bytes the two read
+  differently, every language variant on both sides, and promotes the
+  prevalent candidate when it wins outright.  A tie keeps the leader, so
+  ISO-8859-1 results tied with Windows-1252 on data without C1 bytes are
+  unchanged.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude,
+  `#383 <https://github.com/chardet/chardet/pull/383>`_)
 
 **Build:**
 

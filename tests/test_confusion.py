@@ -836,3 +836,16 @@ def test_arbitrate_distinguishing_bytes_declines_without_evidence():
         )
         is None
     )
+
+
+def test_differing_high_bytes_is_the_c1_range_for_latin1_and_cp1252():
+    """iso-8859-1 and windows-1252 disagree exactly where windows-1252 has C1 glyphs."""
+    assert confusion_mod.differing_high_bytes("iso8859-1", "cp1252") == frozenset(
+        range(0x80, 0xA0)
+    )
+
+
+def test_differing_high_bytes_counts_undecodable_bytes_as_differing():
+    """0x81 is undefined in windows-1252 and a control in iso-8859-1: they differ."""
+    assert 0x81 in confusion_mod.differing_high_bytes("cp1252", "iso8859-1")
+    assert 0x81 in confusion_mod.differing_high_bytes("iso8859-1", "cp1252")

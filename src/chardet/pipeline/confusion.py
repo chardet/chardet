@@ -640,6 +640,32 @@ def resolve_by_bigram_rescore(
 
 
 @functools.cache
+def differing_high_bytes(enc_a: str, enc_b: str) -> frozenset[int]:
+    """Byte values >= 0x80 that *enc_a* and *enc_b* decode to different text.
+
+    The distinguishing set for a pair the confusion maps do not cover,
+    computed from the codecs themselves.  A byte only one side can decode
+    counts as differing.  Bytes below 0x80 are left out: the callers ask
+    about high-byte evidence, and every single-byte Latin family agrees
+    on ASCII anyway.
+    """
+    out: set[int] = set()
+    for b in range(0x80, 0x100):
+        raw = bytes((b,))
+        try:
+            text_a: str | None = raw.decode(enc_a)
+        except UnicodeDecodeError:
+            text_a = None
+        try:
+            text_b: str | None = raw.decode(enc_b)
+        except UnicodeDecodeError:
+            text_b = None
+        if text_a != text_b:
+            out.add(b)
+    return frozenset(out)
+
+
+@functools.cache
 def _pair_categories(
     enc_a: str, enc_b: str, diff_bytes: frozenset[int]
 ) -> dict[int, tuple[str, str]]:
