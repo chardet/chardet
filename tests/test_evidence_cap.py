@@ -4,13 +4,17 @@
 The filtering, gating, probing, and rank-correction stages converge on at
 most ``EVIDENCE_CAP_BYTES`` of the examination window.  The cap sits above
 ``DEFAULT_MAX_BYTES`` so every default call is unaffected; for larger
-windows, bytes past the cap cannot change what those stages conclude.
+windows, bytes past the cap cannot change what those stages conclude.  One
+thing survives the cap: the answer decodes the whole window, held by a
+winner-first decode of the ranking after the bounded stages settle.
 """
 
 from __future__ import annotations
 
 import chardet
 from chardet._utils import DEFAULT_MAX_BYTES, EVIDENCE_CAP_BYTES
+from chardet.pipeline import DetectionResult
+from chardet.pipeline.orchestrator import _hold_validity_past_cap
 
 
 def test_cap_covers_default_window() -> None:
@@ -34,11 +38,14 @@ def _beyond_cap(filler: bytes) -> bytes:
     return filler * reps
 
 
-def test_validity_ignores_bytes_past_cap() -> None:
-    """Undecodable bytes after the cap no longer eliminate the winner.
+def test_winner_decodes_the_window_past_cap() -> None:
+    """The answer decodes the whole window even where validity stopped reading.
 
-    0x81/0x8D/0x9D are undefined in cp1252; before ADR-0006 a tail of them
-    knocked Windows-1252 out of the candidate set for the whole input.
+    0x81/0x8D/0x9D are undefined in cp1252.  Validity filtering converges
+    on the first 256 KB, so a tail of them past the cap does not remove
+    Windows-1252 from the candidate set; the past-cap validity hold drops
+    it from the ranking instead, and the next candidate that decodes the
+    window wins.  Without the tail, Windows-1252 stands.
     """
     body = _beyond_cap(
         "Le cœur a ses raisons que la raison ne connaît point. ".encode("cp1252")
@@ -47,25 +54,63 @@ def test_validity_ignores_bytes_past_cap() -> None:
     with_garbage = body + garbage
 
     clean = chardet.detect(body, max_bytes=len(body))
-    dirty = chardet.detect(with_garbage, max_bytes=len(with_garbage))
     assert clean["encoding"] == "Windows-1252"
-    assert dirty == clean
+
+    dirty = chardet.detect(with_garbage, max_bytes=len(with_garbage))
+    assert dirty["encoding"] != "Windows-1252"
+    assert with_garbage.decode(dirty["encoding"])
+    ranking = chardet.detect_all(with_garbage, max_bytes=len(with_garbage))
+    assert ranking[0]["encoding"] == dirty["encoding"]
+    assert "Windows-1252" not in {r["encoding"] for r in ranking}
 
 
-def test_structural_ignores_bytes_past_cap() -> None:
-    """Structure-breaking bytes after the cap no longer wreck CJK detection.
+def test_no_candidate_decoding_the_window_falls_back() -> None:
+    """When nothing in the ranking decodes the window, the no-match fallback answers."""
+    body = _beyond_cap(
+        "Le cœur a ses raisons que la raison ne connaît point. ".encode("cp1252")
+    )
+    with_garbage = body + b"\x81\x8d\x9d" * 50
+    result = chardet.detect(
+        with_garbage,
+        max_bytes=len(with_garbage),
+        include_encodings=["cp1252", "cp1250"],
+        no_match_encoding="cp1252",
+    )
+    assert (result["encoding"], result["confidence"]) == ("Windows-1252", 0.10)
+
+
+def test_validity_hold_skips_entries_without_an_encoding() -> None:
+    """An encoding-less entry is not decodable and cannot satisfy the hold."""
+    data = b"x" * (EVIDENCE_CAP_BYTES + 1)
+    results = [DetectionResult(None, 0.0, None), DetectionResult("ascii", 0.5, None)]
+    held = _hold_validity_past_cap(
+        data, data[:EVIDENCE_CAP_BYTES], results, frozenset({"ascii"}), "ascii"
+    )
+    assert [r.encoding for r in held] == ["ascii"]
+
+
+def test_structure_breaking_bytes_past_cap_yield_a_decodable_answer() -> None:
+    """Corrupt CJK past the cap gets a low-confidence answer that decodes.
 
     0x82 0x39 is an invalid lead/trail pair in Shift_JIS, CP932, and EUC-JP
-    alike; before ADR-0006 it eliminated every Japanese candidate.
+    alike.  Structural probing converges on the first 256 KB and still
+    ranks CP932 first, but the validity hold will not hand back an answer
+    the window cannot be decoded with, so every Japanese candidate drops
+    and the best-ranked codec that decodes the window answers, at the
+    confidence it earned.  That is the 7.6.0 outcome for this input, where
+    validity read the whole window.
     """
     body = _beyond_cap("吾輩は猫である。名前はまだ無い。".encode("shift_jis"))
     garbage = b"\x82\x39" * 100
     with_garbage = body + garbage
 
     clean = chardet.detect(body, max_bytes=len(body))
-    dirty = chardet.detect(with_garbage, max_bytes=len(with_garbage))
     assert clean["encoding"] in ("SHIFT_JIS", "CP932")
-    assert dirty == clean
+
+    dirty = chardet.detect(with_garbage, max_bytes=len(with_garbage))
+    assert dirty["encoding"] not in ("SHIFT_JIS", "CP932")
+    assert dirty["confidence"] < clean["confidence"]
+    assert with_garbage.decode(dirty["encoding"])
 
 
 def test_utf7_validator_converges_on_cap() -> None:

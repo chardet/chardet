@@ -320,7 +320,12 @@ first 256 KB; statistical scoring on the first 16 KB; language detection
 on the first 2 KB. The caps are convergence bounds, not correctness
 bounds --- more bytes were not changing those answers --- and they sit
 above the default window, so nothing on the rest of this page depends
-on them.
+on them. One verdict is held exact past the cap regardless: the
+encoding returned decodes the whole window. After the bounded stages
+settle, the winner is decoded over the window, and when it fails the
+next candidate that decodes takes its place, so legacy single-byte and
+CJK buffers past the cap pay one C-speed decode of the window on top
+of the exhaustive scans.
 
 The practical consequence: the UTF-8 verdict is *validated*, not
 sampled. chardet never reports ``utf-8`` for data that is not valid

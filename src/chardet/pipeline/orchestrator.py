@@ -7,7 +7,7 @@ annotations.
 
 import warnings
 
-from chardet._utils import DEFAULT_MAX_BYTES, EVIDENCE_CAP_BYTES
+from chardet._utils import DEFAULT_MAX_BYTES, EVIDENCE_CAP_BYTES, decodes_without_error
 from chardet.enums import EncodingEra
 from chardet.pipeline import (
     _NONE_RESULT,
@@ -72,6 +72,43 @@ def _make_fallback_or_none(
         )
         return [_NONE_RESULT]
     return [DetectionResult(encoding=encoding, confidence=0.10, language=None)]
+
+
+def _hold_validity_past_cap(
+    data: bytes,
+    evidence: bytes,
+    results: list[DetectionResult],
+    allowed: frozenset[str],
+    no_match_encoding: str,
+) -> list[DetectionResult]:
+    """Keep the validity contract for the part of the window past the evidence cap.
+
+    Byte-validity filtering converges on the first ``EVIDENCE_CAP_BYTES``
+    of the window (ADR-0006), so on a longer window a candidate that
+    cannot decode the rest can still reach the top.  What callers rely on
+    is that the answer decodes the window chardet examined: they pass
+    ``max_bytes`` precisely to say how much of the input the verdict is
+    about.  So walk the corrected ranking and drop every entry ahead of
+    the first one that decodes the whole window, under the same tolerant
+    judgment the validity filter passes on the evidence slice.  Those
+    entries are what validity would have removed had it seen the bytes;
+    the survivors keep their own ranks and confidences, since nothing
+    about the evidence they were scored on has changed.
+
+    The walk is bounded by the ranking's length, each step is one C-speed
+    decode that stops at the first bad byte, and it costs nothing at all
+    when the window fits inside the cap, which every default call does.
+    Entries below the first decodable one are not re-examined, so a
+    ``detect_all`` ranking on a long window is exact down to its winner
+    and unverified past it.  When no listed entry decodes, the answer is
+    the no-match fallback, as it is when validity leaves nothing.
+    """
+    if len(data) <= len(evidence):
+        return results
+    for i, r in enumerate(results):
+        if r.encoding is not None and decodes_without_error(data, r.encoding):
+            return results if i == 0 else results[i:]
+    return _make_fallback_or_none(no_match_encoding, allowed, "no_match_encoding")
 
 
 # Minimum structural score (valid multi-byte sequences / lead bytes) required
@@ -398,8 +435,11 @@ def _run_pipeline_core(  # noqa: PLR0913
                 full_ranking=full_ranking,
             )
             if results:
-                return postprocess_results(
+                results = postprocess_results(
                     evidence, results, input_truncated=evidence_truncated
+                )
+                return _hold_validity_past_cap(
+                    data, evidence, results, allowed, no_match_encoding
                 )
 
     # Stage 3: Statistical scoring for all remaining candidates.
@@ -414,7 +454,8 @@ def _run_pipeline_core(  # noqa: PLR0913
 
     # Rank corrections reason about the same evidence window the ranking
     # came from, which also bounds their byte-presence scans.
-    return postprocess_results(evidence, results, input_truncated=evidence_truncated)
+    results = postprocess_results(evidence, results, input_truncated=evidence_truncated)
+    return _hold_validity_past_cap(data, evidence, results, allowed, no_match_encoding)
 
 
 def run_pipeline(  # noqa: PLR0913
