@@ -90,6 +90,42 @@ Unreleased
   process at import.  Importing the shim is no longer an error under
   ``-W error::DeprecationWarning``.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+- A mostly-ASCII Windows-1252 file whose only non-ASCII content is a
+  lone accented-letter pair (one ``Ö``/``ö``) no longer detects as
+  HP-Roman8.  The niche Latin demotion stood down whenever the data
+  contained any byte the candidate decodes differently from ISO-8859-1,
+  but presence is symmetric: Windows-1252 reads that 0xD6 as ``Ö`` and
+  HP-Roman8 as ``ø``, so both candidates contain the byte and it alone
+  says nothing about which reading is right.  The demotion now
+  arbitrates the candidate against its swap target on the distinguishing
+  bytes the way confusion resolution arbitrates its pairs.  The bigram
+  models decide when they know the bytes, so one Welsh ``ŵ`` still keeps
+  ISO-8859-14.  Word shape decides when they do not, so a Kven ``đ`` in
+  Finnish prose keeps ISO-8859-10, a letter between letters beating the
+  superscript Windows-1252 reads there.  An evidence-free tie goes to the
+  prevalent encoding.  A candidate leading its swap target by more than
+  the confusion band is not second-guessed on a handful of bytes.
+  The demotion's replacement is likewise no longer picked by sub-epsilon
+  noise: among common Latin candidates tied with the best-placed of them,
+  era prevalence chooses (Windows-1252 over ISO-8859-1), while a
+  candidate leading its rivals by a real margin is still promoted on
+  confidence.  Some corpus files that came back as ISO-8859-1 now come
+  back as Windows-1252, an accepted superset answer for them.
+  (`António Afonso <https://github.com/aadsm>`_ via Claude,
+  `#383 <https://github.com/chardet/chardet/pull/383>`_)
+- An English file whose only non-ASCII letter is a capital ``É``, ``À``
+  or ``Ó`` no longer detects as MacRoman.  The MacRoman model reads those
+  bytes as the ellipsis and curly quotes English text is full of, which
+  handed it a lead worth 2e-5 and kept the era-prevalence prior from
+  stepping in: the prior stood down whenever the leading model weighted
+  any observed high-byte bigram.  It now arbitrates such a leader against
+  the prevalent candidate tied with it on the bytes the two read
+  differently, every language variant on both sides, and promotes the
+  prevalent candidate when it wins outright.  A tie keeps the leader, so
+  ISO-8859-1 results tied with Windows-1252 on data without C1 bytes are
+  unchanged.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude,
+  `#383 <https://github.com/chardet/chardet/pull/383>`_)
 
 **Build:**
 

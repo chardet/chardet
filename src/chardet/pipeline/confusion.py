@@ -523,36 +523,19 @@ def _best_variant_score(
     )
 
 
-def resolve_by_bigram_rescore(
-    data: bytes,
-    enc_a: str,
-    enc_b: str,
-    diff_bytes: frozenset[int],
-    languages: frozenset[str] = frozenset(),
-) -> str | None:
-    """Resolve between two encodings by re-scoring only distinguishing bigrams.
+def build_focused_profile(
+    data: bytes, diff_bytes: frozenset[int]
+) -> BigramProfile | None:
+    """Build the bigram profile of *data* restricted to *diff_bytes* context.
 
-    Builds a focused bigram profile containing only bigrams where at least one
-    byte is a distinguishing byte, then scores both encodings under the
-    languages they can be compared in (see :func:`_comparable_languages`).
-
-    There is no abstention path here: when the pair has no comparable
-    language the comparison widens to every variant rather than declining
-    to answer.  That is why a Danish mac-roman/mac-turkish document, whose
-    pair models disjoint languages, is still decided by the Turkish model
-    the rescore has no business consulting — the caller's category vote is
-    better placed on such evidence, and overriding this to abstain was
-    measured as costing more accuracy than it recovers.
+    The profile holds only bigrams where at least one byte is in
+    *diff_bytes*, weighted by IDF like the full-input profile, so scoring a
+    model against it asks how well that model explains the bytes two
+    encodings read differently, and nothing else.  Returns ``None`` when
+    *data* cannot form a bigram or contains no distinguishing byte.
 
     :param data: The raw byte data to examine.
-    :param enc_a: First encoding name.
-    :param enc_b: Second encoding name.
     :param diff_bytes: Byte values where the two encodings differ.
-    :param languages: Languages the ranked results report for this pair;
-        empty when the caller has no ranking to draw on, which scores
-        every variant.
-    :returns: The winning encoding name, or ``None`` if tied or if no
-        distinguishing byte occurs in *data*.
     """
     if len(data) < 2:
         return None
@@ -565,8 +548,6 @@ def resolve_by_bigram_rescore(
     hits = len(data.translate(None, non_diff))
     if not hits:
         return None
-
-    comparable = _comparable_languages(enc_a, enc_b, languages)
 
     idf = get_idf_weights()
     freq: dict[int, int] = {}
@@ -607,7 +588,45 @@ def resolve_by_bigram_rescore(
     if not freq:  # pragma: no cover
         return None
 
-    profile = BigramProfile.from_weighted_freq(freq)
+    return BigramProfile.from_weighted_freq(freq)
+
+
+def resolve_by_bigram_rescore(
+    data: bytes,
+    enc_a: str,
+    enc_b: str,
+    diff_bytes: frozenset[int],
+    languages: frozenset[str] = frozenset(),
+) -> str | None:
+    """Resolve between two encodings by re-scoring only distinguishing bigrams.
+
+    Builds a focused bigram profile containing only bigrams where at least one
+    byte is a distinguishing byte, then scores both encodings under the
+    languages they can be compared in (see :func:`_comparable_languages`).
+
+    There is no abstention path here: when the pair has no comparable
+    language the comparison widens to every variant rather than declining
+    to answer.  That is why a Danish mac-roman/mac-turkish document, whose
+    pair models disjoint languages, is still decided by the Turkish model
+    the rescore has no business consulting — the caller's category vote is
+    better placed on such evidence, and overriding this to abstain was
+    measured as costing more accuracy than it recovers.
+
+    :param data: The raw byte data to examine.
+    :param enc_a: First encoding name.
+    :param enc_b: Second encoding name.
+    :param diff_bytes: Byte values where the two encodings differ.
+    :param languages: Languages the ranked results report for this pair;
+        empty when the caller has no ranking to draw on, which scores
+        every variant.
+    :returns: The winning encoding name, or ``None`` if tied or if no
+        distinguishing byte occurs in *data*.
+    """
+    profile = build_focused_profile(data, diff_bytes)
+    if profile is None:
+        return None
+
+    comparable = _comparable_languages(enc_a, enc_b, languages)
 
     index = get_enc_index()
     best_a = _best_variant_score(profile, index, enc_a, comparable)
@@ -618,6 +637,101 @@ def resolve_by_bigram_rescore(
     if best_b > best_a:
         return enc_b
     return None
+
+
+@functools.cache
+def differing_high_bytes(enc_a: str, enc_b: str) -> frozenset[int]:
+    """Byte values >= 0x80 that *enc_a* and *enc_b* decode to different text.
+
+    The distinguishing set for a pair the confusion maps do not cover,
+    computed from the codecs themselves.  A byte only one side can decode
+    counts as differing.  Bytes below 0x80 are left out: the callers ask
+    about high-byte evidence, and every single-byte Latin family agrees
+    on ASCII anyway.
+    """
+    out: set[int] = set()
+    for b in range(0x80, 0x100):
+        raw = bytes((b,))
+        try:
+            text_a: str | None = raw.decode(enc_a)
+        except UnicodeDecodeError:
+            text_a = None
+        try:
+            text_b: str | None = raw.decode(enc_b)
+        except UnicodeDecodeError:
+            text_b = None
+        if text_a != text_b:
+            out.add(b)
+    return frozenset(out)
+
+
+@functools.cache
+def _pair_categories(
+    enc_a: str, enc_b: str, diff_bytes: frozenset[int]
+) -> dict[int, tuple[str, str]]:
+    """Unicode general categories of each distinguishing byte under both encodings.
+
+    The confusion maps carry this table for their own pairs; callers that
+    arbitrate a pair the maps do not cover (the niche-Latin demotion's
+    candidate against its swap target) build it here.  A byte one side
+    cannot decode reads as unassigned (``Cn``), which the vote treats as
+    the least plausible reading of all.
+    """
+    table: dict[int, tuple[str, str]] = {}
+    for b in diff_bytes:
+        cats = []
+        for enc in (enc_a, enc_b):
+            try:
+                ch = bytes([b]).decode(enc)
+            except UnicodeDecodeError:
+                cats.append("Cn")
+                continue
+            cats.append(unicodedata.category(ch) if len(ch) == 1 else "Cn")
+        table[b] = (cats[0], cats[1])
+    return table
+
+
+def arbitrate_distinguishing_bytes(  # noqa: PLR0913
+    data: bytes,
+    enc_a: str,
+    enc_b: str,
+    diff_bytes: frozenset[int],
+    *,
+    languages_a: frozenset[str] | None,
+    languages_b: frozenset[str] | None,
+) -> str | None:
+    """Decide a pair on its distinguishing bytes: model rescore, then context.
+
+    The in-band rule of :func:`resolve_confusion_groups` for a pair the
+    confusion maps do not cover, with one difference: each side is scored
+    under the languages the caller names for it rather than the shared
+    set.  The bigram rescore decides when the models have an opinion; when
+    they score the distinguishing bigrams equally (usually both at zero,
+    a byte neither model has seen in that context), the category vote
+    reads word shape instead, so a letter between letters still beats a
+    superscript between letters.  Returns ``None`` when neither step can
+    tell the two apart.
+
+    :param data: The raw byte data to examine.
+    :param enc_a: First encoding name.
+    :param enc_b: Second encoding name.
+    :param diff_bytes: Byte values where the two encodings differ.
+    :param languages_a: Variants of *enc_a* to score; ``None`` for all.
+    :param languages_b: Variants of *enc_b* to score; ``None`` for all.
+    """
+    profile = build_focused_profile(data, diff_bytes)
+    if profile is not None:
+        index = get_enc_index()
+        best_a = _best_variant_score(profile, index, enc_a, languages_a)
+        best_b = _best_variant_score(profile, index, enc_b, languages_b)
+        if best_a > best_b:
+            return enc_a
+        if best_b > best_a:
+            return enc_b
+    winner, _margin, _demotion, _events = _vote_with_margin(
+        data, enc_a, enc_b, diff_bytes, _pair_categories(enc_a, enc_b, diff_bytes)
+    )
+    return winner
 
 
 def _find_pair_key(

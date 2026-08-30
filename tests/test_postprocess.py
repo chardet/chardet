@@ -1,13 +1,20 @@
 # tests/test_postprocess.py
 from __future__ import annotations
 
+import re
 from collections.abc import Callable
 from unittest.mock import patch
 
 import pytest
+from utils import get_data_dir
 
+from chardet import detect
 from chardet.pipeline import DetectionResult, postprocess
-from chardet.pipeline.confusion import CONFUSION_FLOOR_RATIO, STRICT_TIER_MAX_CONF
+from chardet.pipeline.confusion import (
+    CONFUSION_BAND,
+    CONFUSION_FLOOR_RATIO,
+    STRICT_TIER_MAX_CONF,
+)
 from chardet.pipeline.postprocess import (
     _demote_niche_latin,
     _promote_koi8t,
@@ -37,16 +44,90 @@ def test_demote_niche_latin():
     assert demoted[0].encoding == "cp1252"
 
 
-def test_demote_niche_latin_no_demote_when_distinguishing():
-    """iso-8859-10 should NOT be demoted when distinguishing bytes are present."""
+def test_demote_niche_latin_keeps_the_reading_the_models_prefer():
+    """One Welsh w-circumflex keeps iso-8859-14 on a dead heat.
+
+    Presence of a distinguishing byte is not the guard any more; what
+    keeps the candidate is that its own model knows the bigrams that byte
+    forms while the swap target's model reads them as a Welsh ``ð`` it has
+    never seen.  Sparse evidence with a preferred reading still counts.
+    """
     results = [
-        DetectionResult("iso8859-10", 0.90, None),
-        DetectionResult("cp1252", 0.85, None),
+        DetectionResult("iso8859-14", 0.39, "cy"),
+        DetectionResult("cp1252", 0.39, "cy"),
     ]
-    # 0xA1 differs between iso-8859-10 and iso-8859-1
-    data = bytes([0xA1, 0xE9, 0xF6])
+    data = "Mae dŵr yn llifo drwy'r dref.".encode("iso8859-14")
+    demoted = _demote_niche_latin(data, results)
+    assert demoted[0].encoding == "iso8859-14"
+
+
+def test_demote_niche_latin_keeps_the_reading_word_shape_prefers():
+    """A byte no model has seen is decided on context, not demoted outright.
+
+    Kven dialogue in Finnish prose: neither the Finnish iso-8859-10 model
+    nor the Finnish windows-1252 model has a bigram for ``đ``, so the
+    rescore ties, and the category vote keeps iso-8859-10 because a letter
+    between letters beats the superscript ``¹`` windows-1252 reads there.
+    """
+    results = [
+        DetectionResult("iso8859-10", 0.39, "fi"),
+        DetectionResult("cp1252", 0.39, "fi"),
+    ]
+    data = b"- Mie uskoma, ette se oon mah\xb9olista rakenttaat omaksi tuo m\xf6kki."
     demoted = _demote_niche_latin(data, results)
     assert demoted[0].encoding == "iso8859-10"
+
+
+def test_demote_niche_latin_demotes_an_evidence_free_tie():
+    """A distinguishing byte both readings shrug at does not veto.
+
+    A mostly-ASCII Windows-1252 file whose only non-ASCII bytes are one
+    0xD6/0xF6 pair carries 0xD6, in hp-roman8's distinguishing set, but
+    neither hp-roman8's English model (``ø`` mid-word) nor windows-1252's
+    (``Ö`` mid-word) has seen that context, and both readings are letters
+    between letters, so the vote is silent too.  The evidence-free tie
+    goes to the prevalent encoding.
+    """
+    body = b"plain ascii text that goes on and on, filling space. " * 40
+    data = body + b"St\xd6rung? s\xf6mething. " + body
+    results = [
+        DetectionResult("hp-roman8", 0.39, "en"),
+        DetectionResult("cp1252", 0.39, "en"),
+    ]
+    demoted = _demote_niche_latin(data, results)
+    assert demoted[0].encoding == "cp1252"
+
+
+def test_demote_niche_latin_demotes_when_the_target_reads_the_bytes_better():
+    """Distinguishing bytes can also argue *for* the swap target.
+
+    German prose with capital umlauts: hp-roman8 reads 0xC4 and 0xD6 as
+    lowercase ``á``/``ø`` inside capitalised words, and its German model
+    scores those bigrams below windows-1252's reading of them.
+    """
+    results = [
+        DetectionResult("hp-roman8", 0.39, "de"),
+        DetectionResult("cp1252", 0.39, "de"),
+    ]
+    data = "Die Österreicher und die Ärzte in München.".encode("cp1252")
+    demoted = _demote_niche_latin(data, results)
+    assert demoted[0].encoding == "cp1252"
+
+
+def test_demote_niche_latin_does_not_second_guess_a_decided_win():
+    """Arbitration on a few bytes only applies inside the confusion band.
+
+    The same lone-umlaut input as the tie test, but with hp-roman8 leading
+    by more than :data:`CONFUSION_BAND`: that lead was earned on the full
+    statistics and stands.
+    """
+    results = [
+        DetectionResult("hp-roman8", 0.39 + 2 * CONFUSION_BAND, "en"),
+        DetectionResult("cp1252", 0.39, "en"),
+    ]
+    data = b"St\xd6rung? s\xf6mething."
+    demoted = _demote_niche_latin(data, results)
+    assert demoted[0].encoding == "hp-roman8"
 
 
 def test_promote_koi8t_with_tajik_bytes():
@@ -85,6 +166,63 @@ def test_promote_koi8t_returns_early_when_koi8t_absent():
     assert returned[0].encoding == "koi8-r"
 
 
+def test_demote_niche_latin_swap_prefers_prevalent_in_dead_heat():
+    """Era prevalence picks the swap target among tied common Latin candidates.
+
+    Inside the dead-heat band the confidence order between iso-8859-1 and
+    windows-1252 is noise (the demotion's own premise), so the replacement
+    must not depend on it: windows-1252 (era rank 1) wins over iso-8859-1
+    (era rank 2) even though iso-8859-1 ranks higher.
+    """
+    results = [
+        DetectionResult("hp-roman8", 0.39, "en"),
+        DetectionResult("cp437", 0.389995, "en"),
+        DetectionResult("iso8859-1", 0.38999, "en"),
+        DetectionResult("cp1252", 0.38998, "en"),
+    ]
+    data = bytes([0xE9])  # no hp-roman8-distinguishing byte -> demote
+    demoted = _demote_niche_latin(data, results)
+    assert demoted[0].encoding == "cp1252"
+    assert demoted[-1].encoding == "hp-roman8"
+
+
+def test_demote_niche_latin_swap_confidence_wins_outside_band():
+    """A real margin between the common Latin rivals still decides.
+
+    windows-1252 trails the best common Latin candidate (iso-8859-1) by
+    0.04 — far outside the band — so it lost on real evidence and
+    prevalence must not resurrect it.
+    """
+    results = [
+        DetectionResult("hp-roman8", 0.90, "en"),
+        DetectionResult("iso8859-1", 0.89, "en"),
+        DetectionResult("cp1252", 0.85, "en"),
+    ]
+    data = bytes([0xE9])  # no hp-roman8-distinguishing byte -> demote
+    demoted = _demote_niche_latin(data, results)
+    assert demoted[0].encoding == "iso8859-1"
+    assert demoted[-1].encoding == "hp-roman8"
+
+
+def test_demote_niche_latin_swap_band_anchors_on_best_common_latin():
+    """The tie band is anchored at the best common Latin, not the demoted top.
+
+    Both commons sit far below the demoted top (0.05, outside its band)
+    but only 5e-6 apart from each other — separable from the top, not
+    from each other.  Whether two rivals are separable is a fact about
+    their own gap, so era prevalence must still pick windows-1252.
+    """
+    results = [
+        DetectionResult("hp-roman8", 0.90, "en"),
+        DetectionResult("iso8859-1", 0.85, "en"),
+        DetectionResult("cp1252", 0.849995, "en"),
+    ]
+    data = bytes([0xE9])  # no hp-roman8-distinguishing byte -> demote
+    demoted = _demote_niche_latin(data, results)
+    assert demoted[0].encoding == "cp1252"
+    assert demoted[-1].encoding == "hp-roman8"
+
+
 def test_demote_niche_latin_iso_8859_14():
     """iso-8859-14 at top should be demoted when no distinguishing bytes."""
     results = [
@@ -107,6 +245,109 @@ def test_demote_niche_latin_windows_1254():
     assert demoted[0].encoding == "cp1252"
 
 
+def test_demote_niche_latin_ignores_a_common_latin_top():
+    """Only the four niche candidates are ever demoted; a lone result never is."""
+    results = [
+        DetectionResult("cp1252", 0.90, "en"),
+        DetectionResult("hp-roman8", 0.85, "en"),
+    ]
+    assert _demote_niche_latin(bytes([0xE9]), results) is results
+    assert _demote_niche_latin(bytes([0xE9]), results[1:]) == results[1:]
+
+
+def test_demote_niche_latin_needs_a_common_latin_target():
+    """With no common Latin candidate below the top there is nothing to swap in."""
+    results = [
+        DetectionResult("hp-roman8", 0.90, "en"),
+        DetectionResult("cp437", 0.85, "en"),
+    ]
+    assert _demote_niche_latin(bytes([0xE9]), results) is results
+
+
+def test_demote_niche_latin_swap_equal_era_ranks_keep_confidence_order():
+    """Two commons of the same era inside the band stay in ranked order.
+
+    iso-8859-15 and iso-8859-1 are both legacy ISO; prevalence cannot
+    separate them, so the higher-ranked one is the swap target.
+    """
+    results = [
+        DetectionResult("hp-roman8", 0.39, "en"),
+        DetectionResult("iso8859-15", 0.38999, "en"),
+        DetectionResult("iso8859-1", 0.389989, "en"),
+    ]
+    data = bytes([0xE9])  # no hp-roman8-distinguishing byte -> demote
+    assert _demote_niche_latin(data, results)[0].encoding == "iso8859-15"
+    results[1], results[2] = (
+        DetectionResult("iso8859-1", 0.38999, "en"),
+        DetectionResult("iso8859-15", 0.389989, "en"),
+    )
+    assert _demote_niche_latin(data, results)[0].encoding == "iso8859-1"
+
+
+def test_demote_niche_latin_single_byte_input():
+    """One distinguishing byte and nothing else forms no bigram: no evidence."""
+    results = [
+        DetectionResult("hp-roman8", 0.39, "en"),
+        DetectionResult("cp1252", 0.39, "en"),
+    ]
+    assert _demote_niche_latin(b"\xd6", results)[0].encoding == "cp1252"
+
+
+def test_demote_niche_latin_end_to_end_lone_umlaut_pair():
+    """The full pipeline resolves a lone umlaut pair to Windows-1252.
+
+    The reproduction from the report that motivated the arbitration: a
+    mostly-ASCII file whose only non-ASCII bytes are one 0xD6/0xF6 pair.
+    The tests above hand ``_demote_niche_latin`` a ranking; this one pins
+    ``detect()`` itself, so a change anywhere upstream of the demotion
+    (scoring, dead-heat priors, chain order) that breaks the outcome is
+    caught.  The prevalence swap is pinned separately by the swap unit
+    tests: on this input windows-1252 already leads the other common
+    Latin candidates inside the tie band.
+    """
+    sentence = (
+        b"This is a mostly ASCII file with plain sentences that go on "
+        b"and on, describing nothing in particular, just filling space "
+        b"the way source files and configuration files usually do. "
+    )
+    data = sentence * 6 + b"St\xd6rung? s\xf6mething. " + sentence * 6
+    assert detect(data)["encoding"] == "Windows-1252"
+
+
+#: Corpus inputs whose distinguishing bytes are sparse but real, where the
+#: demotion must stand down.  The accuracy suite reads whole files, so the
+#: prefixes never reach it, and the hp-roman8-en page carries a charset
+#: declaration that decides it there before the demotion is consulted.
+_SPARSE_EVIDENCE_CASES = (
+    # One w-circumflex in 2790 bytes of Welsh; the models know it.
+    ("iso-8859-14-cy/culturax_mC4_78730.txt", 768, "raw", "iso8859-14"),
+    ("iso-8859-14-cy/culturax_mC4_78730.txt", 2048, "raw", "iso8859-14"),
+    # The English hp-roman8 variant wins on ASCII bulk; the French accents
+    # still read better under it than under windows-1252's capitals.
+    ("hp-roman8-fr/historic_c8503b2f176c.txt", 512, "raw", "hp-roman8"),
+    ("hp-roman8-fr/historic_c8503b2f176c.txt", 1024, "raw", "hp-roman8"),
+    # 27 accented letters in 16 KB, once the <meta charset> is stripped.
+    ("hp-roman8-en/historic_090eae0374e5.txt", None, "strip-meta", "hp-roman8"),
+    # One Kven d-stroke in 9 KB of Finnish; word shape decides.
+    ("iso-8859-10-fi/culturax_00002.txt", None, "raw", "iso8859-10"),
+)
+
+
+@pytest.mark.parametrize(
+    ("relpath", "limit", "prepare", "expected"), _SPARSE_EVIDENCE_CASES
+)
+def test_demote_niche_latin_stands_down_on_sparse_evidence(
+    relpath: str, limit: int | None, prepare: str, expected: str
+):
+    """Genuine niche-Latin text with few distinguishing bytes keeps its encoding."""
+    data = (get_data_dir() / relpath).read_bytes()
+    if prepare == "strip-meta":
+        data = re.sub(rb"(?i)<meta[^>]*charset[^>]*>", b"", data)
+    if limit is not None:
+        data = data[:limit]
+    assert detect(data, compat_names=False)["encoding"] == expected
+
+
 def test_demote_niche_latin_survives_a_confidence_resort():
     """The demotion must outlive a re-sort, not just reorder the list.
 
@@ -124,7 +365,7 @@ def test_demote_niche_latin_survives_a_confidence_resort():
     ]
     data = bytes([0xC0, 0xC1, 0xC2])
     demoted = _demote_niche_latin(data, results)
-    assert demoted[0].encoding == "iso8859-1"
+    assert demoted[0].encoding == "cp1252"  # most prevalent of the tied commons
     assert demoted[-1].encoding == "iso8859-14"
     confidences = [r.confidence for r in demoted]
     assert confidences == sorted(confidences, reverse=True)
@@ -246,6 +487,65 @@ def test_era_rank_unknown_encoding_ranks_last():
 def test_high_byte_evidence_without_variants_is_absent():
     """An encoding with no model variants has no high-byte evidence."""
     assert postprocess._has_high_byte_evidence(b"\xe9ab", "not-a-codec", None) is False
+
+
+def test_prevalent_dead_heat_arbitrates_a_top_with_evidence():
+    """Weight on one high-byte bigram does not put the top beyond the prior.
+
+    MacRoman reads 0xC9 as an ellipsis and its English model likes that;
+    Windows-1252 reads it as ``É`` and its French model likes that more.
+    The prevalent candidate wins the arbitration and is promoted.
+    """
+    english = b"plain english sentences filling the file " * 8
+    data = english + b"the \xc9cole normale. " + english
+    results = [
+        DetectionResult("mac-roman", 0.3889, "en"),
+        DetectionResult("cp1252", 0.38885, "en"),
+    ]
+    promoted = postprocess._prefer_prevalent_on_dead_heat(data, results)
+    assert promoted[0].encoding == "cp1252"
+    assert promoted[0].confidence == 0.3889
+
+
+def test_prevalent_dead_heat_keeps_a_top_the_arbitration_cannot_fault():
+    """A tie on the differing bytes leaves the statistical order alone.
+
+    iso-8859-1 and windows-1252 differ only at 0x80 to 0x9F; data without
+    C1 bytes gives the arbitration nothing to read, and the top stays.
+    """
+    data = b"la fen\xeatre \xe9tait ferm\xe9e " * 8
+    results = [
+        DetectionResult("iso8859-1", 0.5, "fr"),
+        DetectionResult("cp1252", 0.5 - 1e-5, "fr"),
+    ]
+    assert postprocess._prefer_prevalent_on_dead_heat(data, results) is results
+
+
+def test_prevalent_dead_heat_keeps_a_top_that_wins_the_arbitration():
+    """The prevalent candidate is promoted only when it wins outright.
+
+    Scored under every variant, windows-1252's Icelandic model would win
+    ``dŵr`` by reading it as ``dðr``; the comparison is restricted to the
+    languages both encodings model, and under those iso-8859-14 wins.
+    """
+    data = "Mae dŵr yn llifo drwy'r dref. ".encode("iso8859-14") * 8
+    results = [
+        DetectionResult("iso8859-14", 0.5, "cy"),
+        DetectionResult("cp1252", 0.5 - 1e-5, "cy"),
+    ]
+    assert postprocess._prefer_prevalent_on_dead_heat(data, results) is results
+
+
+def test_lone_capital_accent_in_english_is_not_mac_roman():
+    """End to end: one ``É`` in ASCII English detects as Windows-1252."""
+    sentence = (
+        b"This is a mostly ASCII file with plain sentences that go on "
+        b"and on, describing nothing in particular, just filling space "
+        b"the way source files and configuration files usually do. "
+    )
+    for insert in (b"the \xc9cole normale. ", b"by \xc9tienne. ", b"\xc0 Paris. "):
+        data = sentence * 6 + insert + sentence * 6
+        assert detect(data)["encoding"] == "Windows-1252", insert
 
 
 def test_prevalent_dead_heat_skips_binary_entries():

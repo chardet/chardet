@@ -751,3 +751,101 @@ def test_resolve_confusion_groups_strict_tier_corroborated():
     resolved = confusion_mod.resolve_confusion_groups(_UKRAINIAN_KOI8U, results)
     assert resolved[0].encoding == "koi8-u"
     assert resolved[0].confidence == 0.10
+
+
+def test_pair_categories_marks_undecodable_bytes_unassigned():
+    """A byte one side cannot decode reads as the least plausible category."""
+    assert confusion_mod._pair_categories("cp1252", "hp-roman8", frozenset({0x81})) == {
+        0x81: ("Cn", "Cc")
+    }
+
+
+def test_pair_categories_marks_zero_char_decodes_unassigned():
+    """A stateful codec's zero-character decode has no category to read."""
+    assert confusion_mod._pair_categories("utf-7", "ascii", frozenset({0x2B})) == {
+        0x2B: ("Cn", "Sm")
+    }
+
+
+def test_arbitrate_distinguishing_bytes_lets_the_models_decide():
+    """When the models score the distinguishing bigrams apart, they decide."""
+    welsh = "Mae dŵr yn llifo drwy'r dref.".encode("iso8859-14")
+    assert (
+        confusion_mod.arbitrate_distinguishing_bytes(
+            welsh,
+            "iso8859-14",
+            "cp1252",
+            frozenset({0xF0}),
+            languages_a=frozenset({"cy"}),
+            languages_b=frozenset({"cy"}),
+        )
+        == "iso8859-14"
+    )
+    german = "Die Österreicher und die Ärzte in München.".encode("cp1252")
+    assert (
+        confusion_mod.arbitrate_distinguishing_bytes(
+            german,
+            "hp-roman8",
+            "cp1252",
+            frozenset({0xC4, 0xD6}),
+            languages_a=frozenset({"de"}),
+            languages_b=frozenset({"de"}),
+        )
+        == "cp1252"
+    )
+
+
+def test_arbitrate_distinguishing_bytes_falls_back_to_word_shape():
+    """A byte no model has seen is read by context: letter beats superscript."""
+    kven = b"- Mie uskoma, ette se oon mah\xb9olista rakenttaat omaksi tuo m\xf6kki."
+    assert (
+        confusion_mod.arbitrate_distinguishing_bytes(
+            kven,
+            "iso8859-10",
+            "cp1252",
+            frozenset({0xB9}),
+            languages_a=frozenset({"fi"}),
+            languages_b=frozenset({"fi"}),
+        )
+        == "iso8859-10"
+    )
+
+
+def test_arbitrate_distinguishing_bytes_declines_without_evidence():
+    """Two letter readings the models have never seen decide nothing."""
+    assert (
+        confusion_mod.arbitrate_distinguishing_bytes(
+            b"St\xd6rung? s\xf6mething.",
+            "hp-roman8",
+            "cp1252",
+            frozenset({0xD6}),
+            languages_a=frozenset({"en"}),
+            languages_b=frozenset({"en"}),
+        )
+        is None
+    )
+    # Too short for a bigram: no profile, straight to the (silent) vote.
+    assert (
+        confusion_mod.arbitrate_distinguishing_bytes(
+            b"\xd6",
+            "hp-roman8",
+            "cp1252",
+            frozenset({0xD6}),
+            languages_a=None,
+            languages_b=None,
+        )
+        is None
+    )
+
+
+def test_differing_high_bytes_is_the_c1_range_for_latin1_and_cp1252():
+    """iso-8859-1 and windows-1252 disagree exactly where windows-1252 has C1 glyphs."""
+    assert confusion_mod.differing_high_bytes("iso8859-1", "cp1252") == frozenset(
+        range(0x80, 0xA0)
+    )
+
+
+def test_differing_high_bytes_counts_undecodable_bytes_as_differing():
+    """0x81 is undefined in windows-1252 and a control in iso-8859-1: they differ."""
+    assert 0x81 in confusion_mod.differing_high_bytes("cp1252", "iso8859-1")
+    assert 0x81 in confusion_mod.differing_high_bytes("iso8859-1", "cp1252")
