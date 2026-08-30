@@ -19,6 +19,7 @@ and return the same dict for fluent chaining.
 
 from __future__ import annotations
 
+from chardet._utils import decodes_without_error
 from chardet.pipeline import DetectionDict
 
 # Preferred superset name for each encoding, used by the ``prefer_superset``
@@ -107,16 +108,32 @@ def _remap_encoding(result: DetectionDict, mapping: dict[str, str]) -> Detection
 
 def apply_preferred_superset(
     result: DetectionDict,
+    data: bytes | None = None,
 ) -> DetectionDict:
     """Replace the encoding name with its preferred Windows/CP superset.
 
     Modifies the ``"encoding"`` value in *result* in-place and returns *result*
     for fluent chaining.
 
+    The Windows code pages leave a few C1 positions undefined that their ISO
+    subsets map (0x81, 0x8D, 0x8F, 0x90, 0x9D under cp1252), so the remap is
+    decode-safe only for data that avoids them.  When *data* is given, the
+    remap applies only if the superset decodes it; otherwise the detected
+    name stands, being the one that does.
+
     :param result: A detection result dict containing an ``"encoding"`` key.
+    :param data: The bytes *result* was detected from, when known.
     :returns: The same *result* dict, modified in-place.
     """
-    return _remap_encoding(result, PREFERRED_SUPERSET)
+    enc = result.get("encoding")
+    if not isinstance(enc, str):
+        return result
+    superset = PREFERRED_SUPERSET.get(enc)
+    if superset is None:
+        return result
+    if data is None or decodes_without_error(data, superset):
+        result["encoding"] = superset
+    return result
 
 
 # Deprecated alias — kept for external consumers.

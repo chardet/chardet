@@ -78,6 +78,14 @@ Unreleased
 
 **Bug Fixes:**
 
+- ``prefer_superset=True`` no longer hands back a name that cannot
+  decode the examined window.  The Windows code pages leave a few C1
+  positions undefined that their ISO subsets map (0x81, 0x8D, 0x8F,
+  0x90, 0x9D under Windows-1252), and the remap applied regardless; it
+  now checks the data and keeps the detected name when the superset
+  cannot decode it.  ``apply_preferred_superset`` takes an optional
+  ``data`` argument for the check.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 - ``UniversalDetector`` no longer reads a buffer that filled to exactly
   ``max_bytes`` as the whole stream.  A ``feed()`` after the buffer was
   full did not mark it truncated, so the decode-safety flip could read a
