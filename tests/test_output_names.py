@@ -15,6 +15,19 @@ def test_apply_preferred_superset_ascii():
     assert d["encoding"] == "cp1252"
 
 
+def test_apply_preferred_superset_keeps_a_name_the_superset_cannot_decode():
+    """0x81 is undefined in cp1252; ISO-8859-1 data holding it keeps its name."""
+    result = {"encoding": "iso8859-1", "confidence": 0.9, "language": "fr"}
+    assert apply_preferred_superset(result, b"caf\xe9 \x81")["encoding"] == "iso8859-1"
+    assert apply_preferred_superset(result, b"caf\xe9")["encoding"] == "cp1252"
+
+
+def test_apply_preferred_superset_without_data_remaps_unconditionally():
+    """No data to check against: the remap is the caller's opt-in, as before."""
+    result = {"encoding": "iso8859-1", "confidence": 0.9, "language": "fr"}
+    assert apply_preferred_superset(result)["encoding"] == "cp1252"
+
+
 def test_apply_preferred_superset_no_match():
     d = {"encoding": "utf-8", "confidence": 1.0, "language": None}
     apply_preferred_superset(d)

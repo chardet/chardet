@@ -136,6 +136,11 @@ class UniversalDetector:
             msg = "feed() called after close() without reset()"
             raise ValueError(msg)
         if self._done:
+            # The buffer already holds max_bytes exactly, which the pipeline
+            # cannot tell apart from an input that was max_bytes long; only
+            # this flag says these bytes were cut off it.
+            if byte_str:
+                self._input_truncated = True
             return
         remaining = self._max_bytes - len(self._buffer)
         if remaining > 0:
@@ -192,7 +197,7 @@ class UniversalDetector:
         if self._result is not None:
             d = self._result.to_dict()
             if self._prefer_superset:
-                apply_preferred_superset(d)
+                apply_preferred_superset(d, bytes(self._buffer))
             if self._compat_names:
                 apply_compat_names(d)
             return d

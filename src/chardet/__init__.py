@@ -82,7 +82,11 @@ def detect(  # noqa: PLR0913
         ISO-8859-1 -> Windows-1252, EUC-KR -> CP949).  Recommended when the
         result will be used to decode: detection examines at most
         *max_bytes* of input, and only the superset is guaranteed to decode
-        bytes beyond that window.  If ``False`` (default), the detected
+        bytes beyond that window.  The remap is skipped when the superset
+        cannot decode the examined window itself (the Windows code pages
+        leave a few C1 positions undefined that the ISO subsets map), so
+        the reported name always decodes what was examined.  If ``False``
+        (default), the detected
         encoding is reported under its own name --- note this only skips
         the renaming step; it is not a promise of the *smallest* matching
         encoding, since detection may natively choose a superset that fits
@@ -121,7 +125,7 @@ def detect(  # noqa: PLR0913
     )
     result = results[0].to_dict()
     if prefer_superset:
-        apply_preferred_superset(result)
+        apply_preferred_superset(result, data[:max_bytes])
     if compat_names:
         apply_compat_names(result)
     return result
@@ -198,9 +202,10 @@ def detect_all(  # noqa: PLR0913
         filtered = [d for d in dicts if d["confidence"] > MINIMUM_THRESHOLD]
         if filtered:
             dicts = filtered
+    window = data[:max_bytes]
     for d in dicts:
         if prefer_superset:
-            apply_preferred_superset(d)
+            apply_preferred_superset(d, window)
         if compat_names:
             apply_compat_names(d)
     return sorted(dicts, key=lambda d: d["confidence"], reverse=True)

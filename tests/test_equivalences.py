@@ -13,6 +13,7 @@ from __future__ import annotations
 import importlib
 import warnings
 from types import ModuleType
+from unittest import mock
 
 import pytest
 
@@ -166,3 +167,45 @@ def test_rebinding_an_unowned_name_stays_local():
         assert not hasattr(output_names, "a_name_nobody_owns")
     finally:
         del equivalences.a_name_nobody_owns
+
+
+def test_patch_object_round_trips_through_the_owner():
+    """``mock.patch.object`` on the shim patches the owner and restores it.
+
+    On exit the mock deletes the name and, finding it gone, sets the
+    original back.  Both steps have to reach the owner: a delete that
+    raised left the owner patched for the rest of the process, and a
+    re-set that found no owner would have stranded the original here.
+    """
+    original = evaluation.is_correct
+
+    def fake(*_args: object, **_kwargs: object) -> bool:
+        return True
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", DeprecationWarning)
+        with mock.patch.object(equivalences, "is_correct", fake):
+            assert evaluation.is_correct is fake
+    assert evaluation.is_correct is original
+    assert "is_correct" not in vars(equivalences)
+
+
+def test_deleting_an_owned_name_deletes_it_from_the_owner():
+    """A delete on the shim is a delete on the module that owns the name."""
+    original = evaluation.is_correct
+    try:
+        with pytest.warns(DeprecationWarning, match="is_correct"):
+            del equivalences.is_correct
+        assert not hasattr(evaluation, "is_correct")
+    finally:
+        evaluation.is_correct = original
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", DeprecationWarning)
+        assert equivalences.is_correct is original
+
+
+def test_deleting_an_unowned_name_stays_local():
+    """A name neither owner has is the shim's own, and so is its deletion."""
+    equivalences.locally_bound = 1
+    del equivalences.locally_bound
+    assert not hasattr(equivalences, "locally_bound")

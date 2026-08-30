@@ -78,6 +78,27 @@ Unreleased
 
 **Bug Fixes:**
 
+- ``unittest.mock.patch.object`` on the deprecated ``chardet.equivalences``
+  shim now restores the patched name on exit.  The shim proxied reads
+  and writes to the owning module but not deletes, so the mock raised on
+  exit and left ``chardet.evaluation`` patched for the rest of the
+  process.  Deletes are proxied too, and ownership is fixed at import so
+  the delete-then-restore round trip lands on the owner both times.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+- ``prefer_superset=True`` no longer hands back a name that cannot
+  decode the examined window.  The Windows code pages leave a few C1
+  positions undefined that their ISO subsets map (0x81, 0x8D, 0x8F,
+  0x90, 0x9D under Windows-1252), and the remap applied regardless; it
+  now checks the data and keeps the detected name when the superset
+  cannot decode it.  ``apply_preferred_superset`` takes an optional
+  ``data`` argument for the check.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+- ``UniversalDetector`` no longer reads a buffer that filled to exactly
+  ``max_bytes`` as the whole stream.  A ``feed()`` after the buffer was
+  full did not mark it truncated, so the decode-safety flip could read a
+  clipped multi-byte sequence as the end of the input and turn a correct
+  ``utf-8`` answer into whichever single-byte codec decodes the fragment.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 - ``detect_all()`` no longer resurrects a demoted niche Latin encoding.
   The demotion moved iso-8859-10, iso-8859-14, windows-1254, or
   HP-Roman8 to the end of the ranking but left it holding the top
@@ -141,6 +162,13 @@ Unreleased
 
 **Build:**
 
+- ``scripts/verify_no_overlap.py --require-provenance`` exits non-zero
+  unless the training metadata records an exclusion set that matches
+  today's test data, for the release check.  The shipped metadata
+  currently records none: the iso8859-8 and cp864 subset retrains were
+  built against later test-data states than the other 351 models, and
+  only a full retrain can restore a single record for the set.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 - Test coverage is back to 100% and CI now enforces it
   (``fail_under = 100``).  The newly covered paths include the EBCDIC
   plausibility checks in binary detection, charset declarations inside

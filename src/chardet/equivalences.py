@@ -53,6 +53,20 @@ _PUBLIC_NAMES = (
 __all__ = list(_PUBLIC_NAMES)
 
 
+#: Which module owns each name the pre-split module exposed, fixed at
+#: import.  Ownership is a fact about the split, not about what happens to
+#: be bound at lookup time: looking it up live would let a deletion strand
+#: the name, since the re-set that follows would find no owner and land on
+#: this module instead.  That delete-then-set is exactly the round trip
+#: ``unittest.mock.patch.object`` performs on exit.
+_OWNERS: dict[str, ModuleType] = {}
+for _source in _SOURCES:
+    for _name in vars(_source):
+        if not (_name.startswith("__") and _name.endswith("__")):
+            _OWNERS.setdefault(_name, _source)
+del _source, _name
+
+
 def _owner(name: str) -> ModuleType | None:
     """Return the module that now owns *name*, or ``None`` if neither does.
 
@@ -61,12 +75,7 @@ def _owner(name: str) -> ModuleType | None:
     module directly (``importlib.reload`` does exactly that), which without
     this guard would overwrite the owning module's own.
     """
-    if name.startswith("__") and name.endswith("__"):
-        return None
-    for source in _SOURCES:
-        if hasattr(source, name):
-            return source
-    return None
+    return _OWNERS.get(name)
 
 
 def _warn(name: str, owner: ModuleType) -> None:
@@ -84,10 +93,12 @@ class _EquivalencesShim(ModuleType):
     """Module type that proxies attributes to the module that now owns them.
 
     Proxying rather than re-exporting by value preserves two properties the
-    pre-split module had.  Reads and writes stay indirected: rebinding
-    ``chardet.equivalences.PREFERRED_SUPERSET`` rebinds the table
+    pre-split module had.  Reads, writes, and deletes stay indirected:
+    rebinding ``chardet.equivalences.PREFERRED_SUPERSET`` rebinds the table
     :func:`~chardet.output_names.apply_preferred_superset` actually reads, so
-    a monkeypatching caller is not silently ignored.  And the deprecation
+    a monkeypatching caller is not silently ignored, and a
+    ``unittest.mock.patch.object`` on this module patches the owner and
+    restores it on exit.  And the deprecation
     fires per accessed name, naming both the name and its new home, instead
     of once per process at import time --- which attributed the warning to
     whoever imported first, said nothing about which symbol was deprecated,
@@ -110,6 +121,14 @@ class _EquivalencesShim(ModuleType):
             return
         _warn(name, owner)
         setattr(owner, name, value)
+
+    def __delattr__(self, name: str) -> None:
+        owner = _owner(name)
+        if owner is None:
+            super().__delattr__(name)
+            return
+        _warn(name, owner)
+        delattr(owner, name)
 
     def __dir__(self) -> list[str]:
         names = set(super().__dir__())

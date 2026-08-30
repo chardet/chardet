@@ -184,6 +184,14 @@ def main() -> None:
         default="src/chardet/models/training_metadata.yaml",
         help="Path to the training metadata written alongside models.bin",
     )
+    parser.add_argument(
+        "--require-provenance",
+        action="store_true",
+        help=(
+            "Exit non-zero unless the training metadata records an exclusion "
+            "set that matches today's test data (the release gate)"
+        ),
+    )
     args = parser.parse_args()
 
     test_data_path = Path(args.test_data_dir)
@@ -213,16 +221,24 @@ def main() -> None:
         sys.exit(1)
 
     print("PASS: No overlap detected between training cache and test data.")
-    # Advisory, not a failure: test data legitimately grows between
-    # retrains, and exiting non-zero on every benign addition would train
-    # readers to ignore the warning.  The overlap scan above stays the
-    # hard gate.
+    # Advisory by default: test data legitimately grows between retrains,
+    # and exiting non-zero on every benign addition would train readers to
+    # ignore the warning.  The overlap scan above stays the everyday hard
+    # gate; --require-provenance makes this one hard too, for the release
+    # check, where an unverifiable models.bin must not pass quietly.
     metadata_path = Path(args.metadata)
     if not metadata_path.is_file():
         # A mistyped --metadata must not read as "nothing to verify".
         print(f"ERROR: training metadata not found: {metadata_path}", file=sys.stderr)
         sys.exit(1)
-    report_training_provenance(test_data_path, metadata_path)
+    verified = report_training_provenance(test_data_path, metadata_path)
+    if args.require_provenance and not verified:
+        print(
+            "FAIL: --require-provenance is set and the shipped models carry no "
+            "verified exclusion of today's test data.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
     sys.exit(0)
 
 

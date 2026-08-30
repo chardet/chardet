@@ -654,9 +654,8 @@ def _decodes_under_public_names(data: bytes, encoding: str) -> bool:
     default) can remap to a strictly narrower codec (``euc_jis_2004`` is
     reported as ``EUC-JP``), so a rival must decode under both names to be
     promoted.  ``prefer_superset=True`` can also narrow (cp125x leaves
-    codepoints undefined that iso-8859-x maps), but that is an opt-in
-    output transform applied to every detection, not only promoted ones,
-    and is out of this step's hands.
+    codepoints undefined that iso-8859-x maps), but that output transform
+    checks the data itself before remapping.
     """
     if not decodes_completely(data, encoding):
         return False

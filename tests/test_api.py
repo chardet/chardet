@@ -973,3 +973,19 @@ def test_single_byte_declaration_kept_for_pure_ascii() -> None:
     data = b'<html><head><meta charset="iso-8859-1"></head><body>plain</body></html>'
     result = chardet.detect(data)
     assert result["encoding"] == "ISO-8859-1"
+
+
+def test_prefer_superset_never_hands_back_an_undecodable_name():
+    """The remap checks the examined window before renaming (public API)."""
+    data = ("caf\xe9 au lait, d\xe9j\xe0 vu. " * 40).encode("latin-1") + b"\x81 fin."
+    kwargs = {"include_encodings": ["iso8859-1", "cp1252"], "prefer_superset": True}
+    result = chardet.detect(data, **kwargs)
+    assert result["encoding"] == "ISO-8859-1"
+    assert data.decode(result["encoding"])
+    for entry in chardet.detect_all(data, **kwargs):
+        assert data.decode(entry["encoding"])
+    detector = chardet.UniversalDetector(**kwargs)
+    detector.feed(data)
+    streamed = detector.close()
+    assert data.decode(streamed["encoding"])
+    assert chardet.detect(data[:-6], **kwargs)["encoding"] == "Windows-1252"
