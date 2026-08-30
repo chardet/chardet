@@ -78,6 +78,12 @@ Unreleased
 
 **Bug Fixes:**
 
+- ``UniversalDetector`` no longer reads a buffer that filled to exactly
+  ``max_bytes`` as the whole stream.  A ``feed()`` after the buffer was
+  full did not mark it truncated, so the decode-safety flip could read a
+  clipped multi-byte sequence as the end of the input and turn a correct
+  ``utf-8`` answer into whichever single-byte codec decodes the fragment.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 - ``detect_all()`` no longer resurrects a demoted niche Latin encoding.
   The demotion moved iso-8859-10, iso-8859-14, windows-1254, or
   HP-Roman8 to the end of the ranking but left it holding the top

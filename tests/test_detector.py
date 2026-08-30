@@ -57,6 +57,34 @@ def test_feed_after_done_is_ignored():
     detector.close()
 
 
+def test_feed_after_an_exact_fill_marks_the_buffer_truncated():
+    """More data after a feed that fills the buffer exactly is a cut, not an end.
+
+    The buffer holds max_bytes exactly, which the pipeline cannot tell from
+    an input that was max_bytes long; only the flag says the tail was cut.
+    Without it the decode-safety flip reads a clipped multi-byte sequence
+    as the end of the caller's data and turns a right utf-8 answer into
+    whichever single-byte codec decodes the fragment.
+    """
+    data = b"Hello \xc3\xa9 more text here"
+    exact = UniversalDetector(max_bytes=7)
+    exact.feed(data[:7])
+    assert exact.done is True
+    exact.feed(data[7:])
+    one_shot = UniversalDetector(max_bytes=7)
+    one_shot.feed(data)
+    assert exact.close() == one_shot.close()
+    assert exact.result["encoding"] == chardet.detect(data, max_bytes=7)["encoding"]
+
+
+def test_empty_feed_after_done_is_not_a_truncation():
+    """Feeding nothing after the buffer is full cuts nothing off it."""
+    detector = UniversalDetector(max_bytes=5)
+    detector.feed(b"hello")
+    detector.feed(b"")
+    assert detector._input_truncated is False
+
+
 def test_multiple_feeds():
     detector = UniversalDetector()
     data = "Héllo wörld café".encode()
