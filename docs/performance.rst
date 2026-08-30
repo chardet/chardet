@@ -343,52 +343,52 @@ chunks, which is faster on that one column and blind on every other:
      - charset-normalizer 3.5.1
    * - utf-8
      - 1 MiB
-     - 1.4ms
-     - **0.7ms**
+     - 1.1ms
+     - **0.6ms**
    * - utf-8
      - 32 MiB
-     - 27.8ms
-     - **10.2ms**
+     - 32.4ms
+     - **11.8ms**
    * - utf-8
      - 272 MiB
-     - 232.5ms
-     - **84.9ms**
+     - 269.1ms
+     - **96.0ms**
    * - cp1252
      - 1 MiB
-     - **11.9ms**
-     - 33.8ms :sup:`*`
+     - **14.3ms**
+     - 39.8ms :sup:`*`
    * - cp1252
      - 32 MiB
-     - **27.1ms**
-     - 908.9ms :sup:`*`
+     - **40.4ms**
+     - 1,037.0ms :sup:`*`
    * - cp1252
      - 272 MiB
-     - **139.8ms**
-     - 8,206.7ms :sup:`*`
+     - **232.9ms**
+     - 8,300.8ms :sup:`*`
    * - shift_jis
      - 1 MiB
-     - **10.0ms**
-     - 10.7ms
+     - 12.9ms
+     - **12.7ms**
    * - shift_jis
      - 32 MiB
-     - **24.3ms**
-     - 339.3ms
+     - **76.6ms**
+     - 362.3ms
    * - shift_jis
      - 272 MiB
-     - **131.3ms**
-     - 2,725.2ms
+     - **560.6ms**
+     - 3,074.7ms
    * - base64
      - 1 MiB
-     - 1.8ms
+     - 2.0ms
      - **0.1ms**
    * - base64
      - 32 MiB
-     - 21.7ms
-     - **1.5ms**
+     - 25.0ms
+     - **1.7ms**
    * - base64
      - 272 MiB
-     - 175.4ms
-     - **12.4ms**
+     - 199.7ms
+     - **19.8ms**
 
 :sup:`*` misdetected: charset-normalizer returned ``windows-1250`` at
 every size for French Windows-1252 text.
@@ -408,18 +408,18 @@ charset-normalizer samples chunks. Both are the sampling-versus-exactness
 trade, taken knowingly.
 
 Where the answer needs actual statistics --- legacy single-byte and
-legacy CJK, the encodings a detector exists for --- chardet is **14x to
-59x faster** at 32 MiB and above, and charset-normalizer misidentifies
+legacy CJK, the encodings a detector exists for --- chardet is **5x to
+36x faster** at 32 MiB and above, and charset-normalizer misidentifies
 the cp1252 buffers at every size. The asymmetry has one cause: sampling
 costs charset-normalizer its short-circuits, so it keeps probing
 candidate encodings over chunks spread through a large buffer, while
 chardet's non-UTF-8 path drops to bounded evidence as soon as its
 C-speed exhaustive scans have ruled out the fast answers.
 
-The pure-Python wheel lands in the same band on these inputs (0.15s to
-0.22s at 272 MiB): past the exhaustive scans, what is left is bounded,
-so compilation moves the constant inside the window rather than the
-shape of the curve.
+The pure-Python wheel lands within 15% of the compiled one on these
+inputs (0.19s to 0.63s at 272 MiB): past the exhaustive scans and the
+winner's decode, what is left is bounded, so compilation moves the
+constant inside the window rather than the shape of the curve.
 
 Reproduce with ``python scripts/benchmark_large_inputs.py`` (see its
 docstring for the compiled-wheel invocation).
