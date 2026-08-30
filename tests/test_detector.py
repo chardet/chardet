@@ -73,8 +73,10 @@ def test_feed_after_an_exact_fill_marks_the_buffer_truncated():
     exact.feed(data[7:])
     one_shot = UniversalDetector(max_bytes=7)
     one_shot.feed(data)
-    assert exact.close() == one_shot.close()
-    assert exact.result["encoding"] == chardet.detect(data, max_bytes=7)["encoding"]
+    exact_result = exact.close()
+    one_shot_result = one_shot.close()
+    assert exact_result == one_shot_result
+    assert exact_result["encoding"] == chardet.detect(data, max_bytes=7)["encoding"]
 
 
 def test_empty_feed_after_done_is_not_a_truncation():

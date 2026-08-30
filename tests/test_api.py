@@ -986,5 +986,6 @@ def test_prefer_superset_never_hands_back_an_undecodable_name():
         assert data.decode(entry["encoding"])
     detector = chardet.UniversalDetector(**kwargs)
     detector.feed(data)
-    assert data.decode(detector.close()["encoding"])
+    streamed = detector.close()
+    assert data.decode(streamed["encoding"])
     assert chardet.detect(data[:-6], **kwargs)["encoding"] == "Windows-1252"
