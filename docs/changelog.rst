@@ -162,6 +162,13 @@ Unreleased
 
 **Build:**
 
+- ``scripts/verify_no_overlap.py --require-provenance`` exits non-zero
+  unless the training metadata records an exclusion set that matches
+  today's test data, for the release check.  The shipped metadata
+  currently records none: the iso8859-8 and cp864 subset retrains were
+  built against later test-data states than the other 351 models, and
+  only a full retrain can restore a single record for the set.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 - Test coverage is back to 100% and CI now enforces it
   (``fail_under = 100``).  The newly covered paths include the EBCDIC
   plausibility checks in binary detection, charset declarations inside
