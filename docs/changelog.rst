@@ -50,6 +50,18 @@ Unreleased
   whole.  The new large-input tables in the performance docs cover
   the details; ADR-0006 in the repo records the design.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+- ``detect(data, max_bytes=n)`` with *n* past that 256 KB cap again
+  returns an encoding that decodes the whole window.  Validity filtering
+  converges on the cap, so a candidate that could not decode the rest of
+  the window was able to reach the top: Windows-1252 for a 300 KB
+  Latin-1 file whose only C1 bytes sit past the cap.  The ranking's
+  winner is now decoded over the whole window before it is returned, and
+  when it fails the next candidate that decodes takes over, the outcome
+  7.6.0 produced when validity read every byte.  Default calls are
+  unchanged; a window past the cap pays one C-speed decode of the
+  winner, which puts 272 MiB of cp1252 at about 0.23s and of Shift_JIS
+  at about 0.56s on the compiled build.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 - ASCII and binary scans on large buffers no longer allocate
   input-sized transients: ``detect_ascii`` gates on ``isascii()`` and
   counts rather than materializing its remainder, and ``is_binary``

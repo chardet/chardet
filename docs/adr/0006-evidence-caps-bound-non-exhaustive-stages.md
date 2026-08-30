@@ -50,3 +50,26 @@ linear, and it bounds what the exhaustive verdicts are about). This work
 enables an eventual 8.0-scale retirement of `max_bytes` but deliberately does
 not decide it: removing the cap changes verdicts for every file over 200 KB,
 which is an accuracy question before it is an API one.
+
+## Amendment, 2026-08-30: the answer decodes the window
+
+Rejected alternative (2) is now adopted in the narrow form its objections
+allowed. The cap had turned `max_bytes` into a promise chardet did not keep: a
+caller who says "the verdict is about these n bytes" could get back an encoding
+that cannot decode them (Windows-1252 for a 300 KB Latin-1 file whose only C1
+bytes sit past the cap), while the `detect()` docstring, the FAQ, and the
+performance page all still said otherwise. The failure policy is the ranking
+itself. After the bounded stages and the rank corrections settle, the winner is
+decoded over the whole window with the validity filter's own tolerant decoder;
+when it fails, the next entry in the corrected ranking is tried, and every
+entry ahead of the first that decodes is dropped, which is what validity would
+have done had it read those bytes. The cascade is bounded by the ranking's
+length, each step is one C-speed decode that stops at the first bad byte, and
+the survivors keep the confidence they earned on the evidence, so no candidate
+the scoring stages never saw is invented; when nothing listed decodes, the
+no-match fallback answers, exactly as when validity leaves nothing. On the
+inputs `tests/test_evidence_cap.py` pins, the outcome is 7.6.0's to the digit.
+The cost lands only on windows past the cap, one decode of the window per
+candidate tried: on the pure-Python build, 64 MiB of cp1252 goes from 0.06 s to
+0.08 s and 64 MiB of Shift_JIS from 0.09 s to 0.19 s. Default calls are
+untouched, since the cap sits above the default window.
