@@ -78,6 +78,13 @@ Unreleased
 
 **Bug Fixes:**
 
+- ``unittest.mock.patch.object`` on the deprecated ``chardet.equivalences``
+  shim now restores the patched name on exit.  The shim proxied reads
+  and writes to the owning module but not deletes, so the mock raised on
+  exit and left ``chardet.evaluation`` patched for the rest of the
+  process.  Deletes are proxied too, and ownership is fixed at import so
+  the delete-then-restore round trip lands on the owner both times.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 - ``prefer_superset=True`` no longer hands back a name that cannot
   decode the examined window.  The Windows code pages leave a few C1
   positions undefined that their ISO subsets map (0x81, 0x8D, 0x8F,
