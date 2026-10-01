@@ -42,6 +42,28 @@ def test_html5_meta_charset():
     assert result.encoding == "utf-8"
 
 
+def test_charset_inside_another_attribute_does_not_hide_meta_charset():
+    # A refresh URL or a description can contain the letters charset=.
+    # That is not the page encoding. The meta charset attribute is.
+    data = (
+        b'<meta http-equiv="refresh" '
+        b'content="0;url=http://example.com/?charset=iso-8859-1">'
+        b'<meta charset="utf-8">'
+    )
+    result = detect_markup_charset(data)
+    assert result is not None
+    assert result.encoding == "utf-8"
+
+    data = (
+        b'<meta name="description" '
+        b'content="see charset=iso-8859-1 for notes">'
+        b'<meta charset="utf-8">'
+    )
+    result = detect_markup_charset(data)
+    assert result is not None
+    assert result.encoding == "utf-8"
+
+
 def test_html4_content_type():
     data = (
         b"<html><head>"

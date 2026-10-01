@@ -78,6 +78,12 @@ Unreleased
 
 **Bug Fixes:**
 
+- A ``charset=`` inside another attribute no longer beats a real
+  ``<meta charset>``. An ASCII page whose refresh URL contained
+  ``?charset=iso-8859-1``, followed by ``<meta charset="utf-8">``,
+  was detected as ISO-8859-1. The label now comes from a charset
+  attribute, or from the content of an ``http-equiv="content-type"``
+  tag.
 - ``unittest.mock.patch.object`` on the deprecated ``chardet.equivalences``
   shim now restores the patched name on exit.  The shim proxied reads
   and writes to the owning module but not deletes, so the mock raised on
