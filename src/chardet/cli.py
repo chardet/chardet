@@ -112,7 +112,7 @@ def main(argv: list[str] | None = None) -> None:
         for filepath in args.files:
             try:
                 with Path(filepath).open("rb") as f:
-                    data = f.read(DEFAULT_MAX_BYTES)
+                    data = f.read(DEFAULT_MAX_BYTES + 1)
             except OSError as e:
                 print(f"chardetect: {filepath}: {e}", file=sys.stderr)
                 errors += 1
@@ -121,6 +121,7 @@ def main(argv: list[str] | None = None) -> None:
                 result = chardet.detect(
                     data,
                     encoding_era=era,
+                    max_bytes=DEFAULT_MAX_BYTES,
                     include_encodings=include,
                     exclude_encodings=exclude,
                     no_match_encoding=args.no_match_encoding,
@@ -140,11 +141,12 @@ def main(argv: list[str] | None = None) -> None:
         if errors == len(args.files):
             sys.exit(1)
     else:
-        data = sys.stdin.buffer.read(DEFAULT_MAX_BYTES)
+        data = sys.stdin.buffer.read(DEFAULT_MAX_BYTES + 1)
         try:
             result = chardet.detect(
                 data,
                 encoding_era=era,
+                max_bytes=DEFAULT_MAX_BYTES,
                 include_encodings=include,
                 exclude_encodings=exclude,
                 no_match_encoding=args.no_match_encoding,
