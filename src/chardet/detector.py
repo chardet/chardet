@@ -197,7 +197,12 @@ class UniversalDetector:
         if self._result is not None:
             d = self._result.to_dict()
             if self._prefer_superset:
-                apply_preferred_superset(d, bytes(self._buffer))
+                apply_preferred_superset(
+                    d,
+                    bytes(self._buffer),
+                    include_encodings=self._include_encodings,
+                    exclude_encodings=self._exclude_encodings,
+                )
             if self._compat_names:
                 apply_compat_names(d)
             return d

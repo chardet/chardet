@@ -109,6 +109,9 @@ def _remap_encoding(result: DetectionDict, mapping: dict[str, str]) -> Detection
 def apply_preferred_superset(
     result: DetectionDict,
     data: bytes | None = None,
+    *,
+    include_encodings: frozenset[str] | None = None,
+    exclude_encodings: frozenset[str] | None = None,
 ) -> DetectionDict:
     """Replace the encoding name with its preferred Windows/CP superset.
 
@@ -123,6 +126,8 @@ def apply_preferred_superset(
 
     :param result: A detection result dict containing an ``"encoding"`` key.
     :param data: The bytes *result* was detected from, when known.
+    :param include_encodings: Normalized encodings allowed in the result.
+    :param exclude_encodings: Normalized encodings forbidden in the result.
     :returns: The same *result* dict, modified in-place.
     """
     enc = result.get("encoding")
@@ -130,6 +135,10 @@ def apply_preferred_superset(
         return result
     superset = PREFERRED_SUPERSET.get(enc)
     if superset is None:
+        return result
+    if include_encodings is not None and superset not in include_encodings:
+        return result
+    if exclude_encodings is not None and superset in exclude_encodings:
         return result
     if data is None or decodes_without_error(data, superset):
         result["encoding"] = superset
