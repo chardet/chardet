@@ -42,7 +42,7 @@ _HTML4_CONTENT_TYPE_RE = re.compile(
 
 # PEP 263: encoding declaration in the first two lines of a Python file.
 # https://peps.python.org/pep-0263/
-_PEP263_RE = re.compile(rb"^[ \t\f]*#.*?coding[:=][ \t]*([-\w.]+)", re.MULTILINE)
+_PEP263_RE = re.compile(rb"^[ \t\f]*#.*?coding[:=][ \t]*([-\w.]+)")
 _PEP263_BLANK_RE = re.compile(rb"^[ \t\f]*(?:[#\r]|$)")
 
 # Charset declarations in EBCDIC-encoded markup, matched against a cp037
