@@ -974,7 +974,10 @@ REGISTRY: MappingProxyType[str, EncodingInfo] = MappingProxyType(
 )
 
 
-@functools.cache
+# Bounded because *name* comes from untrusted markup (``<meta charset>``,
+# ``<?xml encoding>``) and the set of distinct spellings is unbounded.  1024
+# is well above the registry's names and aliases, so real lookups never evict.
+@functools.lru_cache(maxsize=1024)
 def lookup_encoding(name: str) -> EncodingName | None:
     """Convert an encoding name string to the canonical EncodingName.
 
