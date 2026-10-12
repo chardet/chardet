@@ -27,6 +27,55 @@ def test_detect_ascii():
     assert result["confidence"] == 1.0
 
 
+@pytest.mark.parametrize("api", ["detect", "detect_all", "stream"])
+@pytest.mark.parametrize("compat_names", [False, True])
+@pytest.mark.parametrize(
+    ("filters", "expected"),
+    [
+        ({"include_encodings": ["ascii"]}, "ascii"),
+        ({"exclude_encodings": ["Windows-1252"]}, "ascii"),
+        (
+            {
+                "include_encodings": ["ascii", "Windows-1252"],
+                "exclude_encodings": ["Windows-1252"],
+            },
+            "ascii",
+        ),
+        ({"include_encodings": ["ascii", "Windows-1252"]}, "cp1252"),
+        ({}, "cp1252"),
+    ],
+    ids=["include", "exclude", "both", "allowed", "unfiltered"],
+)
+def test_prefer_superset_respects_encoding_filters(
+    api: str,
+    filters: dict[str, list[str]],
+    expected: str,
+    *,
+    compat_names: bool,
+):
+    data = b"Hello world"
+    if api == "stream":
+        detector = UniversalDetector(
+            prefer_superset=True, compat_names=compat_names, **filters
+        )
+        detector.feed(data)
+        results = [detector.close()]
+    elif api == "detect_all":
+        results = chardet.detect_all(
+            data, prefer_superset=True, compat_names=compat_names, **filters
+        )
+    else:
+        results = [
+            chardet.detect(
+                data, prefer_superset=True, compat_names=compat_names, **filters
+            )
+        ]
+    if compat_names and expected == "cp1252":
+        expected = "Windows-1252"
+    assert results
+    assert all(result["encoding"] == expected for result in results)
+
+
 def test_detect_utf8_bom():
     result = chardet.detect(b"\xef\xbb\xbfHello")
     assert result["encoding"] == "UTF-8-SIG"
