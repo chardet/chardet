@@ -42,7 +42,8 @@ _HTML4_CONTENT_TYPE_RE = re.compile(
 
 # PEP 263: encoding declaration in the first two lines of a Python file.
 # https://peps.python.org/pep-0263/
-_PEP263_RE = re.compile(rb"^[ \t\f]*#.*?coding[:=][ \t]*([-\w.]+)", re.MULTILINE)
+_PEP263_RE = re.compile(rb"^[ \t\f]*#.*?coding[:=][ \t]*([-\w.]+)")
+_PEP263_BLANK_RE = re.compile(rb"^[ \t\f]*(?:[#\r]|$)")
 
 # Charset declarations in EBCDIC-encoded markup, matched against a cp037
 # decode of the head.  Letters, digits, and the anchor characters ``<``,
@@ -120,9 +121,11 @@ def _detect_pep263(data: bytes) -> DetectionResult | None:
     # PEP 263 requires a '#' comment marker on line 1 or 2.
     if b"#" not in data[:200]:
         return None
-    # Extract first two lines only.
-    first_two_lines = b"\n".join(data.split(b"\n", 2)[:2])
-    match = _PEP263_RE.search(first_two_lines)
+    # Python only examines line 2 when line 1 is a comment or blank.
+    lines = data.split(b"\n", 2)
+    match = _PEP263_RE.match(lines[0])
+    if match is None and len(lines) > 1 and _PEP263_BLANK_RE.match(lines[0]):
+        match = _PEP263_RE.match(lines[1])
     if match:
         try:
             raw_name = match.group(1).decode("ascii").strip()
