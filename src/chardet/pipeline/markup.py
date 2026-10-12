@@ -161,8 +161,7 @@ def detect_markup_charset(data: bytes) -> DetectionResult | None:
     head = data[:_SCAN_LIMIT]
 
     for pattern in (_XML_ENCODING_RE, _HTML5_CHARSET_RE, _HTML4_CONTENT_TYPE_RE):
-        match = pattern.search(head)
-        if match:
+        for match in pattern.finditer(head):
             try:
                 raw_name = match.group(1).decode("ascii").strip()
             except (UnicodeDecodeError, ValueError):

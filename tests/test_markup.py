@@ -91,6 +91,29 @@ def test_unknown_encoding_returns_none():
     assert result is None
 
 
+@pytest.mark.parametrize(
+    "first_charset",
+    [b"not-a-real-encoding", b"utf-8", b"\xffinvalid", b"\x00utf-8"],
+)
+def test_invalid_declaration_does_not_hide_later_charset(first_charset: bytes):
+    data = (
+        b'<meta charset="'
+        + first_charset
+        + b'"><meta charset="windows-1252"><p>\x80 costs 10 euros</p>'
+    )
+    result = detect_markup_charset(data)
+    assert result is not None
+    assert result.encoding == "cp1252"
+    assert result.mime_type == "text/html"
+
+
+def test_first_valid_declaration_takes_precedence():
+    data = b'<meta charset="iso-8859-1"><meta charset="windows-1252">caf\xe9'
+    result = detect_markup_charset(data)
+    assert result is not None
+    assert result.encoding == "iso8859-1"
+
+
 def test_lying_charset_declaration_rejected():
     # Declares shift_jis but contains invalid bytes for that encoding.
     #
