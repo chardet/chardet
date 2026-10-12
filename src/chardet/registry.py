@@ -974,16 +974,9 @@ REGISTRY: MappingProxyType[str, EncodingInfo] = MappingProxyType(
 )
 
 
-# Bounded cache: ``name`` is attacker-controlled on the hot path — every
-# ``<meta charset=...>``/``<?xml encoding=...>`` token the markup stage
-# pulls from untrusted input is looked up here, and codec-name normalization
-# resolves unboundedly many distinct spellings (``latin@@1`` -> ``latin_1``)
-# to the same codec, so neither a miss nor a hit set is finite.  An unbounded
-# ``functools.cache`` therefore grows one permanent entry per distinct name
-# across calls (hundreds from a single crafted EBCDIC-markup head).  Cap it,
-# matching ``get_candidates`` above and the attacker-controlled-name reasoning
-# in ``_utils._INCREMENTAL_DECODERS``; the bound sits well above the 316
-# registry names/aliases so legitimate lookups never evict.
+# Bounded because *name* comes from untrusted markup (``<meta charset>``,
+# ``<?xml encoding>``) and the set of distinct spellings is unbounded.  1024
+# is well above the registry's names and aliases, so real lookups never evict.
 @functools.lru_cache(maxsize=1024)
 def lookup_encoding(name: str) -> EncodingName | None:
     """Convert an encoding name string to the canonical EncodingName.
