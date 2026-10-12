@@ -46,6 +46,44 @@ def test_cli_stdin():
     assert "ascii" in result.stdout.decode().lower()
 
 
+@pytest.mark.parametrize("source", ["file", "stdin"])
+@pytest.mark.parametrize(
+    "data",
+    [
+        b"Hello \xc3\xa9 more text here",
+        b"Hello \xc3",
+        b"Hello!!",
+        b"Hello!!\xff",
+    ],
+    ids=["clipped-utf8", "incomplete-input", "exact-cap", "past-cap"],
+)
+def test_cli_preserves_input_truncation(
+    source: str,
+    data: bytes,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+):
+    max_bytes = 7
+    monkeypatch.setattr("chardet.cli.DEFAULT_MAX_BYTES", max_bytes)
+    expected = chardet.detect(data, max_bytes=max_bytes)["encoding"]
+    if data.startswith(b"Hello \xc3\xa9"):
+        assert expected == "utf-8"
+
+    argv = ["--minimal"]
+    if source == "file":
+        path = tmp_path / "capped.txt"
+        path.write_bytes(data)
+        argv.append(str(path))
+    else:
+        monkeypatch.setattr(sys, "stdin", io.TextIOWrapper(io.BytesIO(data)))
+
+    main(argv)
+    captured = capsys.readouterr()
+    assert captured.err == ""
+    assert captured.out.strip() == expected
+
+
 def test_cli_version():
     result = subprocess.run(
         [sys.executable, "-m", "chardet.cli", "--version"],
