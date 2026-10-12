@@ -126,8 +126,11 @@ def apply_preferred_superset(
 
     :param result: A detection result dict containing an ``"encoding"`` key.
     :param data: The bytes *result* was detected from, when known.
-    :param include_encodings: Normalized encodings allowed in the result.
-    :param exclude_encodings: Normalized encodings forbidden in the result.
+    :param include_encodings: Canonical encoding names (as returned by
+        :func:`~chardet.registry.normalize_encodings`) allowed in the result.
+        The superset is skipped when it is not one of them.
+    :param exclude_encodings: Canonical encoding names forbidden in the
+        result.  The superset is skipped when it is one of them.
     :returns: The same *result* dict, modified in-place.
     """
     enc = result.get("encoding")
