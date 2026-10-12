@@ -112,6 +112,9 @@ def main(argv: list[str] | None = None) -> None:
         for filepath in args.files:
             try:
                 with Path(filepath).open("rb") as f:
+                    # One byte past the cap lets detect() tell truncated
+                    # input from input that ends exactly at the cap.  It
+                    # does its own slicing to max_bytes.
                     data = f.read(DEFAULT_MAX_BYTES + 1)
             except OSError as e:
                 print(f"chardetect: {filepath}: {e}", file=sys.stderr)
@@ -141,6 +144,8 @@ def main(argv: list[str] | None = None) -> None:
         if errors == len(args.files):
             sys.exit(1)
     else:
+        # Same reason as the file read above: one extra byte so detect()
+        # can see that the input was truncated.
         data = sys.stdin.buffer.read(DEFAULT_MAX_BYTES + 1)
         try:
             result = chardet.detect(
