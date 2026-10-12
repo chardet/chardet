@@ -129,6 +129,26 @@ def test_charset_beyond_scan_limit_ignored():
     assert result is None
 
 
+def test_charset_declaration_not_honored_when_window_fails_to_decode():
+    """A declaration whose encoding stops decoding past the head is dropped.
+
+    The declared encoding decodes the ASCII head but not a byte further into
+    the window, so honouring it would return an answer that cannot decode
+    the examined window.  Validation covers the whole window, so the
+    declaration is not honoured.
+    """
+    data = b'<meta charset="euc-jp">' + b"x" * 5000 + b"\x80\x80\x80"
+    result = detect_markup_charset(data)
+    assert result is None
+
+
+def test_pep263_not_honored_when_window_fails_to_decode():
+    """A PEP 263 coding line is dropped when the window fails to decode."""
+    data = b"# coding: euc-jp\n# " + b"x" * 5000 + b"\n\x80\x80\x80"
+    result = detect_markup_charset(data)
+    assert result is None
+
+
 def test_non_ascii_charset_name_ignored():
     """A charset name containing non-ASCII bytes should be skipped."""
     # Build a meta tag whose charset value contains a non-ASCII byte (0xff)
@@ -208,6 +228,20 @@ def test_ebcdic_declaration_ignored_for_non_mainframe_name():
     data = html.encode("cp500")
     result = detect_markup_charset(data)
     assert result is None or result.encoding != "utf-8"
+
+
+def test_ebcdic_declaration_not_honored_when_window_fails_to_decode():
+    """An EBCDIC declaration is dropped when it cannot decode the window.
+
+    cp424 leaves byte 0x70 undefined.  The declaration and the high-byte
+    head decode cleanly, but a 0x70 byte past the head does not, so honouring
+    cp424 would return an answer that cannot decode the examined window.
+    """
+    decl = "<meta charset=cp424>".encode("cp037")
+    body = ("hello mainframe " * 400).encode("cp037")  # high-byte EBCDIC head
+    data = decl + body + b"\x70"  # 0x70 is undefined in cp424, past the head
+    result = detect_markup_charset(data)
+    assert result is None or result.encoding != "cp424"
 
 
 @_needs_interpreted_build
