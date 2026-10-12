@@ -7,6 +7,7 @@ from unittest.mock import patch
 import pytest
 
 import chardet.pipeline.markup as markup_mod
+from chardet import detect
 from chardet.pipeline import DetectionResult
 from chardet.pipeline.markup import detect_markup_charset, promote_markup_superset
 from chardet.registry import EncodingInfo
@@ -222,6 +223,40 @@ def test_pep263_non_ascii_coding_name():
     with patch("chardet.pipeline.markup._PEP263_RE", broad_re):
         result = detect_markup_charset(data)
     assert result is None
+
+
+@pytest.mark.parametrize(
+    "first_line",
+    [b'print("hello")', b'print("hello") # a trailing comment', b'"a docstring"'],
+)
+@pytest.mark.parametrize("newline", [b"\n", b"\r\n"])
+def test_pep263_second_line_after_code_is_not_a_declaration(
+    first_line: bytes, newline: bytes
+):
+    """A second-line cookie is ignored after a Python statement."""
+    data = first_line + newline + b"# coding: cp1251" + newline
+    assert detect_markup_charset(data) is None
+    assert detect(data)["encoding"] == "ascii"
+
+
+@pytest.mark.parametrize(
+    "first_line", [b"# ordinary comment", b"#!/usr/bin/python", b"", b" \t\f"]
+)
+@pytest.mark.parametrize("newline", [b"\n", b"\r\n"])
+def test_pep263_second_line_after_comment_or_blank_is_a_declaration(
+    first_line: bytes, newline: bytes
+):
+    """Valid second-line cookies remain usable after comments and blank lines."""
+    data = first_line + newline + b"# coding: cp1251" + newline
+    result = detect_markup_charset(data)
+    assert result is not None
+    assert result.encoding == "cp1251"
+
+
+def test_pep263_cookie_after_code_does_not_override_utf8():
+    """An ignored cookie must not override the actual UTF-8 source encoding."""
+    data = 'print("привет")\n# coding: cp1251\n'.encode()
+    assert detect(data)["encoding"] == "utf-8"
 
 
 def test_promote_when_reported_codec_cannot_decode():
