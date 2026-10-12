@@ -81,9 +81,14 @@ Unreleased
 - A ``charset=`` inside another attribute no longer beats a real
   ``<meta charset>``. An ASCII page whose refresh URL contained
   ``?charset=iso-8859-1``, followed by ``<meta charset="utf-8">``,
-  was detected as ISO-8859-1. The label now comes from a charset
-  attribute, or from the content of an ``http-equiv="content-type"``
-  tag.
+  was detected as ISO-8859-1. Meta tags are now parsed attribute by
+  attribute, and the label comes from a ``charset`` attribute or from
+  the ``content`` of a tag whose ``http-equiv`` (or, as a common
+  mistake, ``name``) is ``content-type``. A declaration that names an
+  unknown encoding, or one that cannot decode the data, no longer hides
+  a later one that can. Two side effects of the stricter parse: when a
+  tag repeats an attribute the first value wins, and a ``<meta`` tag
+  that never closes inside the scanned head is not a declaration.
 - ``unittest.mock.patch.object`` on the deprecated ``chardet.equivalences``
   shim now restores the patched name on exit.  The shim proxied reads
   and writes to the owning module but not deletes, so the mock raised on

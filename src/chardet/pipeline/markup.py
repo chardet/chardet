@@ -35,6 +35,7 @@ _XML_ENCODING_RE = re.compile(
     rb"""<\?xml[^>]+encoding\s*=\s*['"]([^'"]+)['"]""", re.IGNORECASE
 )
 _META_TAG_RE = re.compile(rb"<meta\b([^>]*)>", re.IGNORECASE)
+# DOTALL so a quoted value may span lines.
 _ATTR_RE = re.compile(
     rb"""([^\s=/>]+)(?:\s*=\s*(?:(["'])(.*?)\2|([^\s>"']+)))?""",
     re.IGNORECASE | re.DOTALL,
@@ -161,6 +162,8 @@ def _iter_html_charsets(head: bytes) -> Iterator[bytes]:
     ``charset=`` inside some other attribute (a refresh URL, a description)
     is not a declaration. A declaration is a ``charset`` attribute, or the
     ``charset`` parameter of an ``http-equiv="content-type"`` tag.
+    ``name="content-type"`` is wrong by the spec but common enough in the
+    wild that it counts too.
     """
     for tag in _META_TAG_RE.finditer(head):
         attrs = _meta_attributes(tag.group(1))
@@ -169,6 +172,8 @@ def _iter_html_charsets(head: bytes) -> Iterator[bytes]:
             yield charset
             continue
         equiv = attrs.get(b"http-equiv")
+        if equiv is None:
+            equiv = attrs.get(b"name")
         content = attrs.get(b"content")
         if (
             equiv is not None
@@ -188,6 +193,7 @@ def detect_markup_charset(data: bytes) -> DetectionResult | None:
     1. ``<?xml ... encoding="..."?>``
     2. ``<meta charset="...">``
     3. ``<meta http-equiv="Content-Type" content="...; charset=...">``
+       (also with ``name`` in place of ``http-equiv``)
     4. PEP 263 ``# -*- coding: ... -*-`` (first two lines only)
 
     :param data: The raw byte data to scan.
