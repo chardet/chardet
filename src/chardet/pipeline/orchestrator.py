@@ -297,18 +297,13 @@ def _run_pipeline_core(  # noqa: PLR0913, PLR0915
     # BOMs — must run before binary detection since these encodings contain
     # many null bytes that would trigger the binary check)
     utf1632_result = detect_utf1632_patterns(data)
+    # The stage samples and decodes the first few KB only.  The answer has
+    # to decode the whole window, so a lone surrogate or out-of-range unit
+    # past the sample sends the input on to the other stages instead.
     if (
         utf1632_result is not None
         and utf1632_result.encoding is not None
         and utf1632_result.encoding in allowed
-        # The stage samples only the first _SAMPLE_SIZE bytes and decodes
-        # that sample; on a longer window whose UTF-16/32 structure breaks
-        # past the sample (a lone surrogate, an out-of-range code point)
-        # the pattern still matches, so the answer would be reported here
-        # and the caller's decode of the examined window would raise.  Hold
-        # the same whole-window validity contract the markup path and the
-        # ranked paths keep, and fall through to the rest of the pipeline
-        # when the detected encoding does not decode the window.
         and decodes_without_error(data, utf1632_result.encoding)
     ):
         return [utf1632_result]

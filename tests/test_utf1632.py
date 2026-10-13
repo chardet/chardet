@@ -670,9 +670,11 @@ def test_detect_utf16_undecodable_past_sample_falls_through() -> None:
     assert detect_utf1632_patterns(data) is not None
     assert not decodes_without_error(data, "utf-16-le")
 
-    encoding = chardet.detect(data)["encoding"]
-    if encoding is not None:
-        data.decode(encoding)  # must not raise
+    # Nothing else decodes a lone surrogate, so the null-heavy bytes land
+    # in the binary stage and the no-match answer comes back.
+    result = chardet.detect(data)
+    assert result["encoding"] is None
+    assert result["mime_type"] == "application/octet-stream"
 
 
 def test_detect_utf16_decodable_window_still_detected() -> None:
