@@ -76,7 +76,7 @@ _MARKUP_HIGH_BYTES = bytes(range(0x80, 0x100))
 _EBCDIC_SCAN_MIN_HIGH_FRACTION = 0.25
 
 
-def _detect_ebcdic_declaration(data: bytes) -> DetectionResult | None:
+def _detect_ebcdic_declaration(head: bytes) -> DetectionResult | None:
     """Look for a charset declaration in EBCDIC-encoded markup.
 
     The ASCII regexes cannot see declarations in EBCDIC bytes, so when the
@@ -84,9 +84,8 @@ def _detect_ebcdic_declaration(data: bytes) -> DetectionResult | None:
     cp037 — the EBCDIC page whose letter and digit positions are shared by
     all variants — and scan the decoded text.  Only declarations naming a
     MAINFRAME-era encoding are honoured, and the declared encoding must
-    decode the whole examined window, not just the scanned head.
+    actually decode the head.
     """
-    head = data[:_SCAN_LIMIT]
     high_count = len(head) - len(head.translate(None, _MARKUP_HIGH_BYTES))
     if high_count < len(head) * _EBCDIC_SCAN_MIN_HIGH_FRACTION:
         return None
@@ -101,7 +100,7 @@ def _detect_ebcdic_declaration(data: bytes) -> DetectionResult | None:
             if (
                 encoding is not None
                 and REGISTRY[encoding].era & EncodingEra.MAINFRAME
-                and decodes_without_error(data, encoding)
+                and decodes_without_error(head, encoding)
             ):
                 return DetectionResult(
                     encoding=encoding,
@@ -237,7 +236,7 @@ def detect_markup_charset(data: bytes) -> DetectionResult | None:
                 mime_type="text/html",
             )
 
-    ebcdic_result = _detect_ebcdic_declaration(data)
+    ebcdic_result = _detect_ebcdic_declaration(head)
     if ebcdic_result is not None:
         return ebcdic_result
 
@@ -291,9 +290,9 @@ def promote_markup_superset(
         )
     # Compare structural scores
     # Scored on the head only.  Multi-byte structure is uniform enough that
-    # the ranking converges long before 200 kB, and this structural pass is
-    # a ranking heuristic rather than the validity gate the decode checks
-    # above already applied over the whole window.
+    # the ranking converges long before 200 kB, and this is the expensive
+    # half: two full-buffer passes on every declared page, where
+    # ``_validate_bytes`` caps the same kind of scan at _SCAN_LIMIT.
     head = data[:_SCAN_LIMIT]
     ctx = PipelineContext()
     base_score = compute_structural_score(head, REGISTRY[markup_result.encoding], ctx)
@@ -311,12 +310,8 @@ def promote_markup_superset(
 def _validate_bytes(data: bytes, encoding: str) -> bool:
     """Check that *data* can be decoded under *encoding* without errors.
 
-    Validates the whole examined window, not just the scanned head: a
-    declaration is honoured only when the declared encoding decodes every
-    byte chardet looked at, the same validity contract the ranking paths
-    keep (``decodes_without_error`` still tolerates an incomplete multi-byte
-    sequence at the very end).  Checking only the head would let a
-    declaration whose bytes stop decoding past the header be returned as the
-    answer for a window it cannot decode.
+    Only validates the first ``_SCAN_LIMIT`` bytes to avoid decoding a
+    full 200 kB input just to verify a charset declaration found in the
+    header.
     """
-    return decodes_without_error(data, encoding)
+    return decodes_without_error(data[:_SCAN_LIMIT], encoding)
