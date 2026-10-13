@@ -1,9 +1,13 @@
 # tests/test_output_names.py
 from __future__ import annotations
 
+import codecs
+
 from chardet.output_names import (
     _COMPAT_NAMES,
+    NARROWER_DISPLAY_NAMES,
     PREFERRED_SUPERSET,
+    apply_compat_names,
     apply_legacy_rename,
     apply_preferred_superset,
 )
@@ -98,3 +102,39 @@ def test_every_preferred_superset_target_has_compat_name() -> None:
         target for target in PREFERRED_SUPERSET.values() if target not in _COMPAT_NAMES
     )
     assert not leaked, f"prefer_superset targets missing compat names: {leaked}"
+
+
+def test_narrower_display_names_match_codecs() -> None:
+    """The set of narrowing renames is exactly what the codec registry says."""
+    narrower = set()
+    for internal, display in _COMPAT_NAMES.items():
+        try:
+            display_codec = codecs.lookup(display).name
+        except LookupError:
+            continue  # a display name that is not a Python codec cannot narrow
+        if display_codec != codecs.lookup(internal).name:
+            narrower.add(internal)
+    assert narrower == set(NARROWER_DISPLAY_NAMES)
+
+
+def test_compat_rename_skipped_when_display_codec_cannot_decode() -> None:
+    jp = "日本語".encode("euc_jis_2004") + "①".encode("euc_jis_2004")
+    result = apply_compat_names({"encoding": "euc_jis_2004"}, jp)
+    assert result["encoding"] == "euc_jis_2004"
+    jp.decode(result["encoding"])
+
+
+def test_compat_rename_applied_when_display_codec_decodes() -> None:
+    jp = "日本語".encode("euc_jp")
+    assert apply_compat_names({"encoding": "euc_jis_2004"}, jp)["encoding"] == "EUC-JP"
+
+
+def test_compat_rename_unconditional_without_data() -> None:
+    assert apply_compat_names({"encoding": "euc_jis_2004"})["encoding"] == "EUC-JP"
+
+
+def test_compat_rename_ignores_non_narrowing_names() -> None:
+    assert (
+        apply_compat_names({"encoding": "cp1252"}, b"\x81")["encoding"]
+        == "Windows-1252"
+    )

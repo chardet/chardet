@@ -124,15 +124,16 @@ def detect(  # noqa: PLR0913
         empty_input_encoding=empty,
     )
     result = results[0].to_dict()
+    window = data[:max_bytes]
     if prefer_superset:
         apply_preferred_superset(
             result,
-            data[:max_bytes],
+            window,
             include_encodings=include,
             exclude_encodings=exclude,
         )
     if compat_names:
-        apply_compat_names(result)
+        apply_compat_names(result, window)
     return result
 
 
@@ -214,5 +215,5 @@ def detect_all(  # noqa: PLR0913
                 d, window, include_encodings=include, exclude_encodings=exclude
             )
         if compat_names:
-            apply_compat_names(d)
+            apply_compat_names(d, window)
     return sorted(dicts, key=lambda d: d["confidence"], reverse=True)

@@ -1,6 +1,7 @@
 # tests/test_bom.py
 from __future__ import annotations
 
+from chardet import detect
 from chardet.pipeline import DetectionResult
 from chardet.pipeline.bom import detect_bom
 
@@ -81,3 +82,52 @@ def test_utf32_be_bom_falls_through_when_payload_not_aligned():
     result = detect_bom(data)
     # No UTF-16-BE fallback here (00 00 FE FF doesn't start with FE FF)
     assert result is None
+
+
+# ---------------------------------------------------------------------------
+# A mark names the encoding; the body has to decode under it
+# ---------------------------------------------------------------------------
+
+
+def _decodes_or_none(data: bytes) -> None:
+    result = detect(data)
+    if result["encoding"] is not None:
+        data.decode(result["encoding"])
+
+
+def test_utf16_bom_with_lone_surrogate_is_no_answer():
+    data = (
+        b"\xff\xfe" + "Hello, world. ".encode("utf-16-le") * 20 + b"\x00\xd8" + b"t\x00"
+    )
+    assert detect_bom(data) is None
+    _decodes_or_none(data)
+
+
+def test_utf16_be_bom_with_lone_surrogate_is_no_answer():
+    data = (
+        b"\xfe\xff" + "Hello, world. ".encode("utf-16-be") * 20 + b"\xd8\x00" + b"\x00t"
+    )
+    assert detect_bom(data) is None
+    _decodes_or_none(data)
+
+
+def test_utf32_bom_with_out_of_range_unit_is_no_answer():
+    data = b"\xff\xfe\x00\x00" + "x ".encode("utf-32-le") * 20 + b"\x00\x00\x11\x00"
+    assert detect_bom(data) is None
+    _decodes_or_none(data)
+
+
+def test_utf8_bom_over_cp1252_bytes_is_no_answer():
+    data = b"\xef\xbb\xbf" + "café résumé ".encode("cp1252") * 20
+    assert detect_bom(data) is None
+    result = detect(data)
+    assert result["encoding"] != "UTF-8-SIG"
+    _decodes_or_none(data)
+
+
+def test_bom_with_decodable_body_still_certain():
+    data = b"\xef\xbb\xbf" + "café résumé ".encode() * 20
+    result = detect_bom(data)
+    assert result is not None
+    assert result.encoding == "utf-8-sig"
+    assert result.confidence == 1.0
