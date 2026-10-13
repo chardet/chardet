@@ -7,6 +7,7 @@ from unittest.mock import patch
 import pytest
 
 import chardet.pipeline.markup as markup_mod
+from chardet import detect
 from chardet.pipeline import DetectionResult
 from chardet.pipeline.markup import detect_markup_charset, promote_markup_superset
 from chardet.registry import EncodingInfo
@@ -40,6 +41,71 @@ def test_html5_meta_charset():
     result = detect_markup_charset(data)
     assert result is not None
     assert result.encoding == "utf-8"
+
+
+def test_charset_inside_another_attribute_does_not_hide_meta_charset():
+    # A refresh URL or a description can contain the letters charset=.
+    # That is not the page encoding. The meta charset attribute is.
+    data = (
+        b'<meta http-equiv="refresh" '
+        b'content="0;url=http://example.com/?charset=iso-8859-1">'
+        b'<meta charset="utf-8">'
+    )
+    result = detect_markup_charset(data)
+    assert result is not None
+    assert result.encoding == "utf-8"
+
+    data = (
+        b'<meta name="description" '
+        b'content="see charset=iso-8859-1 for notes">'
+        b'<meta charset="utf-8">'
+    )
+    result = detect_markup_charset(data)
+    assert result is not None
+    assert result.encoding == "utf-8"
+
+
+def test_name_content_type_is_accepted():
+    """``name='content-type'`` is wrong by the spec but common in the wild."""
+    data = (
+        b"<html><head>"
+        b"<meta name='content-type' content='text/html;charset=iso-8859-6'>"
+        b"</head></html>"
+    )
+    result = detect_markup_charset(data)
+    assert result is not None
+    assert result.encoding == "iso8859-6"
+
+
+def test_first_value_wins_when_attribute_repeats():
+    data = b'<meta charset="iso-8859-5" charset="utf-8">'
+    result = detect_markup_charset(data)
+    assert result is not None
+    assert result.encoding == "iso8859-5"
+
+
+def test_unquoted_charset_value():
+    data = b"<meta charset=koi8-r>"
+    result = detect_markup_charset(data)
+    assert result is not None
+    assert result.encoding == "koi8-r"
+
+
+def test_unclosed_meta_tag_is_not_a_declaration():
+    data = b'<meta charset="utf-8"'
+    assert detect_markup_charset(data) is None
+
+
+def test_bad_declaration_does_not_hide_a_later_one():
+    data = b'<meta charset="no-such-encoding"><meta charset="utf-8">'
+    result = detect_markup_charset(data)
+    assert result is not None
+    assert result.encoding == "utf-8"
+
+
+def test_non_ascii_xml_encoding_name_ignored():
+    data = b'<?xml version="1.0" encoding="\xff\xfe"?><root/>'
+    assert detect_markup_charset(data) is None
 
 
 def test_html4_content_type():
@@ -177,6 +243,40 @@ def test_pep263_non_ascii_coding_name():
     with patch("chardet.pipeline.markup._PEP263_RE", broad_re):
         result = detect_markup_charset(data)
     assert result is None
+
+
+@pytest.mark.parametrize(
+    "first_line",
+    [b'print("hello")', b'print("hello") # a trailing comment', b'"a docstring"'],
+)
+@pytest.mark.parametrize("newline", [b"\n", b"\r\n"])
+def test_pep263_second_line_after_code_is_not_a_declaration(
+    first_line: bytes, newline: bytes
+):
+    """A second-line cookie is ignored after a Python statement."""
+    data = first_line + newline + b"# coding: cp1251" + newline
+    assert detect_markup_charset(data) is None
+    assert detect(data)["encoding"] == "ascii"
+
+
+@pytest.mark.parametrize(
+    "first_line", [b"# ordinary comment", b"#!/usr/bin/python", b"", b" \t\f"]
+)
+@pytest.mark.parametrize("newline", [b"\n", b"\r\n"])
+def test_pep263_second_line_after_comment_or_blank_is_a_declaration(
+    first_line: bytes, newline: bytes
+):
+    """Valid second-line cookies remain usable after comments and blank lines."""
+    data = first_line + newline + b"# coding: cp1251" + newline
+    result = detect_markup_charset(data)
+    assert result is not None
+    assert result.encoding == "cp1251"
+
+
+def test_pep263_cookie_after_code_does_not_override_utf8():
+    """An ignored cookie must not override the actual UTF-8 source encoding."""
+    data = 'print("привет")\n# coding: cp1251\n'.encode()
+    assert detect(data)["encoding"] == "utf-8"
 
 
 def test_promote_when_reported_codec_cannot_decode():

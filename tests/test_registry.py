@@ -354,6 +354,24 @@ def test_lookup_encoding_embedded_null():
     assert lookup_encoding("\x00") is None
 
 
+def test_lookup_encoding_cache_is_bounded():
+    """lookup_encoding's cache cannot grow without limit on untrusted names.
+
+    The markup stage looks names pulled from attacker-controlled
+    ``<meta charset=...>`` tokens up here, and codec normalization maps
+    unboundedly many distinct spellings onto the same codec, so an
+    unbounded cache would retain one permanent entry per distinct name.
+    """
+    info = lookup_encoding.cache_info()
+    assert info.maxsize is not None
+    for i in range(info.maxsize * 3):
+        lookup_encoding(f"bogus-charset-{i}")
+    assert lookup_encoding.cache_info().currsize <= info.maxsize
+    # Legitimate lookups still resolve after the churn.
+    assert lookup_encoding("utf-8") == "utf-8"
+    assert lookup_encoding("windows-1252") == "cp1252"
+
+
 def test_lookup_encoding_python_only_codec():
     """Names Python knows but chardet doesn't resolve to None.
 

@@ -6,6 +6,7 @@ annotations.
 """
 
 import re
+from collections.abc import Iterator
 
 from chardet._utils import decodes_without_error
 from chardet.enums import EncodingEra
@@ -33,16 +34,18 @@ _SCAN_LIMIT = 4096
 _XML_ENCODING_RE = re.compile(
     rb"""<\?xml[^>]+encoding\s*=\s*['"]([^'"]+)['"]""", re.IGNORECASE
 )
-_HTML5_CHARSET_RE = re.compile(
-    rb"""<meta[^>]+charset\s*=\s*['"]?\s*([^\s'">;]+)""", re.IGNORECASE
+_META_TAG_RE = re.compile(rb"<meta\b([^>]*)>", re.IGNORECASE)
+# DOTALL so a quoted value may span lines.
+_ATTR_RE = re.compile(
+    rb"""([^\s=/>]+)(?:\s*=\s*(?:(["'])(.*?)\2|([^\s>"']+)))?""",
+    re.IGNORECASE | re.DOTALL,
 )
-_HTML4_CONTENT_TYPE_RE = re.compile(
-    rb"""<meta[^>]+content\s*=\s*['"][^'"]*charset=([^\s'">;]+)""", re.IGNORECASE
-)
+_CONTENT_CHARSET_RE = re.compile(rb"""charset=([^\s;"']+)""", re.IGNORECASE)
 
 # PEP 263: encoding declaration in the first two lines of a Python file.
 # https://peps.python.org/pep-0263/
-_PEP263_RE = re.compile(rb"^[ \t\f]*#.*?coding[:=][ \t]*([-\w.]+)", re.MULTILINE)
+_PEP263_RE = re.compile(rb"^[ \t\f]*#.*?coding[:=][ \t]*([-\w.]+)")
+_PEP263_BLANK_RE = re.compile(rb"^[ \t\f]*(?:[#\r]|$)")
 
 # Charset declarations in EBCDIC-encoded markup, matched against a cp037
 # decode of the head.  Letters, digits, and the anchor characters ``<``,
@@ -121,9 +124,11 @@ def _detect_pep263(data: bytes) -> DetectionResult | None:
     # PEP 263 requires a '#' comment marker on line 1 or 2.
     if b"#" not in data[:200]:
         return None
-    # Extract first two lines only.
-    first_two_lines = b"\n".join(data.split(b"\n", 2)[:2])
-    match = _PEP263_RE.search(first_two_lines)
+    # Python only examines line 2 when line 1 is a comment or blank.
+    lines = data.split(b"\n", 2)
+    match = _PEP263_RE.match(lines[0])
+    if match is None and len(lines) > 1 and _PEP263_BLANK_RE.match(lines[0]):
+        match = _PEP263_RE.match(lines[1])
     if match:
         try:
             raw_name = match.group(1).decode("ascii").strip()
@@ -140,6 +145,50 @@ def _detect_pep263(data: bytes) -> DetectionResult | None:
     return None
 
 
+def _meta_attributes(body: bytes) -> dict[bytes, bytes]:
+    """Return the attributes of one meta tag, lowercased by name."""
+    attrs: dict[bytes, bytes] = {}
+    for match in _ATTR_RE.finditer(body):
+        name = match.group(1).lower()
+        if name in attrs:
+            continue
+        value = match.group(3)
+        if value is None:
+            value = match.group(4)
+        if value is not None:
+            attrs[name] = value
+    return attrs
+
+
+def _iter_html_charsets(head: bytes) -> Iterator[bytes]:
+    """Yield charset labels from real meta declarations, in document order.
+
+    ``charset=`` inside some other attribute (a refresh URL, a description)
+    is not a declaration. A declaration is a ``charset`` attribute, or the
+    ``charset`` parameter of an ``http-equiv="content-type"`` tag.
+    ``name="content-type"`` is wrong by the spec but common enough in the
+    wild that it counts too.
+    """
+    for tag in _META_TAG_RE.finditer(head):
+        attrs = _meta_attributes(tag.group(1))
+        charset = attrs.get(b"charset")
+        if charset is not None and charset.strip():
+            yield charset
+            continue
+        equiv = attrs.get(b"http-equiv")
+        if equiv is None:
+            equiv = attrs.get(b"name")
+        content = attrs.get(b"content")
+        if (
+            equiv is not None
+            and content is not None
+            and equiv.strip().lower() == b"content-type"
+        ):
+            found = _CONTENT_CHARSET_RE.search(content)
+            if found:
+                yield found.group(1)
+
+
 def detect_markup_charset(data: bytes) -> DetectionResult | None:
     """Scan the first bytes of *data* for a charset declaration.
 
@@ -148,6 +197,7 @@ def detect_markup_charset(data: bytes) -> DetectionResult | None:
     1. ``<?xml ... encoding="..."?>``
     2. ``<meta charset="...">``
     3. ``<meta http-equiv="Content-Type" content="...; charset=...">``
+       (also with ``name`` in place of ``http-equiv``)
     4. PEP 263 ``# -*- coding: ... -*-`` (first two lines only)
 
     :param data: The raw byte data to scan.
@@ -158,22 +208,34 @@ def detect_markup_charset(data: bytes) -> DetectionResult | None:
 
     head = data[:_SCAN_LIMIT]
 
-    for pattern in (_XML_ENCODING_RE, _HTML5_CHARSET_RE, _HTML4_CONTENT_TYPE_RE):
-        match = pattern.search(head)
-        if match:
-            try:
-                raw_name = match.group(1).decode("ascii").strip()
-            except (UnicodeDecodeError, ValueError):
-                continue
-            encoding = lookup_encoding(raw_name)
-            if encoding is not None and _validate_bytes(data, encoding):
-                mime_type = "text/xml" if pattern is _XML_ENCODING_RE else "text/html"
-                return DetectionResult(
-                    encoding=encoding,
-                    confidence=DETERMINISTIC_CONFIDENCE,
-                    language=None,
-                    mime_type=mime_type,
-                )
+    match = _XML_ENCODING_RE.search(head)
+    if match:
+        try:
+            raw_name = match.group(1).decode("ascii").strip()
+        except (UnicodeDecodeError, ValueError):
+            raw_name = ""
+        encoding = lookup_encoding(raw_name) if raw_name else None
+        if encoding is not None and _validate_bytes(data, encoding):
+            return DetectionResult(
+                encoding=encoding,
+                confidence=DETERMINISTIC_CONFIDENCE,
+                language=None,
+                mime_type="text/xml",
+            )
+
+    for raw in _iter_html_charsets(head):
+        try:
+            raw_name = raw.decode("ascii").strip()
+        except UnicodeDecodeError:
+            continue
+        encoding = lookup_encoding(raw_name)
+        if encoding is not None and _validate_bytes(data, encoding):
+            return DetectionResult(
+                encoding=encoding,
+                confidence=DETERMINISTIC_CONFIDENCE,
+                language=None,
+                mime_type="text/html",
+            )
 
     ebcdic_result = _detect_ebcdic_declaration(data)
     if ebcdic_result is not None:
