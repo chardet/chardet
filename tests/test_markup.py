@@ -195,6 +195,29 @@ def test_charset_beyond_scan_limit_ignored():
     assert result is None
 
 
+def test_charset_declaration_not_honored_when_window_fails_to_decode():
+    """A declaration whose encoding stops decoding past the head is dropped.
+
+    The markup stage validates the declared encoding against the scanned
+    head only, so it still returns the declaration.  The pipeline then
+    decodes the whole examined window with the winner, as it does for the
+    ranked paths, and falls through to the other stages when that fails.
+    """
+    data = b'<meta charset="euc-jp">' + b"x" * 5000 + b"\x80\x80\x80"
+    stage = detect_markup_charset(data)
+    assert stage is not None
+    assert stage.mime_type == "text/html"
+    result = detect(data)
+    assert result["encoding"] != "EUC-JP"
+    assert result["mime_type"] != "text/html"
+
+
+def test_pep263_not_honored_when_window_fails_to_decode():
+    """A PEP 263 coding line is dropped when the window fails to decode."""
+    data = b"# coding: euc-jp\n# " + b"x" * 5000 + b"\n\x80\x80\x80"
+    assert detect(data)["encoding"] != "EUC-JP"
+
+
 def test_non_ascii_charset_name_ignored():
     """A charset name containing non-ASCII bytes should be skipped."""
     # Build a meta tag whose charset value contains a non-ASCII byte (0xff)
@@ -308,6 +331,35 @@ def test_ebcdic_declaration_ignored_for_non_mainframe_name():
     data = html.encode("cp500")
     result = detect_markup_charset(data)
     assert result is None or result.encoding != "utf-8"
+
+
+def test_ebcdic_declaration_not_honored_when_window_fails_to_decode():
+    """An EBCDIC declaration is dropped when it cannot decode the window.
+
+    cp424 leaves byte 0x70 undefined.  The declaration and the high-byte
+    head decode cleanly, but a 0x70 byte past the head does not, so honouring
+    cp424 would return an answer that cannot decode the examined window.
+    """
+    decl = "<meta charset=cp424>".encode("cp037")
+    body = ("hello mainframe " * 400).encode("cp037")  # high-byte EBCDIC head
+    data = decl + body + b"\x70"  # 0x70 is undefined in cp424, past the head
+    assert detect(data)["encoding"] != "cp424"
+
+
+def test_declared_subset_promotes_when_superset_bytes_sit_past_the_head():
+    """Whole-window validation must not pre-empt superset promotion.
+
+    A declared EUC-KR page usually meets its first CP949-only hangul well
+    past the scanned head.  EUC-KR cannot decode the window, CP949 can, so
+    the answer is the promoted superset at declaration confidence, not a
+    statistical guess after the declaration was thrown away.
+    """
+    kr = "한국어 텍스트입니다.".encode("euc-kr")
+    data = b'<meta charset="euc-kr">' + kr * 400 + "똠".encode("cp949") + kr * 10
+    result = detect(data)
+    assert result["encoding"] == "CP949"
+    assert result["confidence"] == 0.95
+    assert result["mime_type"] == "text/html"
 
 
 @_needs_interpreted_build

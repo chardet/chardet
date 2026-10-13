@@ -78,6 +78,14 @@ Unreleased
 
 **Bug Fixes:**
 
+- A charset declaration is honored only when the declared encoding decodes
+  the whole examined window.  The markup stage checked the first 4 KB, so a
+  ``<meta charset>``, ``<?xml encoding>``, PEP 263, or EBCDIC declaration
+  whose encoding stopped decoding past the header still came back at 0.95,
+  and the caller's decode of the window raised.  The pipeline now decodes
+  the window with the declared encoding, after superset promotion so a
+  declared EUC-KR page with CP949-only bytes past the header still
+  promotes, and falls through to the other stages when the decode fails.
 - A ``charset=`` inside another attribute no longer beats a real
   ``<meta charset>``. An ASCII page whose refresh URL contained
   ``?charset=iso-8859-1``, followed by ``<meta charset="utf-8">``,

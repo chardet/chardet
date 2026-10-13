@@ -259,7 +259,7 @@ def _with_default_mime(result: DetectionResult) -> DetectionResult:
     return DetectionResult(result.encoding, result.confidence, result.language, mime)
 
 
-def _run_pipeline_core(  # noqa: PLR0913
+def _run_pipeline_core(  # noqa: PLR0913, PLR0915
     data: bytes,
     encoding_era: EncodingEra,
     max_bytes: int = DEFAULT_MAX_BYTES,
@@ -365,7 +365,16 @@ def _run_pipeline_core(  # noqa: PLR0913
                 )
             ]
         markup_result = promote_markup_superset(data, markup_result, allowed)
-        return [markup_result]
+        # The stage validated the declaration against the scanned head only.
+        # The answer has to decode the whole window, the contract the ranked
+        # paths keep below, so check it here, after promotion: a declared
+        # subset whose superset-only bytes sit past the head must promote,
+        # not fall through.  When even the promoted name fails, the other
+        # stages answer as if there were no declaration.
+        if markup_result.encoding is None or decodes_without_error(
+            data, markup_result.encoding
+        ):
+            return [markup_result]
 
     # Stage 1c: ASCII (use pre-computed result)
     if ascii_precheck is not None and ascii_precheck.encoding in allowed:
