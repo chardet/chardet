@@ -3,8 +3,11 @@
 
 from __future__ import annotations
 
+import chardet
+from chardet._utils import decodes_without_error
 from chardet.pipeline import DETERMINISTIC_CONFIDENCE, DetectionResult
 from chardet.pipeline.utf1632 import (
+    _SAMPLE_SIZE,
     _looks_like_text,
     _text_quality,
     detect_utf1632_patterns,
@@ -643,3 +646,39 @@ def test_utf16_le_pure_cjk_no_ascii_keeps_byte_order() -> None:
     assert result is not None
     assert result.encoding == "utf-16-le"
     assert result.confidence == DETERMINISTIC_CONFIDENCE
+
+
+# ---------------------------------------------------------------------------
+# Whole-window validity: the pattern stage samples only _SAMPLE_SIZE bytes
+# ---------------------------------------------------------------------------
+
+
+def test_detect_utf16_undecodable_past_sample_falls_through() -> None:
+    """A UTF-16 pattern in the sample but a bad unit past it must not be returned.
+
+    detect_utf1632_patterns inspects and decodes only the first _SAMPLE_SIZE
+    bytes, so a window whose head looks like clean UTF-16-LE but carries a
+    lone surrogate further on still matched the pattern.  detect() must not
+    report an encoding the caller cannot decode over the window it examined.
+    """
+    head = ("The quick brown fox jumps over the lazy dog. " * 100).encode("utf-16-le")
+    head = head[:_SAMPLE_SIZE]
+    tail = b"\x00\xd8" * 50  # lone high surrogates, undecodable as UTF-16-LE
+    data = head + tail
+
+    # The sample alone still matches the pattern stage.
+    assert detect_utf1632_patterns(data) is not None
+    assert not decodes_without_error(data, "utf-16-le")
+
+    # Nothing else decodes a lone surrogate, so the null-heavy bytes land
+    # in the binary stage and the no-match answer comes back.
+    result = chardet.detect(data)
+    assert result["encoding"] is None
+    assert result["mime_type"] == "application/octet-stream"
+
+
+def test_detect_utf16_decodable_window_still_detected() -> None:
+    """A long, fully decodable UTF-16-LE window is still reported as UTF-16."""
+    data = ("UTF-16 sample text. " * 400).encode("utf-16-le")
+    assert len(data) > _SAMPLE_SIZE
+    assert chardet.detect(data)["encoding"] == "utf-16-le"

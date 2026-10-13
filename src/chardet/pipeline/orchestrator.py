@@ -297,7 +297,15 @@ def _run_pipeline_core(  # noqa: PLR0913, PLR0915
     # BOMs — must run before binary detection since these encodings contain
     # many null bytes that would trigger the binary check)
     utf1632_result = detect_utf1632_patterns(data)
-    if utf1632_result is not None and utf1632_result.encoding in allowed:
+    # The stage samples and decodes the first few KB only.  The answer has
+    # to decode the whole window, so a lone surrogate or out-of-range unit
+    # past the sample sends the input on to the other stages instead.
+    if (
+        utf1632_result is not None
+        and utf1632_result.encoding is not None
+        and utf1632_result.encoding in allowed
+        and decodes_without_error(data, utf1632_result.encoding)
+    ):
         return [utf1632_result]
 
     # Escape-sequence encodings (ISO-2022, HZ-GB-2312, UTF-7): must run
