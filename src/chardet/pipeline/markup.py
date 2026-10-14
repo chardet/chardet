@@ -40,7 +40,10 @@ _ATTR_RE = re.compile(
     rb"""([^\s=/>]+)(?:\s*=\s*(?:(["'])(.*?)\2|([^\s>"']+)))?""",
     re.IGNORECASE | re.DOTALL,
 )
-_CONTENT_CHARSET_RE = re.compile(rb"""charset=([^\s;"']+)""", re.IGNORECASE)
+_CONTENT_CHARSET_RE = re.compile(
+    rb"""charset[\t\n\f\r ]*=[\t\n\f\r ]*(?:(["'])([^"']+)\1|([^\s;"']+))""",
+    re.IGNORECASE,
+)
 
 # PEP 263: encoding declaration in the first two lines of a Python file.
 # https://peps.python.org/pep-0263/
@@ -186,7 +189,7 @@ def _iter_html_charsets(head: bytes) -> Iterator[bytes]:
         ):
             found = _CONTENT_CHARSET_RE.search(content)
             if found:
-                yield found.group(1)
+                yield found.group(2) if found.group(1) else found.group(3)
 
 
 def detect_markup_charset(data: bytes) -> DetectionResult | None:

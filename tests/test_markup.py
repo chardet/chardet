@@ -119,6 +119,39 @@ def test_html4_content_type():
     assert result.encoding == "cp1252"
 
 
+@pytest.mark.parametrize(
+    "parameter",
+    [
+        b'charset="windows-1252"',
+        b"charset='windows-1252'",
+        b"charset = windows-1252",
+        b'CHARSET\t=\t"windows-1252"',
+    ],
+)
+def test_html4_content_type_quoted_or_spaced_charset(parameter: bytes):
+    outer_quote = b'"' if b"'" in parameter else b"'"
+    data = (
+        b'<meta http-equiv="Content-Type" content='
+        + outer_quote
+        + b"text/html; "
+        + parameter
+        + outer_quote
+        + b">caf\xe9"
+    )
+    result = detect_markup_charset(data)
+    assert result is not None
+    assert result.encoding == "cp1252"
+    assert result.mime_type == "text/html"
+    assert detect(data)["encoding"] == "Windows-1252"
+    assert detect(data)["mime_type"] == "text/html"
+
+
+@pytest.mark.parametrize("parameter", [b'charset="windows-1252', b'charset=""'])
+def test_html4_content_type_invalid_quoted_charset(parameter: bytes):
+    data = b"<meta http-equiv='Content-Type' content='text/html; " + parameter + b"'>"
+    assert detect_markup_charset(data) is None
+
+
 def test_no_markup():
     result = detect_markup_charset(b"Just plain text with no HTML or XML")
     assert result is None
