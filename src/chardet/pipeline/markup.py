@@ -31,10 +31,24 @@ _MARKUP_SUPERSET_PROMOTIONS: dict[str, tuple[str, str]] = {
 
 _SCAN_LIMIT = 4096
 
-_XML_ENCODING_RE = re.compile(
-    rb"""<\?xml[^>]+encoding\s*=\s*['"]([^'"]+)['"]""", re.IGNORECASE
+# Labels that cannot describe a document whose declaration was read as
+# ASCII bytes: UTF-16 and UTF-32 text would have put null bytes between the
+# letters of the tag.  The WHATWG prescan reads such a label as UTF-8, and
+# ``x-user-defined`` as windows-1252, so the declared page still has a
+# chance of decoding under the name it is given.
+_SELF_CONTRADICTING_LABELS = frozenset(
+    {"utf-16", "utf-16-be", "utf-16-le", "utf-32", "utf-32-be", "utf-32-le"}
 )
-_META_TAG_RE = re.compile(rb"<meta\b([^>]*)>", re.IGNORECASE)
+
+# A tag scan stops at the next ``<`` as well as at ``>``.  A tag that never
+# closes is not a declaration either way, but with ``[^>]`` every unclosed
+# ``<meta`` ran to the end of the head before failing, and a head made of
+# nothing else cost a thousand times a normal one.  The price is a literal
+# ``<`` inside an attribute value, which hides that one tag.
+_XML_ENCODING_RE = re.compile(
+    rb"""<\?xml\s[^<>]*encoding\s*=\s*['"]([^'"]+)['"]""", re.IGNORECASE
+)
+_META_TAG_RE = re.compile(rb"<meta\b([^<>]*)>", re.IGNORECASE)
 # DOTALL so a quoted value may span lines.
 _ATTR_RE = re.compile(
     rb"""([^\s=/>]+)(?:\s*=\s*(?:(["'])(.*?)\2|([^\s>"']+)))?""",
@@ -63,7 +77,7 @@ _PEP263_BLANK_RE = re.compile(rb"^[ \t\f]*(?:[#\r]|$)")
 # the anchor away from the genuine ``charset=`` that follows it.  Quote
 # characters are NOT invariant (e.g. cp1026 moves ``"``), so an optional
 # single junk character stands in for the opening quote.
-_EBCDIC_TAG_RE = re.compile(r"<(?:meta|\?xml)[^>]*", re.IGNORECASE)
+_EBCDIC_TAG_RE = re.compile(r"<(?:meta|\?xml)[^<>]*", re.IGNORECASE)
 _EBCDIC_DECL_RE = re.compile(
     r"(?:charset|encoding)\s*=\s*[^\sA-Za-z0-9._-]?\s*([A-Za-z][A-Za-z0-9._-]+)",
     re.IGNORECASE,
@@ -87,7 +101,8 @@ def _detect_ebcdic_declaration(data: bytes) -> DetectionResult | None:
     cp037 — the EBCDIC page whose letter and digit positions are shared by
     all variants — and scan the decoded text.  Only declarations naming a
     MAINFRAME-era encoding are honoured, and the declared encoding must
-    decode the whole window.
+    decode the whole window.  The MIME type follows the tag the declaration
+    sits in.
     """
     head = data[:_SCAN_LIMIT]
     high_count = len(head) - len(head.translate(None, _MARKUP_HIGH_BYTES))
@@ -106,29 +121,52 @@ def _detect_ebcdic_declaration(data: bytes) -> DetectionResult | None:
                 and REGISTRY[encoding].era & EncodingEra.MAINFRAME
                 and _validate_bytes(data, encoding)
             ):
+                is_xml = tag.group(0)[1] == "?"
                 return DetectionResult(
                     encoding=encoding,
                     confidence=DETERMINISTIC_CONFIDENCE,
                     language=None,
-                    mime_type="text/html",
+                    mime_type="text/xml" if is_xml else "text/html",
                 )
     return None
+
+
+def _pep263_encoding(raw_name: str) -> str | None:
+    """Resolve a coding cookie the way :func:`tokenize.detect_encoding` does.
+
+    Python folds the ``utf-8-*`` spellings to UTF-8 and ``latin-1``,
+    ``iso-8859-1``, and ``iso-latin-1`` (with or without a suffix) to
+    Latin-1 before it consults the codec registry, so ``iso-latin-1`` is a
+    valid cookie even though no codec answers to it, and ``utf-8-sig``
+    names plain UTF-8 rather than a file that starts with a mark.
+    """
+    name = raw_name[:12].lower().replace("_", "-")
+    if name == "utf-8" or name.startswith("utf-8-"):
+        return "utf-8"
+    if name in ("latin-1", "iso-8859-1", "iso-latin-1") or name.startswith(
+        ("latin-1-", "iso-8859-1-", "iso-latin-1-")
+    ):
+        return "iso8859-1"
+    return lookup_encoding(raw_name)
 
 
 def _detect_pep263(data: bytes) -> DetectionResult | None:
     """Check the first two lines of *data* for a PEP 263 encoding declaration.
 
     PEP 263 declarations (e.g. ``# -*- coding: utf-8 -*-``) are only valid
-    on line 1 or line 2 of a Python source file.
+    on line 1 or line 2 of a Python source file.  Both lines have to start
+    inside the first :data:`_SCAN_LIMIT` bytes, the same bound the markup
+    scan uses.
 
     :param data: The raw byte data to scan.
     :returns: A :class:`DetectionResult` with confidence 0.95, or ``None``.
     """
+    head = data[:_SCAN_LIMIT]
     # PEP 263 requires a '#' comment marker on line 1 or 2.
-    if b"#" not in data[:200]:
+    if b"#" not in head:
         return None
     # Python only examines line 2 when line 1 is a comment or blank.
-    lines = data.split(b"\n", 2)
+    lines = head.split(b"\n", 2)
     match = _PEP263_RE.match(lines[0])
     if match is None and len(lines) > 1 and _PEP263_BLANK_RE.match(lines[0]):
         match = _PEP263_RE.match(lines[1])
@@ -137,7 +175,7 @@ def _detect_pep263(data: bytes) -> DetectionResult | None:
             raw_name = match.group(1).decode("ascii").strip()
         except (UnicodeDecodeError, ValueError):
             return None
-        encoding = _declared_encoding(data, lookup_encoding(raw_name))
+        encoding = _declared_encoding(data, _pep263_encoding(raw_name))
         if encoding is not None:
             return DetectionResult(
                 encoding=encoding,
@@ -146,6 +184,40 @@ def _detect_pep263(data: bytes) -> DetectionResult | None:
                 mime_type="text/x-python",
             )
     return None
+
+
+def _strip_comments(head: bytes) -> bytes:
+    """Return *head* without its ``<!-- -->`` comments.
+
+    A declaration inside a comment is not a declaration, and the WHATWG
+    prescan skips comments for that reason.  As in the prescan, the dashes
+    that open a comment may also close it (``<!-->`` is a whole comment),
+    and a comment that never closes runs to the end of the head.
+    """
+    start = head.find(b"<!--")
+    if start < 0:
+        return head
+    parts: list[bytes] = []
+    pos = 0
+    while start >= 0:
+        parts.append(head[pos:start])
+        end = head.find(b"-->", start + 2)
+        if end < 0:
+            return b"".join(parts)
+        pos = end + 3
+        start = head.find(b"<!--", pos)
+    parts.append(head[pos:])
+    return b"".join(parts)
+
+
+def _markup_encoding(raw_name: str) -> str | None:
+    """Resolve a charset label found in ASCII-compatible markup."""
+    if raw_name.lower() == "x-user-defined":
+        return "cp1252"
+    encoding = lookup_encoding(raw_name)
+    if encoding in _SELF_CONTRADICTING_LABELS:
+        return "utf-8"
+    return encoding
 
 
 def _meta_attributes(body: bytes) -> dict[bytes, bytes]:
@@ -203,6 +275,11 @@ def detect_markup_charset(data: bytes) -> DetectionResult | None:
        (also with ``name`` in place of ``http-equiv``)
     4. PEP 263 ``# -*- coding: ... -*-`` (first two lines only)
 
+    Markup inside ``<!-- -->`` comments is not scanned.  A UTF-16 or UTF-32
+    label is read as UTF-8 and ``x-user-defined`` as windows-1252, as in the
+    WHATWG prescan, since a declaration found in ASCII bytes cannot be
+    describing UTF-16 text.
+
     A declaration counts only if the declared encoding decodes the whole of
     *data*, or, failing that, if its Windows superset does (see
     :func:`_declared_encoding`).  A declaration that fails is skipped and
@@ -214,7 +291,7 @@ def detect_markup_charset(data: bytes) -> DetectionResult | None:
     if not data:
         return None
 
-    head = data[:_SCAN_LIMIT]
+    head = _strip_comments(data[:_SCAN_LIMIT])
 
     match = _XML_ENCODING_RE.search(head)
     if match:
@@ -223,7 +300,7 @@ def detect_markup_charset(data: bytes) -> DetectionResult | None:
         except (UnicodeDecodeError, ValueError):
             raw_name = ""
         encoding = _declared_encoding(
-            data, lookup_encoding(raw_name) if raw_name else None
+            data, _markup_encoding(raw_name) if raw_name else None
         )
         if encoding is not None:
             return DetectionResult(
@@ -238,7 +315,7 @@ def detect_markup_charset(data: bytes) -> DetectionResult | None:
             raw_name = raw.decode("ascii").strip()
         except UnicodeDecodeError:
             continue
-        encoding = _declared_encoding(data, lookup_encoding(raw_name))
+        encoding = _declared_encoding(data, _markup_encoding(raw_name))
         if encoding is not None:
             return DetectionResult(
                 encoding=encoding,

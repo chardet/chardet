@@ -491,3 +491,159 @@ def test_declared_page_window_decode_budget(data: bytes, expected: str, budget: 
     with patch.object(markup_mod, "decodes_without_error", counting):
         assert detect(data)["encoding"] == expected
     assert len(window_decodes) <= budget, window_decodes
+
+
+_LATIN1_TEXT = "Voilà, un résumé très détaillé. ".encode("latin-1") * 10
+
+
+@pytest.mark.parametrize(
+    ("junk", "declaration"),
+    [
+        (b"<meta ", b'<meta charset="iso-8859-1">'),
+        (b"<?xml ", b'<?xml version="1.0" encoding="iso-8859-1"?>'),
+    ],
+)
+def test_a_head_of_unclosed_tags_still_finds_the_declaration(
+    junk: bytes, declaration: bytes
+):
+    """A tag scan stops at the next ``<``, so unclosed tags hide only themselves.
+
+    The old ``[^>]`` class ran every unclosed tag to the end of the head
+    before giving up, which made a head of nothing else quadratic.
+    """
+    data = junk * 600 + declaration + _LATIN1_TEXT
+    result = detect_markup_charset(data)
+    assert result is not None
+    assert result.encoding == "iso8859-1"
+
+
+def test_unclosed_meta_does_not_swallow_the_next_one():
+    data = (
+        b'<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-5" '
+        b'<meta charset="iso-8859-1">' + _LATIN1_TEXT
+    )
+    result = detect_markup_charset(data)
+    assert result is not None
+    assert result.encoding == "iso8859-1"
+
+
+@pytest.mark.parametrize(
+    "label", [b"utf-16", b"utf-16le", b"UTF-16BE", b"utf-32", b"utf-32le"]
+)
+def test_utf16_label_in_ascii_markup_reads_as_utf8(label: bytes):
+    """A UTF-16 or UTF-32 label found in ASCII bytes cannot be right.
+
+    UTF-16 text would have null bytes between the letters of the tag, so
+    the WHATWG prescan reads the label as UTF-8.  Any even run of ASCII is
+    valid UTF-16, so honoring the label returned a confident, decodable,
+    wrong answer.
+    """
+    body = "café".encode() * 10
+    page = b'<html><head><meta charset="' + label + b'"></head><body>' + body
+    result = detect_markup_charset(page)
+    assert result is not None
+    assert result.encoding == "utf-8"
+    assert result.mime_type == "text/html"
+    assert detect(page)["encoding"] == "utf-8"
+
+    xml = b'<?xml version="1.0" encoding="' + label + b'"?><a>' + body + b"</a>"
+    result = detect_markup_charset(xml)
+    assert result is not None
+    assert result.encoding == "utf-8"
+    assert result.mime_type == "text/xml"
+    assert detect(xml)["encoding"] == "utf-8"
+
+
+def test_utf16_label_on_non_utf8_bytes_is_dropped():
+    page = b'<meta charset="utf-16">' + _LATIN1_TEXT
+    assert detect_markup_charset(page) is None
+    assert not detect(page)["encoding"].lower().startswith("utf-16")
+
+
+def test_x_user_defined_reads_as_windows_1252():
+    page = b'<meta charset="x-user-defined">' + "“café”".encode("cp1252") * 10
+    result = detect_markup_charset(page)
+    assert result is not None
+    assert result.encoding == "cp1252"
+    assert detect(page)["encoding"] == "Windows-1252"
+
+
+def test_declaration_inside_a_comment_is_not_a_declaration():
+    live = b'<meta charset="iso-8859-1">' + _LATIN1_TEXT
+    for commented in (
+        b'<!-- <meta charset="iso-8859-5"> -->',
+        b'<!-- <?xml version="1.0" encoding="iso-8859-5"?> -->',
+        b"<!-- \n<meta\ncharset='iso-8859-5'>\n-->",
+    ):
+        result = detect_markup_charset(commented + live)
+        assert result is not None
+        assert result.encoding == "iso8859-1"
+        assert detect(commented + live)["encoding"] == "ISO-8859-1"
+    assert (
+        detect_markup_charset(b'<!-- <meta charset="iso-8859-5"> -->' + _LATIN1_TEXT)
+        is None
+    )
+
+
+def test_unclosed_comment_hides_the_rest_of_the_head():
+    data = b'<!-- <meta charset="iso-8859-1">' + _LATIN1_TEXT
+    assert detect_markup_charset(data) is None
+
+
+@pytest.mark.parametrize("opener", [b"<!-->", b"<!--->"])
+def test_comment_may_close_on_its_own_dashes(opener: bytes):
+    """As in the WHATWG prescan, ``<!-->`` is a whole comment."""
+    data = opener + b'<meta charset="iso-8859-1">' + _LATIN1_TEXT
+    result = detect_markup_charset(data)
+    assert result is not None
+    assert result.encoding == "iso8859-1"
+
+
+@pytest.mark.parametrize(
+    ("name", "expected"),
+    [
+        (b"iso-latin-1", "iso8859-1"),
+        (b"ISO_LATIN_1", "iso8859-1"),
+        (b"latin-1-unix", "iso8859-1"),
+        (b"utf-8-sig", "utf-8"),
+        (b"utf_8", "utf-8"),
+        (b"cp1251", "cp1251"),
+    ],
+)
+def test_pep263_names_resolve_like_tokenize(name: bytes, expected: str):
+    """The cookie is read the way :func:`tokenize.detect_encoding` reads it.
+
+    ``iso-latin-1`` is a valid cookie that no codec answers to, and a
+    ``utf-8-sig`` cookie names plain UTF-8 rather than a file that starts
+    with a mark.
+    """
+    data = b"# -*- coding: " + name + b" -*-\nx = 1\n"
+    result = detect_markup_charset(data)
+    assert result is not None
+    assert result.encoding == expected
+    assert result.mime_type == "text/x-python"
+
+
+@pytest.mark.parametrize("first_line", [b" " * 300, b"# " + b"x" * 300])
+def test_pep263_long_first_line_then_cookie(first_line: bytes):
+    """A first line longer than the old 200 byte guard no longer hides line 2."""
+    data = first_line + b"\n# coding: cp1251\n" + "привет".encode("cp1251")
+    result = detect_markup_charset(data)
+    assert result is not None
+    assert result.encoding == "cp1251"
+
+
+def test_pep263_cookie_past_the_scan_limit_is_ignored():
+    data = b"# " + b"x" * 5000 + b"\n# coding: cp1251\n" + "привет".encode("cp1251")
+    assert detect_markup_charset(data) is None
+
+
+def test_ebcdic_xml_declaration_reports_xml():
+    xml = (
+        '<?xml version="1.0" encoding="cp500"?>'
+        "<doc>hello there dear reader of mainframe pages</doc>"
+    )
+    result = detect_markup_charset(xml.encode("cp500"))
+    assert result is not None
+    assert result.encoding == "cp500"
+    assert result.mime_type == "text/xml"

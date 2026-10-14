@@ -36,7 +36,11 @@ order:
 6. **Markup Charset** — Extracts explicit charset declarations from
    ``<meta charset="...">`` tags, ``<?xml encoding="..."?>``
    processing instructions, and PEP 263 ``# -*- coding: ... -*-``
-   declarations in the first two lines of Python source files.
+   declarations in the first two lines of Python source files.  Markup
+   declarations are read the way the WHATWG prescan reads them: comments
+   are skipped, and a UTF-16 label found in ASCII bytes is read as UTF-8.
+   A declaration counts only if the declared encoding decodes the whole
+   examined window.
 
 7. **ASCII Check** — If every byte is in the 7-bit ASCII range, returns
    ``ascii`` immediately.
