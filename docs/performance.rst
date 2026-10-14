@@ -325,7 +325,9 @@ encoding returned decodes the whole window. After the bounded stages
 settle, the winner is decoded over the window, and when it fails the
 next candidate that decodes takes its place, so legacy single-byte and
 CJK buffers past the cap pay one C-speed decode of the window on top
-of the exhaustive scans.
+of the exhaustive scans. The one exception is the ``no_match_encoding``
+sentinel at confidence 0.10, which is returned as the caller configured
+it when nothing decodes.
 
 The practical consequence: the UTF-8 verdict is *validated*, not
 sampled. chardet never reports ``utf-8`` for data that is not valid
