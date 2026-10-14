@@ -394,6 +394,7 @@ _CHAIN = (
 )
 
 
+@_needs_interpreted_build
 def test_postprocess_results_runs_every_correction_in_order(
     monkeypatch: pytest.MonkeyPatch,
 ):

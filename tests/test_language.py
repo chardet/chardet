@@ -8,6 +8,14 @@ from chardet.models import RARE_LANGUAGES, score_best_language
 from chardet.pipeline import DetectionResult, language
 from chardet.pipeline.language import _to_utf8, fill_languages
 
+#: See the note in tests/test_confusion.py: mypyc resolves a compiled
+#: module's calls to functions imported into it at compile time, so patching
+#: those names only takes effect on interpreted builds.
+_needs_interpreted_build = pytest.mark.skipif(
+    language.__file__.endswith((".so", ".pyd")),
+    reason="patches a function the compiled module calls natively",
+)
+
 #: Plain French, ASCII-safe apart from the accents cp1252 carries.  Long
 #: enough to score decisively, so the tier tests below turn on which tier
 #: ran, not on how close the models came.
@@ -17,6 +25,7 @@ _FRENCH = (
 ).encode("cp1252")
 
 
+@_needs_interpreted_build
 def test_fill_languages_tier1_fills_without_the_scored_tiers(
     monkeypatch: pytest.MonkeyPatch,
 ):
@@ -31,6 +40,7 @@ def test_fill_languages_tier1_fills_without_the_scored_tiers(
     assert filled[0].language == "ru"
 
 
+@_needs_interpreted_build
 def test_fill_languages_tier2_scores_the_encodings_own_variants(
     monkeypatch: pytest.MonkeyPatch,
 ):
@@ -40,6 +50,7 @@ def test_fill_languages_tier2_scores_the_encodings_own_variants(
     assert filled[0].language == "fr"
 
 
+@_needs_interpreted_build
 def test_fill_languages_tier3_falls_back_to_the_utf8_models(
     monkeypatch: pytest.MonkeyPatch,
 ):
@@ -49,6 +60,7 @@ def test_fill_languages_tier3_falls_back_to_the_utf8_models(
     assert filled[0].language == "fr"
 
 
+@_needs_interpreted_build
 def test_fill_languages_leaves_language_unset_when_no_tier_applies(
     monkeypatch: pytest.MonkeyPatch,
 ):
