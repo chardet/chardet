@@ -94,6 +94,17 @@ Unreleased
 
 **Bug Fixes:**
 
+- Null-separated ASCII records with short fields no longer read as
+  UTF-16-LE.  ``find -print0`` output such as ``file1\0file2\0`` put a
+  null in a third of the code units, past the 15% ceiling the
+  null-separator guard allowed, so it came back as UTF-16-LE at 0.95 with
+  the letter pairs decoding to CJK ideographs and the language reported as
+  Chinese.  The guard now applies whenever every non-null byte is printable
+  ASCII and fewer than three quarters of the code units carry a null, which
+  separates records of two or more characters from UTF-16 text, where every
+  unit carries one.  Such data is reported as binary unless its nulls are
+  sparse enough for the ASCII stage, as before.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 - The markup stage reads declarations the way the WHATWG prescan does.
   A declaration inside an ``<!-- -->`` comment no longer counts, so a
   commented-out ``<meta charset="iso-8859-5">`` ahead of the live

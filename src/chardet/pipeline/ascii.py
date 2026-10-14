@@ -10,8 +10,10 @@ from chardet.pipeline import ASCII_TEXT_BYTES, DetectionResult
 
 # Maximum fraction of null bytes to still classify data as ASCII.
 # Null-separated CLI output (find -print0, git ls-tree -z) typically has
-# 1-3.5% nulls.  5% covers all realistic cases while staying well below
-# the UTF-16 guard threshold (15%).
+# 1-3.5% nulls.  5% covers all realistic cases.  The UTF-16 stage runs
+# first and its null-separator guard rejects any all-ASCII data with
+# fewer nulls than real UTF-16 carries, so nothing accepted here can
+# have been claimed as UTF-16.
 _MAX_NULL_FRACTION = 0.05
 
 
