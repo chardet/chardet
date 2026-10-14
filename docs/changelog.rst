@@ -75,9 +75,42 @@ Unreleased
   fourth character, which is all the verdict needs: 128 KiB of such
   data went from 5.4 seconds to 1.2 milliseconds.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+- A head of unclosed ``<meta`` or ``<?xml`` tags no longer makes the
+  markup scan quadratic.  Each unclosed tag ran the scan to the end of the
+  4 KB head before failing, about 5 ms for a head made of nothing else,
+  against 3 µs for a normal page.  Tag scans now stop at the next ``<`` as
+  well, which brings that head to about 20 µs and leaves normal pages
+  unchanged.  The one thing given up is a literal ``<`` inside an
+  attribute value, which now hides that single tag.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 
 **Bug Fixes:**
 
+- The markup stage reads declarations the way the WHATWG prescan does.
+  A declaration inside an ``<!-- -->`` comment no longer counts, so a
+  commented-out ``<meta charset="iso-8859-5">`` ahead of the live
+  ``iso-8859-1`` one no longer wins.  A ``utf-16``, ``utf-16le``,
+  ``utf-16be``, or UTF-32 label found in ASCII markup is read as UTF-8,
+  since UTF-16 text would have put null bytes between the letters of the
+  tag; an ASCII page declaring ``utf-16le`` came back as UTF-16-LE at
+  0.95, a confident, decodable, wrong answer.  ``x-user-defined`` is read
+  as Windows-1252.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+- The ``charset`` parameter of a ``content`` attribute may now have
+  whitespace around its ``=`` and may be quoted, both of which were
+  missed before.
+  (`Huanyi Xie <https://github.com/xiehuanyi>`_,
+  `#398 <https://github.com/chardet/chardet/pull/398>`_)
+- PEP 263 cookies are resolved the way ``tokenize.detect_encoding`` resolves
+  them: ``iso-latin-1`` and the other spellings Python folds to Latin-1
+  are accepted, and ``utf-8-sig`` names UTF-8 rather than a file that
+  starts with a mark.  A first line longer than 200 bytes no longer hides
+  a cookie on line 2; both lines now only have to start inside the 4 KB
+  the markup scan reads.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+- An EBCDIC ``<?xml encoding="...">`` declaration reports ``text/xml``
+  rather than ``text/html``.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 - Every answer now decodes the examined window, under the name the caller
   receives.  Three paths still returned an encoding whose strict decode of
   the window raised.  The BOM stage returned UTF-16, UTF-32, and UTF-8-SIG at
