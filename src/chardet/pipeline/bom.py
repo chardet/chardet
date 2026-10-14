@@ -18,9 +18,9 @@ _BOMS: tuple[tuple[bytes, str], ...] = (
     # The fourth base64 character varies with what follows the BOM, giving
     # four prefixes (RFC 2152).  All four are ASCII bytes, so without these
     # marks a signed UTF-7 file reads as plain ASCII and the signature is
-    # returned to the caller as literal text.  Unlike the other marks these
-    # bytes occur in ordinary text ("+/v8/src/api.cc" in a diff), so a
-    # UTF-7 match additionally requires the whole buffer to decode.
+    # returned to the caller as literal text.  These bytes also occur in
+    # ordinary text ("+/v8/src/api.cc" in a diff), which is one more reason
+    # every mark is held to the whole-buffer decode below.
     (b"+/v8", "utf-7"),
     (b"+/v9", "utf-7"),
     (b"+/v+", "utf-7"),
@@ -46,9 +46,15 @@ def detect_bom(data: bytes) -> DetectionResult | None:
                 payload_len = len(data) - len(bom_bytes)
                 if payload_len % 4 != 0:
                     continue
-            # A UTF-7 signature is only believable if the data is UTF-7:
-            # the prefix alone is ordinary ASCII (see the table comment).
-            if encoding == "utf-7" and not decodes_without_error(data, "utf-7"):
-                continue
+            # The mark names the encoding, but the answer is only true if the
+            # body decodes under it: a lone surrogate after a UTF-16 mark, or
+            # cp1252 bytes after a UTF-8 mark, would otherwise come back at
+            # 1.0 and raise in the caller's own decode.  A mark whose body
+            # fails is no answer at all, so the other stages take over.
+            # The usual body behind a UTF-8 mark is plain ASCII, which
+            # ``isascii`` settles at memory speed; everything else decodes.
+            body_is_ascii = encoding == "utf-8-sig" and data[len(bom_bytes) :].isascii()
+            if not body_is_ascii and not decodes_without_error(data, encoding):
+                return None
             return DetectionResult(encoding=encoding, confidence=1.0, language=None)
     return None

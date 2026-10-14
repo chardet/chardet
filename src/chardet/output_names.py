@@ -152,15 +152,43 @@ def apply_preferred_superset(
 apply_legacy_rename = apply_preferred_superset
 
 
+#: Internal names whose display name resolves to a *narrower* Python codec.
+#: ``EUC-JP`` is ``euc_jp``, which lacks the JIS X 0213 rows that
+#: ``euc_jis_2004`` validated; ``SHIFT_JIS``, ``Big5`` and ``ISO-2022-JP``
+#: narrow ``shift_jis_2004``, ``big5hkscs`` and ``iso2022_jp_2`` the same
+#: way.  A test pins this set to what :mod:`codecs` reports, so a new
+#: mapping cannot narrow silently.
+NARROWER_DISPLAY_NAMES: frozenset[str] = frozenset(
+    {"big5hkscs", "euc_jis_2004", "iso2022_jp_2", "shift_jis_2004"}
+)
+
+
 def apply_compat_names(
     result: DetectionDict,
+    data: bytes | None = None,
 ) -> DetectionDict:
     """Convert internal codec names to chardet 5.x/6.x compatible names.
 
     Modifies the ``"encoding"`` value in *result* in-place and returns *result*
     for fluent chaining.
 
+    The internal name is the codec the pipeline validated the data under.
+    For the names in :data:`NARROWER_DISPLAY_NAMES` the display name is a
+    smaller codec, so when *data* is given the rename applies only if the
+    display codec decodes it; otherwise the internal name stands, which
+    Python's codecs accept as is.  Without *data* the rename is
+    unconditional, as before.
+
     :param result: A detection result dict containing an ``"encoding"`` key.
+    :param data: The bytes *result* was detected from, when known.
     :returns: The same *result* dict, modified in-place.
     """
+    enc = result.get("encoding")
+    if (
+        data is not None
+        and isinstance(enc, str)
+        and enc in NARROWER_DISPLAY_NAMES
+        and not decodes_without_error(data, _COMPAT_NAMES[enc])
+    ):
+        return result
     return _remap_encoding(result, _COMPAT_NAMES)

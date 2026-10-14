@@ -90,9 +90,9 @@ def test_corruption_before_a_truncated_tail_is_still_caught():
 
 
 def test_markup_declaration_survives_the_scan_limit_cut():
-    # A complete, well-formed page with an honest declaration.  _validate_bytes
-    # slices its own 4 kB head, and one byte of padding decides whether that cut
-    # lands mid-character -- which must not change the answer.
+    # A complete, well-formed page with an honest declaration.  One byte of
+    # padding shifts where every internal cut lands relative to the two-byte
+    # characters -- which must not change the answer.
     body = (_ZH * 200).encode("gbk")
     for pad in (0, 1):
         data = b'<meta charset="gbk">' + b" " * pad + body

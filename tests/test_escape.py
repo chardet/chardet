@@ -7,6 +7,7 @@ import time
 
 from chardet import detect
 from chardet.pipeline.escape import (
+    _has_valid_hz_regions,
     _has_valid_utf7_sequences,
     _is_embedded_in_base64,
     _is_valid_utf7_b64,
@@ -217,8 +218,8 @@ def test_iso2022_jp_base_returns_jp2() -> None:
 
 def test_iso2022_jp_2004_codes() -> None:
     """JIS X 0213 escape codes should return iso2022-jp-2004."""
-    # ESC $ ( O designates JIS X 0213 plane 1
-    data = b"\x1b$B$3$s\x1b(B\x1b$(O\x21\x21\x1b(B"
+    # ESC $ ( Q designates JIS X 0213:2004 plane 1
+    data = b"\x1b$B$3$s\x1b(B\x1b$(Q\x21\x21\x1b(B"
     result = detect_escape_encoding(data)
     assert result is not None
     assert result.encoding == "iso2022_jp_2004"
@@ -234,8 +235,9 @@ def test_iso2022_jp_2004_esc_dollar_paren_q() -> None:
 
 def test_iso2022_jp_ext_codes() -> None:
     """Half-width katakana SI/SO should return iso2022-jp-ext."""
-    # ESC $ B for JIS X 0208, then SI (0x0E) / SO (0x0F) for half-width katakana
-    data = b"\x1b$B$3$s\x1b(B\x0e\xb1\xb2\x0f"
+    # ESC $ B for JIS X 0208, then SO (0x0E) / SI (0x0F) around 7-bit
+    # half-width katakana (ISO-2022 streams are 7-bit)
+    data = b"\x1b$B$3$s\x1b(B\x0e\x31\x32\x0f"
     result = detect_escape_encoding(data)
     assert result is not None
     assert result.encoding == "iso2022_jp_ext"
@@ -267,16 +269,24 @@ def test_iso2022_jp_jis_x_0212_entry() -> None:
 
 def test_iso2022_jp_2004_without_base() -> None:
     """JIS X 0213 escape alone (no ESC$B/ESC$@/ESC(J) should detect JP-2004."""
-    data = b"\x1b$(O\x21\x21\x1b(B"
+    data = b"\x1b$(Q\x21\x21\x1b(B"
     result = detect_escape_encoding(data)
     assert result is not None
     assert result.encoding == "iso2022_jp_2004"
 
 
 def test_hz_close_marker_before_open_marker() -> None:
-    """When ~} appears before ~{ but a valid region follows, HZ is still detected."""
+    """A ~} before the first ~{ does not stop the region scan.
+
+    The region validator still finds the GB region after the stray marker.
+    The stage itself answers ``None``, since HZ cannot decode a ``~}`` in
+    ASCII mode and the answer has to decode the window; with the stray
+    tilde escaped as ``~~`` the same text is HZ.
+    """
     data = b"prefix ~} text ~{CEDE~}"
-    result = detect_escape_encoding(data)
+    assert _has_valid_hz_regions(data, len(data), len(data))
+    assert detect_escape_encoding(data) is None
+    result = detect_escape_encoding(b"prefix ~~ text ~{CEDE~}")
     assert result is not None
     assert result.encoding == "hz"
 
@@ -433,3 +443,39 @@ def test_utf7_base64_run_outrunning_the_bound_is_skipped() -> None:
     """
     data = b"+" + b"AAAA" * 10
     assert _has_valid_utf7_sequences(data, max_start=10, max_end=5) is False
+
+
+# ---------------------------------------------------------------------------
+# Whole-window gate: a designation is evidence, the decode is the answer
+# ---------------------------------------------------------------------------
+
+
+def test_designation_inside_plain_text_is_not_iso2022() -> None:
+    """Three bytes of a JIS designation in a log line are not ISO-2022-JP."""
+    data = b"log: \x1b$B is the escape\n" + b"plain text " * 50
+    assert detect_escape_encoding(data) is None
+    assert detect(data)["encoding"] != "ISO-2022-JP"
+
+
+def test_iso2022_jp_with_bad_byte_past_header_falls_through() -> None:
+    data = "こんにちは世界".encode("iso-2022-jp") + b" plain " * 50 + b"\x80"
+    assert detect_escape_encoding(data) is None
+    result = detect(data)
+    if result["encoding"] is not None:
+        data.decode(result["encoding"])  # whatever answers must decode
+
+
+def test_iso2022_kr_with_bad_byte_falls_through() -> None:
+    data = b"\x1b$)C" + b"plain " * 50 + b"\x0e\x7f\x7f\x0f"
+    assert detect_escape_encoding(data) is None
+
+
+def test_jis_x0213_2000_designation_falls_through() -> None:
+    """Python's iso2022_jp_2004 codec cannot read ESC $ ( O, so neither can the caller."""
+    data = b"\x1b$(O\x21\x21\x1b(B"
+    assert detect_escape_encoding(data) is None
+
+
+def test_hz_with_stray_tilde_falls_through() -> None:
+    data = "你好世界".encode("hz") + b" ok " * 30 + b" a~b end"
+    assert detect_escape_encoding(data) is None
