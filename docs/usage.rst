@@ -312,9 +312,15 @@ Encoding names are resolved through Python's codec system, so aliases work
 :class:`ValueError` — pass ``None`` (the default) to disable filtering.
 
 When filtering removes all candidates, chardet returns the
-``no_match_encoding`` (default ``"cp1252"``) with low confidence.  If even
-that encoding is excluded by the filters, chardet returns
-``encoding=None`` with a warning.  Similarly, ``empty_input_encoding``
+``no_match_encoding`` (default ``"cp1252"``) with confidence 0.10.  That
+answer is the caller's sentinel for "nothing fit", so it is the one
+result chardet does not check against the data: with
+``include_encodings=["utf-8", "windows-1252"]`` and a file that holds
+0x81, which neither decodes, the result is still Windows-1252 at 0.10,
+and decoding it strictly will raise.  Treat a 0.10 result under a filter
+as a miss rather than a detection.  If even that encoding is excluded by
+the filters, chardet returns ``encoding=None`` with a warning.  Similarly,
+``empty_input_encoding``
 (default ``"utf-8"``) controls the result for empty input:
 
 .. code-block:: python

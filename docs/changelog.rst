@@ -84,6 +84,14 @@ Unreleased
   attribute value, which now hides that single tag.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 
+**Documentation:**
+
+- The ``no_match_encoding`` fallback is documented as the one answer that
+  is not checked against the data: it is the caller's sentinel for
+  "nothing fit", returned as configured at confidence 0.10, so a 0.10
+  result under a filter is a miss rather than a detection.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+
 **Bug Fixes:**
 
 - The markup stage reads declarations the way the WHATWG prescan does.
@@ -110,6 +118,11 @@ Unreleased
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 - An EBCDIC ``<?xml encoding="...">`` declaration reports ``text/xml``
   rather than ``text/html``.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+- ``detect_all(prefer_superset=True)`` no longer lists a name twice.  The
+  superset remap sends ISO-8859-7 and Windows-1253 to the same name, so
+  Greek text came back as ``Windows-1253`` at two confidences.  Each name
+  now appears once, at the higher of its confidences.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 - Every answer now decodes the examined window, under the name the caller
   receives.  Three paths still returned an encoding whose strict decode of

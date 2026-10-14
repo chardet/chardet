@@ -1077,3 +1077,20 @@ def test_display_name_never_narrower_than_the_data(data: bytes, internal: str):
 def test_display_name_kept_when_it_decodes():
     data = "日本語のテキストです。".encode("euc_jp") * 60
     assert chardet.detect(data)["encoding"] == "EUC-JP"
+
+
+def test_detect_all_prefer_superset_lists_each_name_once():
+    """The superset remap must not list one name at two confidences.
+
+    ISO-8859-7 and Windows-1253 both become Windows-1253 under
+    ``prefer_superset``; the entry kept is the higher-confidence one.
+    """
+    data = "Καλημέρα κόσμε, αυτό είναι δοκιμή. ".encode("iso8859-7") * 40
+    plain = chardet.detect_all(data)
+    assert [d["encoding"] for d in plain][:2] == ["ISO-8859-7", "Windows-1253"]
+    ranked = chardet.detect_all(data, prefer_superset=True)
+    names = [d["encoding"] for d in ranked]
+    assert names[0] == "Windows-1253"
+    assert len(names) == len(set(names))
+    assert ranked[0]["confidence"] == plain[0]["confidence"]
+    assert len(ranked) == len(plain) - 1
