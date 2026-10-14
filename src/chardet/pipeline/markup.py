@@ -79,7 +79,7 @@ _MARKUP_HIGH_BYTES = bytes(range(0x80, 0x100))
 _EBCDIC_SCAN_MIN_HIGH_FRACTION = 0.25
 
 
-def _detect_ebcdic_declaration(head: bytes) -> DetectionResult | None:
+def _detect_ebcdic_declaration(data: bytes) -> DetectionResult | None:
     """Look for a charset declaration in EBCDIC-encoded markup.
 
     The ASCII regexes cannot see declarations in EBCDIC bytes, so when the
@@ -87,8 +87,9 @@ def _detect_ebcdic_declaration(head: bytes) -> DetectionResult | None:
     cp037 — the EBCDIC page whose letter and digit positions are shared by
     all variants — and scan the decoded text.  Only declarations naming a
     MAINFRAME-era encoding are honoured, and the declared encoding must
-    actually decode the head.
+    decode the whole window.
     """
+    head = data[:_SCAN_LIMIT]
     high_count = len(head) - len(head.translate(None, _MARKUP_HIGH_BYTES))
     if high_count < len(head) * _EBCDIC_SCAN_MIN_HIGH_FRACTION:
         return None
@@ -103,7 +104,7 @@ def _detect_ebcdic_declaration(head: bytes) -> DetectionResult | None:
             if (
                 encoding is not None
                 and REGISTRY[encoding].era & EncodingEra.MAINFRAME
-                and decodes_without_error(head, encoding)
+                and _validate_bytes(data, encoding)
             ):
                 return DetectionResult(
                     encoding=encoding,
@@ -136,8 +137,8 @@ def _detect_pep263(data: bytes) -> DetectionResult | None:
             raw_name = match.group(1).decode("ascii").strip()
         except (UnicodeDecodeError, ValueError):
             return None
-        encoding = lookup_encoding(raw_name)
-        if encoding is not None and _validate_bytes(data, encoding):
+        encoding = _declared_encoding(data, lookup_encoding(raw_name))
+        if encoding is not None:
             return DetectionResult(
                 encoding=encoding,
                 confidence=DETERMINISTIC_CONFIDENCE,
@@ -202,6 +203,11 @@ def detect_markup_charset(data: bytes) -> DetectionResult | None:
        (also with ``name`` in place of ``http-equiv``)
     4. PEP 263 ``# -*- coding: ... -*-`` (first two lines only)
 
+    A declaration counts only if the declared encoding decodes the whole of
+    *data*, or, failing that, if its Windows superset does (see
+    :func:`_declared_encoding`).  A declaration that fails is skipped and
+    the next one is tried, so a stale prolog does not hide a correct meta.
+
     :param data: The raw byte data to scan.
     :returns: A :class:`DetectionResult` with confidence 0.95, or ``None``.
     """
@@ -216,8 +222,10 @@ def detect_markup_charset(data: bytes) -> DetectionResult | None:
             raw_name = match.group(1).decode("ascii").strip()
         except (UnicodeDecodeError, ValueError):
             raw_name = ""
-        encoding = lookup_encoding(raw_name) if raw_name else None
-        if encoding is not None and _validate_bytes(data, encoding):
+        encoding = _declared_encoding(
+            data, lookup_encoding(raw_name) if raw_name else None
+        )
+        if encoding is not None:
             return DetectionResult(
                 encoding=encoding,
                 confidence=DETERMINISTIC_CONFIDENCE,
@@ -230,8 +238,8 @@ def detect_markup_charset(data: bytes) -> DetectionResult | None:
             raw_name = raw.decode("ascii").strip()
         except UnicodeDecodeError:
             continue
-        encoding = lookup_encoding(raw_name)
-        if encoding is not None and _validate_bytes(data, encoding):
+        encoding = _declared_encoding(data, lookup_encoding(raw_name))
+        if encoding is not None:
             return DetectionResult(
                 encoding=encoding,
                 confidence=DETERMINISTIC_CONFIDENCE,
@@ -239,7 +247,7 @@ def detect_markup_charset(data: bytes) -> DetectionResult | None:
                 mime_type="text/html",
             )
 
-    ebcdic_result = _detect_ebcdic_declaration(head)
+    ebcdic_result = _detect_ebcdic_declaration(data)
     if ebcdic_result is not None:
         return ebcdic_result
 
@@ -259,14 +267,15 @@ def promote_markup_superset(
     result using the superset encoding.  Otherwise return *markup_result*
     unchanged.
 
-    The two decode checks read the whole input, the structural comparison
-    only the first :data:`_SCAN_LIMIT` bytes.  That split is deliberate:
-    what a caller can actually ``.decode()`` is a fact about their entire
-    input --- capping it costs real answers, since a declared-Shift_JIS page
-    typically reaches its first CP932-only byte well past the header --- but
-    the structural score is a ranking heuristic that has converged by then,
-    and running it over 200 kB twice on every declared page is the expensive
-    part of this function.
+    The decode checks read the whole input: what a caller can actually
+    ``.decode()`` is a fact about their entire input, and a declared
+    Shift_JIS page typically reaches its first CP932-only byte well past
+    the header.  The structural comparison reads only the first
+    :data:`_SCAN_LIMIT` bytes, since multi-byte structure is uniform enough
+    that the ranking has converged by then.  It runs first because it is
+    cheap and settles which single decode the answer needs: a 200 kB
+    window decodes in a few hundred microseconds, and every declared page
+    of a promotable encoding comes through here.
     """
     if markup_result.encoding is None:
         return markup_result
@@ -276,45 +285,59 @@ def promote_markup_superset(
     reported_codec, superset_name = promotion
     if superset_name not in allowed:
         return markup_result
-    superset_info = REGISTRY[superset_name]
-    # Validate: superset must be able to decode the data
-    if not decodes_without_error(data, superset_name):
+    promoted = DetectionResult(
+        superset_name,
+        markup_result.confidence,
+        markup_result.language,
+        markup_result.mime_type,
+    )
+    head = data[:_SCAN_LIMIT]
+    ctx = PipelineContext()
+    base_score = compute_structural_score(head, REGISTRY[markup_result.encoding], ctx)
+    superset_score = compute_structural_score(head, REGISTRY[superset_name], ctx)
+    if superset_score > base_score:
+        # The superset fits the structure better; take it if it decodes.
+        if decodes_without_error(data, superset_name):
+            return promoted
         return markup_result
     # Decode-safety: if the codec the reported name resolves to cannot
     # decode the data (e.g. a declared-Shift_JIS page using CP932 NEC/IBM
     # extensions), the superset is the only answer a caller can actually
-    # use with ``.decode()`` -- promote unconditionally.
-    if not decodes_without_error(data, reported_codec):
-        return DetectionResult(
-            superset_name,
-            markup_result.confidence,
-            markup_result.language,
-            markup_result.mime_type,
-        )
-    # Compare structural scores
-    # Scored on the head only.  Multi-byte structure is uniform enough that
-    # the ranking converges long before 200 kB, and this is the expensive
-    # half: two full-buffer passes on every declared page, where
-    # ``_validate_bytes`` caps the same kind of scan at _SCAN_LIMIT.
-    head = data[:_SCAN_LIMIT]
-    ctx = PipelineContext()
-    base_score = compute_structural_score(head, REGISTRY[markup_result.encoding], ctx)
-    superset_score = compute_structural_score(head, superset_info, ctx)
-    if superset_score > base_score:
-        return DetectionResult(
-            superset_name,
-            markup_result.confidence,
-            markup_result.language,
-            markup_result.mime_type,
-        )
+    # use with ``.decode()`` -- promote regardless of the structural tie.
+    if decodes_without_error(data, reported_codec):
+        return markup_result
+    if decodes_without_error(data, superset_name):
+        return promoted
     return markup_result
 
 
 def _validate_bytes(data: bytes, encoding: str) -> bool:
-    """Check that *data* can be decoded under *encoding* without errors.
+    """Check that the whole of *data* decodes under *encoding*.
 
-    Only validates the first ``_SCAN_LIMIT`` bytes to avoid decoding a
-    full 200 kB input just to verify a charset declaration found in the
-    header.
+    A declaration is an answer only if the caller can decode what chardet
+    examined with it.  The decoder stops at the first bad sequence, so a
+    declaration that lies about the header fails as fast as a head-only
+    check would, and a cut multi-byte sequence at the very end is tolerated
+    as everywhere else.
     """
-    return decodes_without_error(data[:_SCAN_LIMIT], encoding)
+    return decodes_without_error(data, encoding)
+
+
+def _declared_encoding(data: bytes, encoding: str | None) -> str | None:
+    """Return the name to report for a declaration of *encoding*, or ``None``.
+
+    When the declared encoding cannot decode the window but its Windows
+    superset can (a declared EUC-KR page whose first CP949-only hangul sits
+    past the header, a declared Shift_JIS page using NEC extensions), the
+    superset is the answer the caller can use, so it is reported directly.
+    :func:`promote_markup_superset` would reach the same name one window
+    decode later.
+    """
+    if encoding is None:
+        return None
+    if _validate_bytes(data, encoding):
+        return encoding
+    promotion = _MARKUP_SUPERSET_PROMOTIONS.get(encoding)
+    if promotion is not None and _validate_bytes(data, promotion[1]):
+        return promotion[1]
+    return None

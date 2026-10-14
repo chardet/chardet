@@ -78,6 +78,32 @@ Unreleased
 
 **Bug Fixes:**
 
+- Every answer now decodes the examined window, under the name the caller
+  receives.  Three paths still returned an encoding whose strict decode of
+  the window raised.  The BOM stage returned UTF-16, UTF-32, and UTF-8-SIG at
+  1.0 on the mark alone, so a lone surrogate or a run of cp1252 bytes after
+  the mark came back as a certainty; the body now has to decode, as it
+  already did for UTF-7.  The escape stage returned ISO-2022-JP, ISO-2022-KR,
+  and HZ-GB-2312 on the presence of a designation, so plain text that
+  happened to contain ``ESC $ B`` came back as ISO-2022-JP at 0.95; a
+  designation now counts only if the window decodes.  And the chardet 5.x/6.x
+  display names ``EUC-JP``, ``SHIFT_JIS``, ``Big5``, and ``ISO-2022-JP``
+  resolve to narrower Python codecs than the ``euc_jis_2004``,
+  ``shift_jis_2004``, ``big5hkscs``, and ``iso2022_jp_2`` the pipeline
+  validated under, so a circled digit, an HKSCS character, a JIS X 0213
+  character, or a Latin-1 segment past the first page raised under the
+  returned name.  Those four renames now apply only when the display codec
+  decodes the window; otherwise the internal name is returned, which
+  Python's codecs accept as is.  ``compat_names=False`` is unchanged.
+- The markup stage validates each declaration against the whole window
+  before choosing it, and tries the declared encoding's Windows superset
+  when the declaration itself fails, so a stale ``utf-8`` prolog ahead of a
+  correct ``iso-8859-1`` meta no longer hides it, and a declared EUC-KR page
+  whose first CP949-only hangul sits past the header still comes back as
+  CP949 at 0.95.  This replaces the pipeline-level hold added for #394 with
+  the same single window decode, and the superset promotion now runs its
+  structural comparison before deciding which decode it needs, so a declared
+  Shift_JIS or EUC-KR page pays two window decodes instead of three.
 - A charset declaration is honored only when the declared encoding decodes
   the whole examined window.  The markup stage checked the first 4 KB, so a
   ``<meta charset>``, ``<?xml encoding>``, PEP 263, or EBCDIC declaration

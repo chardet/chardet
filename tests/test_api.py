@@ -1038,3 +1038,42 @@ def test_prefer_superset_never_hands_back_an_undecodable_name():
     streamed = detector.close()
     assert data.decode(streamed["encoding"])
     assert chardet.detect(data[:-6], **kwargs)["encoding"] == "Windows-1252"
+
+
+# ---------------------------------------------------------------------------
+# The returned name decodes the window, display names included
+# ---------------------------------------------------------------------------
+
+_JP_2004 = "日本語のテキストです。これはテストです。".encode("euc_jis_2004")
+_HK = "這是一個測試。中文文字。".encode("big5hkscs")
+
+
+@pytest.mark.parametrize(
+    ("data", "internal"),
+    [
+        (_JP_2004 * 60 + "①".encode("euc_jis_2004") + _JP_2004[:40], "euc_jis_2004"),
+        (_HK * 60 + "嘢".encode("big5hkscs") + _HK[:40], "big5hkscs"),
+        (
+            b'<meta charset="euc-jp">' + _JP_2004 * 60 + "①".encode("euc_jis_2004"),
+            "euc_jis_2004",
+        ),
+    ],
+    ids=["euc-jp-statistical", "big5-statistical", "euc-jp-declared"],
+)
+def test_display_name_never_narrower_than_the_data(data: bytes, internal: str):
+    result = chardet.detect(data)
+    assert result["encoding"] == internal
+    data.decode(result["encoding"])
+    assert chardet.detect(data, compat_names=False)["encoding"] == internal
+    for entry in chardet.detect_all(data, ignore_threshold=True):
+        if entry["encoding"] is not None:
+            data.decode(entry["encoding"])
+    detector = UniversalDetector()
+    detector.feed(data)
+    detector.close()
+    assert detector.result["encoding"] == internal
+
+
+def test_display_name_kept_when_it_decodes():
+    data = "日本語のテキストです。".encode("euc_jp") * 60
+    assert chardet.detect(data)["encoding"] == "EUC-JP"

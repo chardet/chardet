@@ -231,15 +231,12 @@ def test_charset_beyond_scan_limit_ignored():
 def test_charset_declaration_not_honored_when_window_fails_to_decode():
     """A declaration whose encoding stops decoding past the head is dropped.
 
-    The markup stage validates the declared encoding against the scanned
-    head only, so it still returns the declaration.  The pipeline then
-    decodes the whole examined window with the winner, as it does for the
-    ranked paths, and falls through to the other stages when that fails.
+    The stage validates the declaration against the whole window, so it
+    returns nothing and the other stages answer as if there were no
+    declaration.
     """
     data = b'<meta charset="euc-jp">' + b"x" * 5000 + b"\x80\x80\x80"
-    stage = detect_markup_charset(data)
-    assert stage is not None
-    assert stage.mime_type == "text/html"
+    assert detect_markup_charset(data) is None
     result = detect(data)
     assert result["encoding"] != "EUC-JP"
     assert result["mime_type"] != "text/html"
@@ -416,3 +413,81 @@ def test_promotion_when_superset_structure_scores_higher():
     assert promoted.encoding == "cp932"
     assert promoted.confidence == result.confidence
     assert promoted.mime_type == "text/html"
+
+
+def test_stale_prolog_does_not_hide_a_correct_meta():
+    """The first declaration decodes the head but not the window; the second is right."""
+    latin1 = "Voilà, un résumé très détaillé à lire. ".encode("latin-1") * 40
+    data = (
+        b'<?xml version="1.0" encoding="utf-8"?><html><head>'
+        b'<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">'
+        b"</head><body>" + b"x" * 4200 + latin1
+    )
+    result = detect(data)
+    assert result["encoding"] == "ISO-8859-1"
+    assert result["confidence"] == 0.95
+    assert result["mime_type"] == "text/html"
+
+
+def test_declared_subset_promotes_from_the_stage():
+    """The stage reports the superset when only it decodes the window."""
+    kr = "한국어 텍스트입니다.".encode("euc-kr")
+    data = b'<meta charset="euc-kr">' + kr * 400 + "똠".encode("cp949") + kr * 10
+    stage = detect_markup_charset(data)
+    assert stage is not None
+    assert stage.encoding == "cp949"
+    assert stage.mime_type == "text/html"
+
+
+@_needs_interpreted_build
+def test_no_promotion_when_better_scoring_superset_cannot_decode():
+    """A superset the structure prefers is still refused when it cannot decode."""
+    data = "こんにちは、世界。".encode("shift_jis") + b"\x81\x20"  # lead, bad trail
+    result = DetectionResult("shift_jis_2004", 0.95, None, "text/html")
+    allowed = frozenset({"cp932", "shift_jis_2004"})
+
+    def fake_score(head: bytes, info: EncodingInfo, ctx: object) -> float:
+        return 2.0 if info.name == "cp932" else 1.0
+
+    with patch.object(markup_mod, "compute_structural_score", fake_score):
+        assert promote_markup_superset(data, result, allowed) is result
+
+
+@_needs_interpreted_build
+@pytest.mark.parametrize(
+    ("data", "expected", "budget"),
+    [
+        (
+            b'<meta charset="windows-1252">' + "café résumé ".encode("cp1252") * 2000,
+            "Windows-1252",
+            1,
+        ),
+        (
+            b'<meta charset="shift_jis">'
+            + "日本語のテキストです。".encode("shift_jis") * 1000,
+            "SHIFT_JIS",
+            2,
+        ),
+        (
+            b'<meta charset="euc-kr">'
+            + "한국어 텍스트입니다.".encode("euc-kr") * 1000
+            + "똠".encode("cp949"),
+            "CP949",
+            2,
+        ),
+    ],
+    ids=["single-byte", "shift_jis-clean", "euc-kr-promoted"],
+)
+def test_declared_page_window_decode_budget(data: bytes, expected: str, budget: int):
+    """Declared pages pay at most one window decode, two when a superset is in play."""
+    real = markup_mod.decodes_without_error
+    window_decodes: list[str] = []
+
+    def counting(buf: bytes, encoding: str) -> bool:
+        if len(buf) > markup_mod._SCAN_LIMIT:
+            window_decodes.append(encoding)
+        return real(buf, encoding)
+
+    with patch.object(markup_mod, "decodes_without_error", counting):
+        assert detect(data)["encoding"] == expected
+    assert len(window_decodes) <= budget, window_decodes

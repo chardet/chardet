@@ -275,8 +275,52 @@ def _has_valid_utf7_sequences(data: bytes, max_start: int, max_end: int) -> bool
         start = max(pos, i)
 
 
+def _iso2022_variant(data: bytes) -> tuple[str, str] | None:
+    """Name the ISO-2022 variant whose designations appear in *data*.
+
+    :returns: ``(encoding, language)`` or ``None`` when no designation is
+        present.
+    """
+    # ISO-2022-JP-2004: JIS X 0213 designations are unique to this variant.
+    # Python's codec reads the 2004 plane-1 (Q) and plane-2 (P) designations
+    # but not the 2000 plane-1 one (O), so an O stream fails the decode gate
+    # below and the other stages answer; naming it here would hand the
+    # caller an encoding that raises.
+    if b"\x1b$(O" in data or b"\x1b$(P" in data or b"\x1b$(Q" in data:
+        return "iso2022_jp_2004", "ja"
+
+    # ISO-2022-JP-EXT: JIS X 0201 Kana designation is unique to this variant.
+    if b"\x1b(I" in data:
+        return "iso2022_jp_ext", "ja"
+
+    # ISO-2022-JP base: JIS X 0208/0201/0212 designations.
+    if (
+        b"\x1b$B" in data
+        or b"\x1b$@" in data
+        or b"\x1b(J" in data
+        or b"\x1b$(D" in data  # JIS X 0212-1990 (JP-1/JP-2/JP-EXT)
+    ):
+        # SI/SO (0x0E / 0x0F) shift controls -> JP-EXT
+        if b"\x0e" in data and b"\x0f" in data:
+            return "iso2022_jp_ext", "ja"
+        # Default to JP-2: a strict superset of JP and JP-1 that
+        # decodes all base sequences correctly.
+        return "iso2022_jp_2", "ja"
+
+    # ISO-2022-KR: ESC sequence for KS C 5601
+    if b"\x1b$)C" in data:
+        return "iso2022_kr", "ko"
+
+    return None
+
+
 def detect_escape_encoding(data: bytes) -> DetectionResult | None:
     """Detect ISO-2022, HZ-GB-2312, and UTF-7 from escape/tilde/plus sequences.
+
+    Every answer this stage returns decodes the whole window: a designation
+    is three bytes that ordinary text can contain (``log: ESC $ B is the
+    escape``), and a genuine ISO-2022 or HZ stream can still carry a bad
+    byte past the header.  The gate costs one decode per hit only.
 
     :param data: The raw byte data to examine.
     :returns: A :class:`DetectionResult` if an escape encoding is found, or ``None``.
@@ -289,50 +333,12 @@ def detect_escape_encoding(data: bytes) -> DetectionResult | None:
         return None
 
     if has_esc:
-        # ISO-2022-JP-2004: JIS X 0213 designations are unique to this variant.
-        if b"\x1b$(O" in data or b"\x1b$(P" in data or b"\x1b$(Q" in data:
+        variant = _iso2022_variant(data)
+        if variant is not None and decodes_without_error(data, variant[0]):
             return DetectionResult(
-                encoding="iso2022_jp_2004",
+                encoding=variant[0],
                 confidence=DETERMINISTIC_CONFIDENCE,
-                language="ja",
-            )
-
-        # ISO-2022-JP-EXT: JIS X 0201 Kana designation is unique to this variant.
-        if b"\x1b(I" in data:
-            return DetectionResult(
-                encoding="iso2022_jp_ext",
-                confidence=DETERMINISTIC_CONFIDENCE,
-                language="ja",
-            )
-
-        # ISO-2022-JP base: JIS X 0208/0201/0212 designations.
-        if (
-            b"\x1b$B" in data
-            or b"\x1b$@" in data
-            or b"\x1b(J" in data
-            or b"\x1b$(D" in data  # JIS X 0212-1990 (JP-1/JP-2/JP-EXT)
-        ):
-            # SI/SO (0x0E / 0x0F) shift controls -> JP-EXT
-            if b"\x0e" in data and b"\x0f" in data:
-                return DetectionResult(
-                    encoding="iso2022_jp_ext",
-                    confidence=DETERMINISTIC_CONFIDENCE,
-                    language="ja",
-                )
-            # Default to JP-2: a strict superset of JP and JP-1 that
-            # decodes all base sequences correctly.
-            return DetectionResult(
-                encoding="iso2022_jp_2",
-                confidence=DETERMINISTIC_CONFIDENCE,
-                language="ja",
-            )
-
-        # ISO-2022-KR: ESC sequence for KS C 5601
-        if b"\x1b$)C" in data:
-            return DetectionResult(
-                encoding="iso2022_kr",
-                confidence=DETERMINISTIC_CONFIDENCE,
-                language="ko",
+                language=variant[1],
             )
 
     # Bounds for the deep validators below.  They walk candidate sites in
@@ -356,6 +362,7 @@ def detect_escape_encoding(data: bytes) -> DetectionResult | None:
         and b"~{" in data
         and b"~}" in data
         and _has_valid_hz_regions(data, max_start, max_end)
+        and decodes_without_error(data, "hz")
     ):
         return DetectionResult(
             encoding="hz",
