@@ -49,9 +49,18 @@ _MIN_PRINTABLE_FRACTION = 0.7
 # the data is checked for a null-separator pattern.  If the null fraction
 # is below this AND all non-null bytes are printable ASCII, the candidate
 # is rejected as a null-separator false positive rather than real UTF-16.
-# Real Latin UTF-16 has ~50% nulls; CJK UTF-16 has fewer but non-ASCII
-# non-null bytes.  15% is generous — separator data is typically 1-5%.
-_NULL_SEPARATOR_MAX_FRACTION = 0.15
+#
+# When every non-null byte is printable ASCII, the two readings are easy
+# to tell apart by how many code units carry a null.  UTF-16 text made of
+# ASCII characters puts a null in every unit, and the only thing that
+# lowers the fraction is a stretch that fell out of phase (the corpus has
+# a UTF-16-BE file with one such stretch, at 0.865).  Null-separated
+# records (``find -print0``, ``git ls-tree -z``) put a null in at most
+# half the units once records are two characters or longer: three-byte
+# ``abc\0`` records on one parity give exactly 0.5, and longer records
+# give less.  Single-character records are byte-identical to UTF-16 and
+# are read as UTF-16.  0.75 sits between the two shapes.
+_NULL_SEPARATOR_MAX_FRACTION = 0.75
 
 # ASCII_TEXT_BYTES plus the null byte — used by the null-separator guard
 # to check whether non-null bytes are all printable ASCII.

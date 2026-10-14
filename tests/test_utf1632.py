@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+import pytest
+
 import chardet
 from chardet._utils import decodes_without_error
 from chardet.pipeline import DETERMINISTIC_CONFIDENCE, DetectionResult
@@ -613,6 +615,57 @@ def test_real_utf16_le_cjk_still_detected() -> None:
     result = detect_utf1632_patterns(data)
     assert result is not None
     assert result.encoding == "utf-16-le"
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        b"file1\x00file2\x00file3\x00" * 40,
+        b"abc\x00def\x00ghi\x00" * 60,
+        b"ab\x00cd\x00ef\x00gh\x00" * 60,
+        b"a\x00bb\x00ccc\x00dddd\x00eeeee\x00ffffff\x00" * 30,
+    ],
+    ids=["five-char", "three-char", "two-char", "mixed-length"],
+)
+def test_short_null_separated_records_are_not_utf16(data: bytes) -> None:
+    """Short records put a null in up to half the code units; still not UTF-16.
+
+    Each of these read as UTF-16-LE at full confidence, with the letter
+    pairs decoding to CJK ideographs and the language coming back as
+    Chinese.  The nulls exceed the ASCII stage's tolerance, so the data
+    now lands in the binary stage instead.
+    """
+    assert detect_utf1632_patterns(data) is None
+    result = chardet.detect(data)
+    assert result["encoding"] is None
+    assert result["mime_type"] == "application/octet-stream"
+
+
+def test_single_character_records_are_utf16() -> None:
+    """One-character records are byte-identical to UTF-16-LE and read as such."""
+    data = b"a\x00b\x00c\x00d\x00e\x00f\x00" * 20
+    assert data == ("abcdef" * 20).encode("utf-16-le")
+    result = detect_utf1632_patterns(data)
+    assert result is not None
+    assert result.encoding == "utf-16-le"
+
+
+def test_utf16_ascii_with_an_out_of_phase_stretch_is_still_utf16() -> None:
+    """A stray odd byte knocks a stretch out of phase; the text is still UTF-16.
+
+    Mirrors a corpus file: ASCII UTF-16-BE with a line of percent signs
+    that carries one byte too many, so 61 code units in the middle show
+    their null on the other parity.  The dominant parity still holds
+    about 87% of the units, well above the separator guard's cutoff.
+    """
+    head = ("The quick brown fox jumps over the lazy dog. " * 5).encode("utf-16-be")
+    tail = ("Pack my box with five dozen liquor jugs. " * 5).encode("utf-16-be")
+    data = head + b" " + ("%" * 60).encode("utf-16-be") + b"\x00" + tail
+    assert data.decode("utf-16-be")
+    result = detect_utf1632_patterns(data)
+    assert result is not None
+    assert result.encoding == "utf-16-be"
+    assert chardet.detect(data)["encoding"] == "utf-16-be"
 
 
 # ---------------------------------------------------------------------------
