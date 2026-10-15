@@ -29,7 +29,7 @@ for the full large-input tables.
 | ---------------------- | :--------------------: | :-----------: | :-------------------------: |
 | Accuracy (3,138 files) |       **99.7%**        |     84.4%     |            86.6%            |
 | Speed                  | **2,641 files/s** (641 pure) |  9 files/s   |        2,250 files/s        |
-| Language detection     |       **91.8%**        |     38.7%     |            54.8%            |
+| Language detection     |       **93.0%**        |     38.7%     |            54.8%            |
 | Peak memory            |     **27.7 MiB**       |      n/a      |          71.0 MiB           |
 | Streaming detection    |        **yes**         |      yes      |             no              |
 | Encoding era filtering |        **yes**         |      no       |             no              |
@@ -154,7 +154,7 @@ cat somefile.txt | chardetect
 - **Ground-up rewrite:** 13-stage detection pipeline using BOM detection, magic number identification, structural probing, byte validity filtering, and bigram statistical models
 - **315x faster** than chardet 6.0.0 when compiled, and 1.2x faster than charset-normalizer 3.5.1 overall (2.0x at the median) while being far more accurate
 - **99.7% accuracy:** +15.3pp vs chardet 6.0.0, +13.1pp vs charset-normalizer 3.5.1
-- **Language detection:** 91.8% accuracy across 49 languages, returned with every result
+- **Language detection:** 93.0% accuracy across 49 languages, returned with every result
 - **MIME type detection:** identifies 40+ binary file formats (images, audio/video, archives, documents, executables, fonts) via magic number signatures, plus `text/html`, `text/xml`, and `text/x-python` for markup
 - **Encoding filters:** `include_encodings` and `exclude_encodings` parameters to restrict or exclude specific encodings from the candidate set
 - **99 encodings:** full coverage including EBCDIC, Mac, DOS, and Baltic/Central European families
