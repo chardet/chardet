@@ -118,3 +118,14 @@ detection uses three tiers:
 3. **UTF-8 fallback** — For Unicode encodings (UTF-8, UTF-16, UTF-32),
    the detected text is scored against byte-level bigram models for all
    supported languages.
+
+Tiers 2 and 3 compare bigram profiles by cosine similarity, as the
+encoding ranking does, but in a weighted space: the input's bigrams are
+weighted by how rare each is across all models (its IDF), and each
+language model is normalized under the square root of the same weights.
+The encoding ranking weights only the input. That is right for telling
+encodings apart, where the rare bigrams are the evidence, but with 49
+languages in play it let one high-IDF bigram that two languages share,
+such as the UTF-8 pair for ``é``, outweigh every bigram that tells them
+apart, and French text came back Hungarian. Charging each model for its
+own rare bigrams restores the common bigrams' vote.
