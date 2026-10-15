@@ -76,10 +76,16 @@ _PEP263_BLANK_RE = re.compile(rb"^[ \t\f]*(?:[#\r]|$)")
 # a bogus earlier ``encoding=`` token inside the same tag cannot consume
 # the anchor away from the genuine ``charset=`` that follows it.  Quote
 # characters are NOT invariant (e.g. cp1026 moves ``"``), so an optional
-# single junk character stands in for the opening quote.
+# single junk character stands in for the opening quote.  That junk
+# character is grouped with its own trailing whitespace rather than left
+# between two ``\s*`` runs: ``\s*X?\s*`` lets a whitespace byte land in
+# either run, so a value that never arrives (``charset=`` followed by a
+# long space run) backtracks over every split and makes the match
+# quadratic in the whitespace length.  ``\s*(?:X\s*)?`` matches the same
+# strings with one way to place each space.
 _EBCDIC_TAG_RE = re.compile(r"<(?:meta|\?xml)[^<>]*", re.IGNORECASE)
 _EBCDIC_DECL_RE = re.compile(
-    r"(?:charset|encoding)\s*=\s*[^\sA-Za-z0-9._-]?\s*([A-Za-z][A-Za-z0-9._-]+)",
+    r"(?:charset|encoding)\s*=\s*(?:[^\sA-Za-z0-9._-]\s*)?([A-Za-z][A-Za-z0-9._-]+)",
     re.IGNORECASE,
 )
 
