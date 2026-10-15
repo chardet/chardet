@@ -105,8 +105,8 @@ def detect(  # noqa: PLR0913
         against the data: it is the caller's sentinel for "nothing fit".
     :param empty_input_encoding: Encoding to return for empty input.  Defaults
         to ``"utf-8"``.
-    :returns: A dictionary with keys ``"encoding"``, ``"confidence"``, and
-        ``"language"``.
+    :returns: A dictionary with keys ``"encoding"``, ``"confidence"``,
+        ``"language"``, and ``"mime_type"``.
     """
     _warn_deprecated_chunk_size(chunk_size)
     _validate_max_bytes(max_bytes)

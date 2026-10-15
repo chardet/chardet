@@ -5,8 +5,10 @@ Why does detect() return None for encoding?
 --------------------------------------------
 
 chardet returns ``None`` when the data appears to be binary rather than
-text. This happens when the data contains null bytes or a high proportion
-of control characters that don't match any known text encoding.
+text: when more than about 1% of the bytes are control characters, or
+when a known binary file signature is found, in which case ``mime_type``
+names the format. Sparse nulls in otherwise ASCII text are tolerated,
+as in ``find -print0`` output.
 
 .. code-block:: python
 
@@ -48,8 +50,10 @@ candidate encodings and scores the decoded text for "mess" and
 coherence, with no trained models.  chardet scores raw bytes against
 per-language bigram models inside a staged pipeline (structure,
 validity, statistics).  Each choice has a cost the other avoids:
-chardet's compiled wheel is about 1 MB (665 KB pure), half of it
-bigram models, against charset-normalizer's roughly 250 KB, and
+chardet's compiled wheel is about 1 MB (665 KB pure), and the bigram
+models are 576 KB of that, so they are most of the pure wheel and
+about half of the compiled one, against charset-normalizer's roughly
+250 KB, and
 chardet improves by retraining where charset-normalizer improves by
 refining heuristics.
 Credit where due on packaging: charset-normalizer proved the
@@ -67,14 +71,14 @@ The measured differences:
   the same test suite --- 90.8% for charset-normalizer once the
   BOM-less utf-7 files it documents as out of scope are set aside (see
   :doc:`performance`).
-- **Speed:** chardet leads everywhere except the far tail --- 1.2x in
-  aggregate (2,641 vs 2,250 files/s), 2.0x at the median (0.15 vs
-  0.30ms), and 1.4x at p90 and p95, with a worst case 2.8x lower
-  (11.9 vs 33.8ms). charset-normalizer keeps p99 (2.59 vs our 3.86ms),
-  a gap concentrated in legacy CJK where their p99 is 1.77ms against
-  our 8.19ms. See :doc:`performance`.
+- **Speed:** chardet leads everywhere except the far tail --- 1.3x in
+  aggregate (3,113 vs 2,473 files/s), 1.9x at the median (0.15 vs
+  0.28ms), 1.5x at p90 and 1.6x at p95, with a worst case 3.1x lower
+  (10.4 vs 32.6ms). charset-normalizer keeps p99 (2.33 vs our 3.50ms),
+  a gap concentrated in legacy CJK where their p99 is 1.59ms against
+  our 6.79ms. See :doc:`performance`.
 - **Accuracy convention:** our 99.7% credits supersets (Windows-1252 for
-  ISO-8859-1); scored on exact matches only it is 82.3% against
+  ISO-8859-1); scored on exact matches only it is 82.4% against
   charset-normalizer's 78.2%. Both columns are published, but we
   consider the superset the correct answer: detection reads at most the
   first 200 KB, and only the superset is guaranteed to decode the rest
@@ -84,12 +88,12 @@ The measured differences:
   the detector: with superset remapping disabled
   (``prefer_superset=False``) chardet scores 91.8% strict, still ahead
   of charset-normalizer. See :doc:`performance`.
-- **Memory:** chardet uses 2.6x less peak memory (27.7 vs 71.0 MiB) and
+- **Memory:** chardet uses 2.5x less peak memory (28.2 vs 71.0 MiB) and
   1.6x less RSS. Per ``detect()`` call the ordering reverses ---
   charset-normalizer allocates 58 KiB at the median against chardet's
-  537 KiB, but its p99 grows 13x to 785 KiB while chardet's stays flat
-  at 740 KiB. See :doc:`performance` for the full distribution.
-- **Language detection:** chardet detects language with 91.8% accuracy vs
+  544 KiB, but its p99 grows 14x to 784 KiB while chardet's rises to
+  917 KiB. See :doc:`performance` for the full distribution.
+- **Language detection:** chardet detects language with 93.0% accuracy vs
   charset-normalizer's 54.8%.
 - **Binary files and MIME types:** both detectors decline binary input
   (``encoding=None``), but chardet also identifies *what* the file is:
@@ -106,17 +110,19 @@ How is chardet different from cchardet?
 Mozilla's uchardet C/C++ library. Key differences:
 
 - **Accuracy:** chardet achieves 99.7% vs cchardet's 60.1%.
-- **Speed:** cchardet 3.2.0 is 1.5x faster in aggregate (0.78s vs
-  1.19s across 3,138 files) and holds the better tail (p99 2.11ms vs
-  our 3.86ms), but chardet's worst case is 2.1x lower (11.9 vs 25.3ms).
-- **Memory:** chardet's peak footprint is 2.3x smaller (27.7 vs
+- **Speed:** cchardet 3.2.0 is 1.3x faster in aggregate (0.77s vs
+  1.01s across 3,138 files) and holds the better tail (p99 2.09ms vs
+  our 3.50ms), but chardet's worst case is 2.5x lower (10.4 vs 25.7ms).
+- **Memory:** chardet's peak footprint is 2.3x smaller (28.2 vs
   64.5 MiB traced) with lower RSS (161 vs 186 MiB).
 - **Encoding breadth:** chardet supports 49 more encodings than cchardet,
   including EBCDIC, Mac, Baltic, and BOM-less UTF-16/32.
 - **Binary files:** chardet declines binary input with a ``mime_type``
   identifying the format; cchardet has no binary handling at all.
-- **Dependencies:** chardet is pure Python with zero dependencies.
-  cchardet requires a C compiler to build from source.
+- **Dependencies:** chardet has zero runtime dependencies and a
+  pure-Python fallback; its compiled wheels are optional and the sdist
+  builds without a C compiler. cchardet requires a C compiler to build
+  from source.
 
 Is chardet thread-safe?
 -------------------------
@@ -134,7 +140,7 @@ you use.
 Does chardet work on PyPy?
 ---------------------------
 
-Yes. chardet is pure Python and works on PyPy without modification.
+Yes. chardet's pure-Python wheel works on PyPy without modification.
 The optional compiled builds (mypyc and Cython) are CPython-only; PyPy
 uses the pure-Python code path automatically, and pays nothing for their
 existence --- the compiled scoring kernel is the only consumer of the
@@ -142,7 +148,7 @@ data layout it introduces, so an interpreted install takes the same path
 it always did.
 
 PyPy is best judged by percentile rather than throughput. Its median
-detection (0.18ms) is level with compiled CPython, but its p99 is
-72--77ms against 3.1--3.4ms, because the JIT never warms up on rare,
+detection (0.22ms) is close to compiled CPython, but its p99 is
+73--78ms against 2.7--3.0ms, because the JIT never warms up on rare,
 large inputs. On typical documents it is competitive with the compiled
 wheel; on a corpus with a heavy tail it is several times slower overall.

@@ -34,6 +34,8 @@ Three other stages scan the full input but are already C-speed and cheap:
 ascii (`translate`), binary (`translate`), and escape presence (`in`). The
 statistical (16 KiB), language (2 KB), postprocess (16 KiB), utf1632 (4 KiB),
 and markup (head) stages already carry internal caps and need no work.
+(As shipped, postprocess runs over the 256 KiB evidence slice; only its
+dead-heat bigram scan keeps the 16 KiB cap.)
 
 ## Framing: exhaustive checks vs evidence caps
 
@@ -88,7 +90,9 @@ confidences must match exactly.
   past the cap, the test fails instead of accuracy silently shifting.
 - `filter_by_validity` examines at most the cap. The guarantee becomes "the
   winner decodes everything detection examined", which is already the only
-  guarantee default calls have today.
+  guarantee default calls have today. (Superseded by the ADR-0006 amendment:
+  the winner is decoded over the whole window after the bounded stages
+  settle, and yields to the next candidate that decodes.)
 - Structural probing and CJK gating share one sliced view, applied once at
   the analysis-cache level (`ctx.analysis_cache` is shared by both consumers;
   the slice must happen before the cache key, once).
@@ -148,6 +152,9 @@ Things to verify while coding, flagged during planning:
 - `input_truncated` semantics: it currently means "the caller's data was cut
   by `max_bytes`". Evidence-cap slicing must *not* set it. Check the
   decode-safety flip and anything else in postprocess that consumes it.
+  (Reversed during implementation: the evidence-cap slice counts as
+  truncation for the decode-safety flip, which stands down past the cap;
+  see `postprocess_results`.)
 - The structural slice and the analysis cache: slice exactly once, before the
   cache is populated, so CJK gating and structural probing can never see
   different windows.
@@ -156,6 +163,9 @@ Things to verify while coding, flagged during planning:
   see no benefit; the 7.6.0 kernel study already priced the mypyc/Cython
   boundary), sampling the exhaustive checks, winner-only full-input
   verification (unbounded demotion cascade, unclear confidence semantics).
+  A narrow form of the last one did ship after all, as the ADR-0006
+  amendment records: the winner is decoded over the window and the walk
+  down the ranking stops at the first candidate that decodes.
 
 ## Expected outcomes
 

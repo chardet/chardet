@@ -2,7 +2,7 @@
 
 A Croatian `.po` file detected as Scottish Gaelic in iso-8859-14. Not because of bad data — an audit showed the gd model is clean and language-faithful — but because the models were being honest about the wrong question: Gaelic orthography (`th`, `ch`, `an`, `ai`) legitimately scores English-dominant text well, iso-8859-14's high bytes happen to read Croatian `š/ž/đ` as plausible Gaelic vowels, and the ranking treats a Scottish Gaelic web page as exactly as likely as a Croatian one. For a thin-margin, low-confidence win, that flat prior is wrong: the world produced vastly more Croatian bytes than Gaelic ones in legacy encodings.
 
-The decision: **banded arbitration**, never an always-on prior. A new postprocess rank correction demotes a rare-language winner only when both gates open — its lead over the best prevalent-language candidate is under 0.02 *and* its absolute confidence is under 0.15. Language commonness is admissible exactly where the byte evidence has failed to discriminate. An always-on prior (prevalence weighting every score) was rejected: it changes confidence semantics and makes rare languages start behind everywhere, including on their own genuine files. Doing nothing was rejected because the measured equity cost of arbitration is nil — genuine Celtic files win by landslides (no prevalent rival in their top 8, or +0.28 margins) while the failure case sat at 0.007 — and the benefit accrues to the vastly more common real-world case.
+The decision: **banded arbitration**, never an always-on prior. A new postprocess rank correction demotes a rare-language winner only when both gates open — its lead over the best prevalent-language candidate is at most 0.02 *and* its absolute confidence is under 0.15. Language commonness is admissible exactly where the byte evidence has failed to discriminate. An always-on prior (prevalence weighting every score) was rejected: it changes confidence semantics and makes rare languages start behind everywhere, including on their own genuine files. Doing nothing was rejected because the measured equity cost of arbitration is nil — genuine Celtic files win by landslides (no prevalent rival in their top 8, or +0.28 margins) while the failure case sat at 0.007 — and the benefit accrues to the vastly more common real-world case.
 
 The rare set is a **hand-audited frozenset** (`gd`, `cy`, `ga`, `br`), not a corpus-derived tier. Upstream corpus sizes measure 2020s crawl volume, which is the wrong quantity (Welsh has a healthy modern web and had ~zero Latin-8-era text; Tajik is the reverse), they shift silently across retrains, and they cannot encode the judgment that actually matters: *deployment*, not standardization. The deployment evidence for iso-8859-14, graded from strongest to weakest:
 
@@ -45,7 +45,9 @@ two files re-measured first.
 
 The fill therefore demotes a rare winner only when the *original* input is
 under 128 bytes *and* its lead over the best prevalent-language variant is
-under 0.03 (`demote_thin_rare` in `models.score_best_language`; the caller
+under 0.03 (raised to 0.06 in the October 2026 addendum below, which
+re-measured every margin in the language tiers' weighted cosine;
+`demote_thin_rare` in `models.score_best_language`; the caller
 judges length, because tier 3 transcodes to UTF-8 and curly punctuation
 inflates 3x on the way). The flag is opt-in and the returned score is
 unchanged, so the encoding-ranking caller in `pipeline.statistical` stays

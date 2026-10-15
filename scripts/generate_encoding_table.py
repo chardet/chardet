@@ -39,9 +39,9 @@ def main() -> None:
     print(f"chardet recognises **{total_codecs} Python text encodings** via")
     print(f"{len(REGISTRY)} detection targets and their aliases, across six")
     print("encoding eras.")
-    print("The default :attr:`~chardet.EncodingEra.MODERN_WEB` era covers the")
-    print("encodings most commonly found on the web today. Use")
-    print(":attr:`~chardet.EncodingEra.ALL` to enable detection of all encodings.")
+    print("The default :attr:`~chardet.EncodingEra.ALL` era considers every")
+    print("encoding below. Pass a narrower era such as")
+    print(":attr:`~chardet.EncodingEra.MODERN_WEB` to restrict the candidates.")
     print()
 
     for era in ERA_ORDER:

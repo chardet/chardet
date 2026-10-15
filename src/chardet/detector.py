@@ -160,7 +160,7 @@ class UniversalDetector:
         Runs the full detection pipeline on the buffered data.
 
         :returns: A dictionary with keys ``"encoding"``, ``"confidence"``,
-            and ``"language"``.
+            ``"language"``, and ``"mime_type"``.
         """
         if not self._closed:
             self._closed = True

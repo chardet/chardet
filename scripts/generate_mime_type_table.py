@@ -121,7 +121,7 @@ _ZIP_SUBTYPES: list[tuple[str, str]] = [
     ("application/java-archive", "ZIP entry (META-INF/MANIFEST.MF)"),
     ("application/vnd.android.package-archive", "ZIP entry (AndroidManifest.xml)"),
     ("application/epub+zip", "ZIP entry (META-INF/container.xml)"),
-    ("application/x-wheel+zip", "ZIP entry (*.dist-info/)"),
+    ("application/x-wheel+zip", "ZIP entry (\\*.dist-info/)"),
     ("application/vnd.oasis.opendocument.text", "ZIP mimetype entry"),
     ("application/vnd.oasis.opendocument.spreadsheet", "ZIP mimetype entry"),
     ("application/vnd.oasis.opendocument.presentation", "ZIP mimetype entry"),

@@ -11,7 +11,7 @@ chardet uses `uv <https://docs.astral.sh/uv/>`_ for dependency management:
    git clone https://github.com/chardet/chardet.git
    cd chardet
    uv sync                    # install dependencies
-   prek install               # set up pre-commit hooks (ruff lint+format, etc.)
+   prek install               # set up pre-commit hooks (ruff, ty, sphinx-lint, etc.)
 
 Running Tests
 -------------
@@ -22,13 +22,16 @@ first run (cached in ``tests/data/``, gitignored).
 
 .. code-block:: bash
 
-   uv run python -m pytest                              # run all tests
-   uv run python -m pytest tests/test_api.py            # single file
+   uv run python -m pytest -n auto                      # run all tests
+   uv run python -m pytest -n auto tests/test_api.py    # single file
    uv run python -m pytest tests/test_api.py::test_detect_empty  # single test
-   uv run python -m pytest -x                           # stop on first failure
+   uv run python -m pytest -x -n auto                   # stop on first failure
+   uv run python -m pytest -m benchmark -n auto         # benchmark tests only
 
-Accuracy tests are dynamically parametrized from the test data via
-``conftest.py``.
+Benchmark tests are deselected by default. Accuracy tests are
+dynamically parametrized from the test data via ``conftest.py``. CI
+requires 100% coverage, so a change that leaves a line uncovered fails
+there.
 
 Linting and Formatting
 ----------------------
@@ -42,22 +45,27 @@ chardet uses `Ruff <https://docs.astral.sh/ruff/>`_ with
    uv run ruff check --fix .  # lint with auto-fix
    uv run ruff format .       # format
 
-Pre-commit hooks run ruff automatically on each commit.
+The pre-commit hooks run ruff, ``ty`` type checking, ``sphinx-lint`` on
+the docs, and the usual whitespace and file checks. CI runs the same
+set with ``uv run prek run --all-files``, which is the one lint verdict
+that matches it.
 
 Training Models
 ---------------
 
 Bigram frequency models are trained from the
-`CulturaX <https://huggingface.co/datasets/uonlp/CulturaX>`_ multilingual
-corpus (via Hugging Face) plus HTML data (separate from the evaluation
-test suite):
+`CulturaX <https://huggingface.co/datasets/uonlp/CulturaX>`_,
+MADLAD-400, and Wikipedia corpora, plus ANSI art packs fetched by
+``scripts/fetch_artpacks.py``, with synthetic HTML wrappers added at
+training time (all separate from the evaluation test suite):
 
 .. code-block:: bash
 
    uv run --group training python scripts/train.py
 
-Training data is cached in ``data/`` (gitignored). Models are saved to
-``src/chardet/models/models.bin``.
+Training data is cached in ``data/`` (gitignored). Training writes
+``models.bin``, ``idf.bin``, ``rowmax.bin``, and ``langnorm.bin`` under
+``src/chardet/models/`` as one digest-locked set.
 
 Benchmarks and Diagnostics
 --------------------------
@@ -100,7 +108,7 @@ each stage either returns a definitive result or passes to the next:
 10. **CJK gating** (in orchestrator) — eliminate spurious CJK candidates
 11. **Structural probing** (``structural.py``) — multi-byte encoding fit
 12. **Statistical scoring** (``statistical.py``) — bigram frequency models
-13. **Post-processing** (``postprocess.py``) — chained rank corrections: confusion-group resolution (delegated to ``confusion.py``), niche Latin demotion, KOI8-T promotion
+13. **Post-processing** (``postprocess.py``) — eight chained rank corrections: Windows-superset and era-prevalence dead-heat promotion, rare-language arbitration, confusion-group resolution (delegated to ``confusion.py``), niche Latin demotion, KOI8-T promotion, classic-Mac CR promotion, and the decode-safety flip
 14. **Language detection** (``language.py``) — three-tier fill of the ``language`` field on every result (single-language map → multi-language bigram → UTF-8 fallback), runs after the core pipeline
 
 Accuracy-evaluation tables and predicates (``is_correct``,
@@ -108,7 +116,8 @@ Accuracy-evaluation tables and predicates (``is_correct``,
 etc.) live in ``evaluation.py``.  Public-API encoding-name remapping
 (``apply_compat_names``, ``apply_preferred_superset``) lives in
 ``output_names.py``.  The legacy ``equivalences.py`` module is a
-deprecation shim re-exporting both, scheduled for removal in 8.0.
+deprecation shim that proxies attribute access to both, warning per
+name, scheduled for removal in 8.0.
 
 Key types:
 
@@ -120,16 +129,23 @@ Key types:
 - ``BigramProfile`` (``models/__init__.py``) — pre-computed bigram
   frequencies
 
-Model format: binary file ``src/chardet/models/models.bin`` — sparse
-bigram tables loaded via ``struct.unpack``. Each model is a 65,536-byte
-lookup table indexed by ``(b1 << 8) | b2``.
+Model format: ``src/chardet/models/models.bin`` is the v2 dense
+zlib-compressed format (magic ``CMD2``): a header of model keys and L2
+norms, then one 65,536-byte table per model indexed by
+``(b1 << 8) | b2``, decompressed one table at a time. ``rowmax.bin``
+(``CRM1``, row maxima for scoring bounds), ``langnorm.bin`` (``CLN1``,
+norms for the language tiers' weighted scoring), and ``idf.bin`` are
+written with it and digest-locked to it; ``confusion.bin`` holds the
+confusion-group data. ``chardet.models._format`` owns both the read
+and write sides.
 
 Optional Compiled Builds
 ------------------------
 
 Hot-path modules can be compiled to C extensions. Two hooks do it, and
-both should be enabled --- turning on only one is not wrong, just
-unoptimized:
+both should be enabled. ``MYPYC`` alone compiles the modules but skips
+the sweep described below; ``CUSTOM`` alone runs the Cython hook with
+nothing to do and produces a pure wheel:
 
 .. code-block:: bash
 
@@ -143,18 +159,21 @@ the profile builder and the row-max bound, and moving those out of
 their mypyc modules made a mypyc-only build *slower* than compiling
 nothing, because mypyc stopped seeing those loops.
 
-A compiled build leaves nothing in the source tree. The Cython hook's
-``finalize`` deletes every in-tree extension, mypyc's included: a
+A build with both hooks enabled leaves nothing in the source tree. The
+Cython hook's ``finalize`` deletes every in-tree extension, mypyc's
+included; a mypyc-only build does not get that sweep. A
 leftover ``.so`` shadows the ``.py`` beside it, is gitignored so
 ``git status`` stays clean, and quietly makes later edits and
 "pure-Python" test runs meaningless.
 
-Compiled modules: ``models/__init__.py``, ``pipeline/structural.py``,
+Compiled modules (fifteen): ``models/__init__.py``,
+``models/_format.py``, ``pipeline/structural.py``,
 ``pipeline/validity.py``, ``pipeline/statistical.py``,
 ``pipeline/utf1632.py``, ``pipeline/utf8.py``, ``pipeline/escape.py``,
 ``pipeline/orchestrator.py``, ``pipeline/confusion.py``,
 ``pipeline/magic.py``, ``pipeline/ascii.py``, ``pipeline/language.py``,
-``pipeline/postprocess.py``.
+``pipeline/markup.py``, ``pipeline/postprocess.py``. Published Windows
+wheels leave ``models/__init__.py`` interpreted.
 
 These modules cannot use ``from __future__ import annotations``
 (``FA100`` is ignored for them in ruff config).
@@ -173,5 +192,6 @@ Conventions
   mypyc-compiled modules)
 - Frozen dataclasses with ``slots=True`` for data types
 - Ruff with ``select = ["ALL"]`` and targeted ignores
-- Training data (CulturaX corpus + HTML) is never the same as
-  evaluation data (chardet test suite)
+- Training data (CulturaX, MADLAD-400, Wikipedia, art packs, and
+  synthetic HTML wrappers) is never the same as evaluation data (chardet
+  test suite)
