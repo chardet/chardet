@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import math
 import struct
 import zlib
 from collections.abc import Callable
@@ -378,6 +379,13 @@ def test_artifacts_regenerate_from_shipped_models_bin(tmp_path: Path) -> None:
     assert regen_rowmax[4:header_size] == hashlib.sha256(out.read_bytes()).digest()
 
     assert (tmp_path / "idf.bin").read_bytes() == (models_dir / "idf.bin").read_bytes()
+
+    regen_langnorm = (tmp_path / "langnorm.bin").read_bytes()
+    shipped_langnorm = (models_dir / "langnorm.bin").read_bytes()
+    ln_header = _format.LANGNORM_HEADER_SIZE
+    assert regen_langnorm[:4] == shipped_langnorm[:4] == _format.LANGNORM_MAGIC
+    assert regen_langnorm[ln_header:] == shipped_langnorm[ln_header:]
+    assert regen_langnorm[4:ln_header] == hashlib.sha256(out.read_bytes()).digest()
     old_tables, old_norms = _format.parse_models_bin(
         (models_dir / "models.bin").read_bytes()
     )
@@ -781,3 +789,157 @@ def test_decompress_tables_accepts_unterminated_stream() -> None:
     blob = compressor.compress(payload) + compressor.flush(zlib.Z_SYNC_FLUSH)
     tables = _format._decompress_tables(blob, 0, ["a"])
     assert tables == {"a": payload}
+
+
+# ---------------------------------------------------------------------------
+# langnorm.bin and the language-scoring space
+# ---------------------------------------------------------------------------
+
+
+def test_langnorm_bin_header_matches_models_bin() -> None:
+    """langnorm.bin must carry the CLN1 magic and the SHA-256 of models.bin.
+
+    A regenerated models.bin without a matching langnorm.bin regeneration
+    would normalize every language score against the wrong length, so the
+    digest is the load-time staleness guard, as for rowmax.bin.
+    """
+    models_dir = Path(models_mod.__file__).parent
+    raw = (models_dir / "langnorm.bin").read_bytes()
+    assert raw[:4] == b"CLN1"
+    digest = hashlib.sha256((models_dir / "models.bin").read_bytes()).digest()
+    assert raw[4:36] == digest
+
+
+def test_langnorm_matches_models() -> None:
+    """langnorm.bin must hold each model's norm under root-IDF weighting."""
+    models = models_mod.load_models()
+    norms = models_mod.get_language_norms()
+    idf = models_mod.get_idf_weights()
+    assert set(norms) == set(models)
+    for key, table in models.items():
+        derived = math.sqrt(
+            sum(table[i] * table[i] * idf[i] for i in range(65536) if table[i])
+        )
+        assert norms[key] == pytest.approx(derived, rel=1e-12), key
+
+
+def _patched_resources(contents: dict[str, bytes | Exception]):
+    def fake_joinpath(name: str) -> MagicMock:
+        ref = MagicMock()
+        value = contents[name]
+        if isinstance(value, Exception):
+            ref.read_bytes.side_effect = value
+        else:
+            ref.read_bytes.return_value = value
+        return ref
+
+    return patch.object(
+        models_mod.importlib.resources,
+        "files",
+        return_value=MagicMock(joinpath=MagicMock(side_effect=fake_joinpath)),
+    )
+
+
+@pytest.mark.parametrize("failure", ["stale", "missing"])
+def test_langnorm_bad_file_falls_back_with_warning(failure: str) -> None:
+    """A stale or missing langnorm.bin derives the norms from the models.
+
+    The fallback is a pass over every table, slower but always correct,
+    and warns so packaging mistakes get noticed.  It must reproduce the
+    shipped norms exactly.
+    """
+    models_dir = Path(models_mod.__file__).parent
+    real_models = (models_dir / "models.bin").read_bytes()
+    real_langnorm = (models_dir / "langnorm.bin").read_bytes()
+    contents: dict[str, bytes | Exception] = {"models.bin": real_models}
+    if failure == "stale":
+        contents["langnorm.bin"] = real_langnorm[:4] + bytes(32) + real_langnorm[36:]
+    else:
+        contents["langnorm.bin"] = FileNotFoundError("langnorm.bin")
+    models_mod.load_models()  # keep the models cache warm past the patch
+    models_mod.get_language_norms.cache_clear()
+    try:
+        with (
+            _patched_resources(contents),
+            pytest.warns(RuntimeWarning, match="langnorm.bin"),
+        ):
+            derived = models_mod.get_language_norms()
+    finally:
+        models_mod.get_language_norms.cache_clear()
+    genuine = models_mod.get_language_norms()
+    assert derived == genuine
+
+
+def test_language_profile_weights_and_norm() -> None:
+    """for_language carries IDF times root IDF per occurrence, a norm under IDF.
+
+    The dot product with an unweighted model then equals the dot product
+    of the IDF-weighted input with the root-IDF-weighted model, and the
+    quotient by ``input_norm`` and the langnorm entry is a true cosine in
+    that space.  The root-IDF table is scaled by 16 to fill a byte, and
+    the norm carries the same 16.
+    """
+    idf = models_mod.get_idf_weights()
+    scale = models_mod.get_language_scale()
+    assert len(scale) == 65536
+    assert all(scale[i] == round(16 * math.sqrt(idf[i])) for i in range(0, 65536, 97))
+    assert min(scale) == 16
+    weights = [idf[i] * scale[i] for i in range(65536)]
+    data = "Café  résumé\n\n naïve".encode()  # whitespace runs collapse
+    profile = models_mod.BigramProfile.for_language(data)
+    plain = models_mod.BigramProfile(data)
+    assert profile.nonzero == plain.nonzero
+    counts: dict[int, int] = {}
+    for i in range(len(data) - 1):
+        b1, b2 = data[i], data[i + 1]
+        if b1 == b2 and chr(b1).isspace():
+            continue
+        counts[(b1 << 8) | b2] = counts.get((b1 << 8) | b2, 0) + 1
+    assert profile.weight_sum == sum(c * weights[i] for i, c in counts.items())
+    assert profile.input_norm == pytest.approx(
+        16 * math.sqrt(sum((c * idf[i]) ** 2 for i, c in counts.items()))
+    )
+    assert profile.input_norm == pytest.approx(16 * plain.input_norm)
+    assert models_mod.BigramProfile.for_language(b"").input_norm == 0.0
+
+
+def test_score_with_profile_language_weighting_is_the_weighted_cosine() -> None:
+    """The flag scores cos(input * idf, model * sqrt(idf)) against a real model."""
+    idf = models_mod.get_idf_weights()
+    _, table, key = models_mod.get_enc_index()["utf-8"][0]
+    data = "Nous avons trouvé plusieurs vétérinaires près de la gare.".encode()
+    profile = models_mod.BigramProfile.for_language(data)
+    counts: dict[int, int] = {}
+    for i in range(len(data) - 1):
+        idx = (data[i] << 8) | data[i + 1]
+        counts[idx] = counts.get(idx, 0) + 1
+    input_norm = math.sqrt(sum((c * idf[i]) ** 2 for i, c in counts.items()))
+    model_norm = math.sqrt(sum(table[i] ** 2 * idf[i] for i in range(65536)))
+    exact = sum(c * idf[i] * table[i] * math.sqrt(idf[i]) for i, c in counts.items())
+    got = models_mod.score_with_profile(profile, table, key, language_weighting=True)
+    # The per-occurrence weight is idf times a byte-quantized 16 * sqrt(idf),
+    # so the score matches that definition exactly and the real one closely.
+    scale = models_mod.get_language_scale()
+    dot = sum(c * idf[i] * scale[i] * table[i] for i, c in counts.items())
+    expected = dot / (16 * input_norm * model_norm)
+    assert got == pytest.approx(expected, rel=1e-12)
+    assert got == pytest.approx(exact / (input_norm * model_norm), rel=2e-2)
+    # An unknown key derives the same norm from the table itself.
+    assert models_mod.score_with_profile(
+        profile, table, "", language_weighting=True
+    ) == pytest.approx(expected, rel=1e-9)
+    # The plain cosine is a different number on the same input.
+    assert models_mod.score_with_profile(
+        models_mod.BigramProfile(data), table, key
+    ) != pytest.approx(expected, rel=1e-3)
+
+
+def test_score_best_language_builds_the_language_profile_itself() -> None:
+    """Without a profile the flag builds a for_language profile internally."""
+    data = "Nous avons trouvé plusieurs vétérinaires près de la gare.".encode()
+    profile = models_mod.BigramProfile.for_language(data)
+    assert models_mod.score_best_language(
+        data, "utf-8", language_weighting=True
+    ) == models_mod.score_best_language(
+        data, "utf-8", profile=profile, language_weighting=True
+    )

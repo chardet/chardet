@@ -65,3 +65,30 @@ changed outcomes on the test suite, verified by an A/B recount. The audited
 rare set now lives in `chardet.models.RARE_LANGUAGES`, imported by both
 gates, so it cannot drift into two sets; `scripts/train.py` points its
 review warning at that name.
+
+## Addendum (October 2026): the band in the weighted cosine
+
+The language tiers now score in an IDF-weighted space on both sides (the
+input profile under IDF, each model normalized under the square root of
+IDF; `BigramProfile.for_language` and `langnorm.bin`), which fixed French
+text filling as Hungarian on the strength of the shared `é` bigram. The
+weighted cosine runs higher than the plain one, so the band's margin was
+re-measured rather than carried over. The calibrated English snippet now
+wins as Gaelic by 0.039 (was 0.027) and the pinned Irish casualty by 0.053
+(was 0.008); the band's margin moves from 0.03 to 0.06 so both still
+demote. Genuine sentinels widen: the Gaelic snippet leads by 0.265, Welsh by
+0.215, Irish by 0.143, all 2.4x or more outside the band, against the 1.5x
+headroom the old scale gave.
+
+One sentinel moved the other way. The 73-character all-ASCII Breton
+snippet, which the plain cosine gave to Breton by 0.065, now reads as
+Indonesian outright: on an input with no accented letters, normalizing
+each model under its rare-bigram mass charges Breton for accents the
+snippet never shows. It is pinned as a casualty, and the genuine-Breton
+sentinel carries one more sentence (101 characters, margin 0.204). The
+trade is the right way round on the corpus: across the 98 rare-language
+Unicode files, truncated to 64, 96, 128 and 256 bytes, the weighted cosine
+mislabels 41, 36, 22 and 9 against the plain cosine's 40, 34, 27 and 18,
+and both label all 98 correctly at 2 KB. The 128-byte length gate and the
+encoding-side 0.02/0.15 gate in `pipeline.postprocess` are untouched: the
+encoding ranking still scores in the plain cosine.

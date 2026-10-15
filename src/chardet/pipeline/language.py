@@ -52,6 +52,12 @@ def fill_languages(
     Tier 2: multi-language encodings via statistical bigram scoring (lazy).
     Tier 3: decode to UTF-8, score against UTF-8 language models (universal fallback).
 
+    Tiers 2 and 3 score in the IDF-weighted space of
+    :meth:`~chardet.models.BigramProfile.for_language`, not the plain
+    cosine the encoding ranking uses: with 49 languages in play, the plain
+    cosine let the UTF-8 bigram for ``é`` alone hand French text to
+    Hungarian.
+
     Binary results (``encoding is None``) are passed through unchanged, as
     are results that already have a non-``None`` language — except a
     :data:`~chardet.models.RARE_LANGUAGES` label on a thin input, which is
@@ -92,9 +98,13 @@ def fill_languages(
         # Tier 2: statistical scoring for multi-language encodings
         if lang is None and data and has_model_variants(encoding):
             if profile is None:
-                profile = BigramProfile(data)
+                profile = BigramProfile.for_language(data)
             _, lang = score_best_language(
-                data, encoding, profile=profile, demote_thin_rare=thin
+                data,
+                encoding,
+                profile=profile,
+                demote_thin_rare=thin,
+                language_weighting=True,
             )
         # Tier 3: decode to UTF-8, score against UTF-8 language models.
         # Also entered by a thin rare Tier-2 label: an encoding whose
@@ -107,10 +117,14 @@ def fill_languages(
             utf8_data = _to_utf8(data, encoding)
             if utf8_data:
                 if utf8_data != utf8_profile_src:
-                    utf8_profile = BigramProfile(utf8_data)
+                    utf8_profile = BigramProfile.for_language(utf8_data)
                     utf8_profile_src = utf8_data
                 _, utf8_lang = score_best_language(
-                    utf8_data, "utf-8", profile=utf8_profile, demote_thin_rare=thin
+                    utf8_data,
+                    "utf-8",
+                    profile=utf8_profile,
+                    demote_thin_rare=thin,
+                    language_weighting=True,
                 )
                 if lang is None or (
                     utf8_lang is not None and utf8_lang not in RARE_LANGUAGES

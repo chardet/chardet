@@ -98,8 +98,9 @@ def test_to_utf8_passthrough():
 
 
 #: The calibrated mislabel snippet: plain argmax fills it as Scottish
-#: Gaelic (measured margin under 0.021 over English).  Shared by every
-#: band test so they all certify the same input.
+#: Gaelic (measured margin 0.039 over English in the language tiers'
+#: weighted cosine).  Shared by every band test so they all certify the
+#: same input.
 _MISLABEL_SNIPPET = "It’s a lovely day, so let’s grab coffee and chat."
 
 
@@ -107,8 +108,8 @@ def test_thin_rare_band_demotes_short_english_snippet():
     """Apostrophe-rich English snippets must not fill as Scottish Gaelic.
 
     Curly apostrophes score well in the Celtic models, and on inputs this
-    short the bigram cosine stops discriminating: measured mislabels win
-    by margins under 0.021, inside the thin-rare band.
+    short the bigram cosine stops discriminating: this snippet wins as
+    Gaelic by 0.039, inside the thin-rare band.
     """
     result = chardet.detect(_MISLABEL_SNIPPET.encode("utf-8"))
     assert result["language"] == "en"
@@ -130,13 +131,16 @@ def test_thin_rare_band_rechecks_statistically_attached_labels():
 def test_thin_rare_band_keeps_genuine_celtic_snippets():
     """Genuine short Celtic text keeps its language: its margins are wide.
 
-    Measured Scottish Gaelic and Welsh snippets win by 0.07+ even at 40
-    characters, and Breton clears the band from about 60 characters, so
-    the demotion must not fire on them.
+    Measured Scottish Gaelic and Welsh snippets win by 0.2+ at 60
+    characters and Irish by 0.14, and this Breton snippet by 0.2 at 100,
+    so the demotion must not fire on them.
     """
     gaelic = "Tha mi a’ dol dhan bhùth an-diugh còmhla ri mo charaid."
     welsh = "Mae’r tywydd yn braf heddiw ac rydw i’n mynd i’r traeth."
-    breton = "Deuet eo an amzer vrav ha me a ya da bourmen war an aod gant ma mignoned."
+    breton = (
+        "Deuet eo an amzer vrav ha me a ya da bourmen war an aod gant ma "
+        "mignoned. Brav e vo an deiz, emezañ."
+    )
     irish = "Is maith liom an aimsir bhreá agus téim ag siúl cois farraige."
     assert chardet.detect(gaelic.encode("utf-8"))["language"] == "gd"
     assert chardet.detect(welsh.encode("utf-8"))["language"] == "cy"
@@ -148,16 +152,34 @@ def test_thin_rare_band_casualty_class_is_pinned():
     """The band's accepted casualty: thin-margin Irish at snippet length.
 
     This snippet is genuine Irish that the plain argmax labels ``ga`` by a
-    margin under 0.03, so the band demotes it -- the trade ADR-0005's
-    addendum accepts on prevalence grounds.  Pinned so any widening of the
-    band's margin or length bounds surfaces here as a deliberate decision
-    instead of a silent shift in who gets demoted.
+    margin of 0.053, under the 0.06 band, so the band demotes it -- the
+    trade ADR-0005's addendum accepts on prevalence grounds.  Pinned so any
+    widening of the band's margin or length bounds surfaces here as a
+    deliberate decision instead of a silent shift in who gets demoted.
     """
     irish = "Beidh mé ar ais amárach agus tabharfaidh mé an leabhar duit ansin."
     data = irish.encode("utf-8")
-    _, plain = score_best_language(data, "utf-8")
+    _, plain = score_best_language(data, "utf-8", language_weighting=True)
     assert plain == "ga"  # the models do recognize it ...
     assert chardet.detect(data)["language"] not in RARE_LANGUAGES  # ... band demotes
+
+
+def test_thin_ascii_breton_snippet_is_a_known_casualty():
+    """A 73-character Breton snippet with no accented letter reads as Indonesian.
+
+    The weighted cosine charges each model for its rare bigrams, which on
+    an all-ASCII input counts against an accent-bearing language for mass
+    the snippet never shows.  The plain cosine gave this one to Breton by
+    0.065; the weighted one gives it to Indonesian outright, not through
+    the band.  Pinned per ADR-0005's addendum: the corpus's rare-language
+    files are labeled better at every length under the weighted cosine, so
+    the loss is accepted, and a fix that recovers it should show up here.
+    """
+    breton = "Deuet eo an amzer vrav ha me a ya da bourmen war an aod gant ma mignoned."
+    data = breton.encode("utf-8")
+    _, plain = score_best_language(data, "utf-8")
+    assert plain == "br"  # the plain cosine still recognizes it ...
+    assert chardet.detect(data)["language"] == "id"  # ... the weighted one does not
 
 
 def test_thin_rare_band_is_opt_in_and_score_preserving():
@@ -190,3 +212,47 @@ def test_thin_rare_recheck_keeps_label_when_no_tier_can_score():
     result = DetectionResult("not-a-codec", 0.5, rare, "text/plain")
     filled = fill_languages(b"ab", [result])
     assert filled == [result]
+
+
+# ---------------------------------------------------------------------------
+# Language scoring in the IDF-weighted space
+# ---------------------------------------------------------------------------
+
+#: A French paragraph the plain cosine labels Hungarian.  The UTF-8 pair for
+#: ``é`` carries about a hundred times the IDF weight of any common ASCII
+#: bigram and sits near Hungarian's maximum weight, so it outvoted ``de``,
+#: ``le`` and ``qu``.
+_FRENCH_WITH_ACCENTS = (
+    "Nous avons trouvé plusieurs vétérinaires près de la gare. Le plus "
+    "proche est situé rue de la République, à côté de la pharmacie."
+)
+
+
+def test_french_paragraph_is_not_hungarian():
+    """The language tiers score French as French under every Unicode encoding."""
+    data = _FRENCH_WITH_ACCENTS.encode("utf-8")
+    _, plain = score_best_language(data, "utf-8")
+    assert plain == "hu"  # the plain cosine's verdict, kept for the record
+    _, weighted = score_best_language(data, "utf-8", language_weighting=True)
+    assert weighted == "fr"
+    for encoding in ("utf-8", "utf-16", "utf-16-le", "utf-32", "utf-7"):
+        result = chardet.detect(_FRENCH_WITH_ACCENTS.encode(encoding))
+        assert result["language"] == "fr", (encoding, result)
+
+
+def test_language_weighting_leaves_the_encoding_ranking_alone():
+    """Only the label moves: encoding and confidence are byte-identical.
+
+    The encoding ranking scores in the plain cosine; the weighted space is
+    the language tiers' alone.
+    """
+    data = _FRENCH_WITH_ACCENTS.encode("utf-8")
+    result = chardet.detect(data)
+    assert result["encoding"] == "utf-8"
+    plain_score, _ = score_best_language(data, "utf-8")
+    weighted_score, _ = score_best_language(data, "utf-8", language_weighting=True)
+    assert plain_score != weighted_score
+    # fill_languages derives the label; the statistical stage never sees the
+    # weighted score, so the confidence is the one the plain ranking produced.
+    ranked = chardet.detect_all(data)
+    assert ranked[0]["confidence"] == result["confidence"]

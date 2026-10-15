@@ -94,6 +94,24 @@ Unreleased
 
 **Bug Fixes:**
 
+- Language labels on Unicode text no longer tilt toward accent-heavy
+  languages.  The language tiers scored an IDF-weighted input profile
+  against unweighted models, so one shared high-IDF bigram decided the
+  comparison: the UTF-8 pair for ``é`` carries about a hundred times the
+  weight of any common ASCII bigram, and Hungarian's model rates it near
+  its maximum where French's rates it at less than half, so a French
+  paragraph with a few accents came back ``hu`` whatever its ``de``,
+  ``le`` and ``qu`` said.  Over half the French files in the test corpus
+  under UTF-8, UTF-16, UTF-32 and UTF-7 carried the wrong language.  The
+  language tiers now normalize each model under the square root of the
+  same IDF weights, a cosine in the weighted space on both sides, read
+  from a new ``langnorm.bin`` artifact that is digest-locked to
+  ``models.bin`` like ``rowmax.bin``.  Language mislabels on the corpus's
+  Unicode files fall from 140 to 104 of 1587, French from 20 to 4, and
+  legacy encodings are unchanged to within one file.  Encodings,
+  confidences and MIME types do not move.  The thin-rare band's margin is
+  re-measured in the new space at 0.06.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 - Null-separated ASCII records with short fields no longer read as
   UTF-16-LE.  ``find -print0`` output such as ``file1\0file2\0`` put a
   null in a third of the code units, past the 15% ceiling the

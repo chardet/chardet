@@ -1318,6 +1318,10 @@ def main() -> None:
         f"Row maxima:   {output_path.with_name('rowmax.bin')} "
         f"({sizes['rowmax.bin']:,} bytes)"
     )
+    print(
+        f"Lang norms:   {output_path.with_name('langnorm.bin')} "
+        f"({sizes['langnorm.bin']:,} bytes)"
+    )
 
     print("=== Computing confusion groups ===")
     confusion_maps = compute_distinguishing_maps(threshold=0.80)
