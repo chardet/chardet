@@ -763,6 +763,37 @@ def test_dense_profile_scores_identically_through_packed_kernel(
     assert models_mod.score_with_profile(packed_profile, model) == expected
 
 
+def test_dense_profile_gather_matches_loop(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The itemgetter path and the plain loop must give the same score.
+
+    An interpreted profile scores through ``gather`` when it has two or
+    more bigrams and through the loop otherwise; clearing ``gather`` forces
+    the loop over the same profile so both are pinned to one result.
+    """
+    monkeypatch.setattr(models_mod, "_KERNEL_COMPILED", False)
+    monkeypatch.setattr(models_mod, "_GATHER_DOT", True)
+    data = ("du texte français avec des accents é è ê " * 8).encode("cp1252")
+    model = bytes(range(256)) * 256
+    profile = models_mod.BigramProfile(data)
+    assert profile.gather is not None
+    expected = models_mod.score_with_profile(profile, model)
+    profile.gather = None
+    assert models_mod.score_with_profile(profile, model) == expected
+
+
+def test_single_bigram_profile_scores_without_gather(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A one-bigram profile skips ``gather``: itemgetter would return a bare int."""
+    monkeypatch.setattr(models_mod, "_KERNEL_COMPILED", False)
+    monkeypatch.setattr(models_mod, "_GATHER_DOT", True)
+    profile = models_mod.BigramProfile(b"\xe9a")
+    assert profile.gather is None
+    model = bytearray(65536)
+    model[0xE961] = 3
+    assert models_mod.score_with_profile(profile, bytes(model)) == pytest.approx(1.0)
+
+
 def test_decompress_tables_truncated_streams_raise() -> None:
     """Every truncation of a two-table stream must raise, at any cut point.
 

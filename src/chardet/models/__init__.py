@@ -10,6 +10,8 @@ import functools
 import hashlib
 import importlib.resources
 import math
+import operator
+import sys
 import warnings
 
 from chardet import _kernel
@@ -46,6 +48,12 @@ _EMPTY_PACKED = (array.array("i"), array.array("i"))
 #: than thorough --- it is the only thing standing between these branches
 #: and silently diverging.  Change either one and check the other.
 _KERNEL_COMPILED = _kernel.__file__.endswith((".so", ".pyd"))
+
+#: Whether interpreted dense profiles score through ``operator.itemgetter``.
+#: On CPython that moves the per-bigram gather and multiply-add into C,
+#: about 1.7x faster per model than the Python loop.  PyPy's JIT runs the
+#: plain loop about 4x faster than the itemgetter form, so it keeps the loop.
+_GATHER_DOT = sys.implementation.name == "cpython"
 
 # 256-entry membership table for whitespace bytes whose runs training
 # collapsed — native byte indexing under mypyc, used in the bigram-profile
@@ -306,6 +314,10 @@ class BigramProfile:
     * ``values`` — a plain list parallel to ``nonzero``, filled by
       :meth:`from_weighted_freq` for the small focused profiles confusion
       resolution builds, which are scored inline instead.
+    * ``gather``/``dense_vals`` — an :func:`operator.itemgetter` over
+      ``nonzero`` and the weights it picks out of the dense table, filled
+      for a streaming profile only when the kernel is not compiled and
+      the interpreter is CPython.
     ``row_freq`` aggregates the weights by lead byte (256 entries) and
     ``nonzero_rows`` lists the lead bytes with non-zero total; together with
     per-model row maxima (:func:`get_rowmax`) they let statistical scoring
@@ -319,7 +331,9 @@ class BigramProfile:
     """
 
     __slots__ = (
+        "dense_vals",
         "freq",
+        "gather",
         "idx_arr",
         "input_norm",
         "nonzero",
@@ -481,6 +495,14 @@ class BigramProfile:
             self.idx_arr, self.val_arr = pack_profile(nonzero, freq)
         # Retained only when scoring will read it -- see _KERNEL_COMPILED.
         self.freq = [] if (values or _KERNEL_COMPILED) else freq
+        # See _GATHER_DOT.  Skipped below two bigrams, where itemgetter
+        # returns a bare value rather than a tuple.
+        self.gather: operator.itemgetter[tuple[int, ...]] | None = None
+        self.dense_vals: tuple[int, ...] = ()
+        if self.freq and len(nonzero) > 1 and _GATHER_DOT:
+            gather = operator.itemgetter(*nonzero)
+            self.gather = gather
+            self.dense_vals = gather(freq)
 
     @classmethod
     def from_weighted_freq(cls, weighted_freq: dict[int, int]) -> "BigramProfile":
@@ -564,10 +586,14 @@ def score_with_profile(
     else:
         # No compiled kernel: the dense table beats packed buffers here,
         # because a list returns a cached int where array('i') boxes a new one.
-        dot = 0
-        freq = profile.freq
-        for idx in nonzero:
-            dot += model[idx] * freq[idx]
+        gather = profile.gather
+        if gather is not None:
+            dot = sum(map(operator.mul, gather(model), profile.dense_vals))
+        else:
+            dot = 0
+            freq = profile.freq
+            for idx in nonzero:
+                dot += model[idx] * freq[idx]
     return dot / (model_norm * profile.input_norm)
 
 
