@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import re
+import time
 from unittest.mock import patch
 
 import pytest
@@ -647,3 +648,19 @@ def test_ebcdic_xml_declaration_reports_xml():
     assert result is not None
     assert result.encoding == "cp500"
     assert result.mime_type == "text/xml"
+
+
+def test_ebcdic_declaration_regex_is_linear_in_whitespace() -> None:
+    r"""A charset token trailed by whitespace must not backtrack quadratically.
+
+    ``_EBCDIC_DECL_RE`` put the optional pre-value junk character between
+    two ``\s*`` runs, so an EBCDIC ``charset=`` whose value never arrives
+    (a long run of spaces instead) made the engine try every way to split
+    the spaces across the two runs: the match ran quadratically in the
+    whitespace length (16 KiB of spaces cost ~2.6s and grew as the square).
+    The budget is far above the linear cost and still catches a relapse.
+    """
+    probe = "charset=" + " " * 16384
+    start = time.perf_counter()
+    assert markup_mod._EBCDIC_DECL_RE.search(probe) is None
+    assert time.perf_counter() - start < 1.0
