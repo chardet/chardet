@@ -47,6 +47,11 @@ Changelog
   markup scan quadratic, taking it from about 5 ms to about 20 µs.  A
   literal ``<`` inside an attribute value now hides that one tag.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+- The pure-Python install on CPython scores bigram models with
+  ``operator.itemgetter`` instead of a Python loop, making ``detect()``
+  about 1.25x faster and ``detect_all()`` about 1.35x faster across the
+  test corpus.  Compiled builds and PyPy keep their existing paths.
+  (`Afonso Ribeiro <https://github.com/deadstrobe5>`_)
 
 **Bug Fixes:**
 
