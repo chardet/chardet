@@ -384,15 +384,15 @@ chunks, which is faster on that one column and blind on every other:
      - 272 MiB
      - **501.3ms**
      - 2,655.2ms
-   * - base64
+   * - ascii (base64) :sup:`†`
      - 1 MiB
      - 1.8ms
      - **0.1ms**
-   * - base64
+   * - ascii (base64) :sup:`†`
      - 32 MiB
      - 21.7ms
      - **1.4ms**
-   * - base64
+   * - ascii (base64) :sup:`†`
      - 272 MiB
      - 176.1ms
      - **12.0ms**
@@ -400,12 +400,16 @@ chunks, which is faster on that one column and blind on every other:
 :sup:`*` misdetected: charset-normalizer returned ``johab`` at 1 and
 32 MiB and ``windows-1250`` at 272 MiB for French Windows-1252 text.
 
+:sup:`†` worst case, not a codec: ASCII text in line-wrapped base64, as
+in PEM certificates and MIME attachments. Every ``+`` looks like the
+start of a UTF-7 sequence, so chardet's escape-sequence check has the
+most to reject. Both detectors report ``ascii``.
+
 Median of five interleaved rounds (each round times both detectors back
 to back --- thermal drift makes separate blocks incomparable), compiled
 wheel, ``charset_normalizer.detect()`` compatibility API. Buffers repeat
 a single line or sentence, so this measures the scan machinery, not
-model quality. The ``base64`` row is line-wrapped certificate data ---
-the shape that makes chardet's escape-sequence scan work hardest.
+model quality.
 
 The columns split by what each detector has to prove. charset-normalizer
 wins wherever a cheap structural answer settles the file: about 3x on
