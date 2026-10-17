@@ -72,11 +72,11 @@ The measured differences:
   BOM-less utf-7 files it documents as out of scope are set aside (see
   :doc:`performance`).
 - **Speed:** chardet leads everywhere except the far tail --- 1.3x in
-  aggregate (3,113 vs 2,473 files/s), 1.9x at the median (0.15 vs
+  aggregate (3,125 vs 2,438 files/s), 2.0x at the median (0.14 vs
   0.28ms), 1.5x at p90 and 1.6x at p95, with a worst case 3.1x lower
-  (10.4 vs 32.6ms). charset-normalizer keeps p99 (2.33 vs our 3.50ms),
-  a gap concentrated in legacy CJK where their p99 is 1.59ms against
-  our 6.79ms. See :doc:`performance`.
+  (10.8 vs 33.6ms). charset-normalizer keeps p99 (2.41 vs our 3.22ms),
+  a gap concentrated in legacy CJK where their p99 is 1.57ms against
+  our 6.96ms. See :doc:`performance`.
 - **Accuracy convention:** our 99.7% credits supersets (Windows-1252 for
   ISO-8859-1); scored on exact matches only it is 82.4% against
   charset-normalizer's 78.2%. Both columns are published, but we
@@ -110,11 +110,11 @@ How is chardet different from cchardet?
 Mozilla's uchardet C/C++ library. Key differences:
 
 - **Accuracy:** chardet achieves 99.7% vs cchardet's 60.1%.
-- **Speed:** cchardet 3.2.0 is 1.3x faster in aggregate (0.77s vs
-  1.01s across 3,138 files) and holds the better tail (p99 2.09ms vs
-  our 3.50ms), but chardet's worst case is 2.5x lower (10.4 vs 25.7ms).
+- **Speed:** cchardet 3.2.0 is 1.3x faster in aggregate (0.79s vs
+  1.00s across 3,138 files) and holds the better tail (p99 2.14ms vs
+  our 3.22ms), but chardet's worst case is 2.3x lower (10.8 vs 25.4ms).
 - **Memory:** chardet's peak footprint is 2.3x smaller (28.2 vs
-  64.5 MiB traced) with lower RSS (161 vs 186 MiB).
+  64.5 MiB traced) with lower RSS (160 vs 187 MiB).
 - **Encoding breadth:** chardet supports 49 more encodings than cchardet,
   including EBCDIC, Mac, Baltic, and BOM-less UTF-16/32.
 - **Binary files:** chardet declines binary input with a ``mime_type``
@@ -149,6 +149,6 @@ it always did.
 
 PyPy is best judged by percentile rather than throughput. Its median
 detection (0.22ms) is close to compiled CPython, but its p99 is
-73--78ms against 2.7--3.0ms, because the JIT never warms up on rare,
+72--77ms against 2.8--3.0ms, because the JIT never warms up on rare,
 large inputs. On typical documents it is competitive with the compiled
 wheel; on a corpus with a heavy tail it is several times slower overall.
