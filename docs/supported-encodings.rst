@@ -7,6 +7,8 @@ encoding eras.
 The default :attr:`~chardet.EncodingEra.ALL` era considers every
 encoding below. Pass a narrower era such as
 :attr:`~chardet.EncodingEra.MODERN_WEB` to restrict the candidates.
+The multi-byte column says whether the codec can spend more than one
+byte on a single character.
 
 Modern Web
 ----------
@@ -92,28 +94,28 @@ Modern Web
      - No
    * - utf-16
      - UTF-16, utf16, csutf16
-     - No
+     - Yes
    * - utf-16-be
      - UTF-16-BE, utf-16be, csutf16be
-     - No
+     - Yes
    * - utf-16-le
      - UTF-16-LE, utf-16le, csutf16le
-     - No
+     - Yes
    * - utf-32
      - UTF-32, utf32, csutf32
-     - No
+     - Yes
    * - utf-32-be
      - UTF-32-BE, utf-32be, csutf32be
-     - No
+     - Yes
    * - utf-32-le
      - UTF-32-LE, utf-32le, csutf32le
-     - No
+     - Yes
    * - utf-8
      - utf-8, utf8, csutf8, unicode-1-1-utf-8, unicode11utf8, unicode20utf8, x-unicode20utf8
-     - No
+     - Yes
    * - utf-8-sig
      - UTF-8-SIG, utf-8-bom
-     - No
+     - Yes
 
 Legacy ISO
 ----------
@@ -239,7 +241,7 @@ Legacy Regional
      - No
    * - utf-7
      - UTF-7, utf7, csutf7
-     - No
+     - Yes
 
 DOS
 ---

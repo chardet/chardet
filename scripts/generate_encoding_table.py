@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import codecs
 import contextlib
+import functools
 
 from chardet.enums import EncodingEra
 from chardet.registry import REGISTRY
@@ -19,6 +20,25 @@ ERA_DISPLAY = {
 }
 
 ERA_ORDER = list(ERA_DISPLAY)
+
+# The registry's ``is_multibyte`` flag marks the CJK byte structure that the
+# structural stage probes, and it is deliberately off for UTF-8, UTF-16 and
+# UTF-32.  Readers of the table want the plain meaning instead, so the column
+# asks the codec whether any character takes more than one byte.
+_PROBE_CHARS = [chr(c) for c in range(0x20, 0x10000) if not 0xD800 <= c <= 0xDFFF]
+
+
+@functools.cache
+def encodes_multibyte(codec: str) -> bool:
+    """Return whether *codec* ever encodes one character as several bytes."""
+    for char in _PROBE_CHARS:
+        try:
+            encoded = char.encode(codec)
+        except (UnicodeEncodeError, ValueError):
+            continue
+        if len(encoded) > 1:
+            return True
+    return False
 
 
 def main() -> None:
@@ -42,6 +62,8 @@ def main() -> None:
     print("The default :attr:`~chardet.EncodingEra.ALL` era considers every")
     print("encoding below. Pass a narrower era such as")
     print(":attr:`~chardet.EncodingEra.MODERN_WEB` to restrict the candidates.")
+    print("The multi-byte column says whether the codec can spend more than one")
+    print("byte on a single character.")
     print()
 
     for era in ERA_ORDER:
@@ -62,7 +84,7 @@ def main() -> None:
         print("     - Multi-byte")
         for e in entries:
             aliases = ", ".join(e.aliases) if e.aliases else "\u2014"
-            mb = "Yes" if e.is_multibyte else "No"
+            mb = "Yes" if encodes_multibyte(e.name) else "No"
             print(f"   * - {e.name}")
             print(f"     - {aliases}")
             print(f"     - {mb}")

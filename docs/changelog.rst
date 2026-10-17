@@ -170,6 +170,15 @@ Changelog
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude,
   `#383 <https://github.com/chardet/chardet/pull/383>`_)
 
+**Documentation:**
+
+- The supported encodings table no longer lists UTF-8, UTF-16, UTF-32
+  and UTF-7 as single-byte.  The multi-byte column used to copy the
+  registry flag that marks CJK byte structure for the structural stage,
+  which is off for the Unicode encodings on purpose.  The generator now
+  asks each codec whether any character takes more than one byte.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+
 **Build:**
 
 - ``pipeline/markup.py`` is now compiled by mypyc (15 modules), so the
