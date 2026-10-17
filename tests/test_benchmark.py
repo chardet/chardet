@@ -102,6 +102,17 @@ def _clear_all_caches():
     _modelled_languages.cache_clear()
 
 
+_COLD_SAMPLES = 3
+
+
+def _cold_time() -> float:
+    """Clear every cache and return the seconds one detect() call then takes."""
+    _clear_all_caches()
+    start = time.perf_counter()
+    chardet.detect(CYRILLIC_WIN1251)
+    return time.perf_counter() - start
+
+
 def _make_scaled_input(base: bytes, target_bytes: int) -> bytes:
     """Repeat *base* to reach at least *target_bytes*.
 
@@ -170,19 +181,19 @@ def test_ratio_cold_vs_warm_model_loading():
     # Measure warm median
     warm = _median_time(lambda: chardet.detect(CYRILLIC_WIN1251), _ITERS_RATIO)
 
-    # Clear all caches to simulate cold start
-    _clear_all_caches()
-
-    # Measure single cold call
-    start = time.perf_counter()
-    chardet.detect(CYRILLIC_WIN1251)
-    cold = time.perf_counter() - start
+    # Best of several cold starts, each after clearing every cache.  A single
+    # sample is at the mercy of the runner: one macOS 3.13t CI job measured
+    # 0.745s for a load that takes 0.03s on the same pure, coverage-traced
+    # build locally, even at the end of the full suite.  A stall like that
+    # hits one sample; a real regression slows every one of them.
+    cold = min(_cold_time() for _ in range(_COLD_SAMPLES))
 
     # Absolute ceiling first: this is the assertion that actually guards cold
     # start.  The ratio below inflates with every warm-path win -- pruning
     # doubled it once, the packed kernel again -- so on its own it loosens
     # exactly when detection gets faster, which is backwards for a regression
-    # guard.  Cold start is model loading and is ~0.05s; 0.5s is a 10x cushion.
+    # guard.  Cold start is model loading: ~0.01s untraced and ~0.03s for pure
+    # Python under coverage, so 0.5s leaves well over a 10x cushion.
     assert cold < 0.5, f"Cold start too slow in absolute terms: {cold:.3f}s"
 
     ratio = cold / warm
