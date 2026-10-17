@@ -350,40 +350,40 @@ chunks, which is faster on that one column and blind on every other:
      - charset-normalizer 3.5.2
    * - utf-8
      - 1 MiB
-     - 1.0ms
-     - **0.5ms**
+     - 1.2ms
+     - **0.6ms**
    * - utf-8
      - 32 MiB
-     - 29.5ms
-     - **10.0ms**
+     - 25.8ms
+     - **9.1ms**
    * - utf-8
      - 272 MiB
-     - 244.1ms
-     - **85.0ms**
+     - 228.1ms
+     - **79.2ms**
    * - cp1252
      - 1 MiB
-     - **13.4ms**
-     - 23.5ms :sup:`*`
+     - **12.2ms**
+     - 21.6ms :sup:`*`
    * - cp1252
      - 32 MiB
-     - **35.7ms**
-     - 704.9ms :sup:`*`
+     - **31.8ms**
+     - 695.1ms :sup:`*`
    * - cp1252
      - 272 MiB
-     - **215.0ms**
-     - 7,583.1ms :sup:`*`
+     - **205.4ms**
+     - 7,610.2ms :sup:`*`
    * - shift_jis
      - 1 MiB
-     - 10.8ms
-     - 10.8ms
+     - 10.5ms
+     - 10.6ms
    * - shift_jis
      - 32 MiB
-     - **67.8ms**
-     - 315.7ms
+     - **68.5ms**
+     - 308.9ms
    * - shift_jis
      - 272 MiB
-     - **505.1ms**
-     - 2,704.2ms
+     - **501.3ms**
+     - 2,655.2ms
    * - base64
      - 1 MiB
      - 1.8ms
@@ -391,11 +391,11 @@ chunks, which is faster on that one column and blind on every other:
    * - base64
      - 32 MiB
      - 21.7ms
-     - **1.5ms**
+     - **1.4ms**
    * - base64
      - 272 MiB
-     - 177.9ms
-     - **13.0ms**
+     - 176.1ms
+     - **12.0ms**
 
 :sup:`*` misdetected: charset-normalizer returned ``johab`` at 1 and
 32 MiB and ``windows-1250`` at 272 MiB for French Windows-1252 text.
@@ -409,22 +409,22 @@ the shape that makes chardet's escape-sequence scan work hardest.
 
 The columns split by what each detector has to prove. charset-normalizer
 wins wherever a cheap structural answer settles the file: about 3x on
-large valid UTF-8, and 10-15x on base64, where chardet validates ASCII
+large valid UTF-8, and about 15x on base64, where chardet validates ASCII
 and scans for escape-shift evidence over the whole window while
 charset-normalizer samples chunks. Both are the sampling-versus-exactness
 trade, taken knowingly.
 
 Where the answer needs actual statistics --- legacy single-byte and
-legacy CJK, the encodings a detector exists for --- chardet is **5x to
-35x faster** at 32 MiB and above, and charset-normalizer misidentifies
+legacy CJK, the encodings a detector exists for --- chardet is **4.5x to
+37x faster** at 32 MiB and above, and charset-normalizer misidentifies
 the cp1252 buffers at every size. The asymmetry has one cause: sampling
 costs charset-normalizer its short-circuits, so it keeps probing
 candidate encodings over chunks spread through a large buffer, while
 chardet's non-UTF-8 path drops to bounded evidence as soon as its
 C-speed exhaustive scans have ruled out the fast answers.
 
-The pure-Python wheel lands within 15% of the compiled one on these
-inputs (0.19s to 0.63s at 272 MiB): past the exhaustive scans and the
+The pure-Python wheel lands within 10% of the compiled one on these
+inputs (0.18s to 0.54s at 272 MiB): past the exhaustive scans and the
 winner's decode, what is left is bounded, so compilation moves the
 constant inside the window rather than the shape of the curve.
 
