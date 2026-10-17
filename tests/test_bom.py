@@ -1,6 +1,11 @@
 # tests/test_bom.py
 from __future__ import annotations
 
+import codecs
+
+import pytest
+
+import chardet
 from chardet import detect
 from chardet.pipeline import DetectionResult
 from chardet.pipeline.bom import detect_bom
@@ -84,6 +89,67 @@ def test_utf32_be_bom_falls_through_when_payload_not_aligned():
     assert result is None
 
 
+@pytest.mark.parametrize("encoding", ["utf-32-le", "utf-32-be"])
+@pytest.mark.parametrize("max_bytes", [1020, 1021, 1022, 1023])
+@pytest.mark.parametrize("api", ["detect", "detect_all", "stream", "split-stream"])
+def test_utf32_bom_survives_max_bytes_cut(encoding: str, max_bytes: int, api: str):
+    """A window ending mid-unit must retain the BOM's UTF-32 interpretation."""
+    text = "Hello world, this is a UTF-32 document. " * 50
+    bom = codecs.BOM_UTF32_LE if encoding.endswith("le") else codecs.BOM_UTF32_BE
+    data = bom + text.encode(encoding)
+    if api == "detect":
+        result = chardet.detect(data, max_bytes=max_bytes)
+    elif api == "detect_all":
+        result = chardet.detect_all(data, max_bytes=max_bytes)[0]
+    else:
+        detector = chardet.UniversalDetector(max_bytes=max_bytes)
+        if api == "split-stream":
+            detector.feed(data[:max_bytes])
+            detector.feed(data[max_bytes:])
+        else:
+            detector.feed(data)
+        result = detector.close()
+    assert result["encoding"] == "UTF-32"
+    assert result["confidence"] == 1.0
+    assert data.decode(result["encoding"]) == text
+
+
+@pytest.mark.parametrize(
+    "text", ["\0" + "中文测试" * 30, "\0" + "Hello world. " * 30], ids=["cjk", "ascii"]
+)
+@pytest.mark.parametrize("max_bytes", [101, 102, 103])
+@pytest.mark.parametrize("api", ["detect", "detect_all", "stream", "split-stream"])
+def test_utf16_bom_fallback_survives_max_bytes_cut(text: str, max_bytes: int, api: str):
+    """An invalid UTF-32 interpretation must still try the overlapping UTF-16 BOM."""
+    data = codecs.BOM_UTF16_LE + text.encode("utf-16-le")
+    if api == "detect":
+        result = chardet.detect(data, max_bytes=max_bytes)
+    elif api == "detect_all":
+        result = chardet.detect_all(data, max_bytes=max_bytes)[0]
+    else:
+        detector = chardet.UniversalDetector(max_bytes=max_bytes)
+        if api == "split-stream":
+            detector.feed(data[:max_bytes])
+            detector.feed(data[max_bytes:])
+        else:
+            detector.feed(data)
+        result = detector.close()
+    assert result["encoding"] == "UTF-16"
+    assert result["confidence"] == 1.0
+    assert data.decode(result["encoding"]) == text
+
+
+@pytest.mark.parametrize("encoding", ["utf-32-le", "utf-32-be"])
+def test_cut_utf32_bom_rejects_corruption_before_tail(encoding: str):
+    """Tolerating a cut code unit must not tolerate an invalid complete one."""
+    bom = codecs.BOM_UTF32_LE if encoding.endswith("le") else codecs.BOM_UTF32_BE
+    order = "little" if encoding.endswith("le") else "big"
+    data = bom + "Hello world. ".encode(encoding)
+    data += (0x110000).to_bytes(4, order) + "more text".encode(encoding)
+    result = chardet.detect(data, max_bytes=len(data) - 1)
+    assert result["encoding"] != "UTF-32"
+
+
 # ---------------------------------------------------------------------------
 # A mark names the encoding; the body has to decode under it
 # ---------------------------------------------------------------------------
@@ -111,9 +177,10 @@ def test_utf16_be_bom_with_lone_surrogate_is_no_answer():
     _decodes_or_none(data)
 
 
-def test_utf32_bom_with_out_of_range_unit_is_no_answer():
+@pytest.mark.parametrize("input_truncated", [False, True])
+def test_utf32_bom_with_out_of_range_unit_is_no_answer(*, input_truncated: bool):
     data = b"\xff\xfe\x00\x00" + "x ".encode("utf-32-le") * 20 + b"\x00\x00\x11\x00"
-    assert detect_bom(data) is None
+    assert detect_bom(data, input_truncated=input_truncated) is None
     _decodes_or_none(data)
 
 
