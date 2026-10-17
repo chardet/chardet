@@ -289,7 +289,7 @@ def _run_pipeline_core(  # noqa: PLR0913
 
     # Stage 1a: BOM detection (runs first — BOMs are definitive and
     # UTF-16/32 data looks binary due to null bytes)
-    bom_result = detect_bom(data)
+    bom_result = detect_bom(data, input_truncated=input_truncated)
     if bom_result is not None and bom_result.encoding in allowed:
         return [bom_result]
 

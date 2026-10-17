@@ -30,10 +30,11 @@ _BOMS: tuple[tuple[bytes, str], ...] = (
 _UTF32_BOMS: frozenset[bytes] = frozenset({b"\x00\x00\xfe\xff", b"\xff\xfe\x00\x00"})
 
 
-def detect_bom(data: bytes) -> DetectionResult | None:
+def detect_bom(data: bytes, *, input_truncated: bool = False) -> DetectionResult | None:
     """Check for a byte order mark at the start of *data*.
 
     :param data: The raw byte data to examine.
+    :param input_truncated: Whether the examination window ends before the input.
     :returns: A :class:`DetectionResult` with confidence 1.0, or ``None``.
     """
     for bom_bytes, encoding in _BOMS:
@@ -41,10 +42,12 @@ def detect_bom(data: bytes) -> DetectionResult | None:
             # UTF-32 BOMs overlap with UTF-16 BOMs (e.g. FF FE 00 00 starts
             # with the UTF-16-LE BOM FF FE).  Validate that the payload after
             # a UTF-32 BOM is a valid number of UTF-32 code units (multiple of
-            # 4 bytes).  If not, skip to let the shorter UTF-16 BOM match.
+            # 4 bytes).  If not, skip to let the shorter UTF-16 BOM match,
+            # unless chardet cut the window mid-unit.  The tolerant decode
+            # below accepts that partial tail but still rejects corruption.
             if bom_bytes in _UTF32_BOMS:
                 payload_len = len(data) - len(bom_bytes)
-                if payload_len % 4 != 0:
+                if payload_len % 4 != 0 and not input_truncated:
                     continue
             # The mark names the encoding, but the answer is only true if the
             # body decodes under it: a lone surrogate after a UTF-16 mark, or
@@ -55,6 +58,11 @@ def detect_bom(data: bytes) -> DetectionResult | None:
             # ``isascii`` settles at memory speed; everything else decodes.
             body_is_ascii = encoding == "utf-8-sig" and data[len(bom_bytes) :].isascii()
             if not body_is_ascii and not decodes_without_error(data, encoding):
+                # A UTF-32 match admitted only by the relaxed alignment check
+                # may be UTF-16 starting with NUL.  Try its shorter BOM before
+                # giving up, but preserve rejection for ordinary matches.
+                if input_truncated and bom_bytes in _UTF32_BOMS and len(data) % 4 != 0:
+                    continue
                 return None
             return DetectionResult(encoding=encoding, confidence=1.0, language=None)
     return None
