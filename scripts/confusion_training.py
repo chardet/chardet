@@ -65,7 +65,7 @@ def compute_confusion_groups(
     # Collect single-byte encodings with valid codecs
     single_byte = []
     for enc in REGISTRY.values():
-        if enc.is_multibyte:
+        if enc.is_multibyte_cjk:
             continue
         try:
             codecs.lookup(enc.name)
@@ -151,7 +151,7 @@ def compute_distinguishing_maps(
     # Collect single-byte encodings with valid codecs
     single_byte = []
     for enc in REGISTRY.values():
-        if enc.is_multibyte:
+        if enc.is_multibyte_cjk:
             continue
         try:
             codecs.lookup(enc.name)

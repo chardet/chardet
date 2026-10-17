@@ -604,7 +604,7 @@ def _run_timing_subprocess(  # noqa: PLR0913
 def _is_cjk_encoding(name: str | None) -> bool:
     """Whether *name* is a legacy CJK multi-byte encoding.
 
-    Every ``is_multibyte`` entry in the registry is CJK (Big5, GB, EUC,
+    Every ``is_multibyte_cjk`` entry in the registry is CJK (Big5, GB, EUC,
     Shift_JIS, ISO-2022, Johab), so that flag is the classifier. UTF-8/16/32
     are excluded: they carry CJK text but skip the expensive disambiguation
     path, which is what this split is meant to isolate.
@@ -613,7 +613,7 @@ def _is_cjk_encoding(name: str | None) -> bool:
         return False
     canonical = lookup_encoding(name)
     info = REGISTRY.get(canonical) if canonical else None
-    return bool(info and info.is_multibyte)
+    return bool(info and info.is_multibyte_cjk)
 
 
 # ---------------------------------------------------------------------------

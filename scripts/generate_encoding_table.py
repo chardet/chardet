@@ -21,7 +21,7 @@ ERA_DISPLAY = {
 
 ERA_ORDER = list(ERA_DISPLAY)
 
-# The registry's ``is_multibyte`` flag marks the CJK byte structure that the
+# The registry's ``is_multibyte_cjk`` flag marks the CJK byte structure that the
 # structural stage probes, and it is deliberately off for UTF-8, UTF-16 and
 # UTF-32.  Readers of the table want the plain meaning instead, so the column
 # asks the codec whether any character takes more than one byte.

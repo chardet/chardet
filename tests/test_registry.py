@@ -77,21 +77,21 @@ def test_get_candidates_combined_eras():
 
 
 def test_multibyte_encodings_flagged():
-    assert REGISTRY["shift_jis_2004"].is_multibyte is True
-    assert REGISTRY["iso8859-1"].is_multibyte is False
+    assert REGISTRY["shift_jis_2004"].is_multibyte_cjk is True
+    assert REGISTRY["iso8859-1"].is_multibyte_cjk is False
 
 
 def test_registry_cp273_is_mainframe():
     cp273 = REGISTRY["cp273"]
     assert EncodingEra.MAINFRAME in cp273.era
-    assert cp273.is_multibyte is False
+    assert cp273.is_multibyte_cjk is False
     assert cp273.name == "cp273"
 
 
 def test_registry_hp_roman8_is_legacy_regional():
     hp = REGISTRY["hp-roman8"]
     assert EncodingEra.LEGACY_REGIONAL in hp.era
-    assert hp.is_multibyte is False
+    assert hp.is_multibyte_cjk is False
     assert hp.name == "hp-roman8"
 
 
@@ -185,7 +185,7 @@ def test_big5_family_uses_broadest_superset():
     assert "big5-tw" in entry.aliases
     assert "csbig5" in entry.aliases
     assert "cp950" in entry.aliases
-    assert entry.is_multibyte is True
+    assert entry.is_multibyte_cjk is True
     assert entry.languages == ("zh",)
 
 
@@ -212,7 +212,7 @@ def test_euc_jp_family_uses_broadest_superset():
     assert "ujis" in entry.aliases
     assert "u-jis" in entry.aliases
     assert "euc-jisx0213" in entry.aliases
-    assert entry.is_multibyte is True
+    assert entry.is_multibyte_cjk is True
     assert entry.languages == ("ja",)
 
 
@@ -228,7 +228,7 @@ def test_shift_jis_family_uses_broadest_superset():
     assert "shiftjis" in entry.aliases
     assert "s_jis" in entry.aliases
     assert "shift-jisx0213" in entry.aliases
-    assert entry.is_multibyte is True
+    assert entry.is_multibyte_cjk is True
     assert entry.languages == ("ja",)
 
 
@@ -246,21 +246,21 @@ def test_iso2022_jp_split_into_branches():
     assert "csiso2022jp" in jp2.aliases
     assert "iso2022-jp-1" in jp2.aliases
     assert jp2.name == "iso2022_jp_2"
-    assert jp2.is_multibyte is True
+    assert jp2.is_multibyte_cjk is True
     assert jp2.languages == ("ja",)
 
     # iso2022-jp-2004 is the modern Japanese branch
     jp2004 = REGISTRY["iso2022_jp_2004"]
     assert "iso2022-jp-3" in jp2004.aliases
     assert jp2004.name == "iso2022_jp_2004"
-    assert jp2004.is_multibyte is True
+    assert jp2004.is_multibyte_cjk is True
     assert jp2004.languages == ("ja",)
 
     # iso2022-jp-ext is the katakana branch
     jpext = REGISTRY["iso2022_jp_ext"]
     assert jpext.aliases == ("ISO-2022-JP-EXT",)
     assert jpext.name == "iso2022_jp_ext"
-    assert jpext.is_multibyte is True
+    assert jpext.is_multibyte_cjk is True
     assert jpext.languages == ("ja",)
 
 
@@ -386,3 +386,10 @@ def test_lookup_encoding_python_only_codec():
         assert lookup_encoding(python_only) is None, (
             f"{python_only!r} should return None (Python codec not in chardet registry)"
         )
+
+
+def test_is_multibyte_is_a_deprecated_alias():
+    """The old attribute still answers, with a warning naming its successor."""
+    entry = REGISTRY["shift_jis_2004"]
+    with pytest.warns(DeprecationWarning, match="is_multibyte_cjk"):
+        assert entry.is_multibyte is entry.is_multibyte_cjk

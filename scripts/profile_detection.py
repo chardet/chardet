@@ -205,7 +205,7 @@ def run_per_file_timing(data_dir: Path, slow_count: int) -> None:
         # Structural scoring (for multibyte candidates)
         t0 = time.perf_counter()
         for enc_info in valid_candidates:
-            if enc_info.is_multibyte:
+            if enc_info.is_multibyte_cjk:
                 ctx = PipelineContext()
                 compute_structural_score(evidence, enc_info, ctx)
         stages["structural"] = time.perf_counter() - t0

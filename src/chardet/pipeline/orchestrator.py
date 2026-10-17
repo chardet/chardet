@@ -172,7 +172,7 @@ def _gate_cjk_candidates(
     """
     gated: list[EncodingInfo] = []
     for enc in valid_candidates:
-        if enc.is_multibyte:
+        if enc.is_multibyte_cjk:
             mb_score = compute_structural_score(data, enc, ctx)
             ctx.mb_scores[enc.name] = mb_score
             if mb_score < _CJK_MIN_MB_RATIO:
@@ -221,12 +221,12 @@ def _score_structural_candidates(
     confidence values to [0.0, 1.0] before returning to callers.
     """
     enc_lookup: dict[str, EncodingInfo] = {
-        e.name: e for e in valid_candidates if e.is_multibyte
+        e.name: e for e in valid_candidates if e.is_multibyte_cjk
     }
     valid_mb = tuple(
         enc_lookup[name] for name, _sc in structural_scores if name in enc_lookup
     )
-    single_byte = tuple(e for e in valid_candidates if not e.is_multibyte)
+    single_byte = tuple(e for e in valid_candidates if not e.is_multibyte_cjk)
     results = list(
         score_candidates(
             data[:_STAT_SCORE_MAX_BYTES],
@@ -424,7 +424,7 @@ def _run_pipeline_core(  # noqa: PLR0913
     # Reuse scores already computed during the CJK gate above.
     structural_scores: list[tuple[str, float]] = []
     for enc in valid_candidates:
-        if enc.is_multibyte:
+        if enc.is_multibyte_cjk:
             score = ctx.mb_scores.get(enc.name)
             if score is None:  # pragma: no cover - gate always populates cache
                 score = compute_structural_score(evidence, enc, ctx)

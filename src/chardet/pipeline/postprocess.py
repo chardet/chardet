@@ -712,7 +712,7 @@ def _prefer_decodable_on_tie(
         or len(results) < 2
         # A dangling multi-byte tail needs a high byte among the final
         # bytes (empty data trivially has none).  No cheaper winner gate
-        # exists: the registry's is_multibyte means CJK-style structural
+        # exists: the registry's is_multibyte_cjk means CJK-style structural
         # multibyte and is False for utf-8, the main deferring codec.  The
         # helper below is a single tolerant decode; validity already ran
         # the same decode once per candidate, so this adds at most one

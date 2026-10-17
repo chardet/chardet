@@ -67,7 +67,7 @@ def _split_variants(
         variants = index.get(enc.name)
         if variants is None:
             continue
-        if enc.is_multibyte:
+        if enc.is_multibyte_cjk:
             for vi, (lang, table, key) in enumerate(variants):
                 mb_entries.append((enc.name, lang, table, key, vi))
             continue

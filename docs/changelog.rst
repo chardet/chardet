@@ -170,6 +170,15 @@ Changelog
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude,
   `#383 <https://github.com/chardet/chardet/pull/383>`_)
 
+**Deprecations:**
+
+- ``EncodingInfo.is_multibyte`` is now ``is_multibyte_cjk``, since the
+  flag marks CJK byte structure rather than width and is off for UTF-8,
+  UTF-16 and UTF-32.  The old attribute still works with a
+  ``DeprecationWarning`` and will be removed in 8.0.  ``EncodingInfo``
+  is internal and never reaches ``detect()`` callers.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+
 **Documentation:**
 
 - The supported encodings table no longer lists UTF-8, UTF-16, UTF-32

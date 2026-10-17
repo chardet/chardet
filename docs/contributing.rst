@@ -124,7 +124,7 @@ Key types:
 - ``DetectionResult`` — frozen dataclass: ``encoding``, ``confidence``,
   ``language``, ``mime_type``
 - ``EncodingInfo`` (``registry.py``) — frozen dataclass: ``name``,
-  ``aliases``, ``era``, ``is_multibyte``, ``languages``
+  ``aliases``, ``era``, ``is_multibyte_cjk``, ``languages``
 - ``EncodingEra`` (``enums.py``) — IntFlag for filtering candidates
 - ``BigramProfile`` (``models/__init__.py``) — pre-computed bigram
   frequencies
