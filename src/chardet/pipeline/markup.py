@@ -10,6 +10,7 @@ from collections.abc import Iterator
 
 from chardet._utils import decodes_without_error
 from chardet.enums import EncodingEra
+from chardet.output_names import display_codec
 from chardet.pipeline import DETERMINISTIC_CONFIDENCE, DetectionResult, PipelineContext
 from chardet.pipeline.structural import compute_structural_score
 from chardet.registry import REGISTRY, lookup_encoding
@@ -23,10 +24,13 @@ from chardet.registry import REGISTRY, lookup_encoding
 # the codec that the *reported* encoding name resolves to for callers:
 # shift_jis_2004 is displayed as "SHIFT_JIS", which standard codec lookup
 # resolves to plain shift_jis, so that is the codec whose decode must not
-# break for the un-promoted name to be safe to report.
+# break for the un-promoted name to be safe to report.  The pairs come from
+# the registry's superset fact, limited to the multi-byte CJK encodings
+# (ADR-0007).
 _MARKUP_SUPERSET_PROMOTIONS: dict[str, tuple[str, str]] = {
-    "shift_jis_2004": ("shift_jis", "cp932"),
-    "euc_kr": ("euc_kr", "cp949"),
+    e.name: (display_codec(e.name), e.superset)
+    for e in REGISTRY.values()
+    if e.is_multibyte_cjk and e.superset is not None
 }
 
 _SCAN_LIMIT = 4096

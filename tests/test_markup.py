@@ -664,3 +664,15 @@ def test_ebcdic_declaration_regex_is_linear_in_whitespace() -> None:
     start = time.perf_counter()
     assert markup_mod._EBCDIC_DECL_RE.search(probe) is None
     assert time.perf_counter() - start < 1.0
+
+
+def test_promotion_table_derives_from_the_registry():
+    """The registry's CJK superset pairs reproduce the old hand-written table.
+
+    Each value is (codec the reported name resolves to, superset).  The
+    ISO/Windows pairs stay out: markup promotion was never about them.
+    """
+    assert markup_mod._MARKUP_SUPERSET_PROMOTIONS == {
+        "shift_jis_2004": ("shift_jis", "cp932"),
+        "euc_kr": ("euc_kr", "cp949"),
+    }

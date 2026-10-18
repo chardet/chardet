@@ -18,11 +18,10 @@ annotations.
 
 from chardet._utils import (
     dangling_tail_with_ascii_prefix,
-    decodes_completely,
     decodes_without_error,
 )
 from chardet.models import ART_LANGUAGE, RARE_LANGUAGES, get_enc_index
-from chardet.output_names import _COMPAT_NAMES
+from chardet.output_names import decodes_under_public_name
 from chardet.pipeline import DetectionResult
 from chardet.pipeline.confusion import (
     CONFUSION_BAND,
@@ -366,12 +365,14 @@ _DEAD_HEAT_EPSILON = 1e-4
 
 # On a dead heat between an encoding and its Windows superset, prefer the
 # superset: it decodes everything the base encoding does, so it is never a
-# worse answer when the statistics cannot separate them.  Mirrors
-# ``markup._MARKUP_SUPERSET_PROMOTIONS``.
+# worse answer when the statistics cannot separate them.  Derived from the
+# registry like ``markup``'s promotion table, and limited to the multi-byte
+# CJK pairs: reaching the ISO/Windows pairs would be an accuracy change to
+# measure on its own (ADR-0007).
 _DEAD_HEAT_SUPERSETS: dict[str, str] = {
-    "shift_jis": "cp932",
-    "shift_jis_2004": "cp932",
-    "euc_kr": "cp949",
+    e.name: e.superset
+    for e in REGISTRY.values()
+    if e.is_multibyte_cjk and e.superset is not None
 }
 
 # Confidence band for the classic-Mac line-ending promotion.  Wider than the
@@ -646,23 +647,6 @@ def _promote_mac_on_cr_line_endings(
     return results
 
 
-def _decodes_under_public_names(data: bytes, encoding: str) -> bool:
-    """Check that *data* decodes completely under *encoding* and its output name.
-
-    The flip's promise is that the caller's ``data.decode(result)`` works,
-    and the caller sees the *public* name: ``compat_names=True`` (the
-    default) can remap to a strictly narrower codec (``euc_jis_2004`` is
-    reported as ``EUC-JP``), so a rival must decode under both names to be
-    promoted.  ``prefer_superset=True`` can also narrow (cp125x leaves
-    codepoints undefined that iso-8859-x maps), but that output transform
-    checks the data itself before remapping.
-    """
-    if not decodes_completely(data, encoding):
-        return False
-    display = _COMPAT_NAMES.get(encoding)
-    return display is None or decodes_completely(data, display)
-
-
 def _prefer_decodable_on_tie(
     data: bytes,
     results: list[DetectionResult],
@@ -686,7 +670,9 @@ def _prefer_decodable_on_tie(
     tolerant decode (the whole input is one clipped sequence) is zero
     evidence, not ASCII evidence, and disqualifies the flip.  The
     best-ranked rival that decodes the input completely under both its
-    internal and public names then takes the top slot, regardless of the
+    internal and public names (``compat_names=True``, the default, can
+    remap to a strictly narrower codec: ``euc_jis_2004`` is reported as
+    ``EUC-JP``) then takes the top slot, regardless of the
     confidence gap: an all-ASCII-evidence winner detected nothing the
     rival did not also detect, and any statistical lead it holds comes
     from ASCII bigrams the rival matched equally well.  The scan sees the
@@ -723,7 +709,9 @@ def _prefer_decodable_on_tie(
         return results
     for i in range(1, len(results)):
         r = results[i]
-        if r.encoding is None or not _decodes_under_public_names(data, r.encoding):
+        if r.encoding is None or not decodes_under_public_name(
+            data, r.encoding, complete=True
+        ):
             continue
         return _promote_to_top(results, i)
     return results
