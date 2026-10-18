@@ -721,14 +721,24 @@ def test_no_promotion_when_better_scoring_superset_cannot_decode():
             "CP949",
             2,
         ),
+        (
+            b'<meta charset="shift_jis">'
+            + "Voilà, un résumé très détaillé de la journée. ".encode("cp1252") * 200,
+            "Windows-1252",
+            3,
+        ),
     ],
-    ids=["single-byte", "shift_jis-clean", "euc-kr-promoted"],
+    ids=["single-byte", "shift_jis-clean", "euc-kr-promoted", "shift_jis-lying"],
 )
 def test_declared_page_window_decode_budget(data: bytes, expected: str, budget: int):
     """A declared page pays one window decode, two when it promotes to a superset.
 
     A clean declared Shift_JIS page needs only the reported codec's decode:
-    plain shift_jis decodes nothing that shift_jis_2004 cannot.
+    plain shift_jis decodes nothing that shift_jis_2004 cannot.  The dual
+    is a Shift_JIS declaration on bytes none of the three codecs accept:
+    the reported codec, the superset, and the declared encoding are each
+    tried, three decodes where the old two-step paid two, and each stops
+    at the first bad byte.
     """
     real = markup_mod.decodes_without_error
     window_decodes: list[str] = []

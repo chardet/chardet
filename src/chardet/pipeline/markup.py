@@ -28,15 +28,25 @@ from chardet.registry import CJK_SUPERSETS, REGISTRY, lookup_encoding
 # almost universally declares "Shift_JIS" but actually uses CP932 extensions;
 # similarly, Korean web content declares "EUC-KR" but uses CP949/UHC.
 # When the declared encoding resolves to the base (key), we check whether
-# the superset (second element) is a better answer.  The first element is
-# the codec that the *reported* encoding name resolves to for callers:
-# shift_jis_2004 is displayed as "SHIFT_JIS", which standard codec lookup
-# resolves to plain shift_jis, so that is the codec whose decode must not
-# break for the un-promoted name to be safe to report.  The pairs come from
-# the registry's superset fact, limited to the multi-byte CJK encodings
+# ``superset`` is a better answer.  ``reported_codec`` is the codec that the
+# *reported* encoding name resolves to for callers: shift_jis_2004 is
+# displayed as "SHIFT_JIS", which standard codec lookup resolves to plain
+# shift_jis, so that is the codec whose decode must not break for the
+# un-promoted name to be safe to report.  The pairs come from the
+# registry's superset fact, limited to the multi-byte CJK encodings
 # (ADR-0007).
-_MARKUP_SUPERSET_PROMOTIONS: dict[str, tuple[str, str]] = {
-    name: (display_codec(name), superset) for name, superset in CJK_SUPERSETS.items()
+
+
+class _Promotion(NamedTuple):
+    """The two names a declared CJK encoding can be reported under."""
+
+    reported_codec: str
+    superset: str
+
+
+_MARKUP_SUPERSET_PROMOTIONS: dict[str, _Promotion] = {
+    name: _Promotion(display_codec(name), superset)
+    for name, superset in CJK_SUPERSETS.items()
 }
 _SCAN_LIMIT = 4096
 
@@ -281,7 +291,7 @@ def _iter_html_charsets(head: bytes) -> Iterator[bytes]:
 def iter_declarations(data: bytes) -> Iterator[Declaration]:
     """Yield every charset declaration in the head of *data*, in scan order.
 
-    The scan order is the order a reader honours them in:
+    The scan order is the order a reader honors them in:
 
     1. ``<?xml ... encoding="..."?>``
     2. ``<meta charset="...">`` and ``<meta http-equiv="Content-Type"
@@ -332,11 +342,15 @@ def iter_declarations(data: bytes) -> Iterator[Declaration]:
 def _declared_answer(data: bytes, encoding: str, allowed: frozenset[str]) -> str | None:
     """Return the name to report for a declaration of *encoding*, or ``None``.
 
-    A declaration is an answer only if the caller can decode the whole of
-    *data* with the reported name, and only if that name is in *allowed*.
-    The decoder stops at the first bad sequence, so a declaration that lies
-    about the header fails as fast as a head-only check would, and a cut
-    multi-byte sequence at the very end is tolerated as everywhere else.
+    A declaration is an answer only if the declared encoding, or its Windows
+    superset, decodes the whole of *data*, and only if that name is in
+    *allowed*.  (When the declared encoding decodes but the narrower codec
+    its display name resolves to does not, the superset is preferred; if
+    that fails too, the declared name stands and rendering keeps the
+    internal name, which decodes.)  The decoder stops at the first bad
+    sequence, so a declaration that lies about the header fails as fast as
+    a head-only check would, and a cut multi-byte sequence at the very end
+    is tolerated as everywhere else.
 
     For a declared CJK encoding with a Windows superset in *allowed*
     (Shift_JIS and CP932, EUC-KR and CP949), the superset is reported when
@@ -354,7 +368,7 @@ def _declared_answer(data: bytes, encoding: str, allowed: frozenset[str]) -> str
     through here.
     """
     promotion = _MARKUP_SUPERSET_PROMOTIONS.get(encoding)
-    if promotion is None or promotion[1] not in allowed:
+    if promotion is None or promotion.superset not in allowed:
         if encoding in allowed and decodes_without_error(data, encoding):
             return encoding
         return None
@@ -405,7 +419,7 @@ def detect_markup_charset(
     """Return the answer the charset declarations in *data* give, if any.
 
     Runs before the ASCII and UTF-8 stages so explicit declarations like
-    ``<?xml encoding="iso-8859-1"?>`` are honoured even when the bytes
+    ``<?xml encoding="iso-8859-1"?>`` are honored even when the bytes
     happen to be pure ASCII.  Declarations from :func:`iter_declarations`
     are tried in order.  One counts only if the name it resolves to, or its
     Windows superset (see :func:`_declared_answer`), decodes the whole of
@@ -413,7 +427,7 @@ def detect_markup_charset(
     the next one is tried, so a stale prolog does not hide a correct meta
     and a filtered-out first declaration does not hide a later one.
 
-    A declaration is honoured over pure ASCII, since the declared encoding
+    A declaration is honored over pure ASCII, since the declared encoding
     decodes those bytes identically, but not over genuine UTF-8 structure:
     data containing valid multi-byte UTF-8 sequences is UTF-8 regardless of
     what the (frequently stale) declaration claims, and decoding it as the
