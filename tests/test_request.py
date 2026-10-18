@@ -13,6 +13,7 @@ import pytest
 import chardet
 from chardet import UniversalDetector, output_names
 from chardet._request import DetectionRequest
+from chardet._utils import EVIDENCE_CAP_BYTES
 from chardet.enums import EncodingEra
 from chardet.pipeline import DetectionResult, orchestrator
 
@@ -274,6 +275,23 @@ def _close_detector(include_encodings: list[str]) -> None:
     detector.close()
 
 
+def _detect_past_cap_with_no_decodable_candidate() -> None:
+    """Reach the fallback through the past-cap validity hold, one frame deeper.
+
+    cp1250 decodes the French body on the evidence slice but not the
+    0x81 bytes past the cap; the no-match fallback it leaves is excluded.
+    """
+    filler = "Le cœur a ses raisons que la raison ne connaît point. ".encode("cp1252")
+    body = filler * ((EVIDENCE_CAP_BYTES + 50_000) // len(filler) + 1)
+    with_garbage = body + b"\x81\x8d\x9d" * 50
+    chardet.detect(
+        with_garbage,
+        max_bytes=len(with_garbage),
+        include_encodings=["cp1250"],
+        no_match_encoding="cp1252",
+    )
+
+
 @pytest.mark.parametrize(
     "call",
     [
@@ -306,8 +324,15 @@ def test_deprecation_warnings_point_at_the_caller(call: Callable[[], object]):
         lambda: chardet.detect_all(b"\x80\x81", include_encodings=["ascii"]),
         lambda: _close_detector(include_encodings=["ascii"]),
         lambda: chardet.detect(b"", include_encodings=["ascii"]),
+        _detect_past_cap_with_no_decodable_candidate,
     ],
-    ids=["detect", "detect_all", "UniversalDetector.close", "detect-empty"],
+    ids=[
+        "detect",
+        "detect_all",
+        "UniversalDetector.close",
+        "detect-empty",
+        "detect-past-cap-hold",
+    ],
 )
 def test_fallback_warning_points_at_the_caller(call: Callable[[], object]):
     assert _warning_files(UserWarning, call) == [__file__]

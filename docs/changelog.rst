@@ -33,6 +33,13 @@ Unreleased
   buffer on every read.  ADR-0007 has the reasoning.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 
+**Bug Fixes:**
+
+- The warning for an excluded ``no_match_encoding`` now points at the
+  caller's line when the fallback is reached past the evidence cap.  It
+  used to name ``chardet/__init__.py`` on that one path.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+
 7.7.0 (2026-10-17)
 ------------------
 
