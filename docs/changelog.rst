@@ -48,6 +48,11 @@ Changelog
   markup scan quadratic, taking it from about 5 ms to about 20 µs.  A
   literal ``<`` inside an attribute value now hides that one tag.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+- An EBCDIC ``charset=`` or ``encoding=`` followed by whitespace and no
+  value no longer makes the declaration scan backtrack quadratically.
+  A crafted 4 KB document used to cost ``detect()`` about 60 ms.
+  (`Samina <https://github.com/Samin061>`_,
+  `#403 <https://github.com/chardet/chardet/pull/403>`_)
 - The pure-Python install on CPython scores bigram models with
   ``operator.itemgetter`` instead of a Python loop, making ``detect()``
   about 1.25x faster and ``detect_all()`` about 1.35x faster across the
@@ -140,6 +145,12 @@ Changelog
   ``utf-8`` answer into a single-byte codec when a multi-byte sequence
   was cut at the boundary.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+- A UTF-32 file with a BOM no longer comes back as UTF-16, or as
+  ``utf-32-be`` with the BOM left in, when ``max_bytes`` ends the window
+  partway through a code unit.  The default cap is a multiple of four,
+  so only custom caps hit this.
+  (`Aryan R. Ganjoo <https://github.com/AryanRG>`_,
+  `#405 <https://github.com/chardet/chardet/pull/405>`_)
 - ``detect_all()`` no longer puts a demoted niche Latin encoding back
   near the top.  The demoted entry now takes the confidence of the
   candidate it sits behind, so the ranking is ordered by confidence as
