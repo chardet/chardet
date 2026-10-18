@@ -116,7 +116,7 @@ All detection flows through `run_pipeline()`, which runs stages in order — eac
 ### Key Types
 
 - **`DetectionResult`** (`pipeline/__init__.py`) — frozen dataclass: `encoding`, `confidence`, `language`, `mime_type`
-- **`EncodingInfo`** (`registry.py`) — frozen dataclass: `name`, `aliases`, `era`, `is_multibyte_cjk`, `languages`
+- **`EncodingInfo`** (`registry.py`) — frozen dataclass: `name`, `aliases`, `era`, `is_multibyte_cjk`, `languages`, `superset` (the Windows/CP code page that stands in for the encoding, or `None`; markup promotion and dead-heat promotion derive their tables from it, while `output_names.PREFERRED_SUPERSET` stays the frozen `prefer_superset` selection, see ADR-0007)
 - **`EncodingEra`** (`enums.py`) — IntFlag for filtering candidates: `MODERN_WEB`, `LEGACY_ISO`, `LEGACY_MAC`, `LEGACY_REGIONAL`, `DOS`, `MAINFRAME`, `ALL`
 - **`BigramProfile`** (`models/__init__.py`) — pre-computed weighted bigram frequencies, computed once and reused across all candidate models
 
@@ -129,6 +129,8 @@ Binary file `src/chardet/models/models.bin` — v2 dense zlib-compressed format 
 - `detect(byte_str, should_rename_legacy, chunk_size, encoding_era, max_bytes, *, prefer_superset, compat_names, include_encodings, exclude_encodings, no_match_encoding, empty_input_encoding)` → `{"encoding": ..., "confidence": ..., "language": ..., "mime_type": ...}`; the two deprecated positionals come first, so pass `encoding_era` and `max_bytes` by keyword
 - `detect_all(byte_str, ignore_threshold, ...)` → list of result dicts
 - `UniversalDetector` (`detector.py`) — streaming interface with `feed()`/`close()`/`reset()`
+
+All three, and the `chardetect` CLI, are thin adapters over `_request.DetectionRequest` (interpreted, not mypyc-compiled), which owns option validation and deprecation warnings (`resolve`), the `run_pipeline` call (`run`), and the output-name transforms plus `detect_all`'s threshold/sort/dedupe (`render`).
 
 ### Accuracy Evaluation (`evaluation.py`)
 
