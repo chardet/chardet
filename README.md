@@ -19,9 +19,10 @@ and **+13.1pp more accurate** than charset-normalizer 3.5.2 while being
 1.3x faster. **Language detection** for every text result. **MIME type detection** for
 binary files. **0BSD licensed.**
 
-Large inputs don't need a byte cap: `detect(data, max_bytes=len(data))` on a
-272 MiB file finishes in about 0.2 to 0.5 s, and the UTF-8 verdict is validated
-over every byte examined, never sampled. See
+Raising the byte cap on large inputs doesn't make detection slow:
+`detect(data, max_bytes=len(data))` on a 272 MiB file finishes in about 0.2 to
+0.5 s, and the UTF-8 verdict is validated over every byte examined, never
+sampled. The default 200 KB cap is still the fastest path. See
 [the performance docs](https://chardet.readthedocs.io/en/latest/performance.html)
 for the full large-input tables.
 

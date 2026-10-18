@@ -31,13 +31,14 @@ Changelog
 
 **Performance:**
 
-- Large inputs no longer need ``max_bytes`` to stay fast.  On the
+- Raising ``max_bytes`` on large inputs no longer gets slow.  On the
   compiled build, ``detect(data, max_bytes=len(data))`` on 272 MiB takes
   about 0.23s for cp1252 and 0.56s for Shift_JIS, down from several
   seconds.  UTF-8 validation and a final decode of the winner still read
   the whole window, so the answer still decodes it.  The other stages
   stop at a 256 KB evidence cap, which sits above the default
-  ``max_bytes``, so default calls are unchanged.  ADR-0006 has the design.
+  ``max_bytes``, so default calls are unchanged, and the default 200 KB
+  cap is still the fastest path.  ADR-0006 has the design.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 - The UTF-7 ``+`` scan is no longer quadratic on line-wrapped base64
   like PEM certificates, MIME attachments, and JWTs.  128 KiB of it went
