@@ -1,4 +1,11 @@
-"""Stage 1b: charset declaration extraction (HTML/XML/PEP 263) and promotion.
+"""Stage 1b: charset declarations (HTML/XML/PEP 263) and the answer they give.
+
+The module has two seams.  :func:`iter_declarations` is the parser: it
+reads the head of the data and yields every charset declaration it finds,
+resolved to a registry name, without decoding the window.
+:func:`detect_markup_charset` is the stage: it walks those declarations
+and decides which one, if any, is the answer, including any promotion to
+a Windows superset.
 
 Note: ``from __future__ import annotations`` is intentionally omitted because
 this module is compiled with mypyc, which does not support PEP 563 string
@@ -7,6 +14,7 @@ annotations.
 
 import re
 from collections.abc import Iterator
+from typing import NamedTuple
 
 from chardet._utils import decodes_without_error
 from chardet.enums import EncodingEra
@@ -30,7 +38,6 @@ from chardet.registry import CJK_SUPERSETS, REGISTRY, lookup_encoding
 _MARKUP_SUPERSET_PROMOTIONS: dict[str, tuple[str, str]] = {
     name: (display_codec(name), superset) for name, superset in CJK_SUPERSETS.items()
 }
-
 _SCAN_LIMIT = 4096
 
 # Labels that cannot describe a document whose declaration was read as
@@ -101,21 +108,41 @@ _MARKUP_HIGH_BYTES = bytes(range(0x80, 0x100))
 _EBCDIC_SCAN_MIN_HIGH_FRACTION = 0.25
 
 
-def _detect_ebcdic_declaration(data: bytes) -> DetectionResult | None:
-    """Look for a charset declaration in EBCDIC-encoded markup.
+class Declaration(NamedTuple):
+    """One charset declaration found in the head of the data.
+
+    :ivar encoding: The registry name the label resolves to under its
+        scanner's rule, or ``None`` when no codec answers to the label.
+    :ivar mime_type: ``text/xml`` for an XML prolog, ``text/html`` for a
+        meta tag, ``text/x-python`` for a PEP 263 coding cookie.
+    """
+
+    encoding: str | None
+    mime_type: str
+
+
+def _ascii_label(raw: bytes) -> str | None:
+    """Return *raw* as a stripped ASCII string, or ``None`` if it is not ASCII."""
+    try:
+        return raw.decode("ascii").strip()
+    except UnicodeDecodeError:
+        return None
+
+
+def _iter_ebcdic_declarations(data: bytes) -> Iterator[Declaration]:
+    """Yield the charset declarations in EBCDIC-encoded markup.
 
     The ASCII regexes cannot see declarations in EBCDIC bytes, so when the
     head looks like EBCDIC text (dominated by high bytes), decode it through
-    cp037 — the EBCDIC page whose letter and digit positions are shared by
-    all variants — and scan the decoded text.  Only declarations naming a
-    MAINFRAME-era encoding are honoured, and the declared encoding must
-    decode the whole window.  The MIME type follows the tag the declaration
-    sits in.
+    cp037, the EBCDIC page whose letter and digit positions are shared by
+    all variants, and scan the decoded text.  Only declarations naming a
+    MAINFRAME-era encoding are yielded.  The MIME type follows the tag the
+    declaration sits in.
     """
     head = data[:_SCAN_LIMIT]
     high_count = len(head) - len(head.translate(None, _MARKUP_HIGH_BYTES))
     if high_count < len(head) * _EBCDIC_SCAN_MIN_HIGH_FRACTION:
-        return None
+        return
     decoded = head.decode("cp037", errors="replace")
     # Scan every declaration token inside every anchor tag: an unrelated
     # earlier ``charset=``/``encoding=`` token (a query string in an href,
@@ -124,19 +151,9 @@ def _detect_ebcdic_declaration(data: bytes) -> DetectionResult | None:
     for tag in _EBCDIC_TAG_RE.finditer(decoded):
         for match in _EBCDIC_DECL_RE.finditer(tag.group(0)):
             encoding = lookup_encoding(match.group(1).strip())
-            if (
-                encoding is not None
-                and REGISTRY[encoding].era & EncodingEra.MAINFRAME
-                and _validate_bytes(data, encoding)
-            ):
+            if encoding is not None and REGISTRY[encoding].era & EncodingEra.MAINFRAME:
                 is_xml = tag.group(0)[1] == "?"
-                return DetectionResult(
-                    encoding=encoding,
-                    confidence=DETERMINISTIC_CONFIDENCE,
-                    language=None,
-                    mime_type="text/xml" if is_xml else "text/html",
-                )
-    return None
+                yield Declaration(encoding, "text/xml" if is_xml else "text/html")
 
 
 def _pep263_encoding(raw_name: str) -> str | None:
@@ -158,16 +175,13 @@ def _pep263_encoding(raw_name: str) -> str | None:
     return lookup_encoding(raw_name)
 
 
-def _detect_pep263(data: bytes) -> DetectionResult | None:
-    """Check the first two lines of *data* for a PEP 263 encoding declaration.
+def _pep263_declaration(data: bytes) -> Declaration | None:
+    """Return the PEP 263 coding cookie in the first two lines of *data*.
 
     PEP 263 declarations (e.g. ``# -*- coding: utf-8 -*-``) are only valid
     on line 1 or line 2 of a Python source file.  Both lines have to start
     inside the first :data:`_SCAN_LIMIT` bytes, the same bound the markup
     scan uses.
-
-    :param data: The raw byte data to scan.
-    :returns: A :class:`DetectionResult` with confidence 0.95, or ``None``.
     """
     head = data[:_SCAN_LIMIT]
     # PEP 263 requires a '#' comment marker on line 1 or 2.
@@ -178,20 +192,12 @@ def _detect_pep263(data: bytes) -> DetectionResult | None:
     match = _PEP263_RE.match(lines[0])
     if match is None and len(lines) > 1 and _PEP263_BLANK_RE.match(lines[0]):
         match = _PEP263_RE.match(lines[1])
-    if match:
-        try:
-            raw_name = match.group(1).decode("ascii").strip()
-        except (UnicodeDecodeError, ValueError):
-            return None
-        encoding = _declared_encoding(data, _pep263_encoding(raw_name))
-        if encoding is not None:
-            return DetectionResult(
-                encoding=encoding,
-                confidence=DETERMINISTIC_CONFIDENCE,
-                language=None,
-                mime_type="text/x-python",
-            )
-    return None
+    if match is None:
+        return None
+    raw_name = _ascii_label(match.group(1))
+    if raw_name is None:
+        return None
+    return Declaration(_pep263_encoding(raw_name), "text/x-python")
 
 
 def _strip_comments(head: bytes) -> bytes:
@@ -272,157 +278,177 @@ def _iter_html_charsets(head: bytes) -> Iterator[bytes]:
                 yield found.group(2) if found.group(1) else found.group(3)
 
 
-def detect_markup_charset(data: bytes) -> DetectionResult | None:
-    """Scan the first bytes of *data* for a charset declaration.
+def iter_declarations(data: bytes) -> Iterator[Declaration]:
+    """Yield every charset declaration in the head of *data*, in scan order.
 
-    Checks for:
+    The scan order is the order a reader honours them in:
 
     1. ``<?xml ... encoding="..."?>``
-    2. ``<meta charset="...">``
-    3. ``<meta http-equiv="Content-Type" content="...; charset=...">``
-       (also with ``name`` in place of ``http-equiv``)
+    2. ``<meta charset="...">`` and ``<meta http-equiv="Content-Type"
+       content="...; charset=...">`` (also with ``name`` in place of
+       ``http-equiv``), in document order
+    3. declarations inside EBCDIC-encoded markup, when the head is
+       dominated by high bytes
     4. PEP 263 ``# -*- coding: ... -*-`` (first two lines only)
 
     Markup inside ``<!-- -->`` comments is not scanned.  A UTF-16 or UTF-32
     label is read as UTF-8 and ``x-user-defined`` as windows-1252, as in the
     WHATWG prescan, since a declaration found in ASCII bytes cannot be
-    describing UTF-16 text.
+    describing UTF-16 text.  A label that is not ASCII is skipped.
 
-    A declaration counts only if the declared encoding decodes the whole of
-    *data*, or, failing that, if its Windows superset does (see
-    :func:`_declared_encoding`).  A declaration that fails is skipped and
-    the next one is tried, so a stale prolog does not hide a correct meta.
+    This is parsing only: nothing here decodes the window, so whether a
+    declaration is believable is left to :func:`detect_markup_charset`.
+    The scans run lazily, so a consumer that stops at the first answer
+    never pays for the EBCDIC or PEP 263 scan.
 
     :param data: The raw byte data to scan.
-    :returns: A :class:`DetectionResult` with confidence 0.95, or ``None``.
+    :returns: An iterator of :class:`Declaration`.
     """
     if not data:
-        return None
+        return
 
     head = _strip_comments(data[:_SCAN_LIMIT])
 
     match = _XML_ENCODING_RE.search(head)
     if match:
-        try:
-            raw_name = match.group(1).decode("ascii").strip()
-        except (UnicodeDecodeError, ValueError):
-            raw_name = ""
-        encoding = _declared_encoding(
-            data, _markup_encoding(raw_name) if raw_name else None
-        )
-        if encoding is not None:
-            return DetectionResult(
-                encoding=encoding,
-                confidence=DETERMINISTIC_CONFIDENCE,
-                language=None,
-                mime_type="text/xml",
+        raw_name = _ascii_label(match.group(1))
+        if raw_name is not None:
+            yield Declaration(
+                _markup_encoding(raw_name) if raw_name else None, "text/xml"
             )
 
     for raw in _iter_html_charsets(head):
-        try:
-            raw_name = raw.decode("ascii").strip()
-        except UnicodeDecodeError:
-            continue
-        encoding = _declared_encoding(data, _markup_encoding(raw_name))
-        if encoding is not None:
-            return DetectionResult(
-                encoding=encoding,
-                confidence=DETERMINISTIC_CONFIDENCE,
-                language=None,
-                mime_type="text/html",
-            )
+        raw_name = _ascii_label(raw)
+        if raw_name is not None:
+            yield Declaration(_markup_encoding(raw_name), "text/html")
 
-    ebcdic_result = _detect_ebcdic_declaration(data)
-    if ebcdic_result is not None:
-        return ebcdic_result
+    yield from _iter_ebcdic_declarations(data)
 
-    return _detect_pep263(data)
+    pep263 = _pep263_declaration(data)
+    if pep263 is not None:
+        yield pep263
 
 
-def promote_markup_superset(
-    data: bytes,
-    markup_result: DetectionResult,
-    allowed: frozenset[str],
-) -> DetectionResult:
-    """Promote a markup-declared encoding to its superset when structural evidence supports it.
-
-    If the declared encoding has a known superset (per
-    :data:`_MARKUP_SUPERSET_PROMOTIONS`), the superset validates the data,
-    and the superset's structural score is materially better, return a new
-    result using the superset encoding.  Otherwise return *markup_result*
-    unchanged.
-
-    The decode checks read the whole input: what a caller can actually
-    ``.decode()`` is a fact about their entire input, and a declared
-    Shift_JIS page typically reaches its first CP932-only byte well past
-    the header.  The structural comparison reads only the first
-    :data:`_SCAN_LIMIT` bytes, since multi-byte structure is uniform enough
-    that the ranking has converged by then.  It runs first because it is
-    cheap and settles which single decode the answer needs: a 200 kB
-    window decodes in a few hundred microseconds, and every declared page
-    of a promotable encoding comes through here.
-    """
-    if markup_result.encoding is None:
-        return markup_result
-    promotion = _MARKUP_SUPERSET_PROMOTIONS.get(markup_result.encoding)
-    if promotion is None:
-        return markup_result
-    reported_codec, superset_name = promotion
-    if superset_name not in allowed:
-        return markup_result
-    promoted = DetectionResult(
-        superset_name,
-        markup_result.confidence,
-        markup_result.language,
-        markup_result.mime_type,
-    )
-    head = data[:_SCAN_LIMIT]
-    ctx = PipelineContext()
-    base_score = compute_structural_score(head, REGISTRY[markup_result.encoding], ctx)
-    superset_score = compute_structural_score(head, REGISTRY[superset_name], ctx)
-    if superset_score > base_score:
-        # The superset fits the structure better; take it if it decodes.
-        if decodes_without_error(data, superset_name):
-            return promoted
-        return markup_result
-    # Decode-safety: if the codec the reported name resolves to cannot
-    # decode the data (e.g. a declared-Shift_JIS page using CP932 NEC/IBM
-    # extensions), the superset is the only answer a caller can actually
-    # use with ``.decode()`` -- promote regardless of the structural tie.
-    if decodes_without_error(data, reported_codec):
-        return markup_result
-    if decodes_without_error(data, superset_name):
-        return promoted
-    return markup_result
-
-
-def _validate_bytes(data: bytes, encoding: str) -> bool:
-    """Check that the whole of *data* decodes under *encoding*.
-
-    A declaration is an answer only if the caller can decode what chardet
-    examined with it.  The decoder stops at the first bad sequence, so a
-    declaration that lies about the header fails as fast as a head-only
-    check would, and a cut multi-byte sequence at the very end is tolerated
-    as everywhere else.
-    """
-    return decodes_without_error(data, encoding)
-
-
-def _declared_encoding(data: bytes, encoding: str | None) -> str | None:
+def _declared_answer(data: bytes, encoding: str, allowed: frozenset[str]) -> str | None:
     """Return the name to report for a declaration of *encoding*, or ``None``.
 
-    When the declared encoding cannot decode the window but its Windows
-    superset can (a declared EUC-KR page whose first CP949-only hangul sits
-    past the header, a declared Shift_JIS page using NEC extensions), the
-    superset is the answer the caller can use, so it is reported directly.
-    :func:`promote_markup_superset` would reach the same name one window
-    decode later.
+    A declaration is an answer only if the caller can decode the whole of
+    *data* with the reported name, and only if that name is in *allowed*.
+    The decoder stops at the first bad sequence, so a declaration that lies
+    about the header fails as fast as a head-only check would, and a cut
+    multi-byte sequence at the very end is tolerated as everywhere else.
+
+    For a declared CJK encoding with a Windows superset in *allowed*
+    (Shift_JIS and CP932, EUC-KR and CP949), the superset is reported when
+    its structural score on the head is strictly higher and it decodes, or
+    when it decodes and the name the caller would see for the declared
+    encoding does not (a declared Shift_JIS page using NEC extensions, a
+    declared EUC-KR page whose first CP949-only hangul sits past the
+    header).  The decode checks read the whole window: what a caller can
+    ``.decode()`` is a fact about their entire input.  The structural
+    comparison reads only the first :data:`_SCAN_LIMIT` bytes, since
+    multi-byte structure is uniform enough that the ranking has converged
+    by then.  It runs first because it is cheap and settles which decode
+    the answer needs: a 200 kB window decodes in a few hundred
+    microseconds, and every declared page of a promotable encoding comes
+    through here.
     """
-    if encoding is None:
-        return None
-    if _validate_bytes(data, encoding):
-        return encoding
     promotion = _MARKUP_SUPERSET_PROMOTIONS.get(encoding)
-    if promotion is not None and _validate_bytes(data, promotion[1]):
-        return promotion[1]
+    if promotion is None or promotion[1] not in allowed:
+        if encoding in allowed and decodes_without_error(data, encoding):
+            return encoding
+        return None
+    reported_codec, superset = promotion
+    if encoding not in allowed:
+        # The declared name cannot be reported.  The superset stands in for
+        # it only when the declared encoding itself fails the window; a
+        # declaration that decodes is an answer, just not an allowed one.
+        if decodes_without_error(data, encoding):
+            return None
+        return superset if decodes_without_error(data, superset) else None
+    head = data[:_SCAN_LIMIT]
+    # The orchestrator's context cannot be shared: its structural cache is
+    # keyed by encoding name only, and this scores a different slice.
+    ctx = PipelineContext()
+    base_score = compute_structural_score(head, REGISTRY[encoding], ctx)
+    superset_score = compute_structural_score(head, REGISTRY[superset], ctx)
+    if superset_score > base_score:
+        # The superset fits the structure better; take it if it decodes.
+        if decodes_without_error(data, superset):
+            return superset
+        return encoding if decodes_without_error(data, encoding) else None
+    # The reported codec is a subset of the declared one: plain shift_jis
+    # decodes nothing that shift_jis_2004 cannot, and euc_kr reports as
+    # itself.  So when the reported codec decodes the window, the declared
+    # encoding does too, and a clean declared page costs this one decode.
+    if decodes_without_error(data, reported_codec):
+        return encoding
+    # Decode-safety: if the reported name cannot decode the data, the
+    # superset is the only answer a caller can actually use with
+    # ``.decode()``, regardless of the structural tie.
+    if decodes_without_error(data, superset):
+        return superset
+    # Neither the reported codec nor the superset decodes.  The declared
+    # encoding is still the answer if it decodes (a JIS X 0213 character
+    # that only shift_jis_2004 maps); when the reported codec is the same
+    # codec, its failure above already settled that it does not.
+    if reported_codec != encoding and decodes_without_error(data, encoding):
+        return encoding
+    return None
+
+
+def detect_markup_charset(
+    data: bytes,
+    allowed: frozenset[str],
+    utf8_precheck: DetectionResult | None = None,
+) -> DetectionResult | None:
+    """Return the answer the charset declarations in *data* give, if any.
+
+    Runs before the ASCII and UTF-8 stages so explicit declarations like
+    ``<?xml encoding="iso-8859-1"?>`` are honoured even when the bytes
+    happen to be pure ASCII.  Declarations from :func:`iter_declarations`
+    are tried in order.  One counts only if the name it resolves to, or its
+    Windows superset (see :func:`_declared_answer`), decodes the whole of
+    *data* and is in *allowed*.  A declaration that fails is skipped and
+    the next one is tried, so a stale prolog does not hide a correct meta
+    and a filtered-out first declaration does not hide a later one.
+
+    A declaration is honoured over pure ASCII, since the declared encoding
+    decodes those bytes identically, but not over genuine UTF-8 structure:
+    data containing valid multi-byte UTF-8 sequences is UTF-8 regardless of
+    what the (frequently stale) declaration claims, and decoding it as the
+    declared encoding would produce mojibake.  So when *utf8_precheck* is
+    a UTF-8 result in *allowed* and the first accepted declaration names
+    something else, that UTF-8 result is returned instead, keeping the
+    declaration's MIME type; only the encoding wins.
+
+    :param data: The raw byte data to scan.
+    :param allowed: The encoding names the caller's filters permit.
+    :param utf8_precheck: The UTF-8 stage's result for *data*, if any.
+    :returns: A :class:`DetectionResult` with confidence 0.95 (or the UTF-8
+        precheck's), or ``None`` when no declaration is accepted.
+    """
+    for declaration in iter_declarations(data):
+        if declaration.encoding is None:
+            continue
+        answer = _declared_answer(data, declaration.encoding, allowed)
+        if answer is None:
+            continue
+        if (
+            utf8_precheck is not None
+            and utf8_precheck.encoding != answer
+            and utf8_precheck.encoding in allowed
+        ):
+            return DetectionResult(
+                utf8_precheck.encoding,
+                utf8_precheck.confidence,
+                utf8_precheck.language,
+                declaration.mime_type,
+            )
+        return DetectionResult(
+            encoding=answer,
+            confidence=DETERMINISTIC_CONFIDENCE,
+            language=None,
+            mime_type=declaration.mime_type,
+        )
     return None
