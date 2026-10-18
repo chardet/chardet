@@ -43,7 +43,7 @@ Listed in execution order. Each stage's name matches its module in `chardet.pipe
 3. **Escape sequences** — ISO-2022-JP/KR, HZ-GB-2312.
 4. **Magic numbers** — 40+ binary file signatures (PNG, PDF, ZIP, etc.) plus ZIP-entry-name disambiguation for OOXML/EPUB.
 5. **Binary detection** — null-byte / control-char threshold for unrecognized binary. EBCDIC tab/newline controls do not count as binary evidence when the data is high-byte-dominated (plausibly EBCDIC text).
-6. **Markup charset** — `<meta charset>`, `<?xml encoding>`, PEP 263 coding-declaration extraction, including declarations inside EBCDIC-encoded markup. Includes **markup superset promotion**.
+6. **Markup charset** — `<meta charset>`, `<?xml encoding>`, PEP 263 coding-declaration extraction, including declarations inside EBCDIC-encoded markup. The stage owns the whole decision: it walks the **declaration**s the parser yields, keeps the first whose name (or Windows superset, see **markup superset promotion**) decodes the window and is allowed by the caller's filters, and yields to the UTF-8 precheck when the data has genuine multi-byte UTF-8 structure, keeping the declaration's MIME type.
 7. **ASCII** — pure-7-bit fast path.
 8. **UTF-8 validation** — multi-byte structural check.
 9. **Byte-validity filtering** — drop candidates whose codec cannot decode the data. An incomplete multi-byte sequence at the very end is tolerated, since the input is usually a prefix of a larger whole.
@@ -70,8 +70,11 @@ An internal, unoverridable bound on how much of the **examination window** a fil
 **Encoding superset relationship** (`EncodingInfo.superset`):
 The codec fact that a Windows/CP code page stands in for an encoding in practice (CP932 for Shift_JIS, Windows-1252 for ISO-8859-1, CP949 for EUC-KR). Owned by the registry, one field per encoding, ADR-0007. Not byte-for-byte: the Windows code pages leave a few C1 positions undefined that the ISO standards map, and cp1250 places some letters differently from iso8859-2, so every code that swaps one name for the other checks the data first. The three applications below share the fact and apply it at different times.
 
+**Declaration** (`markup.Declaration`, `markup.iter_declarations`):
+One charset label found in the head of the data, resolved to a registry name (or `None` when no codec answers to it) with the MIME type of the construct it sat in. `iter_declarations` is the Markup stage's parser seam: it yields every declaration in scan order (XML prolog, meta tags in document order, EBCDIC markup, PEP 263 cookie) and decodes nothing, so the WHATWG and PEP 263 parsing rules are testable without a window decode.
+
 **Markup superset promotion**:
-Internal pipeline behavior in `pipeline/markup.py`. When the markup-declared encoding is a known subset (Shift_JIS, EUC-KR) and structural evidence supports the superset, the result is swapped to the superset (CP932, CP949). Always-on, part of the Markup charset stage. Its table is derived from the **encoding superset relationship**, filtered to the multi-byte CJK encodings.
+Internal pipeline behavior in `pipeline/markup.py`. When the markup-declared encoding is a known subset (Shift_JIS, EUC-KR) and structural evidence supports the superset, or the name the caller would see cannot decode the window while the superset can, the answer is the superset (CP932, CP949). Always-on, one decision path inside the Markup charset stage (`_declared_answer`), ordered so a clean declared page costs one window decode. Its table is derived from the **encoding superset relationship**, filtered to the multi-byte CJK encodings.
 
 **BigramProfile**:
 A frozen pre-computed weighted byte-bigram representation for one (language, encoding) pair, loaded once from the **model file** and reused across calls. Used for cosine-similarity scoring in the Statistical stage.

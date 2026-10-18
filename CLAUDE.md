@@ -103,7 +103,7 @@ All detection flows through `run_pipeline()`, which runs stages in order — eac
 3. **Escape sequences** (`escape.py`) — ISO-2022-JP/KR, HZ-GB-2312, UTF-7; each decode-checked over the window
 4. **Magic numbers** (`magic.py`) — file signature detection (e.g., PDF, images)
 5. **Binary detection** (`binary.py`) — null bytes / control chars → encoding=None
-6. **Markup charset** (`markup.py`) — `<meta charset>` / `<?xml encoding>` / PEP 263 extraction, honored only when the declared encoding decodes the window and the data is not valid multi-byte UTF-8, plus `promote_markup_superset()` which swaps the declared encoding to its Windows superset (Shift_JIS→CP932, EUC-KR→CP949) when structural evidence supports it or the declared name cannot decode the window
+6. **Markup charset** (`markup.py`) — two seams: `iter_declarations()` parses `<meta charset>` / `<?xml encoding>` / EBCDIC markup / PEP 263 labels without decoding, and `detect_markup_charset(data, allowed, utf8_precheck)` owns the decision: the first declaration whose name (or Windows superset, Shift_JIS→CP932 / EUC-KR→CP949, when structural evidence supports it or the reported name cannot decode the window) decodes the window and passes the caller's filters wins, unless the data is valid multi-byte UTF-8, in which case the UTF-8 result is returned with the declaration's MIME type
 7. **ASCII** (`ascii.py`) — printable 7-bit check; sparse null separators (up to 5%) are tolerated at confidence 0.99
 8. **UTF-8** (`utf8.py`) — structural multi-byte validation
 9. **Byte validity** (`validity.py`) — eliminate encodings that can't decode the data

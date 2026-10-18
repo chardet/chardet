@@ -33,6 +33,16 @@ Unreleased
   buffer on every read.  ADR-0007 has the reasoning.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 
+- The markup stage now owns the whole charset-declaration decision,
+  and its parser (``iter_declarations``) can be tested on its own,
+  without a window decode in the way.  A declared Shift_JIS or EUC-KR
+  page costs one window decode instead of two.  One behavior changed:
+  when ``include_encodings`` or ``exclude_encodings`` rules out the
+  first declaration on a page, a later declaration is now honored
+  instead of the page falling through to statistical scoring.  Every
+  other result is unchanged.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+
 **Bug Fixes:**
 
 - The warning for an excluded ``no_match_encoding`` now points at the
