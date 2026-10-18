@@ -7,11 +7,66 @@ import sys
 from pathlib import Path
 
 import chardet
-from chardet._utils import DEFAULT_MAX_BYTES, ISO_TO_LANGUAGE
+from chardet._utils import DEFAULT_MAX_BYTES
 from chardet.enums import EncodingEra
 from chardet.pipeline import DetectionDict
 
 _ERA_NAMES = [e.name.lower() for e in EncodingEra if e.bit_count() == 1] + ["all"]
+
+#: Mapping from ISO 639-1 language codes to English names.
+#: Includes ``"und"`` (ISO 639-3 "Undetermined") for use when language is unknown.
+ISO_TO_LANGUAGE: dict[str, str] = {
+    "ar": "arabic",
+    "be": "belarusian",
+    "bg": "bulgarian",
+    "br": "breton",
+    "cs": "czech",
+    "cy": "welsh",
+    "da": "danish",
+    "de": "german",
+    "el": "greek",
+    "en": "english",
+    "eo": "esperanto",
+    "es": "spanish",
+    "et": "estonian",
+    "fa": "farsi",
+    "fi": "finnish",
+    "fr": "french",
+    "ga": "irish",
+    "gd": "gaelic",
+    "he": "hebrew",
+    "hr": "croatian",
+    "hu": "hungarian",
+    "id": "indonesian",
+    "is": "icelandic",
+    "it": "italian",
+    "ja": "japanese",
+    "kk": "kazakh",
+    "ko": "korean",
+    "lt": "lithuanian",
+    "lv": "latvian",
+    "mk": "macedonian",
+    "ms": "malay",
+    "mt": "maltese",
+    "nl": "dutch",
+    "no": "norwegian",
+    "pl": "polish",
+    "pt": "portuguese",
+    "ro": "romanian",
+    "ru": "russian",
+    "sk": "slovak",
+    "sl": "slovene",
+    "sr": "serbian",
+    "sv": "swedish",
+    "tg": "tajik",
+    "th": "thai",
+    "tr": "turkish",
+    "uk": "ukrainian",
+    "und": "undetermined",
+    "ur": "urdu",
+    "vi": "vietnamese",
+    "zh": "chinese",
+}
 
 
 def _print_result(
@@ -87,6 +142,24 @@ def main(argv: list[str] | None = None) -> None:
         help="Encoding to return for empty input (default: utf-8)",
     )
     parser.add_argument(
+        "--prefer-superset",
+        action="store_true",
+        help=(
+            "Report detected subset encodings under their Windows/CP superset "
+            "(ISO-8859-1 as Windows-1252, EUC-KR as CP949), so the name is safe "
+            "to decode with past the examined bytes.  The Python API makes "
+            "this the default in chardet 8.0"
+        ),
+    )
+    parser.add_argument(
+        "--no-compat-names",
+        action="store_true",
+        help=(
+            "Report raw Python codec names (euc_jis_2004, cp1252) instead of "
+            "the compatibility names (EUC-JP, Windows-1252)"
+        ),
+    )
+    parser.add_argument(
         "--version", action="version", version=f"chardet {chardet.__version__}"
     )
 
@@ -107,6 +180,19 @@ def main(argv: list[str] | None = None) -> None:
         else None
     )
 
+    def detect(data: bytes) -> DetectionDict:
+        return chardet.detect(
+            data,
+            encoding_era=era,
+            max_bytes=DEFAULT_MAX_BYTES,
+            prefer_superset=args.prefer_superset,
+            compat_names=not args.no_compat_names,
+            include_encodings=include,
+            exclude_encodings=exclude,
+            no_match_encoding=args.no_match_encoding,
+            empty_input_encoding=args.empty_input_encoding,
+        )
+
     if args.files:
         errors = 0
         for filepath in args.files:
@@ -121,15 +207,7 @@ def main(argv: list[str] | None = None) -> None:
                 errors += 1
                 continue
             try:
-                result = chardet.detect(
-                    data,
-                    encoding_era=era,
-                    max_bytes=DEFAULT_MAX_BYTES,
-                    include_encodings=include,
-                    exclude_encodings=exclude,
-                    no_match_encoding=args.no_match_encoding,
-                    empty_input_encoding=args.empty_input_encoding,
-                )
+                result = detect(data)
             except Exception as e:  # noqa: BLE001
                 print(f"chardetect: {filepath}: detection failed: {e}", file=sys.stderr)
                 errors += 1
@@ -148,15 +226,7 @@ def main(argv: list[str] | None = None) -> None:
         # can see that the input was truncated.
         data = sys.stdin.buffer.read(DEFAULT_MAX_BYTES + 1)
         try:
-            result = chardet.detect(
-                data,
-                encoding_era=era,
-                max_bytes=DEFAULT_MAX_BYTES,
-                include_encodings=include,
-                exclude_encodings=exclude,
-                no_match_encoding=args.no_match_encoding,
-                empty_input_encoding=args.empty_input_encoding,
-            )
+            result = detect(data)
         except Exception as e:  # noqa: BLE001
             print(f"chardetect: stdin: detection failed: {e}", file=sys.stderr)
             sys.exit(1)

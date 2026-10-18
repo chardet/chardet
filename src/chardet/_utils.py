@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import codecs
-import warnings
 from collections.abc import Callable
 
 #: Default maximum number of bytes to examine during detection.
@@ -25,9 +24,6 @@ _DECODE_CHUNK_SIZE: int = 1 << 20
 #: Default minimum confidence threshold for filtering results.
 MINIMUM_THRESHOLD: float = 0.20
 
-#: Default chunk_size value (deprecated, kept for backward-compat signatures).
-_DEFAULT_CHUNK_SIZE: int = 65_536
-
 #: Cache of incremental-decoder classes, keyed by encoding name.
 #:
 #: :func:`decodes_without_error` is called once per candidate encoding per
@@ -41,16 +37,6 @@ _DEFAULT_CHUNK_SIZE: int = 65_536
 #: anything, so an unbounded stream of bogus names (a charset declaration in
 #: markup is attacker-controlled) cannot grow it.
 _INCREMENTAL_DECODERS: dict[str, Callable[..., codecs.IncrementalDecoder]] = {}
-
-
-def _warn_deprecated_chunk_size(chunk_size: int, stacklevel: int = 3) -> None:
-    """Emit a deprecation warning if *chunk_size* differs from the default."""
-    if chunk_size != _DEFAULT_CHUNK_SIZE:
-        warnings.warn(
-            "chunk_size is not used in this version of chardet and will be ignored",
-            DeprecationWarning,
-            stacklevel=stacklevel,
-        )
 
 
 def _incremental_decoder(
@@ -193,80 +179,3 @@ def dangling_tail_with_ascii_prefix(data: bytes, encoding: str) -> bool:
     except UnicodeError:
         return True
     return False
-
-
-def _validate_max_bytes(max_bytes: int) -> None:
-    """Raise ValueError if *max_bytes* is not a positive integer."""
-    if isinstance(max_bytes, bool) or not isinstance(max_bytes, int) or max_bytes < 1:
-        msg = "max_bytes must be a positive integer"
-        raise ValueError(msg)
-
-
-def _resolve_prefer_superset(
-    should_rename_legacy: bool, prefer_superset: bool, stacklevel: int = 3
-) -> bool:
-    """Resolve the deprecated *should_rename_legacy* into *prefer_superset*."""
-    if should_rename_legacy:
-        warnings.warn(
-            "should_rename_legacy is deprecated, use prefer_superset instead",
-            DeprecationWarning,
-            stacklevel=stacklevel,
-        )
-        return True
-    return prefer_superset
-
-
-#: Mapping from ISO 639-1 language codes to English names.
-#: Includes ``"und"`` (ISO 639-3 "Undetermined") for use when language is unknown.
-ISO_TO_LANGUAGE: dict[str, str] = {
-    "ar": "arabic",
-    "be": "belarusian",
-    "bg": "bulgarian",
-    "br": "breton",
-    "cs": "czech",
-    "cy": "welsh",
-    "da": "danish",
-    "de": "german",
-    "el": "greek",
-    "en": "english",
-    "eo": "esperanto",
-    "es": "spanish",
-    "et": "estonian",
-    "fa": "farsi",
-    "fi": "finnish",
-    "fr": "french",
-    "ga": "irish",
-    "gd": "gaelic",
-    "he": "hebrew",
-    "hr": "croatian",
-    "hu": "hungarian",
-    "id": "indonesian",
-    "is": "icelandic",
-    "it": "italian",
-    "ja": "japanese",
-    "kk": "kazakh",
-    "ko": "korean",
-    "lt": "lithuanian",
-    "lv": "latvian",
-    "mk": "macedonian",
-    "ms": "malay",
-    "mt": "maltese",
-    "nl": "dutch",
-    "no": "norwegian",
-    "pl": "polish",
-    "pt": "portuguese",
-    "ro": "romanian",
-    "ru": "russian",
-    "sk": "slovak",
-    "sl": "slovene",
-    "sr": "serbian",
-    "sv": "swedish",
-    "tg": "tajik",
-    "th": "thai",
-    "tr": "turkish",
-    "uk": "ukrainian",
-    "und": "undetermined",
-    "ur": "urdu",
-    "vi": "vietnamese",
-    "zh": "chinese",
-}

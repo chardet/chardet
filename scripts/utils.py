@@ -179,11 +179,11 @@ def _language_name_to_iso() -> dict[str, str]:
     global _LANGUAGE_NAME_TO_ISO  # noqa: PLW0603
     if _LANGUAGE_NAME_TO_ISO is None:
         try:
-            from chardet._utils import ISO_TO_LANGUAGE  # noqa: PLC0415
+            from chardet.cli import ISO_TO_LANGUAGE  # noqa: PLC0415
 
             iso_to_language: dict[str, str] = ISO_TO_LANGUAGE
         except ImportError:
-            # Older chardet versions don't have ISO_TO_LANGUAGE in _utils.
+            # Older chardet versions keep the table elsewhere or not at all.
             # Fall back to passthrough language normalization.
             iso_to_language = {}
         mapping = {v: k for k, v in iso_to_language.items()}

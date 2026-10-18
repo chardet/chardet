@@ -60,15 +60,16 @@ def _make_fallback_or_none(
 ) -> list[DetectionResult]:
     """Return a low-confidence result for *encoding*, or ``encoding=None`` if filtered out.
 
-    ``stacklevel=5`` targets the public caller:
-    detect() -> run_pipeline() -> _run_pipeline_core() -> _make_fallback_or_none().
+    ``stacklevel=6`` targets the public caller: detect() ->
+    DetectionRequest.run() -> run_pipeline() -> _run_pipeline_core() ->
+    _make_fallback_or_none().
     """
     if encoding not in allowed:
         warnings.warn(
             f"{param_name} {encoding!r} is excluded by "
             f"include_encodings/exclude_encodings; returning encoding=None",
             UserWarning,
-            stacklevel=5,
+            stacklevel=6,
         )
         return [_NONE_RESULT]
     return [DetectionResult(encoding=encoding, confidence=0.10, language=None)]

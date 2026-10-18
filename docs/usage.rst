@@ -519,6 +519,14 @@ chardet includes a ``chardetect`` command:
    chardetect --empty-input-encoding shift_jis empty.txt
    # empty.txt: SHIFT_JIS with confidence 0.10
 
+   # Report subset encodings under their Windows/CP superset
+   chardetect --prefer-superset greek.txt
+   # greek.txt: Windows-1253 with confidence 0.3848680620156556
+
+   # Report raw Python codec names
+   chardetect --no-compat-names japanese.txt
+   # japanese.txt: euc_jis_2004 with confidence 0.770844139781662
+
    # Read from stdin
    cat somefile.txt | chardetect
    # stdin: utf-8 with confidence 0.99
