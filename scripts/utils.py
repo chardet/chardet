@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import importlib
 import math
 import shutil
 import subprocess
@@ -178,14 +179,17 @@ def _language_name_to_iso() -> dict[str, str]:
     """Return (and memoize) the English-name -> ISO 639-1 mapping."""
     global _LANGUAGE_NAME_TO_ISO  # noqa: PLW0603
     if _LANGUAGE_NAME_TO_ISO is None:
-        try:
-            from chardet.cli import ISO_TO_LANGUAGE  # noqa: PLC0415
-
-            iso_to_language: dict[str, str] = ISO_TO_LANGUAGE
-        except ImportError:
-            # Older chardet versions keep the table elsewhere or not at all.
-            # Fall back to passthrough language normalization.
-            iso_to_language = {}
+        iso_to_language: dict[str, str] = {}
+        # The table lives in chardet.cli from 7.8 and in chardet._utils in
+        # the 7.x releases before it; older versions have none, and fall
+        # back to passthrough language normalization.
+        for module_name in ("chardet.cli", "chardet._utils"):
+            try:
+                module = importlib.import_module(module_name)
+                iso_to_language = module.ISO_TO_LANGUAGE
+                break
+            except (ImportError, AttributeError):
+                continue
         mapping = {v: k for k, v in iso_to_language.items()}
         # "scottish gaelic" is the full name used by some detectors;
         # ISO_TO_LANGUAGE maps gd -> "gaelic" (the short form).

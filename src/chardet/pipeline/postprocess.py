@@ -33,7 +33,7 @@ from chardet.pipeline.confusion import (
     differing_high_bytes,
     resolve_confusion_groups,
 )
-from chardet.registry import REGISTRY
+from chardet.registry import CJK_SUPERSETS, REGISTRY
 
 # Common Western Latin encodings that share the iso-8859-1 character
 # repertoire for the byte values where iso-8859-10 is indistinguishable.
@@ -365,15 +365,10 @@ _DEAD_HEAT_EPSILON = 1e-4
 
 # On a dead heat between an encoding and its Windows superset, prefer the
 # superset: it decodes everything the base encoding does, so it is never a
-# worse answer when the statistics cannot separate them.  Derived from the
-# registry like ``markup``'s promotion table, and limited to the multi-byte
-# CJK pairs: reaching the ISO/Windows pairs would be an accuracy change to
-# measure on its own (ADR-0007).
-_DEAD_HEAT_SUPERSETS: dict[str, str] = {
-    e.name: e.superset
-    for e in REGISTRY.values()
-    if e.is_multibyte_cjk and e.superset is not None
-}
+# worse answer when the statistics cannot separate them.  The pairs are
+# the registry's ``CJK_SUPERSETS``, shared with ``markup``'s promotion:
+# reaching the ISO/Windows pairs would be an accuracy change to measure on
+# its own (ADR-0007).
 
 # Confidence band for the classic-Mac line-ending promotion.  Wider than the
 # dead-heat epsilon because bare-\r line endings are decisive platform
@@ -528,7 +523,7 @@ def _promote_superset_on_dead_heat(
     top = results[0] if results else None
     if top is None or top.encoding is None or len(results) < 2:
         return results
-    superset = _DEAD_HEAT_SUPERSETS.get(top.encoding)
+    superset = CJK_SUPERSETS.get(top.encoding)
     if superset is None:
         return results
     for i in range(1, len(results)):

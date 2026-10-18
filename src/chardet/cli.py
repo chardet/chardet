@@ -156,7 +156,7 @@ def main(argv: list[str] | None = None) -> None:
         action="store_true",
         help=(
             "Report raw Python codec names (euc_jis_2004, cp1252) instead of "
-            "the compatibility names (EUC-JP, Windows-1252)"
+            "the display names chardet reports by default (EUC-JP, Windows-1252)"
         ),
     )
     parser.add_argument(
@@ -180,7 +180,7 @@ def main(argv: list[str] | None = None) -> None:
         else None
     )
 
-    def detect(data: bytes) -> DetectionDict:
+    def detect_bytes(data: bytes) -> DetectionDict:
         return chardet.detect(
             data,
             encoding_era=era,
@@ -207,7 +207,7 @@ def main(argv: list[str] | None = None) -> None:
                 errors += 1
                 continue
             try:
-                result = detect(data)
+                result = detect_bytes(data)
             except Exception as e:  # noqa: BLE001
                 print(f"chardetect: {filepath}: detection failed: {e}", file=sys.stderr)
                 errors += 1
@@ -226,7 +226,7 @@ def main(argv: list[str] | None = None) -> None:
         # can see that the input was truncated.
         data = sys.stdin.buffer.read(DEFAULT_MAX_BYTES + 1)
         try:
-            result = detect(data)
+            result = detect_bytes(data)
         except Exception as e:  # noqa: BLE001
             print(f"chardetect: stdin: detection failed: {e}", file=sys.stderr)
             sys.exit(1)

@@ -23,6 +23,7 @@ from chardet.pipeline.postprocess import (
     postprocess_results,
     scoring_floor,
 )
+from chardet.registry import CJK_SUPERSETS
 
 #: See the note in tests/test_confusion.py: mypyc resolves a compiled
 #: module's calls to functions imported into it at compile time, so patching
@@ -693,9 +694,7 @@ def test_dead_heat_supersets_derive_from_the_registry():
     reports (the canonical name is ``shift_jis_2004``), so it is gone.  The
     ISO/Windows pairs stay out: reaching them would be an accuracy change.
     """
-    old = {"shift_jis": "cp932", "shift_jis_2004": "cp932", "euc_kr": "cp949"}
-    del old["shift_jis"]
-    assert old == postprocess._DEAD_HEAT_SUPERSETS
+    assert dict(CJK_SUPERSETS) == {"shift_jis_2004": "cp932", "euc_kr": "cp949"}
 
 
 def test_decodable_tie_keeps_winner_when_no_rival_decodes():

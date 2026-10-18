@@ -13,7 +13,7 @@ from chardet.enums import EncodingEra
 from chardet.output_names import display_codec
 from chardet.pipeline import DETERMINISTIC_CONFIDENCE, DetectionResult, PipelineContext
 from chardet.pipeline.structural import compute_structural_score
-from chardet.registry import REGISTRY, lookup_encoding
+from chardet.registry import CJK_SUPERSETS, REGISTRY, lookup_encoding
 
 # Markup charset declarations that commonly refer to a Windows superset
 # encoding rather than the strict standard encoding.  Japanese web content
@@ -28,9 +28,7 @@ from chardet.registry import REGISTRY, lookup_encoding
 # the registry's superset fact, limited to the multi-byte CJK encodings
 # (ADR-0007).
 _MARKUP_SUPERSET_PROMOTIONS: dict[str, tuple[str, str]] = {
-    e.name: (display_codec(e.name), e.superset)
-    for e in REGISTRY.values()
-    if e.is_multibyte_cjk and e.superset is not None
+    name: (display_codec(name), superset) for name, superset in CJK_SUPERSETS.items()
 }
 
 _SCAN_LIMIT = 4096

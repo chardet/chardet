@@ -100,6 +100,9 @@ A ranking state where multiple encodings score within noise of each other becaus
 **Pruning contract**:
 The declared surface on the Post-processing stage (`scoring_floor`, `forced_encodings` in `pipeline/postprocess.py`) stating how far below the top the rank corrections can reach and which encodings they look up by name. Statistical scoring's pruned path must score exactly everything the contract covers, so `detect()` matches the full ranking everywhere a correction can look. One deliberate exception sits outside the contract: the decode-safety flip scans the ranking as given, pruned tails included — a measured trade-off recorded in its docstring. Pinned by a corpus parity sweep in the test suite (sampled by default, full in the accuracy CI job).
 
+**Rank correction**:
+One of the chained fixes post-processing applies to the statistical ranking after scoring, weakest evidence first (`pipeline/postprocess.py`). Each one moves a candidate only on a stated trigger; the entries below are the current set, their order is pinned by a test, and the **pruning contract** says how far down the ranking any of them may look.
+
 **Dead-heat superset promotion**:
 Postprocess rank correction. On a **statistical dead heat** between an encoding and its Windows superset (Shift_JIS/CP932, EUC-KR/CP949), promote the superset — it is never a worse answer. Its table is derived from the **encoding superset relationship** with the same CJK filter as **markup superset promotion**; reaching the ISO/Windows pairs would be an accuracy change to measure, not a refactor (ADR-0007).
 
@@ -127,7 +130,7 @@ The filter applied between byte-validity and structural probing that drops CJK c
 ### Public-API outputs
 
 **Detection request** (`_request.DetectionRequest`):
-One call's resolved options and the work they drive. `detect`, `detect_all`, `UniversalDetector`, and `chardetect` are adapters over it: `resolve` validates the public keyword arguments and owns their deprecation warnings, `run` calls the **Orchestrator**, and `render` turns the ranked results into the dicts callers see.
+One call's resolved options and the work they drive. `detect`, `detect_all`, and `UniversalDetector` are adapters over it (`chardetect` goes through `detect`): `resolve` validates the public keyword arguments and owns their deprecation warnings, `run` calls the **Orchestrator**, and `render` turns the ranked results into the dicts callers see.
 
 **Rendering** (`DetectionRequest.render`):
 Turning ranked `DetectionResult`s into public dicts: the **preferred-superset remapping** when asked for, then the **display name**, each checked against the **examination window** so the reported name decodes it. Also where `detect_all`'s threshold filter, sort, and one-name-once rule live.

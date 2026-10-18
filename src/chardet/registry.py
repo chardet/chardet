@@ -1016,6 +1016,18 @@ REGISTRY: MappingProxyType[str, EncodingInfo] = MappingProxyType(
     {e.name: e for e in _REGISTRY_ENTRIES}
 )
 
+#: The Windows superset of each multi-byte CJK encoding that has one
+#: (``shift_jis_2004`` -> ``cp932``, ``euc_kr`` -> ``cp949``).  The one
+#: selection the markup promotion and the dead-heat promotion share; the
+#: ISO/Windows pairs stay out of both (ADR-0007).
+CJK_SUPERSETS: MappingProxyType[str, str] = MappingProxyType(
+    {
+        e.name: e.superset
+        for e in _REGISTRY_ENTRIES
+        if e.is_multibyte_cjk and e.superset is not None
+    }
+)
+
 
 # Bounded because *name* comes from untrusted markup (``<meta charset>``,
 # ``<?xml encoding>``) and the set of distinct spellings is unbounded.  1024

@@ -130,7 +130,7 @@ Binary file `src/chardet/models/models.bin` — v2 dense zlib-compressed format 
 - `detect_all(byte_str, ignore_threshold, ...)` → list of result dicts
 - `UniversalDetector` (`detector.py`) — streaming interface with `feed()`/`close()`/`reset()`
 
-All three, and the `chardetect` CLI, are thin adapters over `_request.DetectionRequest` (interpreted, not mypyc-compiled), which owns option validation and deprecation warnings (`resolve`), the `run_pipeline` call (`run`), and the output-name transforms plus `detect_all`'s threshold/sort/dedupe (`render`).
+All three are thin adapters over `_request.DetectionRequest` (interpreted, not mypyc-compiled), and the `chardetect` CLI calls `detect()`. The request owns option validation and deprecation warnings (`resolve`), the `run_pipeline` call (`run`), and the output-name transforms plus `detect_all`'s threshold/sort/dedupe (`render`).
 
 ### Accuracy Evaluation (`evaluation.py`)
 
