@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import codecs
+import encodings
 from types import MappingProxyType
 from typing import get_args
 
@@ -370,6 +371,25 @@ def test_lookup_encoding_cache_is_bounded():
     # Legitimate lookups still resolve after the churn.
     assert lookup_encoding("utf-8") == "utf-8"
     assert lookup_encoding("windows-1252") == "cp1252"
+
+
+def test_lookup_encoding_keeps_unknown_names_out_of_stdlib_cache():
+    """Names the stdlib cannot resolve never reach ``codecs.lookup``.
+
+    ``encodings.search_function`` records every miss in a module-level
+    dict, unbounded before Python 3.13.13 / 3.14.4, so each untrusted
+    charset token forwarded to it would stay in memory for the life of
+    the process, whatever the bound on this function's own cache.
+    """
+    size = len(encodings._cache)
+    for i in range(1234):
+        assert lookup_encoding(f"bogus-charset-{i}") is None
+    assert len(encodings._cache) == size
+    # Spellings only the stdlib alias table knows still resolve through it,
+    # including the dotted aliases and a codec module that has no alias.
+    assert lookup_encoding("ISO_8859-1:1987") == "iso8859-1"
+    assert lookup_encoding("ANSI_X3.4-1968") == "ascii"
+    assert lookup_encoding("utf_8_sig") == "utf-8-sig"
 
 
 def test_lookup_encoding_python_only_codec():
