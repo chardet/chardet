@@ -115,6 +115,9 @@ def _detect_ebcdic_declaration(data: bytes) -> DetectionResult | None:
     if high_count < len(head) * _EBCDIC_SCAN_MIN_HIGH_FRACTION:
         return None
     decoded = head.decode("cp037", errors="replace")
+    # A declaration that fails costs a whole-window decode, and the head can
+    # repeat one label hundreds of times, so each encoding is checked once.
+    rejected: set[str] = set()
     # Scan every declaration token inside every anchor tag: an unrelated
     # earlier ``charset=``/``encoding=`` token (a query string in an href,
     # a bogus attribute in the same tag) must not mask a genuine EBCDIC
@@ -122,10 +125,10 @@ def _detect_ebcdic_declaration(data: bytes) -> DetectionResult | None:
     for tag in _EBCDIC_TAG_RE.finditer(decoded):
         for match in _EBCDIC_DECL_RE.finditer(tag.group(0)):
             encoding = lookup_encoding(match.group(1).strip())
-            if (
-                encoding is not None
-                and REGISTRY[encoding].era & EncodingEra.MAINFRAME
-                and _validate_bytes(data, encoding)
+            if encoding is None or encoding in rejected:
+                continue
+            if REGISTRY[encoding].era & EncodingEra.MAINFRAME and _validate_bytes(
+                data, encoding
             ):
                 is_xml = tag.group(0)[1] == "?"
                 return DetectionResult(
@@ -134,6 +137,7 @@ def _detect_ebcdic_declaration(data: bytes) -> DetectionResult | None:
                     language=None,
                     mime_type="text/xml" if is_xml else "text/html",
                 )
+            rejected.add(encoding)
     return None
 
 
@@ -298,6 +302,9 @@ def detect_markup_charset(data: bytes) -> DetectionResult | None:
         return None
 
     head = _strip_comments(data[:_SCAN_LIMIT])
+    # A declaration that fails costs a whole-window decode, and the head can
+    # repeat one label hundreds of times, so each encoding is checked once.
+    rejected: set[str] = set()
 
     match = _XML_ENCODING_RE.search(head)
     if match:
@@ -305,9 +312,8 @@ def detect_markup_charset(data: bytes) -> DetectionResult | None:
             raw_name = match.group(1).decode("ascii").strip()
         except (UnicodeDecodeError, ValueError):
             raw_name = ""
-        encoding = _declared_encoding(
-            data, _markup_encoding(raw_name) if raw_name else None
-        )
+        declared = _markup_encoding(raw_name) if raw_name else None
+        encoding = _declared_encoding(data, declared)
         if encoding is not None:
             return DetectionResult(
                 encoding=encoding,
@@ -315,13 +321,18 @@ def detect_markup_charset(data: bytes) -> DetectionResult | None:
                 language=None,
                 mime_type="text/xml",
             )
+        if declared is not None:
+            rejected.add(declared)
 
     for raw in _iter_html_charsets(head):
         try:
             raw_name = raw.decode("ascii").strip()
         except UnicodeDecodeError:
             continue
-        encoding = _declared_encoding(data, _markup_encoding(raw_name))
+        declared = _markup_encoding(raw_name)
+        if declared is None or declared in rejected:
+            continue
+        encoding = _declared_encoding(data, declared)
         if encoding is not None:
             return DetectionResult(
                 encoding=encoding,
@@ -329,6 +340,7 @@ def detect_markup_charset(data: bytes) -> DetectionResult | None:
                 language=None,
                 mime_type="text/html",
             )
+        rejected.add(declared)
 
     ebcdic_result = _detect_ebcdic_declaration(data)
     if ebcdic_result is not None:

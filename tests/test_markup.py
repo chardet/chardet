@@ -494,6 +494,52 @@ def test_declared_page_window_decode_budget(data: bytes, expected: str, budget: 
     assert len(window_decodes) <= budget, window_decodes
 
 
+@_needs_interpreted_build
+@pytest.mark.parametrize(
+    ("data", "expected", "budget"),
+    [
+        (
+            b"<meta charset=euc-kr>" * 150
+            + b"<meta charset=windows-1252>"
+            + b"plain text " * 1000
+            + b"\xb0 ",
+            "cp1252",
+            3,
+        ),
+        (
+            "<meta charset=cp424>".encode("cp037") * 150
+            + ("hello mainframe " * 400).encode("cp037")
+            + b"\x70",
+            None,
+            1,
+        ),
+    ],
+    ids=["html", "ebcdic"],
+)
+def test_repeated_failing_declaration_decodes_the_window_once(
+    data: bytes, expected: str | None, budget: int
+):
+    """A label that already failed the window decode is not decoded again.
+
+    Each failed declaration costs a decode of the whole window, so a head
+    repeating one bad label multiplied the window by the number of tags: 195
+    ``<meta charset=euc-kr>`` tags over a 16 MiB window took 36s instead of
+    0.4s.  The next distinct label is still tried.
+    """
+    real = markup_mod.decodes_without_error
+    window_decodes: list[str] = []
+
+    def counting(buf: bytes, encoding: str) -> bool:
+        if len(buf) > markup_mod._SCAN_LIMIT:
+            window_decodes.append(encoding)
+        return real(buf, encoding)
+
+    with patch.object(markup_mod, "decodes_without_error", counting):
+        result = detect_markup_charset(data)
+    assert (result.encoding if result else None) == expected
+    assert len(window_decodes) <= budget, window_decodes
+
+
 _LATIN1_TEXT = "Voilà, un résumé très détaillé. ".encode("latin-1") * 10
 
 
