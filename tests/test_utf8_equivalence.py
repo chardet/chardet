@@ -3,7 +3,11 @@
 
 The rewrite (ADR-0006) claims exact equivalence — same verdicts, same
 confidences — on every input.  These tests hold it to that against the
-verbatim copy of the old implementation in ``utf8_oracle.py``.
+verbatim copy of the old implementation in ``utf8_oracle.py``, with one
+deliberate exception: the old validator never examined the bytes inside a
+final sequence that overran the data, so it accepted a window ending in
+bytes no continuation can complete (``E3 FF``).  The rewrite rejects
+those, since a utf-8 answer has to decode the window it was given.
 """
 
 from __future__ import annotations
@@ -12,6 +16,7 @@ import random
 
 import pytest
 
+from chardet._utils import decodes_without_error
 from chardet.pipeline.utf8 import _CHUNK_SIZE, detect_utf8
 
 from .utf8_oracle import oracle_detect_utf8
@@ -68,8 +73,8 @@ SNIPPETS = [
     b"\xf0",
     b"\xf0\x9f",
     b"\xf0\x9f\x92",
-    # Truncated tails the old validator never examined (garbage inside the
-    # overrun) — the rewrite must tolerate these identically
+    # Garbage inside a final overrun, which the old validator never
+    # examined and the rewrite rejects (see the module docstring)
     b"\xe3\xff",
     b"\xf0\xff",
     b"\xf0\xff\xff",
@@ -82,6 +87,8 @@ SNIPPETS = [
 
 def assert_equivalent(data: bytes) -> None:
     expected = oracle_detect_utf8(data)
+    if expected is not None and not decodes_without_error(data, "utf-8"):
+        expected = None  # garbage in the final overrun (module docstring)
     actual = detect_utf8(data)
     if expected is None:
         assert actual is None, data
@@ -162,7 +169,7 @@ def test_every_truncation_of_valid_text() -> None:
 def test_chunk_boundary(tail: bytes, straddle: bytes) -> None:
     """Sequences straddling the incremental-decode chunk boundary.
 
-    With and without tolerated tails, at ASCII-fast-path and non-ASCII
+    With truncated and garbage tails, at ASCII-fast-path and non-ASCII
     first chunks.
     """
     for lead_in in (b"a", "é".encode()):
@@ -178,6 +185,6 @@ def test_error_reported_in_chunk_after_lead() -> None:
     """
     data = b"a" * (_CHUNK_SIZE - 1) + b"\xe3" + b"\xff" + b"z"
     assert_equivalent(data)
-    # And the tolerated variant: overrun starts in chunk 1, garbage in chunk 2.
+    # And the overrun variant: lead in chunk 1, garbage in chunk 2.
     data = b"a" * (_CHUNK_SIZE - 1) + b"\xf0" + b"\xff\xff"
     assert_equivalent(data)
