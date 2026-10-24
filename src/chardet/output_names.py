@@ -19,13 +19,21 @@ and return the same dict for fluent chaining.
 
 from __future__ import annotations
 
-from chardet._utils import decodes_without_error
+import codecs
+
+from chardet._utils import decodes_completely, decodes_without_error
 from chardet.pipeline import DetectionDict
 
 # Preferred superset name for each encoding, used by the ``prefer_superset``
 # API option.  When enabled, detected encoding names are replaced with the
 # Windows/CP superset that modern software actually uses (browsers, editors,
 # etc. treat these ISO subsets as their Windows counterparts).
+# This is a *selection*, not the codec fact: the registry owns which
+# superset each encoding has (``EncodingInfo.superset``), and this table is
+# the frozen subset of those pairs the option applies.  It is public through
+# ``UniversalDetector.LEGACY_MAP``, so adding a pair changes
+# ``prefer_superset=True`` output (ADR-0007).  ``iso8859-11`` is an alias of
+# the registry's ``tis-620``, which the pipeline reports instead.
 # Values are lowercase codec names, like the keys: this table only swaps one
 # codec for another.  Display casing ("Windows-1252") is a separate step that
 # :data:`_COMPAT_NAMES` applies afterwards, and a display-cased value here
@@ -163,6 +171,48 @@ NARROWER_DISPLAY_NAMES: frozenset[str] = frozenset(
 )
 
 
+def display_codec(encoding: str) -> str:
+    """Return the codec that *encoding*'s display name resolves to.
+
+    ``compat_names=True`` reports ``shift_jis_2004`` as ``SHIFT_JIS``, which
+    :mod:`codecs` resolves to plain ``shift_jis``; that narrower codec is
+    the one a caller decodes with.  Names without a display entry resolve
+    to themselves.
+
+    :param encoding: An internal (canonical registry) encoding name.
+    :returns: The Python codec name behind the name the caller sees.
+    """
+    return codecs.lookup(_COMPAT_NAMES.get(encoding, encoding)).name
+
+
+def decodes_under_public_name(data: bytes, encoding: str, *, complete: bool) -> bool:
+    """Return whether *data* decodes under the name the caller will see.
+
+    The display codec is checked only when it is narrower than *encoding*
+    (:data:`NARROWER_DISPLAY_NAMES`); every other display name is the same
+    codec under another spelling.
+
+    :param data: The bytes the caller will decode.
+    :param encoding: The internal codec name of the result.
+    :param complete: ``True`` when *data* is the caller's whole input: then
+        *encoding* itself is checked too, and both checks are strict
+        (:func:`~chardet._utils.decodes_completely`), the question the
+        decode-safety flip asks.  ``False`` when *encoding* already passed
+        the tolerant validity check: then only the display codec is
+        checked, tolerating a cut sequence at the end as validity does.
+    :returns: ``True`` if the caller's decode under the public name works.
+    """
+    if complete:
+        if not decodes_completely(data, encoding):
+            return False
+        return encoding not in NARROWER_DISPLAY_NAMES or decodes_completely(
+            data, _COMPAT_NAMES[encoding]
+        )
+    return encoding not in NARROWER_DISPLAY_NAMES or decodes_without_error(
+        data, _COMPAT_NAMES[encoding]
+    )
+
+
 def apply_compat_names(
     result: DetectionDict,
     data: bytes | None = None,
@@ -187,8 +237,7 @@ def apply_compat_names(
     if (
         data is not None
         and isinstance(enc, str)
-        and enc in NARROWER_DISPLAY_NAMES
-        and not decodes_without_error(data, _COMPAT_NAMES[enc])
+        and not decodes_under_public_name(data, enc, complete=False)
     ):
         return result
     return _remap_encoding(result, _COMPAT_NAMES)

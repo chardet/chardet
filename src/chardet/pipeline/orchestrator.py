@@ -57,18 +57,21 @@ def _make_fallback_or_none(
     encoding: str,
     allowed: frozenset[str],
     param_name: str,
+    stacklevel: int = 6,
 ) -> list[DetectionResult]:
     """Return a low-confidence result for *encoding*, or ``encoding=None`` if filtered out.
 
-    ``stacklevel=5`` targets the public caller:
-    detect() -> run_pipeline() -> _run_pipeline_core() -> _make_fallback_or_none().
+    The default ``stacklevel=6`` targets the public caller: detect() ->
+    DetectionRequest.run() -> run_pipeline() -> _run_pipeline_core() ->
+    _make_fallback_or_none().  A caller one frame deeper
+    (:func:`_hold_validity_past_cap`) passes 7.
     """
     if encoding not in allowed:
         warnings.warn(
             f"{param_name} {encoding!r} is excluded by "
             f"include_encodings/exclude_encodings; returning encoding=None",
             UserWarning,
-            stacklevel=5,
+            stacklevel=stacklevel,
         )
         return [_NONE_RESULT]
     return [DetectionResult(encoding=encoding, confidence=0.10, language=None)]
@@ -108,7 +111,9 @@ def _hold_validity_past_cap(
     for i, r in enumerate(results):
         if r.encoding is not None and decodes_without_error(data, r.encoding):
             return results if i == 0 else results[i:]
-    return _make_fallback_or_none(no_match_encoding, allowed, "no_match_encoding")
+    return _make_fallback_or_none(
+        no_match_encoding, allowed, "no_match_encoding", stacklevel=7
+    )
 
 
 # Minimum structural score (valid multi-byte sequences / lead bytes) required

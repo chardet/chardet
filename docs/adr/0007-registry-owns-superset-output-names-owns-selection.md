@@ -1,0 +1,7 @@
+# Registry owns the superset relation, output_names owns the selection
+
+Through 7.7.0 the "Windows superset" relation was written down three times: `output_names.PREFERRED_SUPERSET` (twelve pairs, applied by the `prefer_superset` option), `pipeline/markup.py`'s promotion table (Shift_JIS to CP932, EUC-KR to CP949), and `pipeline/postprocess.py`'s dead-heat table (the same two, plus a `shift_jis` key the pipeline never reports). Nothing kept them in step, and the dead key shows how easily they drift.
+
+The codec fact now lives in one place: `EncodingInfo.superset` in `registry.py`, set for every pair the three tables named. The markup and dead-heat tables are derived from it at import time, filtered to `is_multibyte_cjk`, which reproduces them exactly. `PREFERRED_SUPERSET` stays a literal, because it is not the codec fact. It is the frozen *selection* the `prefer_superset` option applies, and it is this project's documented public surface through `UniversalDetector.LEGACY_MAP`. Tests pin its twelve pairs and check each one against the registry.
+
+Resist "unify the tables" in either direction. Deriving `PREFERRED_SUPERSET` from the registry would add `shift_jis_2004 -> cp932` to it, which changes `prefer_superset=True` output and `LEGACY_MAP`; that is an 8.0 question. Dropping the `is_multibyte_cjk` filter would extend the dead-heat promotion to the ISO/Windows pairs, which is an accuracy change to measure on its own, not a refactor.

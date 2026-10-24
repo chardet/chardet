@@ -25,8 +25,8 @@ from chardet._utils import (
     decodes_without_error,
 )
 from chardet.enums import EncodingEra
+from chardet.output_names import decodes_under_public_name
 from chardet.pipeline.markup import _validate_bytes, detect_markup_charset
-from chardet.pipeline.postprocess import _decodes_under_public_names
 from chardet.pipeline.validity import filter_by_validity
 from chardet.registry import get_candidates
 
@@ -149,7 +149,7 @@ def test_flip_verifies_the_public_name_too():
     data = b"hello \xa2\xaf"
     assert decodes_completely(data, "euc_jis_2004")
     assert not decodes_completely(data, "EUC-JP")
-    assert not _decodes_under_public_names(data, "euc_jis_2004")
+    assert not decodes_under_public_name(data, "euc_jis_2004", complete=True)
 
 
 def test_internal_slicing_keeps_the_prefix_tolerance():

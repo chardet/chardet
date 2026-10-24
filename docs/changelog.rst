@@ -8,6 +8,38 @@ Changelog
    Dan directed the design, reviewed all output, and takes responsibility for
    the result. Unmarked entries by Dan were written without AI assistance.
 
+Unreleased
+----------
+
+**Features:**
+
+- ``chardetect`` has two new flags.  ``--prefer-superset`` reports a
+  detected subset encoding under its Windows code page, like
+  ``Windows-1253`` for ISO-8859-7 text, the same as
+  ``prefer_superset=True`` in the Python API.  ``--no-compat-names``
+  reports the raw Python codec name, like ``euc_jis_2004`` instead of
+  ``EUC-JP``.  Output without the flags is unchanged.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+
+**Improvements:**
+
+- Internal cleanup with no change to any result.  ``detect()``,
+  ``detect_all()``, ``UniversalDetector``, and ``chardetect`` now share
+  one ``DetectionRequest`` that validates the options, runs the
+  pipeline, and applies the output names, instead of each spelling that
+  out on its own.  ``EncodingInfo`` gained a ``superset`` field, so the
+  registry is the one place that says which Windows code page stands in
+  for an encoding.  ``UniversalDetector.result`` no longer re-checks the
+  buffer on every read.  ADR-0007 has the reasoning.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+
+**Bug Fixes:**
+
+- The warning for an excluded ``no_match_encoding`` now points at the
+  caller's line when the fallback is reached past the evidence cap.  It
+  used to name ``chardet/__init__.py`` on that one path.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+
 7.7.0 (2026-10-17)
 ------------------
 
