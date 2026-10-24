@@ -8,21 +8,11 @@ from types import MappingProxyType
 from typing import ClassVar
 
 from chardet import _utils
-from chardet._utils import (
-    DEFAULT_MAX_BYTES,
-    _resolve_prefer_superset,
-    _validate_max_bytes,
-)
+from chardet._request import DetectionRequest
+from chardet._utils import DEFAULT_MAX_BYTES
 from chardet.enums import EncodingEra, LanguageFilter
-from chardet.output_names import (
-    NARROWER_DISPLAY_NAMES,
-    PREFERRED_SUPERSET,
-    apply_compat_names,
-    apply_preferred_superset,
-)
-from chardet.pipeline import _NONE_RESULT, DetectionDict, DetectionResult
-from chardet.pipeline.orchestrator import run_pipeline
-from chardet.registry import _validate_encoding, normalize_encodings
+from chardet.output_names import PREFERRED_SUPERSET
+from chardet.pipeline import _NONE_RESULT, DetectionDict
 
 
 class UniversalDetector:
@@ -96,31 +86,23 @@ class UniversalDetector:
                 DeprecationWarning,
                 stacklevel=2,
             )
-        prefer_superset = _resolve_prefer_superset(
-            should_rename_legacy, prefer_superset
-        )
-        self._prefer_superset = prefer_superset
-        self._compat_names = compat_names
-        _validate_max_bytes(max_bytes)
-        self._encoding_era = encoding_era
-        self._max_bytes = max_bytes
-        self._include_encodings = normalize_encodings(
-            include_encodings, "include_encodings"
-        )
-        self._exclude_encodings = normalize_encodings(
-            exclude_encodings, "exclude_encodings"
-        )
-        self._no_match_encoding = _validate_encoding(
-            no_match_encoding, "no_match_encoding"
-        )
-        self._empty_input_encoding = _validate_encoding(
-            empty_input_encoding, "empty_input_encoding"
+        self._request = DetectionRequest.resolve(
+            should_rename_legacy=should_rename_legacy,
+            encoding_era=encoding_era,
+            max_bytes=max_bytes,
+            prefer_superset=prefer_superset,
+            compat_names=compat_names,
+            include_encodings=include_encodings,
+            exclude_encodings=exclude_encodings,
+            no_match_encoding=no_match_encoding,
+            empty_input_encoding=empty_input_encoding,
+            stacklevel=3,
         )
         self._buffer = bytearray()
         self._input_truncated = False
         self._done = False
         self._closed = False
-        self._result: DetectionResult | None = None
+        self._result: DetectionDict | None = None
 
     def feed(self, byte_str: bytes | bytearray) -> None:
         """Feed a chunk of bytes to the detector.
@@ -143,7 +125,7 @@ class UniversalDetector:
             if byte_str:
                 self._input_truncated = True
             return
-        remaining = self._max_bytes - len(self._buffer)
+        remaining = self._request.max_bytes - len(self._buffer)
         if remaining > 0:
             self._buffer.extend(byte_str[:remaining])
         if len(byte_str) > max(remaining, 0):
@@ -151,7 +133,7 @@ class UniversalDetector:
             # view of the caller's stream, which the pipeline cannot infer
             # from the buffer length alone (it equals max_bytes exactly).
             self._input_truncated = True
-        if len(self._buffer) >= self._max_bytes:
+        if len(self._buffer) >= self._request.max_bytes:
             self._done = True
 
     def close(self) -> DetectionDict:
@@ -165,17 +147,9 @@ class UniversalDetector:
         if not self._closed:
             self._closed = True
             data = bytes(self._buffer)
-            results = run_pipeline(
-                data,
-                self._encoding_era,
-                max_bytes=self._max_bytes,
-                input_truncated=self._input_truncated,
-                include_encodings=self._include_encodings,
-                exclude_encodings=self._exclude_encodings,
-                no_match_encoding=self._no_match_encoding,
-                empty_input_encoding=self._empty_input_encoding,
-            )
-            self._result = results[0]
+            results = self._request.run(data, input_truncated=self._input_truncated)
+            # The buffer never exceeds max_bytes, so it is the whole window.
+            self._result = self._request.render(results, data)[0]
             self._done = True
         return self.result
 
@@ -196,23 +170,6 @@ class UniversalDetector:
     def result(self) -> DetectionDict:
         """The current best detection result."""
         if self._result is not None:
-            d = self._result.to_dict()
-            # Copy the buffer only for a transform that reads it: the
-            # superset remap always does, the compat rename only for the
-            # four names whose display codec is narrower than the internal.
-            window = b""
-            if self._prefer_superset or (
-                self._compat_names and d["encoding"] in NARROWER_DISPLAY_NAMES
-            ):
-                window = bytes(self._buffer)
-            if self._prefer_superset:
-                apply_preferred_superset(
-                    d,
-                    window,
-                    include_encodings=self._include_encodings,
-                    exclude_encodings=self._exclude_encodings,
-                )
-            if self._compat_names:
-                apply_compat_names(d, window)
-            return d
+            # A fresh copy per read: callers may mutate what they get.
+            return self._result.copy()
         return _NONE_RESULT.to_dict()

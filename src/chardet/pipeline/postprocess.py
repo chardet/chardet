@@ -18,11 +18,10 @@ annotations.
 
 from chardet._utils import (
     dangling_tail_with_ascii_prefix,
-    decodes_completely,
     decodes_without_error,
 )
 from chardet.models import ART_LANGUAGE, RARE_LANGUAGES, get_enc_index
-from chardet.output_names import _COMPAT_NAMES
+from chardet.output_names import decodes_under_public_name
 from chardet.pipeline import DetectionResult
 from chardet.pipeline.confusion import (
     CONFUSION_BAND,
@@ -34,7 +33,7 @@ from chardet.pipeline.confusion import (
     differing_high_bytes,
     resolve_confusion_groups,
 )
-from chardet.registry import REGISTRY
+from chardet.registry import CJK_SUPERSETS, REGISTRY
 
 # Common Western Latin encodings that share the iso-8859-1 character
 # repertoire for the byte values where iso-8859-10 is indistinguishable.
@@ -366,13 +365,10 @@ _DEAD_HEAT_EPSILON = 1e-4
 
 # On a dead heat between an encoding and its Windows superset, prefer the
 # superset: it decodes everything the base encoding does, so it is never a
-# worse answer when the statistics cannot separate them.  Mirrors
-# ``markup._MARKUP_SUPERSET_PROMOTIONS``.
-_DEAD_HEAT_SUPERSETS: dict[str, str] = {
-    "shift_jis": "cp932",
-    "shift_jis_2004": "cp932",
-    "euc_kr": "cp949",
-}
+# worse answer when the statistics cannot separate them.  The pairs are
+# the registry's ``CJK_SUPERSETS``, shared with ``markup``'s promotion:
+# reaching the ISO/Windows pairs would be an accuracy change to measure on
+# its own (ADR-0007).
 
 # Confidence band for the classic-Mac line-ending promotion.  Wider than the
 # dead-heat epsilon because bare-\r line endings are decisive platform
@@ -527,7 +523,7 @@ def _promote_superset_on_dead_heat(
     top = results[0] if results else None
     if top is None or top.encoding is None or len(results) < 2:
         return results
-    superset = _DEAD_HEAT_SUPERSETS.get(top.encoding)
+    superset = CJK_SUPERSETS.get(top.encoding)
     if superset is None:
         return results
     for i in range(1, len(results)):
@@ -646,23 +642,6 @@ def _promote_mac_on_cr_line_endings(
     return results
 
 
-def _decodes_under_public_names(data: bytes, encoding: str) -> bool:
-    """Check that *data* decodes completely under *encoding* and its output name.
-
-    The flip's promise is that the caller's ``data.decode(result)`` works,
-    and the caller sees the *public* name: ``compat_names=True`` (the
-    default) can remap to a strictly narrower codec (``euc_jis_2004`` is
-    reported as ``EUC-JP``), so a rival must decode under both names to be
-    promoted.  ``prefer_superset=True`` can also narrow (cp125x leaves
-    codepoints undefined that iso-8859-x maps), but that output transform
-    checks the data itself before remapping.
-    """
-    if not decodes_completely(data, encoding):
-        return False
-    display = _COMPAT_NAMES.get(encoding)
-    return display is None or decodes_completely(data, display)
-
-
 def _prefer_decodable_on_tie(
     data: bytes,
     results: list[DetectionResult],
@@ -686,7 +665,9 @@ def _prefer_decodable_on_tie(
     tolerant decode (the whole input is one clipped sequence) is zero
     evidence, not ASCII evidence, and disqualifies the flip.  The
     best-ranked rival that decodes the input completely under both its
-    internal and public names then takes the top slot, regardless of the
+    internal and public names (``compat_names=True``, the default, can
+    remap to a strictly narrower codec: ``euc_jis_2004`` is reported as
+    ``EUC-JP``) then takes the top slot, regardless of the
     confidence gap: an all-ASCII-evidence winner detected nothing the
     rival did not also detect, and any statistical lead it holds comes
     from ASCII bigrams the rival matched equally well.  The scan sees the
@@ -723,7 +704,9 @@ def _prefer_decodable_on_tie(
         return results
     for i in range(1, len(results)):
         r = results[i]
-        if r.encoding is None or not _decodes_under_public_names(data, r.encoding):
+        if r.encoding is None or not decodes_under_public_name(
+            data, r.encoding, complete=True
+        ):
             continue
         return _promote_to_top(results, i)
     return results
