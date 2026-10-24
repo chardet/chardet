@@ -10,8 +10,7 @@ from unittest.mock import patch
 
 import pytest
 
-import chardet
-from chardet import UniversalDetector, output_names
+from chardet import UniversalDetector, detect, detect_all, output_names
 from chardet._request import DetectionRequest
 from chardet._utils import EVIDENCE_CAP_BYTES
 from chardet.enums import EncodingEra
@@ -114,15 +113,15 @@ def test_run_and_render_match_detect(data: bytes, options: dict[str, Any]):
         request = DetectionRequest.resolve(**options)
         window = data[: request.max_bytes]
         rendered = request.render(request.run(data), window)
-        assert rendered == [chardet.detect(data, **options)]
+        assert rendered == [detect(data, **options)]
 
         ranking = request.run(data, full_ranking=True)
         assert request.render(ranking, window, all_results=True) == (
-            chardet.detect_all(data, **options)
+            detect_all(data, **options)
         )
         assert request.render(
             ranking, window, all_results=True, ignore_threshold=True
-        ) == chardet.detect_all(data, ignore_threshold=True, **options)
+        ) == detect_all(data, ignore_threshold=True, **options)
 
 
 @pytest.mark.parametrize("options", _OPTIONS.values(), ids=_OPTIONS.keys())
@@ -137,7 +136,8 @@ def test_run_and_render_match_universal_detector(data: bytes, options: dict[str,
         )[0]
         detector = UniversalDetector(**options)
         detector.feed(data)
-        assert detector.close() == expected
+        closed = detector.close()
+    assert closed == expected
     assert detector.result == expected
 
 
@@ -146,8 +146,11 @@ def test_universal_detector_result_is_a_fresh_copy():
     detector.feed(_GREEK)
     first = detector.close()
     first["encoding"] = "mutated"
-    assert detector.result["encoding"] == "ISO-8859-7"
-    assert detector.result is not detector.result
+    first_read = detector.result
+    second_read = detector.result
+    assert first_read["encoding"] == "ISO-8859-7"
+    assert second_read == first_read
+    assert second_read is not first_read
 
 
 def test_render_lists_each_name_once():
@@ -284,7 +287,7 @@ def _detect_past_cap_with_no_decodable_candidate() -> None:
     filler = "Le cœur a ses raisons que la raison ne connaît point. ".encode("cp1252")
     body = filler * ((EVIDENCE_CAP_BYTES + 50_000) // len(filler) + 1)
     with_garbage = body + b"\x81\x8d\x9d" * 50
-    chardet.detect(
+    detect(
         with_garbage,
         max_bytes=len(with_garbage),
         include_encodings=["cp1250"],
@@ -295,10 +298,10 @@ def _detect_past_cap_with_no_decodable_candidate() -> None:
 @pytest.mark.parametrize(
     "call",
     [
-        lambda: chardet.detect(b"abc", chunk_size=1024),
-        lambda: chardet.detect_all(b"abc", chunk_size=1024),
-        lambda: chardet.detect(b"abc", should_rename_legacy=True),
-        lambda: chardet.detect_all(b"abc", should_rename_legacy=True),
+        lambda: detect(b"abc", chunk_size=1024),
+        lambda: detect_all(b"abc", chunk_size=1024),
+        lambda: detect(b"abc", should_rename_legacy=True),
+        lambda: detect_all(b"abc", should_rename_legacy=True),
         lambda: UniversalDetector(should_rename_legacy=True),
     ],
     ids=[
@@ -320,10 +323,10 @@ def test_deprecation_warnings_point_at_the_caller(call: Callable[[], object]):
 @pytest.mark.parametrize(
     "call",
     [
-        lambda: chardet.detect(b"\x80\x81", include_encodings=["ascii"]),
-        lambda: chardet.detect_all(b"\x80\x81", include_encodings=["ascii"]),
+        lambda: detect(b"\x80\x81", include_encodings=["ascii"]),
+        lambda: detect_all(b"\x80\x81", include_encodings=["ascii"]),
         lambda: _close_detector(include_encodings=["ascii"]),
-        lambda: chardet.detect(b"", include_encodings=["ascii"]),
+        lambda: detect(b"", include_encodings=["ascii"]),
         _detect_past_cap_with_no_decodable_candidate,
     ],
     ids=[
