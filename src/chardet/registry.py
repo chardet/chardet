@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import codecs
 import dataclasses
+import encodings
 import functools
 import warnings
 from collections.abc import Iterable
+from encodings.aliases import aliases as _stdlib_aliases
 from types import MappingProxyType
 from typing import Literal
 
@@ -1028,6 +1030,24 @@ CJK_SUPERSETS: MappingProxyType[str, str] = MappingProxyType(
     }
 )
 
+# Names ``codecs.lookup`` may be asked about, normalized the way its search
+# function normalizes them: the stdlib alias table (aliases and module names)
+# plus the registry's own names.  Anything else is a miss there, and
+# ``encodings.search_function`` keeps every miss in a module-level dict that
+# has no bound before Python 3.13.13 / 3.14.4 (python/cpython#146054), so an
+# untrusted name that reaches it is retained for the life of the process.
+_STDLIB_CODEC_NAMES: frozenset[str] = frozenset(
+    (
+        *_stdlib_aliases,
+        *_stdlib_aliases.values(),
+        *(
+            encodings.normalize_encoding(n.lower())
+            for e in _REGISTRY_ENTRIES
+            for n in (e.name, *e.aliases)
+        ),
+    )
+)
+
 
 # Bounded because *name* comes from untrusted markup (``<meta charset>``,
 # ``<?xml encoding>``) and the set of distinct spellings is unbounded.  1024
@@ -1048,7 +1068,15 @@ def lookup_encoding(name: str) -> EncodingName | None:
         for alias in entry.aliases:
             if alias.lower() == lowered:
                 return entry.name
-    # Fallback: resolve through Python's codec registry
+    # Fallback: resolve through Python's codec registry, which is only asked
+    # about names it can answer (see _STDLIB_CODEC_NAMES).  The search
+    # function tries a dotted name both as is and with the dots folded.
+    normalized = encodings.normalize_encoding(lowered)
+    if (
+        normalized not in _STDLIB_CODEC_NAMES
+        and normalized.replace(".", "_") not in _STDLIB_CODEC_NAMES
+    ):
+        return None
     try:
         codec_name = codecs.lookup(name).name
     except (LookupError, ValueError):
