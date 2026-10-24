@@ -9,6 +9,7 @@ this module is compiled with mypyc, which does not support PEP 563 string
 annotations.
 """
 
+import codecs
 import unicodedata
 
 from chardet.pipeline import ASCII_TEXT_BYTES, DETERMINISTIC_CONFIDENCE, DetectionResult
@@ -227,8 +228,10 @@ def _check_utf16(data: bytes) -> DetectionResult | None:
     qualified_side_decoded = False
 
     for encoding, _frac, qualified in sides:
+        # final=False: a surrogate pair cut at the sample's end is not an error.
+        decoder = codecs.getincrementaldecoder(encoding)()
         try:
-            text = data[:sample_len].decode(encoding)
+            text = decoder.decode(data[:sample_len], final=False)
         except UnicodeDecodeError:
             continue
         if qualified:

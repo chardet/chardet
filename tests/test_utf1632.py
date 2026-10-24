@@ -735,3 +735,25 @@ def test_detect_utf16_decodable_window_still_detected() -> None:
     data = ("UTF-16 sample text. " * 400).encode("utf-16-le")
     assert len(data) > _SAMPLE_SIZE
     assert chardet.detect(data)["encoding"] == "utf-16-le"
+
+
+@pytest.mark.parametrize("encoding", ["utf-16-le", "utf-16-be"])
+@pytest.mark.parametrize("emoji", ["\U0001f600", "\U0001f44d"])
+def test_utf16_surrogate_pair_cut_by_the_sample(encoding: str, emoji: str) -> None:
+    """A surrogate pair cut at the end of the sample keeps the byte order.
+
+    The stage decodes only the first _SAMPLE_SIZE bytes, and a caller's own
+    prefix can end anywhere too.  When the cut fell inside a surrogate pair,
+    the true byte order failed a strict decode, so U+1F600 text came back
+    byte-swapped as Chinese and U+1F44D text came back as binary.
+    """
+    # Ten characters of padding put a high surrogate at the end of the sample.
+    data = ("x" * 10 + f"Hello world {emoji} " * 400).encode(encoding)
+    with pytest.raises(UnicodeDecodeError):
+        data[:_SAMPLE_SIZE].decode(encoding)
+
+    result = detect_utf1632_patterns(data)
+    assert result is not None
+    assert result.encoding == encoding
+    assert chardet.detect(data)["encoding"] == encoding
+    assert chardet.detect(data[:_SAMPLE_SIZE])["encoding"] == encoding
