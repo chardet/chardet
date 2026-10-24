@@ -22,7 +22,7 @@ from chardet.pipeline.bom import detect_bom
 from chardet.pipeline.escape import detect_escape_encoding
 from chardet.pipeline.language import fill_languages
 from chardet.pipeline.magic import detect_magic
-from chardet.pipeline.markup import detect_markup_charset, promote_markup_superset
+from chardet.pipeline.markup import detect_markup_charset
 from chardet.pipeline.postprocess import postprocess_results
 from chardet.pipeline.statistical import score_candidates
 from chardet.pipeline.structural import (
@@ -57,18 +57,21 @@ def _make_fallback_or_none(
     encoding: str,
     allowed: frozenset[str],
     param_name: str,
+    stacklevel: int = 6,
 ) -> list[DetectionResult]:
     """Return a low-confidence result for *encoding*, or ``encoding=None`` if filtered out.
 
-    ``stacklevel=5`` targets the public caller:
-    detect() -> run_pipeline() -> _run_pipeline_core() -> _make_fallback_or_none().
+    The default ``stacklevel=6`` targets the public caller: detect() ->
+    DetectionRequest.run() -> run_pipeline() -> _run_pipeline_core() ->
+    _make_fallback_or_none().  A caller one frame deeper
+    (:func:`_hold_validity_past_cap`) passes 7.
     """
     if encoding not in allowed:
         warnings.warn(
             f"{param_name} {encoding!r} is excluded by "
             f"include_encodings/exclude_encodings; returning encoding=None",
             UserWarning,
-            stacklevel=5,
+            stacklevel=stacklevel,
         )
         return [_NONE_RESULT]
     return [DetectionResult(encoding=encoding, confidence=0.10, language=None)]
@@ -108,7 +111,9 @@ def _hold_validity_past_cap(
     for i, r in enumerate(results):
         if r.encoding is not None and decodes_without_error(data, r.encoding):
             return results if i == 0 else results[i:]
-    return _make_fallback_or_none(no_match_encoding, allowed, "no_match_encoding")
+    return _make_fallback_or_none(
+        no_match_encoding, allowed, "no_match_encoding", stacklevel=7
+    )
 
 
 # Minimum structural score (valid multi-byte sequences / lead bytes) required
@@ -348,33 +353,11 @@ def _run_pipeline_core(  # noqa: PLR0913
     ):
         return [_BINARY_RESULT]
 
-    # Stage 1b: Markup charset extraction (before ASCII/UTF-8 so explicit
-    # declarations like <?xml encoding="iso-8859-1"?> are honoured even
-    # when the bytes happen to be pure ASCII).
-    markup_result = detect_markup_charset(data)
-    if markup_result is not None and markup_result.encoding in allowed:
-        # A declaration is honoured over pure ASCII (the declared encoding
-        # decodes those bytes identically), but not over genuine UTF-8
-        # structure: data containing valid multi-byte UTF-8 sequences is
-        # UTF-8 regardless of what the (frequently stale) declaration
-        # claims, and decoding it as the declared encoding would produce
-        # mojibake.  Keep the markup mime type; only the encoding wins.
-        if (
-            utf8_precheck is not None
-            and utf8_precheck.encoding != markup_result.encoding
-            and utf8_precheck.encoding in allowed
-        ):
-            return [
-                DetectionResult(
-                    utf8_precheck.encoding,
-                    utf8_precheck.confidence,
-                    utf8_precheck.language,
-                    markup_result.mime_type,
-                )
-            ]
-        # The stage already holds every declaration it returns, and the
-        # promotion it may apply, to the whole window.
-        markup_result = promote_markup_superset(data, markup_result, allowed)
+    # Stage 1b: Markup charset extraction.  The stage owns the whole
+    # declaration decision: decode checks, superset promotion, the allowed
+    # gate, and the UTF-8 override (see its docstring).
+    markup_result = detect_markup_charset(data, allowed, utf8_precheck)
+    if markup_result is not None:
         return [markup_result]
 
     # Stage 1c: ASCII (use pre-computed result)

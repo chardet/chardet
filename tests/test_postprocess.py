@@ -9,6 +9,7 @@ import pytest
 from utils import get_data_dir
 
 from chardet import detect
+from chardet.output_names import decodes_under_public_name
 from chardet.pipeline import DetectionResult, postprocess
 from chardet.pipeline.confusion import (
     CONFUSION_BAND,
@@ -22,6 +23,7 @@ from chardet.pipeline.postprocess import (
     postprocess_results,
     scoring_floor,
 )
+from chardet.registry import CJK_SUPERSETS
 
 #: See the note in tests/test_confusion.py: mypyc resolves a compiled
 #: module's calls to functions imported into it at compile time, so patching
@@ -566,9 +568,9 @@ def test_prevalent_dead_heat_skips_binary_entries():
 
 
 def test_superset_dead_heat_promotes_decoding_superset():
-    """cp932 within the epsilon of shift_jis takes the win."""
+    """cp932 within the epsilon of shift_jis_2004 takes the win."""
     results = [
-        DetectionResult("shift_jis", 0.30, "ja"),
+        DetectionResult("shift_jis_2004", 0.30, "ja"),
         DetectionResult("cp932", 0.29995, "ja"),
     ]
     resolved = postprocess._promote_superset_on_dead_heat(b"hello world", results)
@@ -579,7 +581,7 @@ def test_superset_dead_heat_promotes_decoding_superset():
 def test_superset_dead_heat_stops_at_the_epsilon():
     """A superset ranked below the dead-heat band stays where it is."""
     results = [
-        DetectionResult("shift_jis", 0.30, "ja"),
+        DetectionResult("shift_jis_2004", 0.30, "ja"),
         DetectionResult("euc_jp", 0.2999, "ja"),
         DetectionResult("cp932", 0.10, "ja"),
     ]
@@ -590,7 +592,7 @@ def test_superset_dead_heat_stops_at_the_epsilon():
 def test_superset_dead_heat_without_superset_in_band():
     """No superset inside the band leaves the ranking untouched."""
     results = [
-        DetectionResult("shift_jis", 0.30, "ja"),
+        DetectionResult("shift_jis_2004", 0.30, "ja"),
         DetectionResult("euc_jp", 0.29999, "ja"),
     ]
     resolved = postprocess._promote_superset_on_dead_heat(b"hello world", results)
@@ -682,7 +684,17 @@ def test_mac_cr_promotion_vetoed_by_byte_evidence():
 
 def test_decodes_under_public_names_rejects_undecodable():
     """A rival that cannot decode the data is no flip target."""
-    assert postprocess._decodes_under_public_names(b"\xff", "ascii") is False
+    assert decodes_under_public_name(b"\xff", "ascii", complete=True) is False
+
+
+def test_dead_heat_supersets_derive_from_the_registry():
+    """The registry's CJK superset pairs reproduce the old hand-written table.
+
+    The old table also keyed ``shift_jis``, which the pipeline never
+    reports (the canonical name is ``shift_jis_2004``), so it is gone.  The
+    ISO/Windows pairs stay out: reaching them would be an accuracy change.
+    """
+    assert dict(CJK_SUPERSETS) == {"shift_jis_2004": "cp932", "euc_kr": "cp949"}
 
 
 def test_decodable_tie_keeps_winner_when_no_rival_decodes():

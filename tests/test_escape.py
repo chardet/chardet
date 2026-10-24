@@ -435,6 +435,21 @@ def test_utf7_validator_is_linear_in_base64_blobs() -> None:
     assert time.perf_counter() - start < 1.0
 
 
+def test_utf7_b64_decode_is_linear_in_run_length() -> None:
+    """A long base64 run must not make the UTF-16 decode quadratic.
+
+    The decode loop never trimmed its bit buffer, so it grew to a
+    run-length integer that every sextet shifted again.  ``+A+A...`` is one
+    base64 run of the whole window; 200 KB of it cost 4.7s through
+    ``detect()`` and grew as the square.  The budget is ~10x the linear cost
+    and still catches a relapse.
+    """
+    run = b"A+" * 65536
+    start = time.perf_counter()
+    assert _is_valid_utf7_b64(run)
+    assert time.perf_counter() - start < 1.0
+
+
 def test_utf7_base64_run_outrunning_the_bound_is_skipped() -> None:
     """A base64 run that reaches max_end while more follows is not judged.
 

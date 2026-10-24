@@ -99,6 +99,9 @@ def _is_valid_utf7_b64(b64_bytes: bytes) -> bool:
     # Lone surrogates (unpaired 0xD800-0xDFFF code units) are illegal in
     # well-formed UTF-16 and cannot appear in real UTF-7 text.  This catches
     # hex-encoded hashes and other accidental base64-like sequences.
+    # The bit buffer keeps only the bits not yet emitted: left to grow, it
+    # becomes an integer as wide as the run, and shifting it per sextet
+    # makes the decode quadratic in the run length.
     num_bytes = total_bits // 8
     raw = bytearray(num_bytes)
     bit_buf = 0
@@ -110,6 +113,7 @@ def _is_valid_utf7_b64(b64_bytes: bytes) -> bool:
         if bit_count >= 8:
             bit_count -= 8
             raw[out_idx] = (bit_buf >> bit_count) & 0xFF
+            bit_buf &= (1 << bit_count) - 1
             out_idx += 1
     prev_high = False
     for i in range(0, num_bytes - 1, 2):

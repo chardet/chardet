@@ -4,8 +4,8 @@
 Callers routinely detect on a slice -- an editor reads the first 4 kB or 64 kB
 of a file and hands over the buffer -- and chardet slices further on its own,
 ``data[:max_bytes]`` in the orchestrator and ``data[:_SCAN_LIMIT]`` in
-:func:`chardet.pipeline.markup._validate_bytes`.  For a two-byte encoding any
-of those cuts lands mid-character about half the time.
+:func:`chardet.pipeline.markup.detect_markup_charset`.  For a two-byte encoding
+any of those cuts lands mid-character about half the time.
 
 Validity filtering used to decode with a one-shot strict decode, which cannot
 tell a truncated tail from corrupt data, so a single dangling lead byte dropped
@@ -25,10 +25,10 @@ from chardet._utils import (
     decodes_without_error,
 )
 from chardet.enums import EncodingEra
-from chardet.pipeline.markup import _validate_bytes, detect_markup_charset
-from chardet.pipeline.postprocess import _decodes_under_public_names
+from chardet.output_names import decodes_under_public_name
+from chardet.pipeline.markup import detect_markup_charset
 from chardet.pipeline.validity import filter_by_validity
-from chardet.registry import get_candidates
+from chardet.registry import REGISTRY, get_candidates
 
 _ZH = "這是一個用於測試編碼偵測的中文句子，內容足夠長以便統計模型能夠正確判斷。"
 _JA = "これは文字コード判定のテストに用いる日本語の文章です。統計モデルが正しく判定できる長さにしています。"
@@ -96,8 +96,10 @@ def test_markup_declaration_survives_the_scan_limit_cut():
     body = (_ZH * 200).encode("gbk")
     for pad in (0, 1):
         data = b'<meta charset="gbk">' + b" " * pad + body
-        assert _validate_bytes(data, "gbk")
-        result = detect_markup_charset(data)
+        assert decodes_without_error(data, "gbk")
+        result = detect_markup_charset(
+            data, frozenset(e.name for e in REGISTRY.values())
+        )
         assert result is not None, f"pad={pad} rejected an honest declaration"
         assert result.mime_type == "text/html"
 
@@ -149,7 +151,7 @@ def test_flip_verifies_the_public_name_too():
     data = b"hello \xa2\xaf"
     assert decodes_completely(data, "euc_jis_2004")
     assert not decodes_completely(data, "EUC-JP")
-    assert not _decodes_under_public_names(data, "euc_jis_2004")
+    assert not decodes_under_public_name(data, "euc_jis_2004", complete=True)
 
 
 def test_internal_slicing_keeps_the_prefix_tolerance():
