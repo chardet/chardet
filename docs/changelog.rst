@@ -19,7 +19,8 @@ Unreleased
   ``prefer_superset=True`` in the Python API.  ``--no-compat-names``
   reports the raw Python codec name, like ``euc_jis_2004`` instead of
   ``EUC-JP``.  Output without the flags is unchanged.
-  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude,
+  `#407 <https://github.com/chardet/chardet/pull/407>`_)
 
 **Improvements:**
 
@@ -31,7 +32,8 @@ Unreleased
   registry is the one place that says which Windows code page stands in
   for an encoding.  ``UniversalDetector.result`` no longer re-checks the
   buffer on every read.  ADR-0007 has the reasoning.
-  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude,
+  `#407 <https://github.com/chardet/chardet/pull/407>`_)
 
 - The markup stage now owns the whole charset-declaration decision,
   and its parser (``iter_declarations``) can be tested on its own,
@@ -47,12 +49,35 @@ Unreleased
   `#408 <https://github.com/chardet/chardet/pull/408>`_,
   `#411 <https://github.com/chardet/chardet/pull/411>`_)
 
+**Performance:**
+
+- A long base64 run after a ``+`` no longer makes the UTF-7 check
+  quadratic.  The decoder never trimmed its bit buffer, so it grew as
+  wide as the run and every step copied it again.  A 100,000-character
+  run took about a second to check and now takes about 10 ms.
+  (`Samina <https://github.com/Samin061>`_,
+  `#409 <https://github.com/chardet/chardet/pull/409>`_)
+
 **Bug Fixes:**
 
 - The warning for an excluded ``no_match_encoding`` now points at the
   caller's line when the fallback is reached past the evidence cap.  It
   used to name ``chardet/__init__.py`` on that one path.
-  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude,
+  `#407 <https://github.com/chardet/chardet/pull/407>`_)
+- Charset names Python has no codec for no longer pile up in the
+  standard library's codec cache.  ``lookup_encoding`` handed every
+  unknown name from untrusted markup to ``codecs.lookup``, which keeps
+  each miss for the life of the process before Python 3.13.13 and
+  3.14.4, so the 1024-entry cap from 7.7.0 did not bound memory.  Names
+  the standard library cannot resolve now stop before reaching it.
+  (`Samina <https://github.com/Samin061>`_,
+  `#410 <https://github.com/chardet/chardet/pull/410>`_)
+- BOM-less UTF-16 with emoji or other characters outside the BMP no
+  longer comes back byte-swapped, or as binary, when the 4 KB sample or
+  the end of a short input cuts a surrogate pair in half.
+  (`nk-batman21 <https://github.com/nk-batman21>`_,
+  `#412 <https://github.com/chardet/chardet/pull/412>`_)
 
 7.7.0 (2026-10-17)
 ------------------
