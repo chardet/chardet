@@ -124,7 +124,10 @@ Key types:
 - ``DetectionResult`` — frozen dataclass: ``encoding``, ``confidence``,
   ``language``, ``mime_type``
 - ``EncodingInfo`` (``registry.py``) — frozen dataclass: ``name``,
-  ``aliases``, ``era``, ``is_multibyte_cjk``, ``languages``
+  ``aliases``, ``era``, ``is_multibyte_cjk``, ``languages``, ``superset``
+  (the Windows/CP code page that stands in for the encoding, such as
+  ``cp1252`` for ``iso8859-1``, or ``None``; the ``prefer_superset``
+  option applies its own frozen selection of these pairs, see ADR-0007)
 - ``EncodingEra`` (``enums.py``) — IntFlag for filtering candidates
 - ``BigramProfile`` (``models/__init__.py``) — pre-computed bigram
   frequencies

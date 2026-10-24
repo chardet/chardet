@@ -103,7 +103,7 @@ All detection flows through `run_pipeline()`, which runs stages in order — eac
 3. **Escape sequences** (`escape.py`) — ISO-2022-JP/KR, HZ-GB-2312, UTF-7; each decode-checked over the window
 4. **Magic numbers** (`magic.py`) — file signature detection (e.g., PDF, images)
 5. **Binary detection** (`binary.py`) — null bytes / control chars → encoding=None
-6. **Markup charset** (`markup.py`) — `<meta charset>` / `<?xml encoding>` / PEP 263 extraction, honored only when the declared encoding decodes the window and the data is not valid multi-byte UTF-8, plus `promote_markup_superset()` which swaps the declared encoding to its Windows superset (Shift_JIS→CP932, EUC-KR→CP949) when structural evidence supports it or the declared name cannot decode the window
+6. **Markup charset** (`markup.py`) — two seams. `iter_declarations()` parses `<meta charset>` / `<?xml encoding>` / EBCDIC markup / PEP 263 labels without decoding. `detect_markup_charset(data, allowed, utf8_precheck)` owns the decision: the first declaration that decodes the window wins if the caller's filters allow it (if they don't, the stage gives no answer rather than trying a later declaration), promoted to its Windows superset (Shift_JIS→CP932, EUC-KR→CP949) when structural evidence supports it or the reported name cannot decode the window. Valid multi-byte UTF-8 beats any declaration; the UTF-8 result then carries the declaration's MIME type
 7. **ASCII** (`ascii.py`) — printable 7-bit check; sparse null separators (up to 5%) are tolerated at confidence 0.99
 8. **UTF-8** (`utf8.py`) — structural multi-byte validation
 9. **Byte validity** (`validity.py`) — eliminate encodings that can't decode the data
@@ -116,7 +116,7 @@ All detection flows through `run_pipeline()`, which runs stages in order — eac
 ### Key Types
 
 - **`DetectionResult`** (`pipeline/__init__.py`) — frozen dataclass: `encoding`, `confidence`, `language`, `mime_type`
-- **`EncodingInfo`** (`registry.py`) — frozen dataclass: `name`, `aliases`, `era`, `is_multibyte_cjk`, `languages`
+- **`EncodingInfo`** (`registry.py`) — frozen dataclass: `name`, `aliases`, `era`, `is_multibyte_cjk`, `languages`, `superset` (the Windows/CP code page that stands in for the encoding, or `None`; markup promotion and dead-heat promotion derive their tables from it, while `output_names.PREFERRED_SUPERSET` stays the frozen `prefer_superset` selection, see ADR-0007)
 - **`EncodingEra`** (`enums.py`) — IntFlag for filtering candidates: `MODERN_WEB`, `LEGACY_ISO`, `LEGACY_MAC`, `LEGACY_REGIONAL`, `DOS`, `MAINFRAME`, `ALL`
 - **`BigramProfile`** (`models/__init__.py`) — pre-computed weighted bigram frequencies, computed once and reused across all candidate models
 
@@ -129,6 +129,8 @@ Binary file `src/chardet/models/models.bin` — v2 dense zlib-compressed format 
 - `detect(byte_str, should_rename_legacy, chunk_size, encoding_era, max_bytes, *, prefer_superset, compat_names, include_encodings, exclude_encodings, no_match_encoding, empty_input_encoding)` → `{"encoding": ..., "confidence": ..., "language": ..., "mime_type": ...}`; the two deprecated positionals come first, so pass `encoding_era` and `max_bytes` by keyword
 - `detect_all(byte_str, ignore_threshold, ...)` → list of result dicts
 - `UniversalDetector` (`detector.py`) — streaming interface with `feed()`/`close()`/`reset()`
+
+All three are thin adapters over `_request.DetectionRequest` (interpreted, not mypyc-compiled), and the `chardetect` CLI calls `detect()`. The request owns option validation and deprecation warnings (`resolve`), the `run_pipeline` call (`run`), and the output-name transforms plus `detect_all`'s threshold/sort/dedupe (`render`).
 
 ### Accuracy Evaluation (`evaluation.py`)
 

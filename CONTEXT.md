@@ -43,7 +43,7 @@ Listed in execution order. Each stage's name matches its module in `chardet.pipe
 3. **Escape sequences** — ISO-2022-JP/KR, HZ-GB-2312.
 4. **Magic numbers** — 40+ binary file signatures (PNG, PDF, ZIP, etc.) plus ZIP-entry-name disambiguation for OOXML/EPUB.
 5. **Binary detection** — null-byte / control-char threshold for unrecognized binary. EBCDIC tab/newline controls do not count as binary evidence when the data is high-byte-dominated (plausibly EBCDIC text).
-6. **Markup charset** — `<meta charset>`, `<?xml encoding>`, PEP 263 coding-declaration extraction, including declarations inside EBCDIC-encoded markup. Includes **markup superset promotion**.
+6. **Markup charset** — `<meta charset>`, `<?xml encoding>`, PEP 263 coding-declaration extraction, including declarations inside EBCDIC-encoded markup. The stage owns the whole decision: it walks the **declaration**s the parser yields, stops at the first whose name (or Windows superset, see **markup superset promotion**) decodes the window, answers with it if the caller's filters allow it and with nothing if they don't, decodes each failed encoding once however often the head repeats it, and yields to the UTF-8 precheck when the data has genuine multi-byte UTF-8 structure, keeping the declaration's MIME type.
 7. **ASCII** — pure-7-bit fast path.
 8. **UTF-8 validation** — multi-byte structural check.
 9. **Byte-validity filtering** — drop candidates whose codec cannot decode the data. An incomplete multi-byte sequence at the very end is tolerated, since the input is usually a prefix of a larger whole.
@@ -59,7 +59,7 @@ Listed in execution order. Each stage's name matches its module in `chardet.pipe
 A bit-flag classification of encodings into `MODERN_WEB`, `LEGACY_ISO`, `LEGACY_MAC`, `LEGACY_REGIONAL`, `DOS`, and `MAINFRAME`. The public-API `encoding_era` parameter narrows the candidate set before detection runs.
 
 **Examination window** (`max_bytes`):
-The caller-controlled bound on how much of the input detection looks at, set by the public `max_bytes` parameter. The only public lever over how much data detection consumes. Distinct from an **evidence cap**.
+The caller-controlled bound on how much of the input detection looks at, set by the public `max_bytes` parameter. The only public lever over how much data detection consumes. Distinct from an **evidence cap**. Every answer must decode the window under its **public name**: each early-exit stage checks its own result, the past-cap validity hold checks the ranking, and **rendering** checks the remapped names.
 
 **Exhaustive check**:
 A detection check that is exact over every byte of the **examination window**: BOM, magic numbers, UTF-8 structural validation, ASCII, binary detection, and escape-sequence *presence*. An exhaustive check's verdict cannot be wrong about bytes it was given — chardet never calls data UTF-8 that is not valid UTF-8 throughout the window.
@@ -67,11 +67,14 @@ A detection check that is exact over every byte of the **examination window**: B
 **Evidence cap**:
 An internal, unoverridable bound on how much of the **examination window** a filtering, validation, or scoring stage consumes before its answer is considered converged (statistical scoring, language detection, postprocess evidence scans, UTF-16/32 sampling all carry one). A convergence bound, not a correctness bound: more bytes are not expected to change the answer. Evidence caps are documented, not hidden; **exhaustive checks** take none.
 
-**Encoding superset relationship**:
-A factual property between two encodings where one decodes a strict superset of the bytes the other decodes (e.g. CP932 ⊃ Shift_JIS, Windows-1252 ⊃ ISO-8859-1, GB18030 ⊃ GB2312). Lossless replacement: any byte sequence valid in the subset is valid in the superset.
+**Encoding superset relationship** (`EncodingInfo.superset`):
+The codec fact that a Windows/CP code page stands in for an encoding in practice (CP932 for Shift_JIS, Windows-1252 for ISO-8859-1, CP949 for EUC-KR). Owned by the registry, one field per encoding, ADR-0007. Not byte-for-byte: the Windows code pages leave a few C1 positions undefined that the ISO standards map, and cp1250 places some letters differently from iso8859-2, so every code that swaps one name for the other checks the data first. The three applications below share the fact and apply it at different times.
+
+**Declaration** (`markup.Declaration`, `markup.iter_declarations`):
+One charset label found in the head of the data, resolved to a registry name (or `None` when no codec answers to it) with the MIME type of the construct it sat in. `iter_declarations` is the Markup stage's parser seam: it yields every declaration in scan order (XML prolog, meta tags in document order, EBCDIC markup, PEP 263 cookie) and decodes nothing, so the WHATWG and PEP 263 parsing rules are testable without a window decode.
 
 **Markup superset promotion**:
-Internal pipeline behavior in `pipeline/markup.py`. When the markup-declared encoding is a known subset (Shift_JIS, EUC-KR) and structural evidence supports the superset, the result is swapped to the superset (CP932, CP949). Always-on, part of the Markup charset stage.
+Internal pipeline behavior in `pipeline/markup.py`. When the markup-declared encoding is a known subset (Shift_JIS, EUC-KR) and structural evidence supports the superset, or the name the caller would see cannot decode the window while the superset can, the answer is the superset (CP932, CP949). Always-on, one decision path inside the Markup charset stage (`_declared_answer`), ordered so a clean declared page costs one window decode. Its table is derived from the **encoding superset relationship**, filtered to the multi-byte CJK encodings.
 
 **BigramProfile**:
 A frozen pre-computed weighted byte-bigram representation for one (language, encoding) pair, loaded once from the **model file** and reused across calls. Used for cosine-similarity scoring in the Statistical stage.
@@ -100,8 +103,11 @@ A ranking state where multiple encodings score within noise of each other becaus
 **Pruning contract**:
 The declared surface on the Post-processing stage (`scoring_floor`, `forced_encodings` in `pipeline/postprocess.py`) stating how far below the top the rank corrections can reach and which encodings they look up by name. Statistical scoring's pruned path must score exactly everything the contract covers, so `detect()` matches the full ranking everywhere a correction can look. One deliberate exception sits outside the contract: the decode-safety flip scans the ranking as given, pruned tails included — a measured trade-off recorded in its docstring. Pinned by a corpus parity sweep in the test suite (sampled by default, full in the accuracy CI job).
 
+**Rank correction**:
+One of the chained fixes post-processing applies to the statistical ranking after scoring, weakest evidence first (`pipeline/postprocess.py`). Each one moves a candidate only on a stated trigger; the entries below are the current set, their order is pinned by a test, and the **pruning contract** says how far down the ranking any of them may look.
+
 **Dead-heat superset promotion**:
-Postprocess rank correction. On a **statistical dead heat** between an encoding and its Windows superset (Shift_JIS/CP932, EUC-KR/CP949), promote the superset — it is never a worse answer.
+Postprocess rank correction. On a **statistical dead heat** between an encoding and its Windows superset (Shift_JIS/CP932, EUC-KR/CP949), promote the superset — it is never a worse answer. Its table is derived from the **encoding superset relationship** with the same CJK filter as **markup superset promotion**; reaching the ISO/Windows pairs would be an accuracy change to measure, not a refactor (ADR-0007).
 
 **Era-prevalence prior**:
 Postprocess rank correction. On a **statistical dead heat**, promote the candidate from the most prevalent **encoding era** (modern web first, mainframe last). Fires only when the top result has no high-byte evidence at all.
@@ -126,6 +132,15 @@ The filter applied between byte-validity and structural probing that drops CJK c
 
 ### Public-API outputs
 
+**Detection request** (`_request.DetectionRequest`):
+One call's resolved options and the work they drive. `detect`, `detect_all`, and `UniversalDetector` are adapters over it (`chardetect` goes through `detect`): `resolve` validates the public keyword arguments and owns their deprecation warnings, `run` calls the **Orchestrator**, and `render` turns the ranked results into the dicts callers see.
+
+**Rendering** (`DetectionRequest.render`):
+Turning ranked `DetectionResult`s into public dicts: the **preferred-superset remapping** when asked for, then the **display name**, each checked against the **examination window** so the reported name decodes it. Also where `detect_all`'s threshold filter, sort, and one-name-once rule live.
+
+**Public name**:
+The encoding name the caller sees after **rendering**. `output_names.decodes_under_public_name` is the one predicate for "does this data decode under that name", used by rendering and by the decode-safety flip in post-processing.
+
 **Canonical name**:
 The internal codec name a stage produces (e.g. `windows-1252`, `cp932`). Lowercase, codec-registry-matched.
 
@@ -133,7 +148,7 @@ The internal codec name a stage produces (e.g. `windows-1252`, `cp932`). Lowerca
 The string returned to library callers after `apply_compat_names` runs (e.g. `Windows-1252`, `CP932`). Driven by `compat_names=True` (the default), which maps internal canonical names to chardet's historical display casing.
 
 **Preferred-superset remapping** (`prefer_superset=True`):
-The output transform in `output_names.apply_preferred_superset` that remaps a detected subset codec to its Windows superset before returning. Off by default; opt-in.
+The output transform in `output_names.apply_preferred_superset` that remaps a detected subset codec to its Windows superset before returning. Off by default; opt-in. The pairs it applies are `output_names.PREFERRED_SUPERSET`, a frozen *selection* of the **encoding superset relationship**, not the relation itself: the table is public through `UniversalDetector.LEGACY_MAP`, so adding a pair changes the option's output (ADR-0007).
 
 ### Accuracy evaluation
 
@@ -174,7 +189,8 @@ The mechanism in `scripts/verify_no_overlap.py` that excludes any training-data 
 - A **Stage** reads/writes the per-call **PipelineContext**; no module-level mutable state is shared across calls.
 - A **BigramProfile** belongs to exactly one (language, encoding) pair; multiple profiles share an encoding when it serves multiple languages.
 - A **Confusion group** is 2+ encodings; **Distinguishing byte maps** are keyed by ordered pairs within the group.
-- **Markup superset promotion**, **Preferred-superset remapping**, and **Superset acceptance** all rely on the same **Encoding superset relationship** but apply it at different times — detection / output / evaluation respectively.
+- **Markup superset promotion**, **Dead-heat superset promotion**, **Preferred-superset remapping**, and **Superset acceptance** all rely on the same **Encoding superset relationship** but apply it at different times — detection / ranking / output / evaluation respectively. The first two derive their tables from the registry field; the third is a frozen public selection; the fourth is test-only (ADR-0002).
+- Every public entry point is an adapter over one **Detection request**; **rendering** is the only place output names are applied.
 
 ## Example dialogue
 
@@ -186,7 +202,7 @@ The mechanism in `scripts/verify_no_overlap.py` that excludes any training-data 
 
 ## Flagged ambiguities
 
-- **"superset"** appears in three independent places: **markup superset promotion** (pipeline), **preferred-superset remapping** (output), **superset acceptance** (evaluation). They share the underlying **encoding superset relationship** but operate at different times on different units. Don't conflate.
+- **"superset"** appears in four places: **markup superset promotion** and **dead-heat superset promotion** (pipeline), **preferred-superset remapping** (output), **superset acceptance** (evaluation). The codec fact has one owner, `EncodingInfo.superset`; the applications stay separate and operate at different times on different units. Don't conflate, and don't derive the output selection from the registry (ADR-0007).
 - **"binary"** is both an outcome (the `encoding=None` result) and a stage name (`pipeline/binary.py`). Disambiguate by saying "the **Binary detection stage**" vs. "a **binary** result".
 - **"model"** is overloaded: the **model file** holds many **BigramProfile**s, but casual prose sometimes uses "the model" for a single profile and sometimes for the whole file. Prefer **BigramProfile** for the unit, **model file** for the artifact.
 - **"BigramProfile"** collides with code: this glossary uses it for a trained (language, encoding) profile in the **model file**, but the `BigramProfile` *class* in `models/__init__.py` is the weighted bigram distribution computed from the *input data* at detection time. The trained side is a raw lookup table, not an instance of that class. When precision matters, say "trained model table" vs. "input profile".

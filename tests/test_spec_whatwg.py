@@ -431,7 +431,7 @@ def test_markup_honours_whatwg_label(whatwg_name: str, label: str) -> None:
         #   (a) lookup_encoding returns None -> label missing from registry
         #   (b) lookup_encoding returns a canonical not in the expected set
         #       -> existing alias points at the wrong chardet canonical
-        #   (c) lookup_encoding is correct but markup _validate_bytes
+        #   (c) lookup_encoding is correct but the markup decode
         #       rejected it -> sample bytes don't decode under the label
         intermediate = lookup_encoding(label)
         pytest.fail(
@@ -443,6 +443,6 @@ def test_markup_honours_whatwg_label(whatwg_name: str, label: str) -> None:
             f"  (b) if intermediate is a wrong canonical: fix the existing "
             f"alias routing\n"
             f"  (c) if intermediate is correct but detect differs: the "
-            f"markup stage's _validate_bytes rejected the sample under that "
+            f"markup stage's decode check rejected the sample under that "
             f"encoding and fell through to statistical detection"
         )

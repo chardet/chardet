@@ -144,6 +144,17 @@ class EncodingInfo:
     #: by their own stages.
     is_multibyte_cjk: bool
     languages: tuple[str, ...]
+    #: The Windows/CP code page that stands in for this encoding in
+    #: practice (``iso8859-1`` -> ``cp1252``, ``euc_kr`` -> ``cp949``), as a
+    #: canonical registry name, or ``None`` when there is none.  It decodes
+    #: nearly everything this encoding does, though not always byte for
+    #: byte: the Windows code pages leave a few positions undefined that
+    #: the ISO standards map, and cp932 is a superset of plain Shift_JIS
+    #: rather than of JIS X 0213, so code that swaps one name for the other
+    #: checks the data first.  A codec fact only: which pairs the
+    #: ``prefer_superset`` option applies is
+    #: :data:`chardet.output_names.PREFERRED_SUPERSET`'s call (ADR-0007).
+    superset: str | None = None
 
     @property
     def is_multibyte(self) -> bool:
@@ -194,6 +205,7 @@ _REGISTRY_ENTRIES = (
         era=EncodingEra.MODERN_WEB,
         is_multibyte_cjk=False,
         languages=(),
+        superset="cp1252",
     ),
     EncodingInfo(
         name="utf-8",
@@ -342,6 +354,7 @@ _REGISTRY_ENTRIES = (
         era=EncodingEra.MODERN_WEB,
         is_multibyte_cjk=True,
         languages=("ko",),
+        superset="cp949",
     ),
     EncodingInfo(
         # Note: "chinese" is NOT listed here because the label is
@@ -431,6 +444,7 @@ _REGISTRY_ENTRIES = (
         era=EncodingEra.MODERN_WEB,
         is_multibyte_cjk=True,
         languages=("ja",),
+        superset="cp932",
     ),
     # Windows code pages - Modern Web
     EncodingInfo(
@@ -532,6 +546,7 @@ _REGISTRY_ENTRIES = (
         era=EncodingEra.MODERN_WEB,
         is_multibyte_cjk=False,
         languages=("th",),
+        superset="cp874",
     ),
     # === LEGACY_ISO ===
     EncodingInfo(
@@ -540,6 +555,7 @@ _REGISTRY_ENTRIES = (
         era=EncodingEra.LEGACY_ISO,
         is_multibyte_cjk=False,
         languages=_WESTERN,
+        superset="cp1252",
     ),
     EncodingInfo(
         name="iso8859-2",
@@ -547,6 +563,7 @@ _REGISTRY_ENTRIES = (
         era=EncodingEra.LEGACY_ISO,
         is_multibyte_cjk=False,
         languages=_CENTRAL_EU,
+        superset="cp1250",
     ),
     EncodingInfo(
         name="iso8859-3",
@@ -568,6 +585,7 @@ _REGISTRY_ENTRIES = (
         era=EncodingEra.LEGACY_ISO,
         is_multibyte_cjk=False,
         languages=_CYRILLIC,
+        superset="cp1251",
     ),
     EncodingInfo(
         # The -E ("explicit directionality") and -I ("implicit
@@ -589,6 +607,7 @@ _REGISTRY_ENTRIES = (
         era=EncodingEra.LEGACY_ISO,
         is_multibyte_cjk=False,
         languages=_ARABIC,
+        superset="cp1256",
     ),
     EncodingInfo(
         name="iso8859-7",
@@ -602,6 +621,7 @@ _REGISTRY_ENTRIES = (
         era=EncodingEra.LEGACY_ISO,
         is_multibyte_cjk=False,
         languages=("el",),
+        superset="cp1253",
     ),
     EncodingInfo(
         # WHATWG and IANA distinguish ISO-8859-8 ("visual", -E) from
@@ -625,6 +645,7 @@ _REGISTRY_ENTRIES = (
         era=EncodingEra.LEGACY_ISO,
         is_multibyte_cjk=False,
         languages=("he",),
+        superset="cp1255",
     ),
     EncodingInfo(
         name="iso8859-9",
@@ -632,6 +653,7 @@ _REGISTRY_ENTRIES = (
         era=EncodingEra.LEGACY_ISO,
         is_multibyte_cjk=False,
         languages=("tr",),
+        superset="cp1254",
     ),
     EncodingInfo(
         name="iso8859-10",
@@ -653,6 +675,7 @@ _REGISTRY_ENTRIES = (
         era=EncodingEra.LEGACY_ISO,
         is_multibyte_cjk=False,
         languages=_BALTIC,
+        superset="cp1257",
     ),
     EncodingInfo(
         # ``iso-celtic`` is a Python stdlib alias, not a WHATWG/IANA name.
@@ -993,6 +1016,18 @@ _REGISTRY_ENTRIES = (
 
 REGISTRY: MappingProxyType[str, EncodingInfo] = MappingProxyType(
     {e.name: e for e in _REGISTRY_ENTRIES}
+)
+
+#: The Windows superset of each multi-byte CJK encoding that has one
+#: (``shift_jis_2004`` -> ``cp932``, ``euc_kr`` -> ``cp949``).  The one
+#: selection the markup promotion and the dead-heat promotion share; the
+#: ISO/Windows pairs stay out of both (ADR-0007).
+CJK_SUPERSETS: MappingProxyType[str, str] = MappingProxyType(
+    {
+        e.name: e.superset
+        for e in _REGISTRY_ENTRIES
+        if e.is_multibyte_cjk and e.superset is not None
+    }
 )
 
 # Names ``codecs.lookup`` may be asked about, normalized the way its search

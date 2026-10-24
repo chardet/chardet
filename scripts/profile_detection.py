@@ -80,6 +80,7 @@ def run_per_file_timing(data_dir: Path, slow_count: int) -> None:
     results: list[tuple[float, str, str, str | None, int, dict[str, float]]] = []
 
     candidates = get_candidates(EncodingEra.ALL, None, None)
+    allowed = frozenset(enc.name for enc in candidates)
 
     for enc, lang, filepath in test_files:
         data = filepath.read_bytes()
@@ -165,7 +166,7 @@ def run_per_file_timing(data_dir: Path, slow_count: int) -> None:
 
         # Markup
         t0 = time.perf_counter()
-        markup_result = detect_markup_charset(data_truncated)
+        markup_result = detect_markup_charset(data_truncated, allowed, utf8_precheck)
         stages["markup"] = time.perf_counter() - t0
         if markup_result is not None:
             stages["exit_stage"] = "markup"

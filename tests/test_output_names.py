@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import codecs
 
+import pytest
+
 from chardet.output_names import (
     _COMPAT_NAMES,
     NARROWER_DISPLAY_NAMES,
@@ -10,7 +12,10 @@ from chardet.output_names import (
     apply_compat_names,
     apply_legacy_rename,
     apply_preferred_superset,
+    decodes_under_public_name,
+    display_codec,
 )
+from chardet.registry import REGISTRY, lookup_encoding
 
 
 def test_apply_preferred_superset_ascii():
@@ -138,3 +143,69 @@ def test_compat_rename_ignores_non_narrowing_names() -> None:
         apply_compat_names({"encoding": "cp1252"}, b"\x81")["encoding"]
         == "Windows-1252"
     )
+
+
+def test_preferred_superset_is_the_frozen_selection() -> None:
+    """The ``prefer_superset`` selection is public via ``LEGACY_MAP``.
+
+    Adding or dropping a pair changes ``prefer_superset=True`` output, so
+    it is pinned here (ADR-0007).
+    """
+    assert PREFERRED_SUPERSET == {
+        "ascii": "cp1252",
+        "euc_kr": "cp949",
+        "iso8859-1": "cp1252",
+        "iso8859-2": "cp1250",
+        "iso8859-5": "cp1251",
+        "iso8859-6": "cp1256",
+        "iso8859-7": "cp1253",
+        "iso8859-8": "cp1255",
+        "iso8859-9": "cp1254",
+        "iso8859-11": "cp874",
+        "iso8859-13": "cp1257",
+        "tis-620": "cp874",
+    }
+
+
+@pytest.mark.parametrize(("subset", "superset"), sorted(PREFERRED_SUPERSET.items()))
+def test_preferred_superset_agrees_with_registry(subset: str, superset: str) -> None:
+    """Every selected pair is a superset fact the registry also states.
+
+    ``iso8859-11`` is an alias, so the key goes through ``lookup_encoding``.
+    """
+    canonical = lookup_encoding(subset)
+    assert canonical is not None
+    assert REGISTRY[canonical].superset == superset
+
+
+def test_display_codec_resolves_the_display_name() -> None:
+    assert display_codec("shift_jis_2004") == "shift_jis"
+    assert display_codec("euc_jis_2004") == "euc_jp"
+    assert display_codec("euc_kr") == "euc_kr"
+    assert display_codec("cp1252") == "cp1252"
+    assert display_codec("utf-8") == "utf-8"
+
+
+def test_public_name_check_skips_same_codec_display_names() -> None:
+    """``Windows-1252`` is cp1252 under another spelling: no second decode."""
+    assert decodes_under_public_name(b"\x81", "cp1252", complete=False)
+
+
+def test_public_name_check_tolerant_ignores_the_internal_codec() -> None:
+    """``complete=False`` trusts validity's tolerant check of the internal name."""
+    assert decodes_under_public_name(b"\xff", "ascii", complete=False)
+
+
+def test_public_name_check_rejects_a_narrower_display_codec() -> None:
+    """``EUC-JP`` lacks the JIS X 0213 rows ``euc_jis_2004`` validated."""
+    data = b"hello \xa2\xaf"
+    assert not decodes_under_public_name(data, "euc_jis_2004", complete=False)
+    assert not decodes_under_public_name(data, "euc_jis_2004", complete=True)
+
+
+def test_public_name_check_complete_is_strict_on_both_names() -> None:
+    jp = "日本語".encode("euc_jp")
+    assert decodes_under_public_name(jp, "euc_jis_2004", complete=True)
+    assert not decodes_under_public_name(jp[:-1], "euc_jis_2004", complete=True)
+    assert decodes_under_public_name(jp[:-1], "euc_jis_2004", complete=False)
+    assert not decodes_under_public_name(b"\xff", "ascii", complete=True)

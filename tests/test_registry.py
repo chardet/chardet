@@ -413,3 +413,12 @@ def test_is_multibyte_is_a_deprecated_alias():
     entry = REGISTRY["shift_jis_2004"]
     with pytest.warns(DeprecationWarning, match="is_multibyte_cjk"):
         assert entry.is_multibyte is entry.is_multibyte_cjk
+
+
+def test_superset_values_are_canonical_registry_names():
+    """``EncodingInfo.superset`` names a registry entry, never an alias."""
+    with_superset = {e.name: e.superset for e in REGISTRY.values() if e.superset}
+    assert with_superset
+    for name, superset in with_superset.items():
+        assert superset in REGISTRY, name
+        assert superset != name

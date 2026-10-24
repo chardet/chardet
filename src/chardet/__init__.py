@@ -4,21 +4,12 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 
-from chardet._utils import (
-    _DEFAULT_CHUNK_SIZE,
-    DEFAULT_MAX_BYTES,
-    MINIMUM_THRESHOLD,
-    _resolve_prefer_superset,
-    _validate_max_bytes,
-    _warn_deprecated_chunk_size,
-)
+from chardet._request import _DEFAULT_CHUNK_SIZE, DetectionRequest
+from chardet._utils import DEFAULT_MAX_BYTES, MINIMUM_THRESHOLD
 from chardet._version import __version__
 from chardet.detector import UniversalDetector
 from chardet.enums import EncodingEra, LanguageFilter
-from chardet.output_names import apply_compat_names, apply_preferred_superset
 from chardet.pipeline import DetectionDict, DetectionResult
-from chardet.pipeline.orchestrator import run_pipeline
-from chardet.registry import _validate_encoding, normalize_encodings
 
 __all__ = [
     "DEFAULT_MAX_BYTES",
@@ -108,35 +99,21 @@ def detect(  # noqa: PLR0913
     :returns: A dictionary with keys ``"encoding"``, ``"confidence"``,
         ``"language"``, and ``"mime_type"``.
     """
-    _warn_deprecated_chunk_size(chunk_size)
-    _validate_max_bytes(max_bytes)
-    prefer_superset = _resolve_prefer_superset(should_rename_legacy, prefer_superset)
-    include = normalize_encodings(include_encodings, "include_encodings")
-    exclude = normalize_encodings(exclude_encodings, "exclude_encodings")
-    no_match = _validate_encoding(no_match_encoding, "no_match_encoding")
-    empty = _validate_encoding(empty_input_encoding, "empty_input_encoding")
-    data = byte_str if isinstance(byte_str, bytes) else bytes(byte_str)
-    results = run_pipeline(
-        data,
-        encoding_era,
+    request = DetectionRequest.resolve(
+        should_rename_legacy=should_rename_legacy,
+        encoding_era=encoding_era,
+        chunk_size=chunk_size,
         max_bytes=max_bytes,
-        include_encodings=include,
-        exclude_encodings=exclude,
-        no_match_encoding=no_match,
-        empty_input_encoding=empty,
+        prefer_superset=prefer_superset,
+        compat_names=compat_names,
+        include_encodings=include_encodings,
+        exclude_encodings=exclude_encodings,
+        no_match_encoding=no_match_encoding,
+        empty_input_encoding=empty_input_encoding,
+        stacklevel=3,
     )
-    result = results[0].to_dict()
-    window = data[:max_bytes]
-    if prefer_superset:
-        apply_preferred_superset(
-            result,
-            window,
-            include_encodings=include,
-            exclude_encodings=exclude,
-        )
-    if compat_names:
-        apply_compat_names(result, window)
-    return result
+    data = byte_str if isinstance(byte_str, bytes) else bytes(byte_str)
+    return request.render(request.run(data), data[:max_bytes])[0]
 
 
 def detect_all(  # noqa: PLR0913
@@ -188,46 +165,23 @@ def detect_all(  # noqa: PLR0913
     :returns: A list of dictionaries, sorted by descending confidence, one
         per encoding name.
     """
-    _warn_deprecated_chunk_size(chunk_size)
-    _validate_max_bytes(max_bytes)
-    prefer_superset = _resolve_prefer_superset(should_rename_legacy, prefer_superset)
-    include = normalize_encodings(include_encodings, "include_encodings")
-    exclude = normalize_encodings(exclude_encodings, "exclude_encodings")
-    no_match = _validate_encoding(no_match_encoding, "no_match_encoding")
-    empty = _validate_encoding(empty_input_encoding, "empty_input_encoding")
-    data = byte_str if isinstance(byte_str, bytes) else bytes(byte_str)
-    results = run_pipeline(
-        data,
-        encoding_era,
+    request = DetectionRequest.resolve(
+        should_rename_legacy=should_rename_legacy,
+        encoding_era=encoding_era,
+        chunk_size=chunk_size,
         max_bytes=max_bytes,
-        include_encodings=include,
-        exclude_encodings=exclude,
-        no_match_encoding=no_match,
-        empty_input_encoding=empty,
-        full_ranking=True,
+        prefer_superset=prefer_superset,
+        compat_names=compat_names,
+        include_encodings=include_encodings,
+        exclude_encodings=exclude_encodings,
+        no_match_encoding=no_match_encoding,
+        empty_input_encoding=empty_input_encoding,
+        stacklevel=3,
     )
-    dicts = [r.to_dict() for r in results]
-    if not ignore_threshold:
-        filtered = [d for d in dicts if d["confidence"] > MINIMUM_THRESHOLD]
-        if filtered:
-            dicts = filtered
-    window = data[:max_bytes]
-    for d in dicts:
-        if prefer_superset:
-            apply_preferred_superset(
-                d, window, include_encodings=include, exclude_encodings=exclude
-            )
-        if compat_names:
-            apply_compat_names(d, window)
-    dicts.sort(key=lambda d: d["confidence"], reverse=True)
-    # The superset remap can land two candidates on one name (ISO-8859-7
-    # and Windows-1253 both become Windows-1253).  Keep the first, which
-    # carries the higher confidence; the sort is stable, so ties keep the
-    # pipeline's order.
-    seen: set[str | None] = set()
-    unique: list[DetectionDict] = []
-    for d in dicts:
-        if d["encoding"] not in seen:
-            seen.add(d["encoding"])
-            unique.append(d)
-    return unique
+    data = byte_str if isinstance(byte_str, bytes) else bytes(byte_str)
+    return request.render(
+        request.run(data, full_ranking=True),
+        data[:max_bytes],
+        all_results=True,
+        ignore_threshold=ignore_threshold,
+    )
