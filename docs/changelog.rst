@@ -36,12 +36,19 @@ Unreleased
 - The markup stage now owns the whole charset-declaration decision,
   and its parser (``iter_declarations``) can be tested on its own,
   without a window decode in the way.  A declared Shift_JIS or EUC-KR
-  page costs one window decode instead of two.  One behavior changed:
-  when ``include_encodings`` or ``exclude_encodings`` rules out the
-  first declaration on a page, a later declaration is now honored
-  instead of the page falling through to statistical scoring.  Every
-  other result is unchanged.
+  page costs one window decode instead of two.  No result changed.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+
+**Performance:**
+
+- A charset declaration that fails to decode the window is now checked
+  once, however many times the page repeats it.  Each check reads the
+  whole window, so 195 ``<meta charset=euc-kr>`` tags in front of a
+  16 MiB window ending in a bad EUC-KR pair took 14s with
+  ``max_bytes=len(data)``, and now take 0.2s, about the same as without
+  the tags.
+  (`Samina <https://github.com/Samin061>`_,
+  `#411 <https://github.com/chardet/chardet/pull/411>`_)
 
 **Bug Fixes:**
 

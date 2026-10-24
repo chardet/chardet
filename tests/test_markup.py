@@ -536,25 +536,39 @@ def test_stale_prolog_does_not_hide_a_correct_meta():
 _CYRILLIC_1251 = "Съешь же ещё этих мягких французских булок. ".encode("cp1251") * 20
 
 
-def test_filtered_out_declaration_does_not_hide_a_later_one():
-    """The allowed gate is per declaration: a later allowed one still answers.
+def test_filtered_out_declaration_that_decodes_ends_the_scan():
+    """A declaration that decodes but is filtered out leaves the page unanswered.
 
-    ISO-8859-5 decodes any byte string, so the prolog is accepted on the
-    bytes alone; excluding it must move on to the meta rather than drop
-    every declaration on the page.
+    The page named an encoding that fits its bytes.  Moving on to the next
+    declaration would mostly find a Latin-1 default that decodes anything,
+    and report Shift_JIS text as ISO-8859-1 at declaration confidence.
     """
+    sjis = "日本語のテキストです。東京都の天気は晴れです。".encode("shift_jis") * 5
     data = (
+        b'<?xml version="1.0" encoding="Shift_JIS"?>'
+        b'<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">'
+        + sjis
+    )
+    assert detect_markup_charset(data, _ALL - {"shift_jis_2004"}) is None
+    result = detect(data, exclude_encodings=["shift_jis_2004"])
+    assert result["encoding"] == "CP932"
+    assert result["mime_type"] == "text/plain"
+
+    cyrillic = (
         b'<?xml version="1.0" encoding="iso-8859-5"?>'
         b'<meta charset="windows-1251">' + _CYRILLIC_1251
     )
-    allowed = _ALL - {"iso8859-5"}
-    assert detect_markup_charset(data, allowed) == DetectionResult(
+    assert detect_markup_charset(cyrillic, _ALL - {"iso8859-5"}) is None
+
+
+def test_filtered_out_declaration_that_fails_does_not_hide_a_later_one():
+    data = (
+        b'<?xml version="1.0" encoding="euc-jp"?>'
+        b'<meta charset="windows-1251">' + _CYRILLIC_1251 + b"\x8e\xff"
+    )
+    assert detect_markup_charset(data, _ALL - {"euc_jis_2004"}) == DetectionResult(
         "cp1251", DETERMINISTIC_CONFIDENCE, None, "text/html"
     )
-    result = detect(data, exclude_encodings=["iso-8859-5"])
-    assert result["encoding"] == "Windows-1251"
-    assert result["confidence"] == 0.95
-    assert result["mime_type"] == "text/html"
 
 
 def test_single_filtered_out_declaration_falls_through():
@@ -750,6 +764,62 @@ def test_declared_page_window_decode_budget(data: bytes, expected: str, budget: 
 
     with patch.object(markup_mod, "decodes_without_error", counting):
         assert detect(data)["encoding"] == expected
+    assert len(window_decodes) == budget, window_decodes
+
+
+@_needs_interpreted_build
+@pytest.mark.parametrize(
+    ("data", "allowed", "expected", "budget"),
+    [
+        (
+            b"<meta charset=euc-kr>" * 150
+            + b"<meta charset=windows-1252>"
+            + b"plain text " * 1000
+            + b"\xb0 ",
+            _ALL,
+            "cp1252",
+            3,
+        ),
+        (
+            "<meta charset=cp424>".encode("cp037") * 150
+            + ("hello mainframe " * 400).encode("cp037")
+            + b"\x70",
+            _ALL,
+            None,
+            1,
+        ),
+        (
+            b"<meta charset=shift_jis>" * 150
+            + "日本語のテキストです。".encode("shift_jis") * 1000,
+            _ALL - {"shift_jis_2004"},
+            None,
+            1,
+        ),
+    ],
+    ids=["html", "ebcdic", "filtered"],
+)
+def test_repeated_declaration_decodes_the_window_once(
+    data: bytes, allowed: frozenset[str], expected: str | None, budget: int
+):
+    """A label that already failed the window decode is not decoded again.
+
+    Each failed declaration costs a decode of the whole window, so a head
+    repeating one bad label multiplied the window by the number of tags: 195
+    ``<meta charset=euc-kr>`` tags over a 16 MiB window took 36s instead of
+    0.4s.  The next distinct label is still tried.  A filtered-out label that
+    decodes ends the scan on its first decode.
+    """
+    real = markup_mod.decodes_without_error
+    window_decodes: list[str] = []
+
+    def counting(buf: bytes, encoding: str) -> bool:
+        if len(buf) > markup_mod._SCAN_LIMIT:
+            window_decodes.append(encoding)
+        return real(buf, encoding)
+
+    with patch.object(markup_mod, "decodes_without_error", counting):
+        result = detect_markup_charset(data, allowed)
+    assert (result.encoding if result else None) == expected
     assert len(window_decodes) == budget, window_decodes
 
 

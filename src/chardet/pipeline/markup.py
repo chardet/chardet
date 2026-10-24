@@ -339,8 +339,27 @@ def iter_declarations(data: bytes) -> Iterator[Declaration]:
         yield pep263
 
 
-def _declared_answer(data: bytes, encoding: str, allowed: frozenset[str]) -> str | None:
-    """Return the name to report for a declaration of *encoding*, or ``None``.
+class _Verdict(NamedTuple):
+    """What one declaration says about the window.
+
+    :ivar answer: The name to report, or ``None``.
+    :ivar settled: Whether the declared encoding or its Windows superset
+        decodes the window, allowed or not.  A settled declaration ends
+        the scan even when it has no answer to give: the page named an
+        encoding that fits its bytes, and when the caller's filters rule
+        that out, a later declaration is not more trustworthy for it.
+        Often the later one is a Latin-1 default that decodes any bytes.
+    """
+
+    answer: str | None
+    settled: bool
+
+
+_UNSETTLED = _Verdict(None, settled=False)
+
+
+def _declared_answer(data: bytes, encoding: str, allowed: frozenset[str]) -> _Verdict:
+    """Return what a declaration of *encoding* says about *data*.
 
     A declaration is an answer only if the declared encoding, or its Windows
     superset, decodes the whole of *data*, and only if that name is in
@@ -350,7 +369,8 @@ def _declared_answer(data: bytes, encoding: str, allowed: frozenset[str]) -> str
     internal name, which decodes.)  The decoder stops at the first bad
     sequence, so a declaration that lies about the header fails as fast as
     a head-only check would, and a cut multi-byte sequence at the very end
-    is tolerated as everywhere else.
+    is tolerated as everywhere else.  A declaration that decodes but names
+    nothing in *allowed* is settled without an answer (see :class:`_Verdict`).
 
     For a declared CJK encoding with a Windows superset in *allowed*
     (Shift_JIS and CP932, EUC-KR and CP949), the superset is reported when
@@ -369,17 +389,24 @@ def _declared_answer(data: bytes, encoding: str, allowed: frozenset[str]) -> str
     """
     promotion = _MARKUP_SUPERSET_PROMOTIONS.get(encoding)
     if promotion is None or promotion.superset not in allowed:
-        if encoding in allowed and decodes_without_error(data, encoding):
-            return encoding
-        return None
+        if decodes_without_error(data, encoding):
+            return _Verdict(encoding if encoding in allowed else None, settled=True)
+        # A failed subset is still settled when the superset the caller
+        # ruled out decodes, as a declared EUC-KR page with CP949 hangul is.
+        settled = promotion is not None and decodes_without_error(
+            data, promotion.superset
+        )
+        return _Verdict(None, settled)
     reported_codec, superset = promotion
     if encoding not in allowed:
         # The declared name cannot be reported.  The superset stands in for
         # it only when the declared encoding itself fails the window; a
         # declaration that decodes is an answer, just not an allowed one.
         if decodes_without_error(data, encoding):
-            return None
-        return superset if decodes_without_error(data, superset) else None
+            return _Verdict(None, settled=True)
+        if decodes_without_error(data, superset):
+            return _Verdict(superset, settled=True)
+        return _UNSETTLED
     head = data[:_SCAN_LIMIT]
     # The orchestrator's context cannot be shared: its structural cache is
     # keyed by encoding name only, and this scores a different slice.
@@ -389,26 +416,28 @@ def _declared_answer(data: bytes, encoding: str, allowed: frozenset[str]) -> str
     if superset_score > base_score:
         # The superset fits the structure better; take it if it decodes.
         if decodes_without_error(data, superset):
-            return superset
-        return encoding if decodes_without_error(data, encoding) else None
+            return _Verdict(superset, settled=True)
+        if decodes_without_error(data, encoding):
+            return _Verdict(encoding, settled=True)
+        return _UNSETTLED
     # The reported codec is a subset of the declared one: plain shift_jis
     # decodes nothing that shift_jis_2004 cannot, and euc_kr reports as
     # itself.  So when the reported codec decodes the window, the declared
     # encoding does too, and a clean declared page costs this one decode.
     if decodes_without_error(data, reported_codec):
-        return encoding
+        return _Verdict(encoding, settled=True)
     # Decode-safety: if the reported name cannot decode the data, the
     # superset is the only answer a caller can actually use with
     # ``.decode()``, regardless of the structural tie.
     if decodes_without_error(data, superset):
-        return superset
+        return _Verdict(superset, settled=True)
     # Neither the reported codec nor the superset decodes.  The declared
     # encoding is still the answer if it decodes (a JIS X 0213 character
     # that only shift_jis_2004 maps); when the reported codec is the same
     # codec, its failure above already settled that it does not.
     if reported_codec != encoding and decodes_without_error(data, encoding):
-        return encoding
-    return None
+        return _Verdict(encoding, settled=True)
+    return _UNSETTLED
 
 
 def detect_markup_charset(
@@ -423,9 +452,12 @@ def detect_markup_charset(
     happen to be pure ASCII.  Declarations from :func:`iter_declarations`
     are tried in order.  One counts only if the name it resolves to, or its
     Windows superset (see :func:`_declared_answer`), decodes the whole of
-    *data* and is in *allowed*.  A declaration that fails is skipped and
-    the next one is tried, so a stale prolog does not hide a correct meta
-    and a filtered-out first declaration does not hide a later one.
+    *data* and is in *allowed*.  A declaration that fails to decode is
+    skipped and the next one is tried, so a stale prolog does not hide a
+    correct meta.  A declaration that decodes but is filtered out ends the
+    scan with no answer, leaving the page to the later stages, the same as
+    a page without one.  Each failed encoding is decoded once: the head can
+    repeat one label hundreds of times, and every try reads the window.
 
     A declaration is honored over pure ASCII, since the declared encoding
     decodes those bytes identically, but not over genuine UTF-8 structure:
@@ -442,11 +474,16 @@ def detect_markup_charset(
     :returns: A :class:`DetectionResult` with confidence 0.95 (or the UTF-8
         precheck's), or ``None`` when no declaration is accepted.
     """
+    rejected: set[str] = set()
     for declaration in iter_declarations(data):
-        if declaration.encoding is None:
+        encoding = declaration.encoding
+        if encoding is None or encoding in rejected:
             continue
-        answer = _declared_answer(data, declaration.encoding, allowed)
+        answer, settled = _declared_answer(data, encoding, allowed)
         if answer is None:
+            if settled:
+                return None
+            rejected.add(encoding)
             continue
         if (
             utf8_precheck is not None
