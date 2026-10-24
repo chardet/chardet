@@ -33,6 +33,20 @@ Unreleased
   buffer on every read.  ADR-0007 has the reasoning.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 
+- The markup stage now owns the whole charset-declaration decision,
+  and its parser (``iter_declarations``) can be tested on its own,
+  without a window decode in the way.  A declared Shift_JIS or EUC-KR
+  page costs one window decode instead of two.  A declaration that fails
+  to decode the window is now checked once, however many times the page
+  repeats it.  Each check reads the whole window, so 195
+  ``<meta charset=euc-kr>`` tags in front of a 16 MiB window ending in a
+  bad EUC-KR pair took 14s with ``max_bytes=len(data)``, and now take
+  0.2s, about the same as without the tags.  No result changed.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude;
+  `Samina <https://github.com/Samin061>`_,
+  `#408 <https://github.com/chardet/chardet/pull/408>`_,
+  `#411 <https://github.com/chardet/chardet/pull/411>`_)
+
 **Bug Fixes:**
 
 - The warning for an excluded ``no_match_encoding`` now points at the
