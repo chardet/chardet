@@ -10,8 +10,18 @@ this module is compiled with mypyc, which does not support PEP 563 string
 annotations.
 """
 
-from chardet._utils import EVIDENCE_CAP_BYTES, count_deleted, decodes_without_error
+import codecs
+
+from chardet._utils import (
+    _DECODE_CHUNK_SIZE,
+    EVIDENCE_CAP_BYTES,
+    count_deleted,
+    decodes_without_error,
+)
 from chardet.pipeline import DETERMINISTIC_CONFIDENCE, DetectionResult
+
+# HTML/XML syntax characters that UTF-7 can smuggle inside a shifted run.
+_MARKUP_CHARS: str = "<>&\"'"
 
 # Byte values legal inside an HZ-GB-2312 ``~{...~}`` region.
 _HZ_GB_BYTES: bytes = bytes(range(0x21, 0x7F))
@@ -277,6 +287,29 @@ def _has_valid_utf7_sequences(data: bytes, max_start: int, max_end: int) -> bool
                     continue
             return True
         start = max(pos, i)
+
+
+def utf7_shifts_markup(data: bytes) -> bool:
+    """Return True if a UTF-7 shifted run in *data* decodes to markup syntax.
+
+    ``+ADw-`` is ``<`` in UTF-7, so a shifted run can turn ASCII bytes that
+    carry no tag into one (the UTF-7 XSS that made browsers drop the
+    encoding).  Encoders write these characters directly as a rule.  Read
+    as UTF-7, a direct character decodes to itself and the shift markers
+    ``+`` and ``-`` are not among them, so the decode holds more of one
+    than the bytes do exactly when a run shifted it.
+
+    *data* must already decode as UTF-7.  The decode is chunked like
+    :func:`~chardet._utils.decodes_without_error`, so the transient text
+    stays bounded on a large window.
+    """
+    decoder = codecs.getincrementaldecoder("utf-7")()
+    decoded = dict.fromkeys(_MARKUP_CHARS, 0)
+    for pos in range(0, len(data), _DECODE_CHUNK_SIZE):
+        text = decoder.decode(data[pos : pos + _DECODE_CHUNK_SIZE], final=False)
+        for ch in _MARKUP_CHARS:
+            decoded[ch] += text.count(ch)
+    return any(decoded[ch] > data.count(ord(ch)) for ch in _MARKUP_CHARS)
 
 
 def _iso2022_variant(data: bytes) -> tuple[str, str] | None:

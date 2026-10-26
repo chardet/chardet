@@ -120,6 +120,45 @@ def test_xml_charset_declaration():
     assert result[0].encoding == "iso8859-1"
 
 
+@pytest.mark.parametrize(
+    ("head", "expected", "mime_type"),
+    [
+        (b'<html><head><meta charset="utf-8"></head><body>', "utf-8", "text/html"),
+        (
+            b'<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">',
+            "iso8859-1",
+            "text/html",
+        ),
+        (b'<?xml version="1.0" encoding="UTF-8"?><r>', "utf-8", "text/xml"),
+        (b"# -*- coding: utf-8 -*-\ns = '", "utf-8", "text/x-python"),
+    ],
+)
+def test_declaration_beats_utf7_escape(head: bytes, expected: str, mime_type: str):
+    """A declared charset is not re-read as UTF-7, which decodes to markup."""
+    # "<script>alert(1)</script>" with the tags in UTF-7 shifted runs.
+    payload = b"+ADwAcwBjAHIAaQBwAHQAPg-alert(1)+ADwALwBzAGMAcgBpAHAAdAA+-"
+    assert payload.decode("utf-7") == "<script>alert(1)</script>"
+    # Without a declaration the escape stage reads the payload as UTF-7.
+    undeclared = run_pipeline(b"<p>" + payload + b"</p>", EncodingEra.ALL)
+    assert undeclared[0].encoding == "utf-7"
+    data = head + b"<p>" + payload + b"</p>"
+    result = run_pipeline(data, EncodingEra.ALL)
+    assert result[0].encoding == expected
+    assert result[0].mime_type == mime_type
+    assert "<script>" not in data.decode(expected)
+
+
+def test_utf7_under_stale_declaration_still_utf7():
+    """UTF-7 that shifts only non-ASCII text outranks a stale declaration."""
+    data = (
+        b'<?xml version="1.0" encoding="utf-8"?><r>'
+        + "Héllo, 世界".encode("utf-7")
+        + b"</r>"
+    )
+    result = run_pipeline(data, EncodingEra.ALL)
+    assert result[0].encoding == "utf-7"
+
+
 # ---------------------------------------------------------------------------
 # Markup superset promotion
 # ---------------------------------------------------------------------------

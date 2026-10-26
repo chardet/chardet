@@ -19,7 +19,7 @@ from chardet.pipeline import (
 from chardet.pipeline.ascii import detect_ascii
 from chardet.pipeline.binary import is_binary
 from chardet.pipeline.bom import detect_bom
-from chardet.pipeline.escape import detect_escape_encoding
+from chardet.pipeline.escape import detect_escape_encoding, utf7_shifts_markup
 from chardet.pipeline.language import fill_languages
 from chardet.pipeline.magic import detect_magic
 from chardet.pipeline.markup import detect_markup_charset
@@ -256,6 +256,24 @@ def _score_structural_candidates(
     return boosted
 
 
+def _declared_over_utf7(
+    data: bytes, escape_result: DetectionResult, allowed: frozenset[str]
+) -> DetectionResult:
+    """Keep a page's declared charset over a UTF-7 reading that adds markup.
+
+    UTF-7 is the one escape encoding whose shifted runs can decode to
+    ASCII, so ``+ADwAcwBjAHIAaQBwAHQAPg-`` reads as ``<script>``.  When the
+    page declares a charset that decodes it, and reading it as UTF-7
+    instead would add markup the declared reading does not have, the
+    declaration stands, as it does in every browser.
+    """
+    if escape_result.encoding == "utf-7":
+        markup_result = detect_markup_charset(data, allowed)
+        if markup_result is not None and utf7_shifts_markup(data):
+            return markup_result
+    return escape_result
+
+
 def _with_default_mime(result: DetectionResult) -> DetectionResult:
     """Default ``mime_type`` to ``text/plain`` (text) or ``application/octet-stream`` (binary)."""
     if result.mime_type is not None:
@@ -322,7 +340,7 @@ def _run_pipeline_core(  # noqa: PLR0913
         and escape_result.encoding is not None
         and escape_result.encoding in allowed
     ):
-        return [escape_result]
+        return [_declared_over_utf7(data, escape_result, allowed)]
 
     # Magic number detection for known binary formats — runs before
     # UTF-8/ASCII prechecks to avoid unnecessary analysis on binary data.
