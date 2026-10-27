@@ -105,8 +105,14 @@ jobs:
           path: wheelhouse/*.whl
 
   build-mypyc-wheels-windows:
-    name: Build mypyc wheels (windows-latest)
-    runs-on: windows-latest
+    name: Build mypyc wheels (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-latest, cibw_archs_windows: AMD64 }
+          - { os: windows-11-arm, cibw_archs_windows: ARM64 }
     steps:
       - uses: actions/checkout@v4
         with:
@@ -134,12 +140,13 @@ jobs:
       - uses: astral-sh/setup-uv@v7
       - uses: pypa/cibuildwheel@v4.2.0
         env:
+          CIBW_ARCHS_WINDOWS: ${{ matrix.cibw_archs_windows }}
           HATCH_BUILD_HOOK_ENABLE_MYPYC: "true"
           # Cython scoring kernel; without it the wheel is ~1.4x slower.
           HATCH_BUILD_HOOK_ENABLE_CUSTOM: "true"
       - uses: actions/upload-artifact@v4
         with:
-          name: dist-mypyc-windows-latest
+          name: dist-mypyc-${{ matrix.os }}
           path: wheelhouse/*.whl
 
   publish:
