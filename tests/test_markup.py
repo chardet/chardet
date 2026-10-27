@@ -341,6 +341,34 @@ def test_utf16_label_in_ascii_markup_reads_as_utf8(label: bytes):
     assert detect(xml)["encoding"] == "utf-8"
 
 
+@pytest.mark.parametrize(
+    ("label", "body"),
+    [
+        (b"utf-7", b"+ADw-script+AD4-alert(1)+ADw-/script+AD4-"),
+        (b"UTF-7", b"+ADw-img src=x onerror=alert(1)+AD4-"),
+        (b"hz-gb-2312", b"<~{~}script>alert(1)<~{~}/script>"),
+    ],
+)
+def test_utf7_and_hz_labels_are_ignored(label: bytes, body: bytes):
+    """A browser never decodes a page as UTF-7 or HZ, whatever it declares.
+
+    Both decoders turn bytes that are not markup into tags, so honoring
+    the label told the caller to decode inert text into ``<script>``.  The
+    escape stage leaves these bodies alone, and the declaration was the
+    only thing naming the encoding.
+    """
+    page = b'<html><head><meta charset="' + label + b'"></head><body>' + body
+    assert _declarations(page) == _html(None)
+    result = detect(page)
+    assert result["encoding"] == "ascii"
+    assert b"<script" not in body
+    assert "<script" not in page.decode(result["encoding"])
+
+    xml = b'<?xml version="1.0" encoding="' + label + b'"?><a>' + body + b"</a>"
+    assert _declarations(xml) == [Declaration(None, "text/xml")]
+    assert detect(xml)["encoding"] == "ascii"
+
+
 def test_x_user_defined_reads_as_windows_1252():
     page = b'<meta charset="x-user-defined">' + "“café”".encode("cp1252") * 10
     assert _declarations(page) == _html("cp1252")

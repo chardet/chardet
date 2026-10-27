@@ -59,6 +59,14 @@ _SELF_CONTRADICTING_LABELS = frozenset(
     {"utf-16", "utf-16-be", "utf-16-le", "utf-32", "utf-32-be", "utf-32-le"}
 )
 
+# Labels a browser never decodes the page under: ``utf-7`` is not a WHATWG
+# label at all, and ``hz-gb-2312`` maps to the replacement encoding.  Both
+# decoders turn ASCII that is not markup (``+ADw-script+AD4-``,
+# ``<~{~}script>``) into tags, which is why browsers dropped them, so the
+# prescan's answer is to ignore the declaration.  A genuine UTF-7 or HZ
+# stream is still found from its own bytes by the escape stage.
+_IGNORED_LABELS = frozenset({"utf-7", "hz"})
+
 # A tag scan stops at the next ``<`` as well as at ``>``.  A tag that never
 # closes is not a declaration either way, but with ``[^>]`` every unclosed
 # ``<meta`` ran to the end of the head before failing, and a head made of
@@ -241,6 +249,8 @@ def _markup_encoding(raw_name: str) -> str | None:
     encoding = lookup_encoding(raw_name)
     if encoding in _SELF_CONTRADICTING_LABELS:
         return "utf-8"
+    if encoding in _IGNORED_LABELS:
+        return None
     return encoding
 
 
@@ -304,7 +314,9 @@ def iter_declarations(data: bytes) -> Iterator[Declaration]:
     Markup inside ``<!-- -->`` comments is not scanned.  A UTF-16 or UTF-32
     label is read as UTF-8 and ``x-user-defined`` as windows-1252, as in the
     WHATWG prescan, since a declaration found in ASCII bytes cannot be
-    describing UTF-16 text.  A label that is not ASCII is skipped.
+    describing UTF-16 text.  A ``utf-7`` or ``hz-gb-2312`` label resolves
+    to ``None``, since the prescan never decodes a page under either.  A
+    label that is not ASCII is skipped.
 
     This is parsing only: nothing here decodes the window, so whether a
     declaration is believable is left to :func:`detect_markup_charset`.
