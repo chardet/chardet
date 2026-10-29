@@ -8,7 +8,7 @@ import pytest
 import chardet
 from chardet.detector import UniversalDetector
 from chardet.enums import EncodingEra, LanguageFilter
-from chardet.registry import get_candidates, normalize_encodings
+from chardet.registry import REGISTRY, get_candidates, normalize_encodings
 
 
 def test_detect_returns_dict():
@@ -74,6 +74,40 @@ def test_prefer_superset_respects_encoding_filters(
         expected = "Windows-1252"
     assert results
     assert all(result["encoding"] == expected for result in results)
+
+
+_RUSSIAN_ISO_8859_5 = (
+    "Москва является столицей России и крупнейшим городом страны. "
+    "Город расположен на реке Москве и насчитывает более восьми "
+    "столетий истории, начиная с первого упоминания в летописи."
+).encode("iso8859-5")
+
+
+@pytest.mark.parametrize("api", ["detect", "detect_all", "stream"])
+@pytest.mark.parametrize(
+    ("era", "expected"),
+    [
+        (EncodingEra.LEGACY_ISO, "iso8859-5"),
+        (EncodingEra.LEGACY_ISO | EncodingEra.MODERN_WEB, "cp1251"),
+        (EncodingEra.ALL, "cp1251"),
+    ],
+    ids=["legacy_iso", "legacy_iso_and_modern_web", "all"],
+)
+def test_prefer_superset_respects_encoding_era(
+    api: str, era: EncodingEra, expected: str
+):
+    """The superset remap does not name an encoding outside encoding_era."""
+    kwargs = {"encoding_era": era, "prefer_superset": True, "compat_names": False}
+    if api == "stream":
+        detector = UniversalDetector(**kwargs)
+        detector.feed(_RUSSIAN_ISO_8859_5)
+        results = [detector.close()]
+    elif api == "detect_all":
+        results = chardet.detect_all(_RUSSIAN_ISO_8859_5, **kwargs)
+    else:
+        results = [chardet.detect(_RUSSIAN_ISO_8859_5, **kwargs)]
+    assert results[0]["encoding"] == expected
+    assert all(REGISTRY[result["encoding"]].era & era for result in results)
 
 
 def test_detect_utf8_bom():
