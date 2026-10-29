@@ -280,8 +280,6 @@ def _idf_table(models: dict[str, dict[tuple[int, int], int]]) -> bytes:
     in no model score 1 (unknown, neutral).
     """
     num_models = len(models)
-    if num_models == 0:
-        return b"\x01" * 65536
     doc_freq = [0] * 65536
     occupied: list[int] = []
     for bigrams in models.values():
