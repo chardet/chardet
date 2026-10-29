@@ -204,6 +204,7 @@ class DetectionRequest:
                 window,
                 include_encodings=self.include_encodings,
                 exclude_encodings=self.exclude_encodings,
+                encoding_era=self.encoding_era,
             )
         if self.compat_names:
             apply_compat_names(d, window)

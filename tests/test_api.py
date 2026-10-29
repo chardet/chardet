@@ -8,7 +8,7 @@ import pytest
 import chardet
 from chardet.detector import UniversalDetector
 from chardet.enums import EncodingEra, LanguageFilter
-from chardet.registry import get_candidates, normalize_encodings
+from chardet.registry import REGISTRY, get_candidates, normalize_encodings
 
 
 def test_detect_returns_dict():
@@ -74,6 +74,40 @@ def test_prefer_superset_respects_encoding_filters(
         expected = "Windows-1252"
     assert results
     assert all(result["encoding"] == expected for result in results)
+
+
+_RUSSIAN_ISO_8859_5 = (
+    "Москва является столицей России и крупнейшим городом страны. "
+    "Город расположен на реке Москве и насчитывает более восьми "
+    "столетий истории, начиная с первого упоминания в летописи."
+).encode("iso8859-5")
+
+
+@pytest.mark.parametrize("api", ["detect", "detect_all", "stream"])
+@pytest.mark.parametrize(
+    ("era", "expected"),
+    [
+        (EncodingEra.LEGACY_ISO, "iso8859-5"),
+        (EncodingEra.LEGACY_ISO | EncodingEra.MODERN_WEB, "cp1251"),
+        (EncodingEra.ALL, "cp1251"),
+    ],
+    ids=["legacy_iso", "legacy_iso_and_modern_web", "all"],
+)
+def test_prefer_superset_respects_encoding_era(
+    api: str, era: EncodingEra, expected: str
+):
+    """The superset remap does not name an encoding outside encoding_era."""
+    kwargs = {"encoding_era": era, "prefer_superset": True, "compat_names": False}
+    if api == "stream":
+        detector = UniversalDetector(**kwargs)
+        detector.feed(_RUSSIAN_ISO_8859_5)
+        results = [detector.close()]
+    elif api == "detect_all":
+        results = chardet.detect_all(_RUSSIAN_ISO_8859_5, **kwargs)
+    else:
+        results = [chardet.detect(_RUSSIAN_ISO_8859_5, **kwargs)]
+    assert results[0]["encoding"] == expected
+    assert all(REGISTRY[result["encoding"]].era & era for result in results)
 
 
 def test_detect_utf8_bom():
@@ -1077,6 +1111,15 @@ def test_display_name_never_narrower_than_the_data(data: bytes, internal: str):
 def test_display_name_kept_when_it_decodes():
     data = "日本語のテキストです。".encode("euc_jp") * 60
     assert chardet.detect(data)["encoding"] == "EUC-JP"
+
+
+@pytest.mark.parametrize("prefix", [b"", b'<meta charset="windows-1252">'])
+def test_utf8_not_reported_for_garbage_final_sequence(prefix: bytes):
+    """Only a cut final sequence is tolerated, not one no byte can complete."""
+    data = prefix + "café résumé naïve ".encode() * 20 + b"\xf0A"
+    result = chardet.detect(data)
+    assert result["encoding"] != "utf-8"
+    data.decode(result["encoding"])
 
 
 def test_detect_all_prefer_superset_lists_each_name_once():

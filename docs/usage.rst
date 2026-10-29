@@ -131,8 +131,8 @@ how encoding names are returned:
   to their modern Windows/CP superset equivalents (e.g., ASCII →
   Windows-1252, ISO-8859-1 → Windows-1252).  The remap is skipped when
   the superset cannot decode the examined bytes, or when
-  ``include_encodings``/``exclude_encodings`` rule the superset out; the
-  detected name is kept in those cases.
+  ``include_encodings``/``exclude_encodings`` or ``encoding_era`` rule the
+  superset out; the detected name is kept in those cases.
 
 .. code-block:: python
 
