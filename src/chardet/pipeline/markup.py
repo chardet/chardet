@@ -63,8 +63,10 @@ _SELF_CONTRADICTING_LABELS = frozenset(
 # label at all, and ``hz-gb-2312`` maps to the replacement encoding.  Both
 # decoders turn ASCII that is not markup (``+ADw-script+AD4-``,
 # ``<~{~}script>``) into tags, which is why browsers dropped them, so the
-# prescan's answer is to ignore the declaration.  A genuine UTF-7 or HZ
-# stream is still found from its own bytes by the escape stage.
+# prescan's answer is to ignore the declaration.  The PEP 263 cookie
+# follows the same rule, so a label alone never names either encoding.  A
+# genuine UTF-7 or HZ stream is still found from its own bytes by the
+# escape stage.
 _IGNORED_LABELS = frozenset({"utf-7", "hz"})
 
 # A tag scan stops at the next ``<`` as well as at ``>``.  A tag that never
@@ -190,7 +192,10 @@ def _pep263_encoding(raw_name: str) -> str | None:
         ("latin-1-", "iso-8859-1-", "iso-latin-1-")
     ):
         return "iso8859-1"
-    return lookup_encoding(raw_name)
+    encoding = lookup_encoding(raw_name)
+    if encoding in _IGNORED_LABELS:
+        return None
+    return encoding
 
 
 def _pep263_declaration(data: bytes) -> Declaration | None:
@@ -315,8 +320,9 @@ def iter_declarations(data: bytes) -> Iterator[Declaration]:
     label is read as UTF-8 and ``x-user-defined`` as windows-1252, as in the
     WHATWG prescan, since a declaration found in ASCII bytes cannot be
     describing UTF-16 text.  A ``utf-7`` or ``hz-gb-2312`` label resolves
-    to ``None``, since the prescan never decodes a page under either.  A
-    label that is not ASCII is skipped.
+    to ``None`` in every scanner, the PEP 263 cookie included, since the
+    prescan never decodes a page under either.  A label that is not ASCII
+    is skipped.
 
     This is parsing only: nothing here decodes the window, so whether a
     declaration is believable is left to :func:`detect_markup_charset`.

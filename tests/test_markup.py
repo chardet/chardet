@@ -368,6 +368,11 @@ def test_utf7_and_hz_labels_are_ignored(label: bytes, body: bytes):
     assert _declarations(xml) == [Declaration(None, "text/xml")]
     assert detect(xml)["encoding"] == "ascii"
 
+    # The PEP 263 scanner resolves its cookie separately; same rule.
+    source = b"# -*- coding: " + label + b" -*-\ns = '" + body + b"'\n"
+    assert _declarations(source) == [Declaration(None, "text/x-python")]
+    assert detect(source)["encoding"] == "ascii"
+
 
 def test_x_user_defined_reads_as_windows_1252():
     page = b'<meta charset="x-user-defined">' + "“café”".encode("cp1252") * 10
