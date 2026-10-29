@@ -1113,6 +1113,15 @@ def test_display_name_kept_when_it_decodes():
     assert chardet.detect(data)["encoding"] == "EUC-JP"
 
 
+@pytest.mark.parametrize("prefix", [b"", b'<meta charset="windows-1252">'])
+def test_utf8_not_reported_for_garbage_final_sequence(prefix: bytes):
+    """Only a cut final sequence is tolerated, not one no byte can complete."""
+    data = prefix + "café résumé naïve ".encode() * 20 + b"\xf0A"
+    result = chardet.detect(data)
+    assert result["encoding"] != "utf-8"
+    data.decode(result["encoding"])
+
+
 def test_detect_all_prefer_superset_lists_each_name_once():
     """The superset remap must not list one name at two confidences.
 

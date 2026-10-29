@@ -3,11 +3,17 @@
 
 The rewrite (ADR-0006) claims exact equivalence — same verdicts, same
 confidences — on every input.  These tests hold it to that against the
-verbatim copy of the old implementation in ``utf8_oracle.py``.
+verbatim copy of the old implementation in ``utf8_oracle.py``, with one
+deliberate exception: the old validator never examined the bytes inside a
+final sequence that overran the data, so it accepted a window ending in
+bytes no continuation can complete (``E3 FF``, or the surrogate prefix
+``ED A0``).  The rewrite rejects those, since a utf-8 answer has to decode
+the window it was given.
 """
 
 from __future__ import annotations
 
+import codecs
 import random
 
 import pytest
@@ -68,11 +74,12 @@ SNIPPETS = [
     b"\xf0",
     b"\xf0\x9f",
     b"\xf0\x9f\x92",
-    # Truncated tails the old validator never examined (garbage inside the
-    # overrun) — the rewrite must tolerate these identically
+    # Garbage inside a final overrun, which the old validator never
+    # examined and the rewrite rejects (see the module docstring)
     b"\xe3\xff",
     b"\xf0\xff",
     b"\xf0\xff\xff",
+    b"\xed\xa0",
     b"\xed\xbf",
     b"\xe0\x80",
     b"\xf4\x90",
@@ -80,8 +87,36 @@ SNIPPETS = [
 ]
 
 
+def _is_utf8_prefix(data: bytes) -> bool:
+    """Return True if *data* is valid UTF-8 or a cut of valid UTF-8.
+
+    Decodes with ``final=False``, then checks that the deferred tail can be
+    completed at all.  A lone lead always can.  Once the second byte is
+    there, filling the rest with ``80`` gives the smallest code point the
+    tail could encode, and if that one is invalid (a surrogate from
+    ``ED A0``..``ED BF``) every completion is.  Written independently of
+    both the oracle and the rewrite so it can arbitrate between them.
+    """
+    decoder = codecs.getincrementaldecoder("utf-8")()
+    try:
+        decoder.decode(data, final=False)
+    except UnicodeError:
+        return False
+    tail = decoder.getstate()[0]
+    if len(tail) < 2:
+        return True
+    need = 2 if tail[0] < 0xE0 else 3 if tail[0] < 0xF0 else 4
+    try:
+        (tail + b"\x80" * (need - len(tail))).decode("utf-8")
+    except UnicodeError:
+        return False
+    return True
+
+
 def assert_equivalent(data: bytes) -> None:
     expected = oracle_detect_utf8(data)
+    if expected is not None and not _is_utf8_prefix(data):
+        expected = None  # garbage in the final overrun (module docstring)
     actual = detect_utf8(data)
     if expected is None:
         assert actual is None, data
@@ -162,7 +197,7 @@ def test_every_truncation_of_valid_text() -> None:
 def test_chunk_boundary(tail: bytes, straddle: bytes) -> None:
     """Sequences straddling the incremental-decode chunk boundary.
 
-    With and without tolerated tails, at ASCII-fast-path and non-ASCII
+    With truncated and garbage tails, at ASCII-fast-path and non-ASCII
     first chunks.
     """
     for lead_in in (b"a", "é".encode()):
@@ -178,6 +213,6 @@ def test_error_reported_in_chunk_after_lead() -> None:
     """
     data = b"a" * (_CHUNK_SIZE - 1) + b"\xe3" + b"\xff" + b"z"
     assert_equivalent(data)
-    # And the tolerated variant: overrun starts in chunk 1, garbage in chunk 2.
+    # And the overrun variant: lead in chunk 1, garbage in chunk 2.
     data = b"a" * (_CHUNK_SIZE - 1) + b"\xf0" + b"\xff\xff"
     assert_equivalent(data)
