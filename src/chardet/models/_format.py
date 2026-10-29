@@ -281,19 +281,20 @@ def _idf_table(models: dict[str, dict[tuple[int, int], int]]) -> bytes:
     """
     num_models = len(models)
     doc_freq = [0] * 65536
+    occupied: list[int] = []
     for bigrams in models.values():
         for b1, b2 in bigrams:
-            doc_freq[(b1 << 8) | b2] += 1
+            idx = (b1 << 8) | b2
+            if doc_freq[idx] == 0:
+                occupied.append(idx)
+            doc_freq[idx] += 1
     max_idf = math.log(num_models) if num_models > 1 else 1.0
     scale = 254.0 / max_idf if max_idf > 0 else 0.0
-    idf_table = bytearray(65536)
-    for idx in range(65536):
+    idf_table = bytearray(b"\x01" * 65536)
+    for idx in occupied:
         df = doc_freq[idx]
-        if df > 0:
-            idf_val = math.log(num_models / df)
-            idf_table[idx] = max(1, round(idf_val * scale) + 1)
-        else:
-            idf_table[idx] = 1
+        idf_val = math.log(num_models / df)
+        idf_table[idx] = max(1, round(idf_val * scale) + 1)
     return bytes(idf_table)
 
 
