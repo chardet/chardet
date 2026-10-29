@@ -6,17 +6,18 @@ confidences — on every input.  These tests hold it to that against the
 verbatim copy of the old implementation in ``utf8_oracle.py``, with one
 deliberate exception: the old validator never examined the bytes inside a
 final sequence that overran the data, so it accepted a window ending in
-bytes no continuation can complete (``E3 FF``).  The rewrite rejects
-those, since a utf-8 answer has to decode the window it was given.
+bytes no continuation can complete (``E3 FF``, or the surrogate prefix
+``ED A0``).  The rewrite rejects those, since a utf-8 answer has to decode
+the window it was given.
 """
 
 from __future__ import annotations
 
+import codecs
 import random
 
 import pytest
 
-from chardet._utils import decodes_without_error
 from chardet.pipeline.utf8 import _CHUNK_SIZE, detect_utf8
 
 from .utf8_oracle import oracle_detect_utf8
@@ -78,6 +79,7 @@ SNIPPETS = [
     b"\xe3\xff",
     b"\xf0\xff",
     b"\xf0\xff\xff",
+    b"\xed\xa0",
     b"\xed\xbf",
     b"\xe0\x80",
     b"\xf4\x90",
@@ -85,9 +87,35 @@ SNIPPETS = [
 ]
 
 
+def _is_utf8_prefix(data: bytes) -> bool:
+    """Return True if *data* is valid UTF-8 or a cut of valid UTF-8.
+
+    Decodes with ``final=False``, then checks that the deferred tail can be
+    completed at all.  A lone lead always can.  Once the second byte is
+    there, filling the rest with ``80`` gives the smallest code point the
+    tail could encode, and if that one is invalid (a surrogate from
+    ``ED A0``..``ED BF``) every completion is.  Written independently of
+    both the oracle and the rewrite so it can arbitrate between them.
+    """
+    decoder = codecs.getincrementaldecoder("utf-8")()
+    try:
+        decoder.decode(data, final=False)
+    except UnicodeError:
+        return False
+    tail = decoder.getstate()[0]
+    if len(tail) < 2:
+        return True
+    need = 2 if tail[0] < 0xE0 else 3 if tail[0] < 0xF0 else 4
+    try:
+        (tail + b"\x80" * (need - len(tail))).decode("utf-8")
+    except UnicodeError:
+        return False
+    return True
+
+
 def assert_equivalent(data: bytes) -> None:
     expected = oracle_detect_utf8(data)
-    if expected is not None and not decodes_without_error(data, "utf-8"):
+    if expected is not None and not _is_utf8_prefix(data):
         expected = None  # garbage in the final overrun (module docstring)
     actual = detect_utf8(data)
     if expected is None:

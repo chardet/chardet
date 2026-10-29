@@ -38,6 +38,16 @@ _ASCII_DELETE = bytes(range(0x80))
 
 _utf8_decoder = codecs.getincrementaldecoder("utf-8")
 
+# Second-byte range of the leads whose first continuation is narrower than
+# 80..BF: E0 and F0 exclude overlongs, ED excludes surrogates, F4 excludes
+# code points past U+10FFFF.  Any other lead takes the full range.
+_SECOND_BYTE_RANGE: dict[int, tuple[int, int]] = {
+    0xE0: (0xA0, 0xBF),
+    0xED: (0x80, 0x9F),
+    0xF0: (0x90, 0xBF),
+    0xF4: (0x80, 0x8F),
+}
+
 
 def detect_utf8(data: bytes) -> DetectionResult | None:
     """Validate UTF-8 byte structure.
@@ -99,9 +109,18 @@ def scan_utf8(data: bytes) -> "tuple[bool, DetectionResult | None]":
         pos = chunk_end
 
     # The decoder's buffered bytes are the incomplete final sequence, if
-    # any: a valid prefix of a sequence the data was cut through.  The
-    # counts above include it, so trim its contribution (at most 3 bytes).
+    # any: a prefix of a sequence the data was cut through.  Decoders differ
+    # on how early they reject a prefix nothing can complete — CPython
+    # defers the surrogate prefix ``ED A0`` where PyPy raises on it — so
+    # check the second byte here rather than leave the verdict to the
+    # interpreter.  Then trim the tail's contribution to the counts above
+    # (at most 3 bytes).
     if pending_len:
+        pending = decoder.getstate()[0]
+        if pending_len >= 2:
+            lo, hi = _SECOND_BYTE_RANGE.get(pending[0], (0x80, 0xBF))
+            if not lo <= pending[1] <= hi:
+                return (False, None)
         multibyte_bytes -= pending_len
 
     # In a validly-decoded prefix every high byte belongs to a complete

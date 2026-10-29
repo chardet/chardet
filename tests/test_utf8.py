@@ -97,3 +97,16 @@ def test_garbage_in_final_sequence_rejected():
         assert detect_utf8(text + tail) is None, tail
     for tail in (b"\xc3", b"\xe3\x81", b"\xf0\x9f\x92"):
         assert detect_utf8(text + tail) is not None, tail
+
+
+def test_surrogate_prefix_in_final_sequence_rejected():
+    """``ED A0``..``ED BF`` can only complete to a surrogate, so it is garbage.
+
+    CPython's incremental decoder defers this prefix with ``final=False``
+    where PyPy's raises on it; the verdict must not depend on which one
+    runs.  ``ED 9F`` is a real prefix (U+D7C0..U+D7FF) and stays tolerated.
+    """
+    text = "café résumé naïve ".encode()
+    for tail in (b"\xed\xa0", b"\xed\xbf"):
+        assert detect_utf8(text + tail) is None, tail
+    assert detect_utf8(text + b"\xed\x9f") is not None
