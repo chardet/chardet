@@ -76,7 +76,10 @@ def detect(  # noqa: PLR0913
         bytes beyond that window.  The remap is skipped when the superset
         cannot decode the examined window itself (the Windows code pages
         leave a few C1 positions undefined that the ISO subsets map), so
-        the reported name always decodes what was examined.  If ``False``
+        the reported name always decodes what was examined.  It is also
+        skipped when *encoding_era*, *include_encodings*, or
+        *exclude_encodings* rule the superset out, so the result never
+        names an encoding those filters exclude.  If ``False``
         (default), the detected
         encoding is reported under its own name --- note this only skips
         the renaming step; it is not a promise of the *smallest* matching
