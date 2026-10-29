@@ -57,6 +57,13 @@ Unreleased
   run took about a second to check and now takes about 10 ms.
   (`Samina <https://github.com/Samin061>`_,
   `#409 <https://github.com/chardet/chardet/pull/409>`_)
+- Training writes the IDF table faster.  It now quantizes only the
+  bigrams that occur in some model instead of walking all 65,536
+  indices, which took about 40% off the model round-trip workload
+  measured in the PR.  The bytes written are identical, and
+  ``detect()`` never builds this table, so detection speed is unchanged.
+  (`Dex Hünter <https://github.com/dexhunter>`_,
+  `#415 <https://github.com/chardet/chardet/pull/415>`_)
 
 **Bug Fixes:**
 
@@ -78,6 +85,38 @@ Unreleased
   the end of a short input cuts a surrogate pair in half.
   (`nk-batman21 <https://github.com/nk-batman21>`_,
   `#412 <https://github.com/chardet/chardet/pull/412>`_)
+- ``prefer_superset=True`` now stays inside the requested
+  ``encoding_era``, the way it already stayed inside
+  ``include_encodings`` and ``exclude_encodings``.  Russian ISO-8859-5
+  text detected with ``encoding_era=EncodingEra.LEGACY_ISO`` used to
+  come back as Windows-1251, which is not in that era.
+  (`Spicy Shark <https://github.com/spicysharkco>`_,
+  `#414 <https://github.com/chardet/chardet/pull/414>`_)
+- Otherwise valid UTF-8 that ends in bytes no continuation could
+  complete, like ``F0 41`` or ``E3 FF``, no longer comes back as UTF-8 at
+  0.99, beating any charset declaration and then failing the caller's
+  own decode.  A final sequence is tolerated only when more bytes could
+  finish it, and the surrogate prefix ``ED A0``..``ED BF`` is rejected
+  on CPython and PyPy alike.
+  (`Samina <https://github.com/Samin061>`_,
+  `#416 <https://github.com/chardet/chardet/pull/416>`_)
+- A ``utf-7`` or ``hz-gb-2312`` label in ``<meta charset>``, an
+  http-equiv content type, ``<?xml encoding>``, or a PEP 263 coding
+  cookie is now ignored, as browsers ignore it.  A page declaring UTF-7
+  over a body like ``+ADw-script+AD4-`` used to get UTF-7 at 0.95, and
+  decoding with that answer turned inert text into a ``<script>`` tag.
+  Real UTF-7 and HZ streams are still found by the escape stage.
+  (`Samina <https://github.com/Samin061>`_,
+  `#420 <https://github.com/chardet/chardet/pull/420>`_)
+
+**Build:**
+
+- Prebuilt mypyc wheels are now published for Windows ARM64, and CI
+  runs the test suite there on Python 3.14.  Python 3.10 on ARM64
+  Windows gets the pure-Python wheel instead, because mypy's ``librt``
+  dependency has no wheel for that target.
+  (`Harish RS <https://github.com/Harishmcw>`_,
+  `#418 <https://github.com/chardet/chardet/pull/418>`_)
 
 7.7.0 (2026-10-17)
 ------------------
