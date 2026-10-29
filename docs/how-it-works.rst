@@ -49,8 +49,12 @@ order:
    source, where line 2 counts only when line 1 is blank or a comment.
    Markup declarations are read the way the WHATWG prescan reads them:
    comments are skipped, a UTF-16 label found in ASCII bytes is read as
-   UTF-8, and ``x-user-defined`` means Windows-1252. A declaration
-   counts only if the declared encoding, or its Windows superset for
+   UTF-8, and ``x-user-defined`` means Windows-1252. A ``utf-7`` or
+   ``hz-gb-2312`` label is ignored in every scanner, the PEP 263 cookie
+   included, because both decoders can turn inert ASCII into tags; a
+   genuine stream in either is still found by the escape stage. A
+   declaration counts only if the declared encoding, or its Windows
+   superset for
    Shift_JIS and EUC-KR, decodes the whole examined window, and it does
    not override data that is valid multi-byte UTF-8, which is reported
    as UTF-8 with the markup MIME type.
