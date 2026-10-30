@@ -441,13 +441,28 @@ def test_utf7_b64_decode_is_linear_in_run_length() -> None:
     The decode loop never trimmed its bit buffer, so it grew to a
     run-length integer that every sextet shifted again.  ``+A+A...`` is one
     base64 run of the whole window; 200 KB of it cost 4.7s through
-    ``detect()`` and grew as the square.  The budget is ~10x the linear cost
-    and still catches a relapse.
+    ``detect()`` and grew as the square.
+
+    A wall-clock budget cannot tell the two apart on every runner: the
+    linear decode of 128 KB takes 20ms on a laptop and over a second on
+    the free-threaded macOS job, which failed a 1s budget on half of one
+    day's runs.  The ratio between two run lengths can.  Quadrupling the
+    run quadruples a linear decode and multiplies the old one by about
+    15, so the bound sits between them with a 2x margin for noise, and
+    the best of three runs keeps a busy runner from inflating one side.
     """
-    run = b"A+" * 65536
-    start = time.perf_counter()
-    assert _is_valid_utf7_b64(run)
-    assert time.perf_counter() - start < 1.0
+
+    def best_of_three(run: bytes) -> float:
+        best = float("inf")
+        for _ in range(3):
+            start = time.perf_counter()
+            assert _is_valid_utf7_b64(run)
+            best = min(best, time.perf_counter() - start)
+        return best
+
+    short = best_of_three(b"A+" * 8192)
+    quadrupled = best_of_three(b"A+" * 32768)
+    assert quadrupled / short < 8
 
 
 def test_utf7_base64_run_outrunning_the_bound_is_skipped() -> None:
