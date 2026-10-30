@@ -256,24 +256,6 @@ def _score_structural_candidates(
     return boosted
 
 
-def _declared_over_utf7(
-    data: bytes, escape_result: DetectionResult, allowed: frozenset[str]
-) -> DetectionResult:
-    """Keep a page's declared charset over a UTF-7 reading that adds markup.
-
-    UTF-7 is the one escape encoding whose shifted runs can decode to
-    ASCII, so ``+ADwAcwBjAHIAaQBwAHQAPg-`` reads as ``<script>``.  When the
-    page declares a charset that decodes it, and reading it as UTF-7
-    instead would add markup the declared reading does not have, the
-    declaration stands, as it does in every browser.
-    """
-    if escape_result.encoding == "utf-7":
-        markup_result = detect_markup_charset(data, allowed)
-        if markup_result is not None and utf7_shifts_markup(data):
-            return markup_result
-    return escape_result
-
-
 def _with_default_mime(result: DetectionResult) -> DetectionResult:
     """Default ``mime_type`` to ``text/plain`` (text) or ``application/octet-stream`` (binary)."""
     if result.mime_type is not None:
@@ -282,7 +264,7 @@ def _with_default_mime(result: DetectionResult) -> DetectionResult:
     return DetectionResult(result.encoding, result.confidence, result.language, mime)
 
 
-def _run_pipeline_core(  # noqa: PLR0913
+def _run_pipeline_core(  # noqa: PLR0913, PLR0915
     data: bytes,
     encoding_era: EncodingEra,
     max_bytes: int = DEFAULT_MAX_BYTES,
@@ -340,7 +322,16 @@ def _run_pipeline_core(  # noqa: PLR0913
         and escape_result.encoding is not None
         and escape_result.encoding in allowed
     ):
-        return [_declared_over_utf7(data, escape_result, allowed)]
+        # UTF-7 is the one escape encoding whose shifted runs can decode to
+        # ASCII, so ``+ADwAcwBjAHIAaQBwAHQAPg-`` reads as ``<script>``.  When
+        # the page declares a charset that decodes it, and reading it as
+        # UTF-7 instead would add markup the declared reading does not have,
+        # the declaration stands, as it does in every browser.
+        if escape_result.encoding == "utf-7":
+            declared = detect_markup_charset(data, allowed)
+            if declared is not None and utf7_shifts_markup(data):
+                return [declared]
+        return [escape_result]
 
     # Magic number detection for known binary formats — runs before
     # UTF-8/ASCII prechecks to avoid unnecessary analysis on binary data.

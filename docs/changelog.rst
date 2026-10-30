@@ -108,6 +108,16 @@ Unreleased
   Real UTF-7 and HZ streams are still found by the escape stage.
   (`Samina <https://github.com/Samin061>`_,
   `#420 <https://github.com/chardet/chardet/pull/420>`_)
+- A page whose charset declaration decodes it is no longer reported as
+  UTF-7 when the UTF-7 reading would add markup the declared reading
+  does not have.  ``<meta charset="utf-8">`` over a body holding
+  ``+ADwAcwBjAHIAaQBwAHQAPg-`` used to get UTF-7 at 0.95, and decoding
+  with that answer turned inert text into a ``<script>`` tag; the
+  declaration now stands, as it does in every browser.  UTF-7 that
+  shifts only non-ASCII text still wins over a stale declaration, and
+  undeclared UTF-7 is unchanged.
+  (`Samina <https://github.com/Samin061>`_,
+  `#419 <https://github.com/chardet/chardet/pull/419>`_)
 
 **Build:**
 

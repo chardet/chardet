@@ -5,13 +5,17 @@ from __future__ import annotations
 
 import time
 
+import pytest
+
 from chardet import detect
+from chardet._utils import _DECODE_CHUNK_SIZE
 from chardet.pipeline.escape import (
     _has_valid_hz_regions,
     _has_valid_utf7_sequences,
     _is_embedded_in_base64,
     _is_valid_utf7_b64,
     detect_escape_encoding,
+    utf7_shifts_markup,
 )
 
 
@@ -494,3 +498,36 @@ def test_jis_x0213_2000_designation_falls_through() -> None:
 def test_hz_with_stray_tilde_falls_through() -> None:
     data = "你好世界".encode("hz") + b" ok " * 30 + b" a~b end"
     assert detect_escape_encoding(data) is None
+
+
+@pytest.mark.parametrize(
+    ("data", "expected"),
+    [
+        # Markup written directly decodes to itself: nothing is added.
+        (b"<p>a + b = c</p>", False),
+        ("<p>Héllo, 世界</p>".encode("utf-7"), False),
+        # A shifted run that decodes to a non-markup ASCII letter.
+        (b"<p>+AEE-</p>", False),
+        # Each markup character smuggled through a shifted run.
+        (b"+ADw-script+AD4-", True),
+        (b"+ACY-amp;", True),
+        (b"+ACI-quoted+ACI-", True),
+        (b"+ACc-quoted+ACc-", True),
+        # The window ends inside the run, with and without a whole character.
+        (b"<p>+ADwAcwBjAHIAaQBwAHQAPg", True),
+        (b"<p>+ADwAcwBj", True),
+        # Too few bits for any character: replaced, and nothing to count.
+        (b"<p>+AD", False),
+    ],
+)
+def test_utf7_shifts_markup(data: bytes, *, expected: bool) -> None:
+    assert utf7_shifts_markup(data) is expected
+
+
+def test_utf7_shifts_markup_across_chunk_edge() -> None:
+    """A run straddling the decode chunk boundary is read as one run."""
+    data = b"a" * (_DECODE_CHUNK_SIZE - 3) + b"+ADw-"
+    assert data.decode("utf-7").endswith("a<")
+    assert utf7_shifts_markup(data) is True
+    data = b"a" * (_DECODE_CHUNK_SIZE + 3) + b"+ADw"
+    assert utf7_shifts_markup(data) is True

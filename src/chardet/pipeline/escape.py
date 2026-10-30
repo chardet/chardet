@@ -299,14 +299,22 @@ def utf7_shifts_markup(data: bytes) -> bool:
     ``+`` and ``-`` are not among them, so the decode holds more of one
     than the bytes do exactly when a run shifted it.
 
-    *data* must already decode as UTF-7.  The decode is chunked like
-    :func:`~chardet._utils.decodes_without_error`, so the transient text
-    stays bounded on a large window.
+    *data* must already decode as UTF-7 the way
+    :func:`~chardet._utils.decodes_without_error` checks it, with the last
+    chunk left open.  The decode here is chunked the same way, so the
+    transient text stays bounded on a large window, but the last chunk is
+    closed.  An open decode buffers a run the window cuts off, so a tag
+    smuggled right at the edge would otherwise go uncounted; closing it
+    yields every character the run completed.  A run cut inside a
+    character is replaced rather than raised, since the caller has already
+    accepted the window.
     """
-    decoder = codecs.getincrementaldecoder("utf-7")()
+    decoder = codecs.getincrementaldecoder("utf-7")("replace")
     decoded = dict.fromkeys(_MARKUP_CHARS, 0)
-    for pos in range(0, len(data), _DECODE_CHUNK_SIZE):
-        text = decoder.decode(data[pos : pos + _DECODE_CHUNK_SIZE], final=False)
+    size = len(data)
+    for pos in range(0, size, _DECODE_CHUNK_SIZE):
+        end = pos + _DECODE_CHUNK_SIZE
+        text = decoder.decode(data[pos:end], final=end >= size)
         for ch in _MARKUP_CHARS:
             decoded[ch] += text.count(ch)
     return any(decoded[ch] > data.count(ord(ch)) for ch in _MARKUP_CHARS)
