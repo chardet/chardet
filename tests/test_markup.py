@@ -866,3 +866,23 @@ def test_promotion_table_derives_from_the_registry():
         "shift_jis_2004": ("shift_jis", "cp932"),
         "euc_kr": ("euc_kr", "cp949"),
     }
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        b'<me<!-- comment -->ta charset="cp1251">Hello world',
+        b'<meta char<!-- comment -->set="cp1251">Hello world',
+        b'<meta charset="cp<!-- comment -->1251">Hello world',
+        b'<?xm<!-- comment -->l encoding="cp1251"?>Hello world',
+        b'<?xml encod<!-- comment -->ing="cp1251"?>Hello world',
+        b'<?xml encoding="cp<!-- comment -->1251"?>Hello world',
+    ],
+)
+def test_comments_do_not_join_declaration_fragments(data: bytes):
+    declarations = _declarations(data)
+    assert all(declaration.encoding is None for declaration in declarations)
+    result = detect(data)
+    assert result["encoding"] == "ascii"
+    live = b'<meta charset="iso-8859-1">'
+    assert _declarations(data + live) == declarations + _html("iso8859-1")

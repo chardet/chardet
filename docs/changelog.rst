@@ -67,6 +67,10 @@ Unreleased
 
 **Bug Fixes:**
 
+- Comments no longer join adjacent markup fragments into a charset
+  declaration that was not present in the input.
+
+
 - The warning for an excluded ``no_match_encoding`` now points at the
   caller's line when the fallback is reached past the evidence cap.  It
   used to name ``chardet/__init__.py`` on that one path.
