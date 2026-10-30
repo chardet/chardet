@@ -19,7 +19,11 @@ from chardet.pipeline import (
 from chardet.pipeline.ascii import detect_ascii
 from chardet.pipeline.binary import is_binary
 from chardet.pipeline.bom import detect_bom
-from chardet.pipeline.escape import detect_escape_encoding, utf7_shifts_markup
+from chardet.pipeline.escape import (
+    detect_escape_encoding,
+    escape_splices_markup,
+    utf7_shifts_markup,
+)
 from chardet.pipeline.language import fill_languages
 from chardet.pipeline.magic import detect_magic
 from chardet.pipeline.markup import detect_markup_charset
@@ -323,13 +327,22 @@ def _run_pipeline_core(  # noqa: PLR0913, PLR0915
         and escape_result.encoding in allowed
     ):
         # UTF-7 is the one escape encoding whose shifted runs can decode to
-        # ASCII, so ``+ADwAcwBjAHIAaQBwAHQAPg-`` reads as ``<script>``.  When
-        # the page declares a charset that decodes it, and reading it as
-        # UTF-7 instead would add markup the declared reading does not have,
-        # the declaration stands, as it does in every browser.
-        if escape_result.encoding == "utf-7":
-            declared = detect_markup_charset(data, allowed)
-            if declared is not None and utf7_shifts_markup(data):
+        # ASCII, so ``+ADwAcwBjAHIAaQBwAHQAPg-`` reads as ``<script>``.  The
+        # others shift only to non-ASCII, but their switches decode to
+        # nothing, so one that encloses no text joins the ASCII around it
+        # and ``<scr~\nipt>`` reads as ``<script>`` under HZ.  When the
+        # page declares a charset that decodes it, and reading it as the
+        # escape encoding instead would add markup the declared reading
+        # does not have, the declaration stands, as it does in every
+        # browser.
+        declared = detect_markup_charset(data, allowed)
+        if declared is not None and declared.encoding != escape_result.encoding:
+            adds_markup = (
+                utf7_shifts_markup(data)
+                if escape_result.encoding == "utf-7"
+                else escape_splices_markup(data, escape_result.encoding)
+            )
+            if adds_markup:
                 return [declared]
         return [escape_result]
 

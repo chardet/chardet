@@ -28,11 +28,14 @@ order:
 3. **Escape Sequences** — Identifies escape-based encodings like
    ISO-2022-JP, ISO-2022-KR, HZ-GB-2312, and UTF-7 by matching their
    characteristic escape byte sequences, then decoding the whole window
-   to confirm. A UTF-7 answer also yields to a charset declaration (step
-   6) when the page has one that decodes it and the UTF-7 reading would
-   add a markup character, one of ``<`` ``>`` ``&`` ``"`` ``'``, that the
-   declared reading does not have: ``+ADw-`` is ``<`` in UTF-7, and
-   browsers keep the declaration there.
+   to confirm. The answer also yields to a charset declaration (step 6)
+   when the page has one that decodes it and the escape reading would add
+   markup the declared reading does not have: ``+ADw-`` is ``<`` in UTF-7,
+   so a UTF-7 answer yields when its reading adds one of ``<`` ``>`` ``&``
+   ``"`` ``'``; the ISO-2022 and HZ switches decode to nothing, so their
+   answers yield when an empty switch splices a tag the bytes do not hold
+   (``<scr~\nipt>`` reads as ``<script>`` under HZ). Browsers keep the
+   declaration in both cases.
 
 4. **Magic Number Detection** — Identifies binary file types (PNG, JPEG,
    PDF, ZIP, etc.) by their magic number signatures. Returns immediately
