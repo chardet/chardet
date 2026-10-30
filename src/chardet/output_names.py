@@ -22,7 +22,9 @@ from __future__ import annotations
 import codecs
 
 from chardet._utils import decodes_completely, decodes_without_error
+from chardet.enums import EncodingEra
 from chardet.pipeline import DetectionDict
+from chardet.registry import REGISTRY
 
 # Preferred superset name for each encoding, used by the ``prefer_superset``
 # API option.  When enabled, detected encoding names are replaced with the
@@ -120,6 +122,7 @@ def apply_preferred_superset(
     *,
     include_encodings: frozenset[str] | None = None,
     exclude_encodings: frozenset[str] | None = None,
+    encoding_era: EncodingEra = EncodingEra.ALL,
 ) -> DetectionDict:
     """Replace the encoding name with its preferred Windows/CP superset.
 
@@ -139,6 +142,8 @@ def apply_preferred_superset(
         The superset is skipped when it is not one of them.
     :param exclude_encodings: Canonical encoding names forbidden in the
         result.  The superset is skipped when it is one of them.
+    :param encoding_era: The eras the result may name.  The superset is
+        skipped when its era is not one of them.
     :returns: The same *result* dict, modified in-place.
     """
     enc = result.get("encoding")
@@ -150,6 +155,10 @@ def apply_preferred_superset(
     if include_encodings is not None and superset not in include_encodings:
         return result
     if exclude_encodings is not None and superset in exclude_encodings:
+        return result
+    # A rebound table may name a codec the registry does not list.
+    info = REGISTRY.get(superset)
+    if info is not None and not info.era & encoding_era:
         return result
     if data is None or decodes_without_error(data, superset):
         result["encoding"] = superset

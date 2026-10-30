@@ -84,3 +84,29 @@ def test_above_unicode_max_rejected():
     """Code point above U+10FFFF (F4 90 80 80 = U+110000) must be rejected."""
     result = detect_utf8(b"Hello " + b"\xf4\x90\x80\x80" + b" World")
     assert result is None
+
+
+def test_garbage_in_final_sequence_rejected():
+    """A final sequence no continuation can complete is invalid, not truncated.
+
+    Only a valid prefix of a sequence is tolerated at the end of the window;
+    otherwise utf-8 would be reported for data whose own decode raises.
+    """
+    text = "café résumé naïve ".encode()
+    for tail in (b"\xf0A", b"\xe3\xff", b"\xf0\x9fA", b"\xf4\x90", b"\xe0\x80"):
+        assert detect_utf8(text + tail) is None, tail
+    for tail in (b"\xc3", b"\xe3\x81", b"\xf0\x9f\x92"):
+        assert detect_utf8(text + tail) is not None, tail
+
+
+def test_surrogate_prefix_in_final_sequence_rejected():
+    """``ED A0``..``ED BF`` can only complete to a surrogate, so it is garbage.
+
+    CPython's incremental decoder defers this prefix with ``final=False``
+    where PyPy's raises on it; the verdict must not depend on which one
+    runs.  ``ED 9F`` is a real prefix (U+D7C0..U+D7FF) and stays tolerated.
+    """
+    text = "café résumé naïve ".encode()
+    for tail in (b"\xed\xa0", b"\xed\xbf"):
+        assert detect_utf8(text + tail) is None, tail
+    assert detect_utf8(text + b"\xed\x9f") is not None

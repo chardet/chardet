@@ -38,19 +38,15 @@ _ASCII_DELETE = bytes(range(0x80))
 
 _utf8_decoder = codecs.getincrementaldecoder("utf-8")
 
-
-def _expected_seq_len(byte: int) -> int:
-    """Sequence length a UTF-8 lead byte declares, or 0 for a non-lead.
-
-    0xC0-0xC1 are overlong 2-byte encodings of ASCII, so leads start at 0xC2.
-    """
-    if 0xC2 <= byte <= 0xDF:
-        return 2
-    if 0xE0 <= byte <= 0xEF:
-        return 3
-    if 0xF0 <= byte <= 0xF4:
-        return 4
-    return 0
+# Second-byte range of the leads whose first continuation is narrower than
+# 80..BF: E0 and F0 exclude overlongs, ED excludes surrogates, F4 excludes
+# code points past U+10FFFF.  Any other lead takes the full range.
+_SECOND_BYTE_RANGE: dict[int, tuple[int, int]] = {
+    0xE0: (0xA0, 0xBF),
+    0xED: (0x80, 0x9F),
+    0xF0: (0x90, 0xBF),
+    0xF4: (0x80, 0x8F),
+}
 
 
 def detect_utf8(data: bytes) -> DetectionResult | None:
@@ -92,17 +88,9 @@ def scan_utf8(data: bytes) -> "tuple[bool, DetectionResult | None]":
     multibyte_bytes = 0
     pending_len = 0
     pos = 0
-    # Start of the incomplete sequence at the very end (== length when the
-    # data ends on a sequence boundary).  Bytes from here on are tolerated,
-    # not validated, and excluded from the multi-byte counts — matching the
-    # old validator, which stopped at a truncated final sequence without
-    # examining it.
-    tail_start = length
-    counted_end = 0
     while pos < length:
         chunk = data[pos : pos + _CHUNK_SIZE]
         chunk_end = pos + len(chunk)
-        counted_end = chunk_end
         if pending_len == 0 and chunk.isascii():
             # No pending sequence and no high bytes: trivially valid,
             # nothing to count.
@@ -111,45 +99,29 @@ def scan_utf8(data: bytes) -> "tuple[bool, DetectionResult | None]":
         multibyte_bytes += len(chunk.translate(None, _ASCII_DELETE))
         try:
             decoder.decode(chunk, final=False)
-        except UnicodeError as exc:
-            # Only one rejection is tolerated: a final sequence whose
-            # declared length overruns the data (the caller's input is
-            # usually a prefix of a larger whole).  Locate that sequence
-            # from the data itself rather than from the exception, whose
-            # reported offset is an implementation detail — CPython points
-            # at the lead byte, and this module also runs interpreted on
-            # PyPy.  The overrunning lead can only be in the final three
-            # bytes, so the search is O(1).
-            tail_lead = -1
-            for k in range(max(0, length - 3), length):
-                seq_len = _expected_seq_len(data[k])
-                if seq_len and k + seq_len > length:
-                    tail_lead = k
-                    break
-            err_start = pos - pending_len + getattr(exc, "start", 0)
-            err_start = min(max(err_start, 0), length - 1)
-            if tail_lead < 0 or err_start < tail_lead:
-                # The error is a genuine one before the tolerated tail.
-                return (False, None)
-            # The old validator stopped at a truncated final sequence
-            # without examining it, so garbage inside the overrun is
-            # tolerated too.
-            tail_start = tail_lead
-            break
+        except UnicodeError:
+            # ``final=False`` defers an incomplete final sequence that could
+            # still be completed (the caller's input is usually a prefix of a
+            # larger whole), so anything the decoder raises on is a byte no
+            # continuation can make valid, the final three included.
+            return (False, None)
         pending_len = len(decoder.getstate()[0])
         pos = chunk_end
-    else:
-        # Clean finish: the decoder's buffered bytes are the incomplete
-        # final sequence, if any.
-        tail_start = length - pending_len
 
-    # The counts above include the tolerated tail (and, on the error path,
-    # nothing past the erroring chunk — the tolerance condition pins the
-    # error to the last 3 bytes, so ``counted_end`` covers the tail).  Trim
-    # the tail's contribution: at most 3 bytes.
-    if tail_start < counted_end:
-        tail = data[tail_start:counted_end]
-        multibyte_bytes -= len(tail.translate(None, _ASCII_DELETE))
+    # The decoder's buffered bytes are the incomplete final sequence, if
+    # any: a prefix of a sequence the data was cut through.  Decoders differ
+    # on how early they reject a prefix nothing can complete — CPython
+    # defers the surrogate prefix ``ED A0`` where PyPy raises on it — so
+    # check the second byte here rather than leave the verdict to the
+    # interpreter.  Then trim the tail's contribution to the counts above
+    # (at most 3 bytes).
+    if pending_len:
+        pending = decoder.getstate()[0]
+        if pending_len >= 2:
+            lo, hi = _SECOND_BYTE_RANGE.get(pending[0], (0x80, 0xBF))
+            if not lo <= pending[1] <= hi:
+                return (False, None)
+        multibyte_bytes -= pending_len
 
     # In a validly-decoded prefix every high byte belongs to a complete
     # multi-byte sequence, so "no complete sequences" is exactly "no high
