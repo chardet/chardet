@@ -19,7 +19,6 @@ _MAGIC_NUMBERS: tuple[tuple[bytes, str], ...] = (
     (b"II\x2a\x00", "image/tiff"),
     (b"8BPS", "image/vnd.adobe.photoshop"),
     (b"qoif", "image/qoi"),
-    (b"BM", "image/bmp"),
     (b"\xff\xd8\xff", "image/jpeg"),
     # JPEG XL: 12-byte container signature (must precede the 2-byte codestream)
     (
@@ -84,6 +83,14 @@ _FORM_SUBTYPES: dict[bytes, str] = {
     b"AIFF": "audio/aiff",
     b"AIFC": "audio/aiff",
 }
+
+# BMP: "BM", the rest of the 14-byte file header, then a DIB header that
+# starts with its own size (little-endian uint32).  The two-letter
+# signature also starts ordinary text ("BMW", "BMI"), so the DIB header
+# size must name a known variant too, as file(1) checks it.
+_BMP_SIGNATURE = b"BM"
+_BMP_DIB_SIZE_OFFSET = 14
+_BMP_DIB_HEADER_SIZES: frozenset[int] = frozenset({12, 16, 40, 52, 56, 64, 108, 124})
 
 # ZIP-based format detection — scan the first 4 KB for local file headers
 # and classify based on entry filenames or content.  Many ZIP generators
@@ -251,6 +258,14 @@ def detect_magic(data: bytes) -> DetectionResult | None:
         subtype = _FORM_SUBTYPES.get(data[8:12])
         if subtype is not None:
             return _make_result(subtype)
+
+    # BMP — the signature alone matches text, so check the DIB header size
+    if data.startswith(_BMP_SIGNATURE) and len(data) >= _BMP_DIB_SIZE_OFFSET + 4:
+        dib_size = int.from_bytes(
+            data[_BMP_DIB_SIZE_OFFSET : _BMP_DIB_SIZE_OFFSET + 4], "little"
+        )
+        if dib_size in _BMP_DIB_HEADER_SIZES:
+            return _make_result("image/bmp")
 
     # ZIP-based format detection
     if data.startswith(_ZIP_SIGNATURE):

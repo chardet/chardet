@@ -65,6 +65,29 @@ def test_detect_pdf_returns_mime_type() -> None:
     assert result["mime_type"] == "application/pdf"
 
 
+@pytest.mark.parametrize(
+    ("data", "expected_encoding"),
+    [
+        (b"BMW 320i, 2019, 45000 km\n", "ascii"),
+        ("BMW Group – Überblick\n".encode(), "utf-8"),
+    ],
+)
+def test_detect_text_starting_with_bm_is_not_bmp(
+    data: bytes, expected_encoding: str
+) -> None:
+    result = chardet.detect(data)
+    assert result["encoding"] == expected_encoding
+    assert result["mime_type"] == "text/plain"
+
+
+def test_detect_bmp_returns_mime_type() -> None:
+    # 14-byte file header, then a 40-byte BITMAPINFOHEADER
+    data = b"BM" + b"\x00" * 12 + b"\x28\x00\x00\x00" + b"\x00" * 100
+    result = chardet.detect(data)
+    assert result["encoding"] is None
+    assert result["mime_type"] == "image/bmp"
+
+
 def test_text_result_defaults_to_text_plain() -> None:
     result = chardet.detect(b"Hello world")
     assert result["mime_type"] == "text/plain"
