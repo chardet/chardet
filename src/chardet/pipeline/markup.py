@@ -238,6 +238,9 @@ def _strip_comments(head: bytes) -> bytes:
     pos = 0
     while start >= 0:
         parts.append(head[pos:start])
+        # Keep a tag boundary: deleting the comment must not manufacture
+        # a tag, attribute name or encoding label from adjacent fragments.
+        parts.append(b"<>")
         end = head.find(b"-->", start + 2)
         if end < 0:
             return b"".join(parts)
