@@ -181,6 +181,57 @@ def test_utf7_under_stale_declaration_still_utf7():
     assert result[0].encoding == "utf-7"
 
 
+@pytest.mark.parametrize(
+    ("payload", "escape_encoding"),
+    [
+        # An HZ region that encloses nothing, and the HZ line continuation.
+        (b"~{VP~}<~{~}script>alert(1)<~{~}/script>", "hz"),
+        (b"~{VP~}<scr~\nipt>alert(1)</scr~\nipt>", "hz"),
+        # A JIS X 0208 designation that encloses nothing.
+        (
+            b"\x1b$B$3$s\x1b(B<scr\x1b$B\x1b(Bipt>alert(1)</scr\x1b$B\x1b(Bipt>",
+            "iso2022_jp_2",
+        ),
+        # Shift-out straight back to shift-in.
+        (b"\x1b$)C\x0e!!\x0f<scr\x0e\x0fipt>alert(1)</scr\x0e\x0fipt>", "iso2022_kr"),
+    ],
+)
+def test_declaration_beats_escape_that_splices_markup(
+    payload: bytes, escape_encoding: str
+):
+    """A declared charset is not re-read as an escape encoding that splices a tag."""
+    assert "<script>" in payload.decode(escape_encoding)
+    # Without a declaration the escape stage reads the payload as is.
+    undeclared = run_pipeline(b"<p>" + payload + b"</p>", EncodingEra.ALL)
+    assert undeclared[0].encoding == escape_encoding
+    data = b'<html><head><meta charset="utf-8"></head><body><p>' + payload + b"</p>"
+    result = run_pipeline(data, EncodingEra.ALL)
+    assert result[0].encoding == "utf-8"
+    assert result[0].mime_type == "text/html"
+    assert "<script>" not in data.decode("utf-8")
+
+
+@pytest.mark.parametrize(
+    ("body", "escape_encoding"),
+    [
+        ("<p>你好</p>".encode("hz"), "hz"),
+        ('<img alt="こん"><p>こんにちは</p>'.encode("iso2022_jp"), "iso2022_jp_2"),
+    ],
+)
+def test_escape_under_stale_declaration_still_escape(body: bytes, escape_encoding: str):
+    """An escape encoding that switches only around text outranks a stale declaration."""
+    data = b'<?xml version="1.0" encoding="utf-8"?><r>' + body + b"</r>"
+    result = run_pipeline(data, EncodingEra.ALL)
+    assert result[0].encoding == escape_encoding
+
+
+def test_declaration_naming_the_escape_encoding():
+    """A declaration that agrees with the escape stage changes nothing."""
+    data = b'\x1b$)C<meta charset="iso-2022-kr"><p>\x0e!!\x0f</p>'
+    result = run_pipeline(data, EncodingEra.ALL)
+    assert result[0].encoding == "iso2022_kr"
+
+
 # ---------------------------------------------------------------------------
 # Markup superset promotion
 # ---------------------------------------------------------------------------

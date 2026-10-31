@@ -11,6 +11,7 @@ annotations.
 """
 
 import codecs
+import re
 
 from chardet._utils import (
     _DECODE_CHUNK_SIZE,
@@ -22,6 +23,9 @@ from chardet.pipeline import DETERMINISTIC_CONFIDENCE, DetectionResult
 
 # HTML/XML syntax characters that UTF-7 can smuggle inside a shifted run.
 _MARKUP_CHARS: str = "<>&\"'"
+
+# A tag: the span a tokenizer reads from ``<`` to the next ``>``.
+_TAG_RE = re.compile(r"<[^<>]*>")
 
 # Byte values legal inside an HZ-GB-2312 ``~{...~}`` region.
 _HZ_GB_BYTES: bytes = bytes(range(0x21, 0x7F))
@@ -318,6 +322,53 @@ def utf7_shifts_markup(data: bytes) -> bool:
         for ch in _MARKUP_CHARS:
             decoded[ch] += text.count(ch)
     return any(decoded[ch] > data.count(ord(ch)) for ch in _MARKUP_CHARS)
+
+
+def escape_splices_markup(data: bytes, encoding: str) -> bool:
+    r"""Return True if reading *data* as *encoding* yields a tag its bytes lack.
+
+    The ISO-2022 designations, the HZ ``~{`` and ``~}`` markers and the HZ
+    ``~\n`` line continuation decode to nothing, so a switch that encloses
+    no text joins the ASCII on either side of it: ``<scr~\nipt>`` reads as
+    ``<script>`` under HZ, and ``<scr ESC ( B ipt>`` under ISO-2022-JP,
+    where the bytes hold no such tag.  A genuine stream switches only
+    around non-ASCII text, so every all-ASCII tag it decodes to is in the
+    bytes verbatim, and in the same order.  The decoded tags are walked
+    against the bytes in that order, each search resuming where the last
+    match ended, so a decode with no spliced tag costs one pass over the
+    window.  A tag with a non-ASCII character in it is the encoding doing
+    its job and is not compared.
+
+    *data* must already decode as *encoding* the way
+    :func:`~chardet._utils.decodes_without_error` checks it.  The decode
+    here is chunked the same way, with the last chunk closed and a cut
+    sequence replaced, as in :func:`utf7_shifts_markup`.  A tag the chunk
+    edge cuts is carried into the next chunk and read whole; one the
+    window cuts is compared as far as it goes, so a splice right at the
+    edge still counts.
+    """
+    decoder = codecs.getincrementaldecoder(encoding)("replace")
+    size = len(data)
+    raw_pos = 0
+    tail = ""
+    for pos in range(0, size, _DECODE_CHUNK_SIZE):
+        end = pos + _DECODE_CHUNK_SIZE
+        text = tail + decoder.decode(data[pos:end], final=end >= size)
+        for match in _TAG_RE.finditer(text):
+            tag = match.group()
+            if tag.isascii():
+                found = data.find(tag.encode(), raw_pos)
+                if found < 0:
+                    return True
+                raw_pos = found + len(tag)
+        # Carry an open tag into the next chunk.  No tag is a chunk long,
+        # so one still open after a whole chunk is dropped rather than
+        # letting the carry grow with the window.
+        cut = text.rfind("<")
+        tail = text[cut:] if cut >= 0 and ">" not in text[cut:] else ""
+        if len(tail) > _DECODE_CHUNK_SIZE:
+            tail = ""
+    return bool(tail) and tail.isascii() and data.find(tail.encode(), raw_pos) < 0
 
 
 def _iso2022_variant(data: bytes) -> tuple[str, str] | None:

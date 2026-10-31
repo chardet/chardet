@@ -15,6 +15,7 @@ from chardet.pipeline.escape import (
     _is_embedded_in_base64,
     _is_valid_utf7_b64,
     detect_escape_encoding,
+    escape_splices_markup,
     utf7_shifts_markup,
 )
 
@@ -546,3 +547,36 @@ def test_utf7_shifts_markup_across_chunk_edge() -> None:
     assert utf7_shifts_markup(data) is True
     data = b"a" * (_DECODE_CHUNK_SIZE + 3) + b"+ADw"
     assert utf7_shifts_markup(data) is True
+
+
+@pytest.mark.parametrize(
+    ("data", "encoding", "expected"),
+    [
+        # Switches around non-ASCII text: every ASCII tag is in the bytes.
+        ("<p>你好</p>".encode("hz"), "hz", False),
+        ("<p>こんにちは</p>".encode("iso2022_jp"), "iso2022_jp_2", False),
+        # Non-ASCII inside a tag is the encoding doing its job.
+        ('<img alt="こん">'.encode("iso2022_jp"), "iso2022_jp_2", False),
+        # An empty switch or a line continuation inside a tag splices it.
+        (b"<~{~}script>", "hz", True),
+        (b"<scr~\nipt>", "hz", True),
+        (b"<scr\x1b$B\x1b(Bipt>", "iso2022_jp_2", True),
+        (b"<scr\x1b(Bipt>", "iso2022_jp_2", True),
+        (b"\x1b$)C<scr\x0e\x0fipt>", "iso2022_kr", True),
+        # The window ends inside a tag: spliced, verbatim, and non-ASCII.
+        (b"<p>~{VP~}<scr~\nipt", "hz", True),
+        (b'<p>~{VP~}<a href="x', "hz", False),
+        ('<p>你好<img alt="你'.encode("hz"), "hz", False),
+    ],
+)
+def test_escape_splices_markup(data: bytes, encoding: str, *, expected: bool) -> None:
+    assert escape_splices_markup(data, encoding) is expected
+
+
+def test_escape_splices_markup_across_chunk_edge() -> None:
+    """A tag straddling the decode chunk boundary is read as one tag."""
+    head = b"~{VP~}" + b"a" * (_DECODE_CHUNK_SIZE - 10)
+    assert escape_splices_markup(head + b"<a href=x>", "hz") is False
+    assert escape_splices_markup(head + b"<a hr~\nef=x>", "hz") is True
+    # A tag still open after a whole chunk is dropped, not carried.
+    assert escape_splices_markup(head + b"<" + b"a" * _DECODE_CHUNK_SIZE, "hz") is False
