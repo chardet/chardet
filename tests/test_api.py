@@ -82,14 +82,20 @@ _RUSSIAN_ISO_8859_5 = (
     "столетий истории, начиная с первого упоминания в летописи."
 ).encode("iso8859-5")
 
+_TURKISH_ISO_8859_9 = (
+    "Türkiye Cumhuriyeti, Anadolu ve Trakya üzerinde kurulmuş bir ülkedir. "
+    "Başkenti Ankara, en kalabalık şehri İstanbul'dur. Ülkenin resmi dili "
+    "Türkçedir ve nüfusu seksen milyonu aşmaktadır."
+).encode("iso8859-9")
+
 
 @pytest.mark.parametrize("api", ["detect", "detect_all", "stream"])
 @pytest.mark.parametrize(
     ("era", "expected"),
     [
-        (EncodingEra.LEGACY_ISO, "iso8859-5"),
-        (EncodingEra.LEGACY_ISO | EncodingEra.MODERN_WEB, "cp1251"),
-        (EncodingEra.ALL, "cp1251"),
+        (EncodingEra.LEGACY_ISO, "iso8859-9"),
+        (EncodingEra.LEGACY_ISO | EncodingEra.MODERN_WEB, "cp1254"),
+        (EncodingEra.ALL, "cp1254"),
     ],
     ids=["legacy_iso", "legacy_iso_and_modern_web", "all"],
 )
@@ -100,14 +106,29 @@ def test_prefer_superset_respects_encoding_era(
     kwargs = {"encoding_era": era, "prefer_superset": True, "compat_names": False}
     if api == "stream":
         detector = UniversalDetector(**kwargs)
-        detector.feed(_RUSSIAN_ISO_8859_5)
+        detector.feed(_TURKISH_ISO_8859_9)
         results = [detector.close()]
     elif api == "detect_all":
-        results = chardet.detect_all(_RUSSIAN_ISO_8859_5, **kwargs)
+        results = chardet.detect_all(_TURKISH_ISO_8859_9, **kwargs)
     else:
-        results = [chardet.detect(_RUSSIAN_ISO_8859_5, **kwargs)]
+        results = [chardet.detect(_TURKISH_ISO_8859_9, **kwargs)]
     assert results[0]["encoding"] == expected
     assert all(REGISTRY[result["encoding"]].era & era for result in results)
+
+
+@pytest.mark.parametrize("api", ["detect", "detect_all", "stream"])
+def test_prefer_superset_keeps_the_text(api: str):
+    """Windows-1251 decodes ISO-8859-5 bytes, but as other Cyrillic letters."""
+    if api == "stream":
+        detector = UniversalDetector(prefer_superset=True)
+        detector.feed(_RUSSIAN_ISO_8859_5)
+        result = detector.close()
+    elif api == "detect_all":
+        result = chardet.detect_all(_RUSSIAN_ISO_8859_5, prefer_superset=True)[0]
+    else:
+        result = chardet.detect(_RUSSIAN_ISO_8859_5, prefer_superset=True)
+    assert result["encoding"] == "ISO-8859-5"
+    assert _RUSSIAN_ISO_8859_5.decode(result["encoding"]).startswith("Москва")
 
 
 def test_detect_utf8_bom():

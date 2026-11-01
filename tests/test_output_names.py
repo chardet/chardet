@@ -31,6 +31,39 @@ def test_apply_preferred_superset_keeps_a_name_the_superset_cannot_decode():
     assert apply_preferred_superset(result, b"caf\xe9")["encoding"] == "cp1252"
 
 
+@pytest.mark.parametrize(
+    ("text", "encoding", "expected"),
+    [
+        ("Привет, мир", "iso8859-5", "iso8859-5"),
+        ("Zażółć gęślą jaźń", "iso8859-2", "iso8859-2"),
+        ("Ελληνικά, Άγιος Νικόλαος", "iso8859-7", "iso8859-7"),
+        ("Kraków, Gdańsk, Wrocław", "iso8859-2", "cp1250"),
+        ("Türkçe, İstanbul", "iso8859-9", "cp1254"),
+    ],
+    ids=["russian", "polish", "greek", "polish_shared_letters", "turkish"],
+)
+def test_apply_preferred_superset_keeps_a_name_the_superset_reads_differently(
+    text: str, encoding: str, expected: str
+):
+    """cp1251 decodes ISO-8859-5 bytes without error, but as other letters."""
+    data = text.encode(encoding)
+    result = {"encoding": encoding, "confidence": 0.9, "language": None}
+    assert apply_preferred_superset(result, data)["encoding"] == expected
+    assert data.decode(expected) == text
+
+
+def test_apply_preferred_superset_reads_c1_bytes_as_the_superset():
+    """ISO-8859-1 only has controls at 0x93/0x94; cp1252's quotes are the point."""
+    result = {"encoding": "iso8859-1", "confidence": 0.9, "language": "en"}
+    assert apply_preferred_superset(result, b"\x93quoted\x94")["encoding"] == "cp1252"
+
+
+def test_apply_preferred_superset_ignores_bytes_the_name_cannot_decode():
+    """An "ascii" no-match fallback still moves to the cp1252 that decodes it."""
+    result = {"encoding": "ascii", "confidence": 0.1, "language": None}
+    assert apply_preferred_superset(result, b"\xa9 2026")["encoding"] == "cp1252"
+
+
 def test_apply_preferred_superset_without_data_remaps_unconditionally():
     """No data to check against: the remap is the caller's opt-in, as before."""
     result = {"encoding": "iso8859-1", "confidence": 0.9, "language": "fr"}
