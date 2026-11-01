@@ -75,8 +75,10 @@ def detect(  # noqa: PLR0913
         *max_bytes* of input, and only the superset is guaranteed to decode
         bytes beyond that window.  The remap is skipped when the superset
         cannot decode the examined window itself (the Windows code pages
-        leave a few C1 positions undefined that the ISO subsets map), so
-        the reported name always decodes what was examined.  It is also
+        leave a few C1 positions undefined that the ISO subsets map), or
+        decodes it to other letters (Windows-1251 and ISO-8859-5 put
+        Cyrillic at different byte values), so the reported name always
+        decodes what was examined and keeps its letters.  It is also
         skipped when *encoding_era*, *include_encodings*, or
         *exclude_encodings* rule the superset out, so the result never
         names an encoding those filters exclude.  If ``False``

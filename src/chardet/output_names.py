@@ -20,10 +20,12 @@ and return the same dict for fluent chaining.
 from __future__ import annotations
 
 import codecs
+import functools
 
 from chardet._utils import decodes_completely, decodes_without_error
 from chardet.enums import EncodingEra
 from chardet.pipeline import DetectionDict
+from chardet.pipeline.confusion import differing_high_bytes
 from chardet.registry import REGISTRY
 
 # Preferred superset name for each encoding, used by the ``prefer_superset``
@@ -116,6 +118,22 @@ def _remap_encoding(result: DetectionDict, mapping: dict[str, str]) -> Detection
     return result
 
 
+@functools.cache
+def _bytes_read_differently(encoding: str, superset: str) -> bytes:
+    """Bytes from 0xA0 up that *encoding* decodes and *superset* reads otherwise.
+
+    cp1251 and ISO-8859-5 put Cyrillic at different byte values, and cp1250
+    moves ``ą``, ``ś`` and ``ź`` of ISO-8859-2.  The C1 range is left out:
+    the ISO parts only have controls there, and reading those bytes as
+    cp1252's curly quotes is what the remap is for.
+    """
+    return bytes(
+        b
+        for b in differing_high_bytes(encoding, superset)
+        if b >= 0xA0 and bytes((b,)).decode(encoding, "ignore")
+    )
+
+
 def apply_preferred_superset(
     result: DetectionDict,
     data: bytes | None = None,
@@ -131,9 +149,10 @@ def apply_preferred_superset(
 
     The Windows code pages leave a few C1 positions undefined that their ISO
     subsets map (0x81, 0x8D, 0x8F, 0x90, 0x9D under cp1252), so the remap is
-    decode-safe only for data that avoids them.  When *data* is given, the
-    remap applies only if the superset decodes it; otherwise the detected
-    name stands, being the one that does.
+    decode-safe only for data that avoids them.  Some pairs also place
+    letters differently above that range.  When *data* is given, the remap
+    applies only if the superset decodes it to the same text, C1 controls
+    aside; otherwise the detected name stands.
 
     :param result: A detection result dict containing an ``"encoding"`` key.
     :param data: The bytes *result* was detected from, when known.
@@ -160,8 +179,13 @@ def apply_preferred_superset(
     info = REGISTRY.get(superset)
     if info is not None and not info.era & encoding_era:
         return result
-    if data is None or decodes_without_error(data, superset):
-        result["encoding"] = superset
+    if data is not None:
+        if not decodes_without_error(data, superset):
+            return result
+        moved = _bytes_read_differently(enc, superset)
+        if moved and data.translate(None, moved) != data:
+            return result
+    result["encoding"] = superset
     return result
 
 
