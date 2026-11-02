@@ -53,7 +53,8 @@ order:
    source, where line 2 counts only when line 1 is blank or a comment.
    Markup declarations are read the way the WHATWG prescan reads them:
    comments are skipped, a UTF-16 label found in ASCII bytes is read as
-   UTF-8, and ``x-user-defined`` means Windows-1252. A ``utf-7`` or
+   UTF-8, and ``x-user-defined`` means Windows-1252. An XML declaration
+   counts only at the start of the document. A ``utf-7`` or
    ``hz-gb-2312`` label is ignored in every scanner, the PEP 263 cookie
    included, because both decoders can turn inert ASCII into tags; a
    genuine stream in either is still found by the escape stage. A

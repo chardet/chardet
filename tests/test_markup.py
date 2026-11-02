@@ -293,23 +293,14 @@ def test_ebcdic_xml_declaration_reports_xml():
     assert _declarations(xml.encode("cp500")) == [Declaration("cp500", "text/xml")]
 
 
-@pytest.mark.parametrize(
-    ("junk", "declaration", "mime_type"),
-    [
-        (b"<meta ", b'<meta charset="iso-8859-1">', "text/html"),
-        (b"<?xml ", b'<?xml version="1.0" encoding="iso-8859-1"?>', "text/xml"),
-    ],
-)
-def test_a_head_of_unclosed_tags_still_finds_the_declaration(
-    junk: bytes, declaration: bytes, mime_type: str
-):
+def test_a_head_of_unclosed_tags_still_finds_the_declaration():
     """A tag scan stops at the next ``<``, so unclosed tags hide only themselves.
 
     The old ``[^>]`` class ran every unclosed tag to the end of the head
     before giving up, which made a head of nothing else quadratic.
     """
-    data = junk * 600 + declaration + _LATIN1_TEXT
-    assert _declarations(data) == [Declaration("iso8859-1", mime_type)]
+    data = b"<meta " * 600 + b'<meta charset="iso-8859-1">' + _LATIN1_TEXT
+    assert _declarations(data) == _html("iso8859-1")
 
 
 def test_unclosed_meta_does_not_swallow_the_next_one():
@@ -418,6 +409,74 @@ def test_declarations_come_in_scan_order():
         Declaration(None, "text/html"),
         Declaration("cp1251", "text/html"),
     ]
+
+
+@pytest.mark.parametrize(
+    "lead",
+    [
+        pytest.param(b"\n  ", id="whitespace"),
+        pytest.param(b"\xef\xbb\xbf", id="bom"),
+        pytest.param(b"\xef\xbb\xbf\r\n", id="bom-whitespace"),
+    ],
+)
+def test_xml_prolog_may_follow_a_bom_and_whitespace(lead: bytes):
+    data = lead + b'<?xml version="1.0" encoding="iso-8859-5"?><a/>'
+    assert _declarations(data) == [Declaration("iso8859-5", "text/xml")]
+
+
+@pytest.mark.parametrize(
+    "lead",
+    [
+        pytest.param(b"<?xml " * 600, id="unclosed-prologs"),
+        pytest.param(b"<!doctype html>", id="doctype"),
+        pytest.param(b"<html>", id="tag"),
+        pytest.param(b"text ", id="text"),
+    ],
+)
+def test_xml_prolog_past_the_start_is_not_a_declaration(lead: bytes):
+    assert _declarations(lead + b'<?xml version="1.0" encoding="koi8-r"?><a/>') == []
+
+
+@pytest.mark.parametrize(
+    "fragment",
+    [
+        pytest.param(
+            b"<script>var q = \"<?xml encoding='koi8-r'?>\";</script>", id="js"
+        ),
+        pytest.param(b"<img alt=\"<?xml encoding='koi8-r'?>\">", id="attribute"),
+        pytest.param(b'<?xml encoding="koi8-r"?>', id="body"),
+    ],
+)
+def test_xml_prolog_in_page_content_does_not_outrank_the_meta(fragment: bytes):
+    """Only a prolog at the start of the document can beat a meta.
+
+    The prolog is scanned ahead of every meta, so one found anywhere in
+    the head took over the page from its real declaration, and the MIME
+    type with it.
+    """
+    page = b'<html><head><meta charset="iso-8859-1">' + fragment + _LATIN1_TEXT
+    assert _declarations(page) == _html("iso8859-1")
+    result = detect(page)
+    assert result["encoding"] == "ISO-8859-1"
+    assert result["mime_type"] == "text/html"
+
+
+def test_xml_prolog_in_a_script_cannot_swallow_an_escape():
+    r"""A prolog in a script string must not pick a charset that eats a ``\``.
+
+    The page's server escaped the ``"`` in the user's string.  Under the
+    declared windows-1252 the string stays open across ``\"``.  Under
+    Shift_JIS ``\x83\`` is one character, the quote ends the string, and
+    the rest of the user's input is script.
+    """
+    page = (
+        b'<html><head><meta charset="windows-1252"><script>var q = "'
+        b"<?xml encoding='shift_jis'?>\x83\\\"; alert(1)//\";</script></head></html>"
+    )
+    result = detect(page)
+    assert result["encoding"] == "Windows-1252"
+    assert result["mime_type"] == "text/html"
+    assert '\\"; alert(1)' in page.decode(result["encoding"])
 
 
 def test_pep263_cookie_comes_after_markup():

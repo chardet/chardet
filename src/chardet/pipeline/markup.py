@@ -74,8 +74,17 @@ _IGNORED_LABELS = frozenset({"utf-7", "hz"})
 # ``<meta`` ran to the end of the head before failing, and a head made of
 # nothing else cost a thousand times a normal one.  The price is a literal
 # ``<`` inside an attribute value, which hides that one tag.
+#
+# An XML declaration only exists at the start of the document, which is
+# where XML puts it and the only place the WHATWG "get an XML encoding"
+# step looks, so this regex is matched rather than searched.  Further in
+# it is page content (a string in a script, an attribute value), and the
+# prolog is scanned ahead of every meta, so it would outrank the page's
+# real declaration.  A byte order mark, and the leading whitespace a
+# template often emits, can still come first.
 _XML_ENCODING_RE = re.compile(
-    rb"""<\?xml\s[^<>]*encoding\s*=\s*['"]([^'"]+)['"]""", re.IGNORECASE
+    rb"""(?:\xef\xbb\xbf)?\s*<\?xml\s[^<>]*encoding\s*=\s*['"]([^'"]+)['"]""",
+    re.IGNORECASE,
 )
 _META_TAG_RE = re.compile(rb"<meta\b([^<>]*)>", re.IGNORECASE)
 # DOTALL so a quoted value may span lines.
@@ -308,7 +317,7 @@ def iter_declarations(data: bytes) -> Iterator[Declaration]:
 
     The scan order is the order a reader honors them in:
 
-    1. ``<?xml ... encoding="..."?>``
+    1. ``<?xml ... encoding="..."?>``, at the start of the document only
     2. ``<meta charset="...">`` and ``<meta http-equiv="Content-Type"
        content="...; charset=...">`` (also with ``name`` in place of
        ``http-equiv``), in document order
@@ -337,7 +346,7 @@ def iter_declarations(data: bytes) -> Iterator[Declaration]:
 
     head = _strip_comments(data[:_SCAN_LIMIT])
 
-    match = _XML_ENCODING_RE.search(head)
+    match = _XML_ENCODING_RE.match(head)
     if match:
         raw_name = _ascii_label(match.group(1))
         if raw_name is not None:
