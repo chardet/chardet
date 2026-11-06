@@ -8,6 +8,7 @@ import pytest
 import chardet
 from chardet._utils import decodes_without_error
 from chardet.pipeline import DETERMINISTIC_CONFIDENCE, DetectionResult
+from chardet.pipeline import utf1632 as utf1632_mod
 from chardet.pipeline.utf1632 import (
     _SAMPLE_SIZE,
     _looks_like_text,
@@ -18,6 +19,32 @@ from chardet.pipeline.utf1632 import (
 # ---------------------------------------------------------------------------
 # UTF-16-LE detection
 # ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("length", [9, 10, 15, 16, 4095, 4096, 4097])
+def test_null_search_matches_pattern_checks(
+    monkeypatch: pytest.MonkeyPatch, length: int
+) -> None:
+    samples = [b"a" * length, (bytes(range(1, 256)) * 17)[:length]]
+    for pos in (0, length // 2, length - 1):
+        samples.append(b"a" * pos + b"\x00" + b"a" * (length - pos - 1))
+    monkeypatch.setattr(utf1632_mod, "_BYTE_SEARCH", True)
+    expected = [detect_utf1632_patterns(data) for data in samples]
+    monkeypatch.setattr(utf1632_mod, "_BYTE_SEARCH", False)
+    assert [detect_utf1632_patterns(data) for data in samples] == expected
+
+
+def test_null_search_preserves_subclass_operations() -> None:
+    class NoContains(bytes):
+        def __contains__(self, item: object) -> bool:
+            msg = "membership must not be used for subclasses"
+            raise AssertionError(msg)
+
+        def __getitem__(self, key: int | slice) -> int | NoContains:
+            result = super().__getitem__(key)
+            return NoContains(result) if isinstance(result, bytes) else result
+
+    assert detect_utf1632_patterns(NoContains(b"a" * 4096)) is None
 
 
 def test_utf16_le_ascii_text() -> None:

@@ -21,6 +21,9 @@ _SAMPLE_SIZE = 4096
 _MIN_BYTES_UTF32 = 16  # 4 full code units
 _MIN_BYTES_UTF16 = 10  # 5 full code units
 
+# Keep the optional mypyc path on its existing native loops.
+_BYTE_SEARCH = not __file__.endswith((".so", ".pyd"))
+
 # Minimum fraction of null bytes in the expected position for UTF-16.
 # CJK-heavy UTF-16 text (Chinese, Japanese, Korean) can have as few as
 # ~4.5% null bytes in the expected position, since CJK codepoints have
@@ -99,6 +102,12 @@ def detect_utf1632_patterns(data: bytes) -> DetectionResult | None:
     sample = data[:_SAMPLE_SIZE]
 
     if len(sample) < _MIN_BYTES_UTF16:
+        return None
+
+    # Both pattern checks require a positive number of null bytes. Most
+    # text has none: one native byte search rules out both checks exactly.
+    # Subclasses retain their indexing semantics through the original path.
+    if _BYTE_SEARCH and type(sample) is bytes and 0 not in sample:
         return None
 
     # Check UTF-32 first (more specific pattern)
