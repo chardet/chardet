@@ -5,9 +5,14 @@ this module is compiled with mypyc, which does not support PEP 563 string
 annotations.
 """
 
+import operator
+
 from chardet.models import (
+    _GATHER_DOT,
+    _KERNEL_COMPILED,
     BigramProfile,
     _get_model_norms,
+    _sumprod,
     get_enc_index,
     get_rowmax,
     score_best_language,
@@ -60,6 +65,24 @@ def _split_variants(
     row_freq = profile.row_freq
     nonzero_rows = profile.nonzero_rows
     input_norm = profile.input_norm
+    # Reuse the gather and weights across every model's row-bound dot
+    # product. Keep the compiled and JIT paths on their native loops.
+    gather_rows: operator.itemgetter[tuple[int, ...]] | None = None
+    row_values: tuple[int, ...] = ()
+    if (
+        _GATHER_DOT
+        and not _KERNEL_COMPILED
+        and _sumprod is not None
+        and type(profile) is BigramProfile
+        and type(nonzero_rows) is list
+        and type(row_freq) is list
+        and len(nonzero_rows) > 1
+        and set(map(type, nonzero_rows)) == {int}
+    ):
+        gather_rows = operator.itemgetter(*nonzero_rows)
+        row_values = gather_rows(row_freq)
+        if any(type(value) is not int for value in row_values):
+            gather_rows = None
 
     mb_entries: list[tuple[str, str | None, bytes, str, int]] = []
     sb_entries: list[tuple[float, int, str, str | None, bytes, str]] = []
@@ -73,9 +96,12 @@ def _split_variants(
             continue
         for vi, (lang, table, key) in enumerate(variants):
             rm = rowmax[key]
-            ub_dot = 0
-            for b1 in nonzero_rows:
-                ub_dot += rm[b1] * row_freq[b1]
+            if gather_rows is not None and _sumprod is not None and type(rm) is bytes:
+                ub_dot = _sumprod(gather_rows(rm), row_values)
+            else:
+                ub_dot = 0
+                for b1 in nonzero_rows:
+                    ub_dot += rm[b1] * row_freq[b1]
             model_norm = norms.get(key)
             if model_norm is None:
                 # Unknown norm: cannot bound the score, so never skip.
