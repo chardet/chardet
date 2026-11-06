@@ -21,6 +21,9 @@ _SAMPLE_SIZE = 4096
 _MIN_BYTES_UTF32 = 16  # 4 full code units
 _MIN_BYTES_UTF16 = 10  # 5 full code units
 
+# Keep the optional mypyc path on its existing native loops.
+_BYTE_SEARCH = not __file__.endswith((".so", ".pyd"))
+
 # Minimum fraction of null bytes in the expected position for UTF-16.
 # CJK-heavy UTF-16 text (Chinese, Japanese, Korean) can have as few as
 # ~4.5% null bytes in the expected position, since CJK codepoints have
@@ -101,6 +104,12 @@ def detect_utf1632_patterns(data: bytes) -> DetectionResult | None:
     if len(sample) < _MIN_BYTES_UTF16:
         return None
 
+    # Both pattern checks require a positive number of null bytes. Most
+    # text has none: one native byte search rules out both checks exactly.
+    # Subclasses retain their indexing semantics through the original path.
+    if _BYTE_SEARCH and type(sample) is bytes and 0 not in sample:
+        return None
+
     # Check UTF-32 first (more specific pattern)
     result = _check_utf32(sample)
     if result is not None:
@@ -130,9 +139,14 @@ def _check_utf32(data: bytes) -> DetectionResult | None:
     num_units = trimmed_len // 4
 
     # UTF-32-BE: first byte of each 4-byte unit must be 0x00
-    be_first_null = sum(1 for i in range(0, len(data), 4) if data[i] == 0)
-    # Second byte is 0x00 for BMP characters (the vast majority of text)
-    be_second_null = sum(1 for i in range(0, len(data), 4) if data[i + 1] == 0)
+    native_counts = _BYTE_SEARCH and type(data) is bytes and len(data) <= _SAMPLE_SIZE
+    if native_counts:
+        be_first_null = data[::4].count(0)
+        be_second_null = data[1::4].count(0)
+    else:
+        be_first_null = sum(1 for i in range(0, len(data), 4) if data[i] == 0)
+        # Second byte is 0x00 for BMP characters (the vast majority of text)
+        be_second_null = sum(1 for i in range(0, len(data), 4) if data[i + 1] == 0)
 
     if be_first_null == num_units and be_second_null / num_units > 0.5:
         try:
@@ -147,9 +161,13 @@ def _check_utf32(data: bytes) -> DetectionResult | None:
             pass
 
     # UTF-32-LE: last byte of each 4-byte unit must be 0x00
-    le_last_null = sum(1 for i in range(3, len(data), 4) if data[i] == 0)
-    # Third byte is 0x00 for BMP characters
-    le_third_null = sum(1 for i in range(2, len(data), 4) if data[i] == 0)
+    if native_counts:
+        le_last_null = data[3::4].count(0)
+        le_third_null = data[2::4].count(0)
+    else:
+        le_last_null = sum(1 for i in range(3, len(data), 4) if data[i] == 0)
+        # Third byte is 0x00 for BMP characters
+        le_third_null = sum(1 for i in range(2, len(data), 4) if data[i] == 0)
 
     if le_last_null == num_units and le_third_null / num_units > 0.5:
         try:
@@ -190,9 +208,13 @@ def _check_utf16(data: bytes) -> DetectionResult | None:
     num_units = sample_len // 2
 
     # Count null bytes in even positions (UTF-16-BE high byte for ASCII)
-    be_null_count = sum(1 for i in range(0, sample_len, 2) if data[i] == 0)
-    # Count null bytes in odd positions (UTF-16-LE high byte for ASCII)
-    le_null_count = sum(1 for i in range(1, sample_len, 2) if data[i] == 0)
+    if _BYTE_SEARCH and type(data) is bytes:
+        be_null_count = data[:sample_len:2].count(0)
+        le_null_count = data[1:sample_len:2].count(0)
+    else:
+        be_null_count = sum(1 for i in range(0, sample_len, 2) if data[i] == 0)
+        # Count null bytes in odd positions (UTF-16-LE high byte for ASCII)
+        le_null_count = sum(1 for i in range(1, sample_len, 2) if data[i] == 0)
 
     be_frac = be_null_count / num_units
     le_frac = le_null_count / num_units
