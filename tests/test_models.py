@@ -794,6 +794,105 @@ def test_single_bigram_profile_scores_without_gather(
     assert models_mod.score_with_profile(profile, bytes(model)) == pytest.approx(1.0)
 
 
+@pytest.mark.parametrize("weight", [1, 2**32, 2**80])
+def test_gather_dot_preserves_large_integer_sums(
+    monkeypatch: pytest.MonkeyPatch, weight: int
+) -> None:
+    monkeypatch.setattr(models_mod, "_KERNEL_COMPILED", False)
+    monkeypatch.setattr(models_mod, "_GATHER_DOT", True)
+    profile = models_mod.BigramProfile(b"")
+    freq = [0] * 65536
+    nonzero = [0xE961, 0x61E9, 0x6162]
+    for i, idx in enumerate(nonzero):
+        freq[idx] = weight + i
+    profile._finish(freq, nonzero, [], sum(freq))
+    model = bytes(range(256)) * 256
+    expected = models_mod.score_with_profile(profile, model)
+    monkeypatch.setattr(models_mod, "_sumprod", None)
+    assert models_mod.score_with_profile(profile, model) == expected
+    profile.gather = None
+    assert models_mod.score_with_profile(profile, model) == expected
+
+
+def test_gather_dot_preserves_bytes_subclass_indexing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FloatBytes(bytes):
+        def __getitem__(self, key: int) -> float:
+            return float(super().__getitem__(key)) + 0.1
+
+    monkeypatch.setattr(models_mod, "_KERNEL_COMPILED", False)
+    monkeypatch.setattr(models_mod, "_GATHER_DOT", True)
+    profile = models_mod.BigramProfile(b"accents \xe9\xe0 and words " * 10)
+    model = FloatBytes(bytes(range(256)) * 256)
+    expected = models_mod.score_with_profile(profile, model)
+    monkeypatch.setattr(models_mod, "_sumprod", None)
+    assert models_mod.score_with_profile(profile, model) == expected
+
+
+def test_gather_dot_preserves_replaced_float_weights(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(models_mod, "_KERNEL_COMPILED", False)
+    monkeypatch.setattr(models_mod, "_GATHER_DOT", True)
+    profile = models_mod.BigramProfile(b"abcd")
+    model = bytes([3]) * 65536
+    # Exercise replacement after an integer tuple has been validated.
+    models_mod.score_with_profile(profile, model)
+    profile.dense_vals = (1e16, -(1e16 + 2), 0.0)
+    actual = models_mod.score_with_profile(profile, model)
+    monkeypatch.setattr(models_mod, "_sumprod", None)
+    assert actual == models_mod.score_with_profile(profile, model)
+
+
+def test_gather_dot_preserves_replaced_callable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(models_mod, "_KERNEL_COMPILED", False)
+    monkeypatch.setattr(models_mod, "_GATHER_DOT", True)
+    profile = models_mod.BigramProfile(b"abcd")
+    profile.dense_vals = (3, 3, 3)
+    profile.gather = lambda _model: (1e16, -(1e16 + 2), 0.0)
+    model = bytes([1]) * 65536
+    actual = models_mod.score_with_profile(profile, model)
+    monkeypatch.setattr(models_mod, "_sumprod", None)
+    assert actual == models_mod.score_with_profile(profile, model)
+
+
+def test_gather_dot_preserves_profile_subclass_accesses(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class Profile(models_mod.BigramProfile):
+        reads = 0
+
+        def __getattribute__(self, name: str) -> object:
+            if name == "dense_vals":
+                self.reads += 1
+            return super().__getattribute__(name)
+
+    monkeypatch.setattr(models_mod, "_KERNEL_COMPILED", False)
+    monkeypatch.setattr(models_mod, "_GATHER_DOT", True)
+    profile = Profile(b"abcd")
+    models_mod.score_with_profile(profile, bytes([1]) * 65536)
+    assert profile.reads == 1
+
+
+@pytest.mark.parametrize(
+    "weights", [[], [1, 2, 3], (), (1,), (1, 2, 3, 4), (2**129,) * 3]
+)
+def test_gather_dot_preserves_nonstandard_weight_sequences(
+    monkeypatch: pytest.MonkeyPatch, weights: list[int] | tuple[int, ...]
+) -> None:
+    monkeypatch.setattr(models_mod, "_KERNEL_COMPILED", False)
+    monkeypatch.setattr(models_mod, "_GATHER_DOT", True)
+    profile = models_mod.BigramProfile(b"abcd")
+    profile.dense_vals = weights
+    model = bytes([1]) * 65536
+    actual = models_mod.score_with_profile(profile, model)
+    monkeypatch.setattr(models_mod, "_sumprod", None)
+    assert actual == models_mod.score_with_profile(profile, model)
+
+
 def test_decompress_tables_truncated_streams_raise() -> None:
     """Every truncation of a two-table stream must raise, at any cut point.
 

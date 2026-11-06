@@ -10,6 +10,7 @@ from utils import collect_test_files
 from chardet.enums import EncodingEra
 from chardet.models import BigramProfile, _get_model_norms, get_enc_index
 from chardet.pipeline import DetectionResult
+from chardet.pipeline import statistical as statistical_mod
 from chardet.pipeline.orchestrator import _STAT_SCORE_MAX_BYTES
 from chardet.pipeline.postprocess import forced_encodings, scoring_floor
 from chardet.pipeline.statistical import (
@@ -18,6 +19,43 @@ from chardet.pipeline.statistical import (
     score_candidates,
 )
 from chardet.registry import REGISTRY, get_candidates
+
+
+@pytest.mark.parametrize("weight", [1, 2**32, 2**80])
+@pytest.mark.parametrize("indices", [[0x6162], [0x6162, 0xE961, 0xFF80]])
+def test_row_bound_gather_matches_loop(
+    monkeypatch: pytest.MonkeyPatch, weight: int, indices: list[int]
+) -> None:
+    monkeypatch.setattr(statistical_mod, "_GATHER_DOT", True)
+    monkeypatch.setattr(statistical_mod, "_KERNEL_COMPILED", False)
+    profile = BigramProfile.from_weighted_freq(
+        {idx: weight + i for i, idx in enumerate(indices)}
+    )
+    candidates = get_candidates(EncodingEra.ALL)
+    expected = _split_variants(candidates, profile)
+    monkeypatch.setattr(statistical_mod, "_GATHER_DOT", False)
+    assert _split_variants(candidates, profile) == expected
+
+
+def test_row_bound_preserves_float_weight_arithmetic(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(statistical_mod, "_GATHER_DOT", True)
+    monkeypatch.setattr(statistical_mod, "_KERNEL_COMPILED", False)
+    profile = BigramProfile(b"abc")
+    profile.nonzero_rows = [0, 1]
+    profile.row_freq = [1e16, -(1e16 + 2)]
+    monkeypatch.setattr(
+        statistical_mod, "get_enc_index", lambda: {"cp1252": [("en", b"", "test")]}
+    )
+    monkeypatch.setattr(
+        statistical_mod, "get_rowmax", lambda: {"test": bytes([3]) * 256}
+    )
+    monkeypatch.setattr(statistical_mod, "_get_model_norms", lambda: {"test": 1.0})
+    candidates = (REGISTRY["cp1252"],)
+    expected = _split_variants(candidates, profile)
+    monkeypatch.setattr(statistical_mod, "_GATHER_DOT", False)
+    assert _split_variants(candidates, profile) == expected
 
 
 def test_score_candidates_returns_sorted_results():
