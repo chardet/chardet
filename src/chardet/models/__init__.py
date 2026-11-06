@@ -13,6 +13,7 @@ import math
 import operator
 import sys
 import warnings
+from typing import cast
 
 from chardet import _kernel
 from chardet._kernel import dot_packed, pack_profile
@@ -50,10 +51,47 @@ _EMPTY_PACKED = (array.array("i"), array.array("i"))
 _KERNEL_COMPILED = _kernel.__file__.endswith((".so", ".pyd"))
 
 #: Whether interpreted dense profiles score through ``operator.itemgetter``.
-#: On CPython that moves the per-bigram gather and multiply-add into C,
-#: about 1.7x faster per model than the Python loop.  PyPy's JIT runs the
-#: plain loop about 4x faster than the itemgetter form, so it keeps the loop.
+#: On CPython that moves the per-bigram gather into C, followed by an exact
+#: integer sumprod where available or sum(map(mul, ...)) on older versions.
+#: PyPy's JIT runs the plain loop faster than the itemgetter form, so it
+#: keeps the loop.
 _GATHER_DOT = sys.implementation.name == "cpython"
+
+# Python 3.12 added an integer dot product that avoids a Python multiply
+# call for each pair. Integer inputs retain exact, arbitrary-precision sums.
+_PYTHON_MODULE = not __file__.endswith((".so", ".pyd"))
+_sumprod = getattr(math, "sumprod", None) if _PYTHON_MODULE else None
+
+# Only the most recently checked immutable tuple is retained. This avoids
+# rescanning its types for every model while preserving the original floating
+# arithmetic if a caller replaces a profile's weights or gather callable.
+# Length and integer-size limits bound the retained payload to a few MiB;
+# larger integers still score exactly through the original path.
+_INTEGER_INPUTS: tuple[object, tuple[int, ...]] | None = None
+
+
+def _has_integer_inputs(gather: object, values: tuple[int, ...]) -> bool:
+    global _INTEGER_INPUTS  # noqa: PLW0603
+    if type(values) is not tuple:
+        return False
+    cached = _INTEGER_INPUTS
+    if cached is not None and cached[0] is gather and cached[1] is values:
+        return True
+    indices = cast("tuple[int, ...]", gather.__reduce__()[1])
+    if (
+        2 <= len(values) <= 65536
+        and len(indices) == len(values)
+        and set(map(type, indices)) == {int}
+        and min(indices) >= 0
+        and max(indices) < 65536
+        and set(map(type, values)) == {int}
+        and min(values).bit_length() <= 128
+        and max(values).bit_length() <= 128
+    ):
+        _INTEGER_INPUTS = (gather, values)
+        return True
+    return False
+
 
 # 256-entry membership table for whitespace bytes whose runs training
 # collapsed — native byte indexing under mypyc, used in the bigram-profile
@@ -588,7 +626,16 @@ def score_with_profile(
         # because a list returns a cached int where array('i') boxes a new one.
         gather = profile.gather
         if gather is not None:
-            dot = sum(map(operator.mul, gather(model), profile.dense_vals))
+            if (
+                _sumprod is not None
+                and type(profile) is BigramProfile
+                and type(model) is bytes
+                and type(gather) is operator.itemgetter
+                and _has_integer_inputs(gather, profile.dense_vals)
+            ):
+                dot = _sumprod(gather(model), profile.dense_vals)
+            else:
+                dot = sum(map(operator.mul, gather(model), profile.dense_vals))
         else:
             dot = 0
             freq = profile.freq
