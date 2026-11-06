@@ -47,6 +47,22 @@ def test_null_search_preserves_subclass_operations() -> None:
     assert detect_utf1632_patterns(NoContains(b"a" * 4096)) is None
 
 
+@pytest.mark.parametrize(
+    "encoding", ["utf-16-le", "utf-16-be", "utf-32-le", "utf-32-be"]
+)
+@pytest.mark.parametrize("length", [15, 16, 4095, 4096, 4097, 4100, 8192])
+def test_native_null_counts_match_walkers(
+    monkeypatch: pytest.MonkeyPatch, encoding: str, length: int
+) -> None:
+    text = "Hello, 世界! \U0001f642\n" * 1024
+    data = text.encode(encoding)[:length]
+    checks = (utf1632_mod._check_utf16, utf1632_mod._check_utf32)
+    monkeypatch.setattr(utf1632_mod, "_BYTE_SEARCH", False)
+    expected = [check(data) for check in checks]
+    monkeypatch.setattr(utf1632_mod, "_BYTE_SEARCH", True)
+    assert [check(data) for check in checks] == expected
+
+
 def test_utf16_le_ascii_text() -> None:
     """ASCII-range text encoded as UTF-16-LE should be detected."""
     text = "Hello, this is a test of UTF-16 LE detection."
