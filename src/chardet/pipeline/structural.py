@@ -9,10 +9,51 @@ this module is compiled with mypyc, which does not support PEP 563 string
 annotations.
 """
 
+import re
+import sys
+from collections import Counter
 from collections.abc import Callable
 
+from chardet._utils import EVIDENCE_CAP_BYTES
 from chardet.pipeline import HIGH_BYTES, PipelineContext
 from chardet.registry import EncodingInfo
+
+# The compiled and PyPy loops already run natively. For interpreted CPython,
+# count repeated tokens in C and aggregate only the distinct sequences.
+_PATTERN_SCANS = sys.implementation.name == "cpython" and not __file__.endswith(
+    (".so", ".pyd")
+)
+_EUC_JP_PATTERN = re.compile(
+    b"[\xa1-\xfe][\xa1-\xfe]|\x8e[\xa1-\xdf]|\x8f[\xa1-\xfe]{2}|[\x8e\x8f\xa1-\xfe]"
+)
+_GB18030_PATTERN = re.compile(
+    b"[\x81-\xfe][0-9][\x81-\xfe][0-9]|[\xa1-\xf7][\xa1-\xfe]|[\x81-\xfe]"
+)
+
+
+def _analyze_pattern(
+    data: bytes, pattern: re.Pattern[bytes], fixed_mb: int
+) -> tuple[float, int, int]:
+    """Count valid sequences and invalid single lead bytes without overlap.
+
+    Each pattern tries the same valid sequences, in the same order, as its
+    byte walker, then consumes an unmatched lead alone. Other bytes are
+    skipped. Callers bound the input size to bound the temporary match list.
+    """
+    counts = Counter(pattern.findall(data))
+    lead_count = sum(counts.values())
+    valid_count = 0
+    mb = 0
+    leads: set[int] = set()
+    for sequence, count in counts.items():
+        length = len(sequence)
+        if length > 1:
+            valid_count += count
+            mb += (fixed_mb or length) * count
+            leads.add(sequence[0])
+    ratio = valid_count / lead_count if lead_count > 0 else 0.0
+    return ratio, mb, len(leads)
+
 
 # ---------------------------------------------------------------------------
 # Per-encoding single-pass analyzers
@@ -118,6 +159,12 @@ def _analyze_euc_jp(
 
     Returns (pair_ratio, mb_bytes, lead_diversity).
     """
+    if (
+        _PATTERN_SCANS
+        and type(data) is bytes
+        and 512 <= len(data) <= EVIDENCE_CAP_BYTES
+    ):
+        return _analyze_pattern(data, _EUC_JP_PATTERN, 0)
     lead_count = 0
     valid_count = 0
     mb = 0
@@ -256,6 +303,12 @@ def _analyze_gb18030(
 
     Returns (pair_ratio, mb_bytes, lead_diversity).
     """
+    if (
+        _PATTERN_SCANS
+        and type(data) is bytes
+        and 512 <= len(data) <= EVIDENCE_CAP_BYTES
+    ):
+        return _analyze_pattern(data, _GB18030_PATTERN, 2)
     lead_count = 0
     valid_count = 0
     mb = 0

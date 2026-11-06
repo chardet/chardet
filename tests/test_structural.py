@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import itertools
+
 import pytest
 
 from chardet.pipeline import PipelineContext
+from chardet.pipeline import structural as structural_mod
 from chardet.pipeline.structural import (
     _analyze_big5,
     _analyze_big5hkscs,
@@ -17,6 +20,44 @@ from chardet.pipeline.structural import (
     compute_structural_score,
 )
 from chardet.registry import REGISTRY
+
+
+@pytest.mark.parametrize("kind", ["euc_jp", "gb18030"])
+def test_pattern_analysis_all_byte_pairs(kind: str) -> None:
+    analyzer = getattr(structural_mod, f"_analyze_{kind}")
+    pattern = getattr(structural_mod, f"_{kind.upper()}_PATTERN")
+    fixed_mb = 0 if kind == "euc_jp" else 2
+    for pair in range(65536):
+        data = pair.to_bytes(2, "big")
+        assert structural_mod._analyze_pattern(data, pattern, fixed_mb) == analyzer(
+            data
+        )
+
+
+@pytest.mark.parametrize("kind", ["euc_jp", "gb18030"])
+def test_pattern_analysis_sequence_boundaries(kind: str) -> None:
+    analyzer = getattr(structural_mod, f"_analyze_{kind}")
+    pattern = getattr(structural_mod, f"_{kind.upper()}_PATTERN")
+    fixed_mb = 0 if kind == "euc_jp" else 2
+    alphabet = [0x30, 0x39, 0x3A, 0x81, 0x8E, 0x8F, 0xA0, 0xA1, 0xDF, 0xF7, 0xFE, 0xFF]
+    for values in itertools.product(alphabet, repeat=4):
+        data = bytes(values)
+        assert structural_mod._analyze_pattern(data, pattern, fixed_mb) == analyzer(
+            data
+        )
+
+
+@pytest.mark.parametrize("kind", ["euc_jp", "gb18030"])
+@pytest.mark.parametrize("length", [511, 512, 262144, 262145])
+def test_pattern_scan_matches_walker_at_size_limits(
+    monkeypatch: pytest.MonkeyPatch, kind: str, length: int
+) -> None:
+    analyzer = getattr(structural_mod, f"_analyze_{kind}")
+    data = (b"\x8f\xa1\xa1\x81\x30\x81\x30abc\xff" * (length // 11 + 1))[:length]
+    monkeypatch.setattr(structural_mod, "_PATTERN_SCANS", True)
+    expected = analyzer(data)
+    monkeypatch.setattr(structural_mod, "_PATTERN_SCANS", False)
+    assert analyzer(data) == expected
 
 
 @pytest.fixture
