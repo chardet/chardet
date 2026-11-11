@@ -113,11 +113,20 @@ Unreleased
   does not have.  ``<meta charset="utf-8">`` over a body holding
   ``+ADwAcwBjAHIAaQBwAHQAPg-`` used to get UTF-7 at 0.95, and decoding
   with that answer turned inert text into a ``<script>`` tag; the
-  declaration now stands, as it does in every browser.  UTF-7 that
-  shifts only non-ASCII text still wins over a stale declaration, and
-  undeclared UTF-7 is unchanged.
+  declaration now stands, as it does in every browser.  Undeclared
+  UTF-7 is unchanged.
   (`Samina <https://github.com/Samin061>`_,
   `#419 <https://github.com/chardet/chardet/pull/419>`_)
+- A charset declaration that decodes the page now beats every escape
+  sequence answer: UTF-7 (with or without the ``+/v8-`` signature),
+  HZ-GB-2312, and ISO-2022-JP/KR.  Escape sequences are ASCII bytes
+  that any page can hold, so the declaration is the better evidence.
+  #419 above did this only for a UTF-7 reading that added markup.  A
+  page that declares an ISO-2022 name still gets the variant its escape
+  sequences call for, and pages with no declaration are unchanged.  The
+  cost: UTF-7, HZ, or ISO-2022 text under a wrong declaration now gets
+  the declared name.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 
 **Build:**
 

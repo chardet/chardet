@@ -15,7 +15,9 @@ order:
    data. If found, returns ``UTF-8-SIG``, ``UTF-16``, ``UTF-32``, or
    ``utf-7`` with confidence 1.0, but only when the rest of the examined
    window decodes under that encoding; a mark on bytes that do not
-   decode is passed over.
+   decode is passed over. The UTF-7 signature (``+/v8-``) is ASCII
+   bytes, so it yields to a charset declaration like the answers in
+   step 3.
 
 2. **UTF-16/32 Patterns** — Detects BOM-less UTF-16 and UTF-32 by
    analyzing null-byte patterns. Interleaved null bytes strongly indicate
@@ -28,11 +30,11 @@ order:
 3. **Escape Sequences** — Identifies escape-based encodings like
    ISO-2022-JP, ISO-2022-KR, HZ-GB-2312, and UTF-7 by matching their
    characteristic escape byte sequences, then decoding the whole window
-   to confirm. A UTF-7 answer also yields to a charset declaration (step
-   6) when the page has one that decodes it and the UTF-7 reading would
-   add a markup character, one of ``<`` ``>`` ``&`` ``"`` ``'``, that the
-   declared reading does not have: ``+ADw-`` is ``<`` in UTF-7, and
-   browsers keep the declaration there.
+   to confirm. Escape sequences are ASCII bytes that a page in any
+   charset can hold, so when the page has a charset declaration (step 6)
+   that decodes it, the declaration wins, as it does in a browser. The
+   one exception is an ISO-2022 answer on a page that declares an
+   ISO-2022 name, where the escape sequences pick the variant.
 
 4. **Magic Number Detection** — Identifies binary file types (PNG, JPEG,
    PDF, ZIP, etc.) by their magic number signatures. Returns immediately
