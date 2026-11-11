@@ -198,6 +198,29 @@ def _plausible_lone_unit(unit: int) -> bool:
     )
 
 
+def _shifted_run_has_private_use_unit(b64_data: bytes) -> bool:
+    """Return True if a shifted run decodes into a BMP private-use unit.
+
+    Private-use code points (U+E000-U+F8FF) never occur in genuine text --
+    Guard A rejects a leading '+' on the same premise.  A long accidental
+    Base64 run such as the Debian ``+dfsg/LICENSES/Qt-`` path in issue #432
+    can pass the padding, surrogate and uppercase guards, but decodes into
+    unrelated code units that include one of these.  The bit buffer is kept
+    trimmed, so this stays linear in the length of the run.
+    """
+    bit_buf = 0
+    bit_count = 0
+    for c in b64_data:
+        bit_buf = (bit_buf << 6) | _B64_DECODE[c]
+        bit_count += 6
+        if bit_count >= 16:
+            bit_count -= 16
+            if 0xE000 <= ((bit_buf >> bit_count) & 0xFFFF) <= 0xF8FF:
+                return True
+            bit_buf &= (1 << bit_count) - 1
+    return False
+
+
 def _has_valid_utf7_sequences(data: bytes, max_start: int, max_end: int) -> bool:
     """Check that *data* contains at least one valid UTF-7 shifted sequence.
 
@@ -269,6 +292,14 @@ def _has_valid_utf7_sequences(data: bytes, max_start: int, max_end: int) -> bool
         # prevents false positives).  Terminator can be '-', any non-Base64
         # byte, or end of data — all per RFC 2152.
         if b64_len >= 3 and _is_valid_utf7_b64(b64_data):
+            # Guard E: a shifted run that decodes into BMP Private Use Area
+            # code units is not text.  Long accidental runs can survive the
+            # padding and surrogate checks (issue #432).  This stays out of
+            # ``_is_valid_utf7_b64`` so that helper's UTF-16 validity
+            # contract -- including its linear-decode benchmark -- is intact.
+            if _shifted_run_has_private_use_unit(b64_data):
+                start = i
+                continue
             # Guard D: a block encoding a *single* code unit — with or
             # without a dash terminator — must decode into a script range
             # where a lone shifted character plausibly occurs.  The corpus's
@@ -278,8 +309,8 @@ def _has_valid_utf7_sequences(data: bytes, max_start: int, max_end: int) -> bool
             # fullwidth forms.  An accidental uppercase run like "+LAY"
             # (issue #371) decodes to U+2C06, Glagolitic — no genuine lone
             # block in 149 corpus files lands in such a range.  Multi-unit
-            # blocks are untouched: accidental ASCII does not survive the
-            # padding and surrogate checks for long runs.
+            # blocks are left to the padding, surrogate and Guard E checks
+            # above rather than a script-range heuristic.
             if (b64_len * 6) // 16 == 1:
                 unit = _single_unit(b64_data)
                 if not _plausible_lone_unit(unit):

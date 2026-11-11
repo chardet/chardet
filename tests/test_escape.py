@@ -339,6 +339,18 @@ def test_utf7_b64_accepts_valid_surrogate_pair() -> None:
     assert _is_valid_utf7_b64(b"2ADcAA")
 
 
+def test_utf7_rejects_dfsg_source_path() -> None:
+    """A Debian ``+dfsg/...`` path is ASCII, not a UTF-7 shifted run.
+
+    ``+dfsg/LICENSES/Qt-`` is a valid-length Base64 run with correct
+    padding and no lone surrogates, but it decodes to six unrelated code
+    units ending in U+F42D (BMP Private Use Area).  Private-use code points
+    never occur in genuine text, the same premise as Guard A (issue #432).
+    """
+    data = b"qt6-webengine-6.8.2+dfsg/LICENSES/Qt-GPL-exception-1.0.txt"
+    assert detect_escape_encoding(data) is None
+
+
 def test_utf7_rejects_increment_operator() -> None:
     """++row in C code must not trigger UTF-7 detection (regression #332).
 

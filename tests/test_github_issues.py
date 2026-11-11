@@ -275,6 +275,20 @@ class TestEscapeSequences:
         _assert_detection(western.encode("utf-7"), "utf-7")
         _assert_detection(japanese.encode("utf-7"), "utf-7")
 
+    def test_plus_dfsg_path_not_utf7(self) -> None:
+        """Issue #432: a Debian ``+dfsg`` source path must stay ASCII.
+
+        ``+dfsg/LICENSES/Qt-`` is a 16-character Base64 run, long enough to
+        pass the uppercase and padding guards that reject short accidental
+        runs.  It decodes to six UTF-16 code units, the last of which is
+        U+F42D in the BMP Private Use Area, so it is ordinary ASCII text
+        rather than a UTF-7 shifted sequence.
+        """
+        _assert_detection(
+            b"qt6-webengine-6.8.2+dfsg/LICENSES/Qt-GPL-exception-1.0.txt",
+            "ascii",
+        )
+
 
 # =========================================================================
 # UTF-16 / UTF-32 ISSUES
