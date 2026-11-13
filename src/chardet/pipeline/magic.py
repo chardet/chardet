@@ -5,7 +5,8 @@ this module is compiled with mypyc, which does not support PEP 563 string
 annotations.
 """
 
-from chardet.pipeline import DetectionResult
+from chardet._utils import count_deleted
+from chardet.pipeline import ASCII_TEXT_BYTES, DetectionResult
 
 # (prefix_bytes, mime_type) — longest prefix first to avoid shorter prefixes
 # shadowing longer ones. All entries match at offset 0.
@@ -67,6 +68,19 @@ _MAGIC_NUMBERS: tuple[tuple[bytes, str], ...] = (
     (b"OTTO", "font/otf"),
     (b"\x00\x01\x00\x00", "font/ttf"),
 )
+
+# Signatures of four printable bytes or fewer ("BM", "MZ", "ID3", "OTTO")
+# are ordinary words at the start of a text file.  Every binary format that
+# uses one follows it with header fields holding nulls or other control
+# bytes, so one of these matches only when the window has such a byte.
+_TEXT_PLAUSIBLE_PREFIXES: frozenset[bytes] = frozenset(
+    prefix
+    for prefix, _mime in _MAGIC_NUMBERS
+    if len(prefix) <= 4 and not prefix.translate(None, ASCII_TEXT_BYTES)
+)
+# ASCII bytes that never occur in text: C0 controls other than tab, LF and
+# CR, and DEL.  The same set the ASCII stage rejects.
+_NON_TEXT_ASCII: bytes = bytes(range(0x80)).translate(None, ASCII_TEXT_BYTES)
 
 # TAR archives have "ustar" at offset 257
 _TAR_OFFSET = 257
@@ -266,6 +280,11 @@ def detect_magic(data: bytes) -> DetectionResult | None:
     # Fixed-offset magic numbers (all at offset 0)
     for prefix, mime in _MAGIC_NUMBERS:
         if data.startswith(prefix):
+            if (
+                prefix in _TEXT_PLAUSIBLE_PREFIXES
+                and count_deleted(data, _NON_TEXT_ASCII) == 0
+            ):
+                return None
             return _make_result(mime)
 
     # TAR archive — "ustar" at offset 257

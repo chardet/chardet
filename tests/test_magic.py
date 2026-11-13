@@ -4,6 +4,7 @@ import struct
 
 import pytest
 
+import chardet
 from chardet.pipeline.magic import detect_magic
 
 
@@ -141,6 +142,30 @@ def test_detect_magic_ftyp_text_false_positive() -> None:
     """
     result = detect_magic(b"The ftypeface was bold and strong")
     assert result is None
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        b"BMW makes cars.\n",
+        b"MZ is a postcode area.\n",
+        b"ID3 tags hold the title.\n",
+        b"OTTO von Bismarck\n",
+        b"OggS and fLaC are containers.\n",
+        "BMW fährt schnell.\n".encode(),
+        "BMW fährt schnell.\n".encode("cp1252"),
+    ],
+)
+def test_detect_magic_short_signature_on_text_rejected(data: bytes) -> None:
+    """A short printable signature is a word when the window is plain text."""
+    assert detect_magic(data) is None
+
+
+def test_detect_magic_short_signature_on_text_falls_through() -> None:
+    """Text starting with a signature word is detected as text."""
+    result = chardet.detect(b"BMW makes cars.\n")
+    assert result["encoding"] == "ascii"
+    assert result["mime_type"] == "text/plain"
 
 
 def test_detect_magic_ftyp_ascii_prefix_rejected() -> None:
