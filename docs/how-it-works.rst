@@ -73,12 +73,16 @@ order:
    checking multi-byte sequence structure. UTF-8 has very distinctive
    byte patterns that are unlikely to occur in other encodings.
 
-9. **Byte Validity Filtering** — Attempts to decode the data with each
-   candidate encoding's Python codec. Any encoding that raises a decode
-   error is eliminated. An incomplete multi-byte sequence at the very end
-   of the data does not count as an error: detection input is usually a
-   prefix of a larger whole, so a partial trailing character means the
-   input was cut mid-character rather than that the encoding is wrong.
+9. **Byte Validity Filtering** — Eliminates every candidate encoding
+   that cannot decode the data. A single-byte codec that leaves only a
+   few byte values undefined is checked by looking for those bytes, which
+   gives the same answer as decoding and is much faster. Every other
+   candidate is decoded with its Python codec, and any that raises a
+   decode error is eliminated. An incomplete multi-byte sequence at the
+   very end of the data does not count as an error: detection input is
+   usually a prefix of a larger whole, so a partial trailing character
+   means the input was cut mid-character rather than that the encoding
+   is wrong.
    This stage and the four after it read at most the first 256 KiB of
    the window, which is above the default ``max_bytes``; past that cap
    the winner is still decoded over the whole window, and a winner that

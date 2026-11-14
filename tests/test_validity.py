@@ -86,6 +86,21 @@ def test_agrees_with_a_full_decode_for_every_candidate():
         assert filter_by_validity(data, candidates) == expected, data
 
 
+def test_scans_codecs_with_few_undefined_bytes_and_decodes_the_rest():
+    """cp1252 takes the undefined-byte scan; iso8859-6, with 45, is decoded.
+
+    Reads the cache the filter fills, so it holds on a compiled build too,
+    where patching the module's functions would not be observed.
+    """
+    by_name = {e.name: e for e in get_candidates(EncodingEra.ALL)}
+    names = ("cp1252", "koi8-r", "iso8859-6", "utf-8")
+    filter_by_validity(b"Hello", tuple(by_name[n] for n in names))
+    assert validity._UNDEFINED_BYTES["cp1252"] == b"\x81\x8d\x8f\x90\x9d"
+    assert validity._UNDEFINED_BYTES["koi8-r"] == b""
+    assert validity._UNDEFINED_BYTES["iso8859-6"] is None
+    assert validity._UNDEFINED_BYTES["utf-8"] is None
+
+
 def test_unknown_codec_is_filtered_out():
     """A candidate whose codec cannot be looked up never survives."""
     candidate = dataclasses.replace(
