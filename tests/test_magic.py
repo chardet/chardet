@@ -4,8 +4,11 @@ import struct
 
 import pytest
 
-import chardet
-from chardet.pipeline.magic import detect_magic
+from chardet.pipeline.magic import (
+    _TEXT_GATE_BYTES,
+    _TEXT_PLAUSIBLE_PREFIXES,
+    detect_magic,
+)
 
 
 @pytest.mark.parametrize(
@@ -154,6 +157,15 @@ def test_detect_magic_ftyp_text_false_positive() -> None:
         b"OggS and fLaC are containers.\n",
         "BMW fährt schnell.\n".encode(),
         "BMW fährt schnell.\n".encode("cp1252"),
+        b"BZh is where a bzip2 stream starts.\n",
+        b"MThd opens a MIDI file.\n",
+        b"PAR1 results are in.\n",
+        b"wOFF is the WOFF tag.\n",
+        b"wOF2 is the WOFF2 tag.\n",
+        b"8BPS opens a PSD file.\n",
+        b"qoif opens a QOI file.\n",
+        b"dex\nfiles hold Android bytecode.\n",
+        b"fLaC is lossless audio.\n",
     ],
 )
 def test_detect_magic_short_signature_on_text_rejected(data: bytes) -> None:
@@ -161,11 +173,33 @@ def test_detect_magic_short_signature_on_text_rejected(data: bytes) -> None:
     assert detect_magic(data) is None
 
 
-def test_detect_magic_short_signature_on_text_falls_through() -> None:
-    """Text starting with a signature word is detected as text."""
-    result = chardet.detect(b"BMW makes cars.\n")
-    assert result["encoding"] == "ascii"
-    assert result["mime_type"] == "text/plain"
+_CONTROL_BYTES = [b"\x00", b"\x0b", b"\x0c", b"\x1b", b"\x7f"]
+
+
+@pytest.mark.parametrize("control", _CONTROL_BYTES)
+def test_detect_magic_short_signature_control_byte_in_gate(control: bytes) -> None:
+    """A control byte in the last byte the gate reads keeps the signature."""
+    data = b"MZ is a postcode area.".ljust(_TEXT_GATE_BYTES - 1) + control + b"\n"
+    result = detect_magic(data)
+    assert result is not None
+    assert result.mime_type == "application/vnd.microsoft.portable-executable"
+
+
+@pytest.mark.parametrize("control", _CONTROL_BYTES)
+def test_detect_magic_short_signature_control_byte_past_gate(control: bytes) -> None:
+    """A control byte past the bytes the gate reads leaves the text as text."""
+    data = b"MZ is a postcode area.".ljust(_TEXT_GATE_BYTES) + control + b"\n"
+    assert detect_magic(data) is None
+
+
+@pytest.mark.parametrize("signature", sorted(_TEXT_PLAUSIBLE_PREFIXES))
+def test_detect_magic_bare_short_signature_is_text(signature: bytes) -> None:
+    """A window holding only a short printable signature reads as text.
+
+    Accepted on purpose: with no header bytes after it, nothing tells the
+    signature apart from a word.
+    """
+    assert detect_magic(signature) is None
 
 
 def test_detect_magic_ftyp_ascii_prefix_rejected() -> None:

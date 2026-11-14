@@ -37,10 +37,16 @@ order:
    ISO-2022 name, where the escape sequences pick the variant.
 
 4. **Magic Number Detection** — Identifies binary file types (PNG, JPEG,
-   PDF, ZIP, etc.) by their magic number signatures. Returns immediately
-   with ``encoding=None`` and a specific ``mime_type`` (e.g.,
+   PDF, ZIP, etc.) by their magic number signatures. A match returns
+   immediately with ``encoding=None`` and a specific ``mime_type`` (e.g.,
    ``"image/png"``). ZIP-based formats like XLSX, DOCX, and EPUB are
-   further distinguished by inspecting entry filenames.
+   further distinguished by inspecting entry filenames. A signature of
+   four printable bytes or fewer, such as ``MZ`` or ``ID3``, can also be
+   the first word of a text file, so it only counts when the first 64
+   bytes hold a null or another control byte other than tab, line feed,
+   or carriage return. Real files in those formats always have one in
+   their header. Without one, the stage gives no answer and the later
+   stages decide.
 
 5. **Binary Detection** — If more than 1% of the bytes are control
    bytes other than whitespace (nulls included), and the data is neither
