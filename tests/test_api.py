@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import warnings
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -9,6 +10,9 @@ import chardet
 from chardet.detector import UniversalDetector
 from chardet.enums import EncodingEra, LanguageFilter
 from chardet.registry import REGISTRY, get_candidates, normalize_encodings
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 def test_detect_returns_dict():
@@ -830,6 +834,21 @@ def test_detect_unknown_no_match_raises():
 def test_detect_unknown_empty_input_raises():
     with pytest.raises(ValueError, match="Unknown encoding"):
         chardet.detect(b"Hello", empty_input_encoding="not-real")
+
+
+@pytest.mark.parametrize("option", ["empty_input_encoding", "no_match_encoding"])
+@pytest.mark.parametrize("detect", [chardet.detect, chardet.detect_all])
+def test_detect_invalid_fallback_encoding(
+    detect: Callable[..., object], option: str
+) -> None:
+    with pytest.raises(ValueError, match=rf"Unknown encoding None in {option}"):
+        detect(b"Hello", **{option: None})
+
+
+@pytest.mark.parametrize("option", ["empty_input_encoding", "no_match_encoding"])
+def test_detector_invalid_fallback_encoding(option: str) -> None:
+    with pytest.raises(ValueError, match=rf"Unknown encoding None in {option}"):
+        UniversalDetector(**{option: None})
 
 
 def test_detect_all_with_exclude():
