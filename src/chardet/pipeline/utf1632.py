@@ -21,7 +21,12 @@ _SAMPLE_SIZE = 4096
 _MIN_BYTES_UTF32 = 16  # 4 full code units
 _MIN_BYTES_UTF16 = 10  # 5 full code units
 
-# Keep the optional mypyc path on its existing native loops.
+# Whether the positional null counts below use strided slices and
+# bytes.count, which run in C, instead of Python loops.  Only the interpreted
+# module takes the slices; under mypyc the loops compile to native code.
+# This puts two counting paths in one file.  The tests flip the flag to run
+# both, but the compiled module itself is only exercised by running the
+# suite against a compiled build, so check both builds when changing either.
 _BYTE_SEARCH = not __file__.endswith((".so", ".pyd"))
 
 # Minimum fraction of null bytes in the expected position for UTF-16.
@@ -106,8 +111,9 @@ def detect_utf1632_patterns(data: bytes) -> DetectionResult | None:
 
     # Both pattern checks require a positive number of null bytes. Most
     # text has none: one native byte search rules out both checks exactly.
+    # It pays off compiled too, where the loops still visit every byte.
     # Subclasses retain their indexing semantics through the original path.
-    if _BYTE_SEARCH and type(sample) is bytes and 0 not in sample:
+    if type(sample) is bytes and 0 not in sample:
         return None
 
     # Check UTF-32 first (more specific pattern)

@@ -764,8 +764,11 @@ holding the bigram scoring loop that
 is about a third of compiled runtime. Both read the same ``.py``
 sources --- ``_kernel.pxd`` supplies C types at build time and ships
 nothing --- so PyPy and pure-Python wheels run the same code
-interpreted, and ``models`` selects the scoring path matching the build
-it finds.
+interpreted. A few modules check which build they are in and take the
+path that suits it: ``models`` selects its scoring path, and the
+UTF-16/32 stage counts null bytes with C-level byte searches when
+interpreted but keeps its loops when compiled, where mypyc runs them
+natively.
 
 .. list-table::
    :header-rows: 1

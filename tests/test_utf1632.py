@@ -10,6 +10,7 @@ from chardet._utils import decodes_without_error
 from chardet.pipeline import DETERMINISTIC_CONFIDENCE, DetectionResult
 from chardet.pipeline import utf1632 as utf1632_mod
 from chardet.pipeline.utf1632 import (
+    _MIN_BYTES_UTF16,
     _SAMPLE_SIZE,
     _looks_like_text,
     _text_quality,
@@ -22,16 +23,29 @@ from chardet.pipeline.utf1632 import (
 
 
 @pytest.mark.parametrize("length", [9, 10, 15, 16, 4095, 4096, 4097])
-def test_null_search_matches_pattern_checks(
-    monkeypatch: pytest.MonkeyPatch, length: int
-) -> None:
+def test_null_search_matches_pattern_checks(length: int) -> None:
     samples = [b"a" * length, (bytes(range(1, 256)) * 17)[:length]]
     for pos in (0, length // 2, length - 1):
         samples.append(b"a" * pos + b"\x00" + b"a" * (length - pos - 1))
-    monkeypatch.setattr(utf1632_mod, "_BYTE_SEARCH", True)
-    expected = [detect_utf1632_patterns(data) for data in samples]
-    monkeypatch.setattr(utf1632_mod, "_BYTE_SEARCH", False)
-    assert [detect_utf1632_patterns(data) for data in samples] == expected
+    # Real UTF-16 has nulls, so the search must let it through to the checks.
+    text = "Hello, world. " * 400
+    samples += [text.encode("utf-16-le")[:length], text.encode("utf-16-be")[:length]]
+    results = [detect_utf1632_patterns(data) for data in samples]
+    # Without the null search, the stage is the two checks in order.
+    checked = []
+    for data in samples:
+        sample = data[:_SAMPLE_SIZE]
+        too_short = len(sample) < _MIN_BYTES_UTF16
+        checked.append(
+            None
+            if too_short
+            else (utf1632_mod._check_utf32(sample) or utf1632_mod._check_utf16(sample))
+        )
+    assert results == checked
+    found = [result.encoding if result else None for result in results]
+    assert found[:-2] == [None] * (len(samples) - 2)
+    utf16 = [None, None] if length < _MIN_BYTES_UTF16 else ["utf-16-le", "utf-16-be"]
+    assert found[-2:] == utf16
 
 
 def test_null_search_preserves_subclass_operations() -> None:
@@ -61,6 +75,44 @@ def test_native_null_counts_match_walkers(
     expected = [check(data) for check in checks]
     monkeypatch.setattr(utf1632_mod, "_BYTE_SEARCH", True)
     assert [check(data) for check in checks] == expected
+
+
+@pytest.mark.parametrize("byte_search", [False, True])
+@pytest.mark.parametrize(
+    ("check", "data", "expected"),
+    [
+        # Nulls on one parity only, and the other byte order cannot decode
+        # (a lone high surrogate), so the parity counts pick the answer.
+        ("_check_utf16", b"\x00A\x4e\xd8" * 64, "utf-16-be"),
+        ("_check_utf16", b"A\x00\xd8\x4e" * 64, "utf-16-le"),
+        # Mostly non-BMP UTF-32: the second byte (BE) or third byte (LE) is
+        # rarely null, so the BMP share check rejects the data.
+        (
+            "_check_utf32",
+            ("\U0001f642\U0001f600\U0001f680 a" * 40).encode("utf-32-be"),
+            None,
+        ),
+        (
+            "_check_utf32",
+            ("\U0001f642\U0001f600\U0001f680 a" * 40).encode("utf-32-le"),
+            None,
+        ),
+        # CJK in UTF-32: only the first two (BE) or last two (LE) bytes are null.
+        ("_check_utf32", ("世界和平 " * 40).encode("utf-32-be"), "utf-32-be"),
+        ("_check_utf32", ("世界和平 " * 40).encode("utf-32-le"), "utf-32-le"),
+    ],
+)
+def test_null_counts_read_the_right_positions(
+    monkeypatch: pytest.MonkeyPatch,
+    check: str,
+    data: bytes,
+    expected: str | None,
+    *,
+    byte_search: bool,
+) -> None:
+    monkeypatch.setattr(utf1632_mod, "_BYTE_SEARCH", byte_search)
+    result = getattr(utf1632_mod, check)(data)
+    assert (result.encoding if result else None) == expected
 
 
 def test_utf16_le_ascii_text() -> None:
