@@ -223,13 +223,24 @@ def _pep263_declaration(data: bytes) -> Declaration | None:
     return Declaration(_pep263_encoding(raw_name), "text/x-python")
 
 
+_COMMENT_SEPARATOR = b"\xff"
+
+
 def _strip_comments(head: bytes) -> bytes:
-    """Return *head* without its ``<!-- -->`` comments.
+    """Return *head* with each ``<!-- -->`` comment replaced by one byte.
 
     A declaration inside a comment is not a declaration, and the WHATWG
     prescan skips comments for that reason.  As in the prescan, the dashes
     that open a comment may also close it (``<!-->`` is a whole comment),
     and a comment that never closes runs to the end of the head.
+
+    The byte left in a comment's place, :data:`_COMMENT_SEPARATOR`, keeps
+    the text on either side apart: ``<me<!-- -->ta`` is not a meta tag and
+    ``cp<!-- -->1251`` is not a label.  It is not ASCII, so it cannot
+    complete a tag or attribute name, and a label that holds it fails the
+    ASCII check before any codec lookup could fold it into ``_``.  It is
+    not ``<`` or ``>`` either, so a tag with a comment inside it still
+    matches and keeps its declaration.
     """
     start = head.find(b"<!--")
     if start < 0:
@@ -238,16 +249,13 @@ def _strip_comments(head: bytes) -> bytes:
     pos = 0
     while start >= 0:
         parts.append(head[pos:start])
-        # Keep a tag boundary: deleting the comment must not manufacture
-        # a tag, attribute name or encoding label from adjacent fragments.
-        parts.append(b"<>")
         end = head.find(b"-->", start + 2)
         if end < 0:
-            return b"".join(parts)
+            return _COMMENT_SEPARATOR.join(parts)
         pos = end + 3
         start = head.find(b"<!--", pos)
     parts.append(head[pos:])
-    return b"".join(parts)
+    return _COMMENT_SEPARATOR.join(parts)
 
 
 def _markup_encoding(raw_name: str) -> str | None:
