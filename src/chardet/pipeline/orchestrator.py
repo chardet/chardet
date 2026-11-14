@@ -19,7 +19,7 @@ from chardet.pipeline import (
 from chardet.pipeline.ascii import detect_ascii
 from chardet.pipeline.binary import is_binary
 from chardet.pipeline.bom import detect_bom
-from chardet.pipeline.escape import detect_escape_encoding, utf7_shifts_markup
+from chardet.pipeline.escape import detect_escape_encoding
 from chardet.pipeline.language import fill_languages
 from chardet.pipeline.magic import detect_magic
 from chardet.pipeline.markup import detect_markup_charset
@@ -296,6 +296,13 @@ def _run_pipeline_core(  # noqa: PLR0913, PLR0915
     # UTF-16/32 data looks binary due to null bytes)
     bom_result = detect_bom(data, input_truncated=input_truncated)
     if bom_result is not None and bom_result.encoding in allowed:
+        # The UTF-7 signature is five ASCII bytes, not a byte order mark
+        # no other charset would hold, so it yields to a declaration the
+        # way the escape stage's answers do below.
+        if bom_result.encoding == "utf-7":
+            declared = detect_markup_charset(data, allowed)
+            if declared is not None:
+                return [declared]
         return [bom_result]
 
     # Stage 1a+: UTF-16/32 null-byte pattern detection (for files without
@@ -322,15 +329,23 @@ def _run_pipeline_core(  # noqa: PLR0913, PLR0915
         and escape_result.encoding is not None
         and escape_result.encoding in allowed
     ):
-        # UTF-7 is the one escape encoding whose shifted runs can decode to
-        # ASCII, so ``+ADwAcwBjAHIAaQBwAHQAPg-`` reads as ``<script>``.  When
-        # the page declares a charset that decodes it, and reading it as
-        # UTF-7 instead would add markup the declared reading does not have,
-        # the declaration stands, as it does in every browser.
-        if escape_result.encoding == "utf-7":
-            declared = detect_markup_charset(data, allowed)
-            if declared is not None and utf7_shifts_markup(data):
-                return [declared]
+        # Escape sequences are ASCII bytes that a page in any charset can
+        # hold, so a declaration that decodes the window is the better
+        # evidence and wins, as it does in every browser.  The exception
+        # is an ISO-2022 answer under a declared ISO-2022 name: that is
+        # the same family, and the designations name the variant.  The
+        # head scan costs a few microseconds on a stream that declares
+        # nothing.
+        declared = detect_markup_charset(data, allowed)
+        if (
+            declared is not None
+            and declared.encoding is not None
+            and not (
+                escape_result.encoding.startswith("iso2022")
+                and declared.encoding.startswith("iso2022")
+            )
+        ):
+            return [declared]
         return [escape_result]
 
     # Magic number detection for known binary formats — runs before
