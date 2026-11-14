@@ -126,7 +126,8 @@ Unreleased
   sequences call for, and pages with no declaration are unchanged.  The
   cost: UTF-7, HZ, or ISO-2022 text under a wrong declaration now gets
   the declared name.
-  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude,
+  `#438 <https://github.com/chardet/chardet/pull/438>`_)
 
 **Build:**
 
