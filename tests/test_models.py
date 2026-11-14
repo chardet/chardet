@@ -14,6 +14,15 @@ import chardet.models as models_mod
 from chardet.models import _format
 from chardet.models._format import read_models, write_model_artifacts
 
+#: mypyc checks native types at runtime, so a compiled build raises
+#: TypeError on the float weights, list-typed fields and subclasses some
+#: tests use to reach the scoring fallbacks.  Those fallbacks guard the
+#: sumprod branch, which only an interpreted build takes.
+_needs_interpreted_build = pytest.mark.skipif(
+    models_mod.__file__.endswith((".so", ".pyd")),
+    reason="uses values the compiled module's native types reject",
+)
+
 
 def test_enc_index_resolves_aliases() -> None:
     index = models_mod.get_enc_index()
@@ -814,6 +823,36 @@ def test_gather_dot_preserves_large_integer_sums(
     assert models_mod.score_with_profile(profile, model) == expected
 
 
+def test_gather_dot_sumprod_branch_matches_loop(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Run the sumprod branch on every Python through a pure-Python stand-in.
+
+    ``math.sumprod`` is new in 3.12, so on 3.10 and 3.11 the branch never
+    runs on its own.  The stand-in is a plain loop, so this also pins what
+    the branch passes it to the original arithmetic.
+    """
+    calls: list[int] = []
+
+    def stand_in(p: tuple[int, ...], q: tuple[int, ...]) -> int:
+        calls.append(len(q))
+        return sum(a * b for a, b in zip(p, q, strict=True))
+
+    monkeypatch.setattr(models_mod, "_KERNEL_COMPILED", False)
+    monkeypatch.setattr(models_mod, "_GATHER_DOT", True)
+    monkeypatch.setattr(models_mod, "_sumprod", stand_in)
+    data = ("du texte français avec des accents é è ê " * 8).encode("cp1252")
+    profile = models_mod.BigramProfile(data)
+    model = bytes(range(256)) * 256
+    actual = models_mod.score_with_profile(profile, model)
+    assert calls == [len(profile.nonzero)]
+    monkeypatch.setattr(models_mod, "_sumprod", None)
+    assert models_mod.score_with_profile(profile, model) == actual
+    profile.gather = None
+    assert models_mod.score_with_profile(profile, model) == actual
+
+
+@_needs_interpreted_build
 def test_gather_dot_preserves_bytes_subclass_indexing(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -830,6 +869,7 @@ def test_gather_dot_preserves_bytes_subclass_indexing(
     assert models_mod.score_with_profile(profile, model) == expected
 
 
+@_needs_interpreted_build
 def test_gather_dot_preserves_replaced_callable(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -844,6 +884,7 @@ def test_gather_dot_preserves_replaced_callable(
     assert actual == models_mod.score_with_profile(profile, model)
 
 
+@_needs_interpreted_build
 def test_gather_dot_preserves_profile_subclass_accesses(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -863,7 +904,15 @@ def test_gather_dot_preserves_profile_subclass_accesses(
 
 
 @pytest.mark.parametrize(
-    "weights", [[], [1, 2, 3], (), (1,), (1, 2, 3, 4), (2**129,) * 3]
+    "weights",
+    [
+        pytest.param([], marks=_needs_interpreted_build),
+        pytest.param([1, 2, 3], marks=_needs_interpreted_build),
+        (),
+        (1,),
+        (1, 2, 3, 4),
+        (2**129,) * 3,
+    ],
 )
 def test_gather_dot_preserves_nonstandard_weight_sequences(
     monkeypatch: pytest.MonkeyPatch, weights: list[int] | tuple[int, ...]
