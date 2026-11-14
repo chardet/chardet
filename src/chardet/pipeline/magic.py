@@ -9,7 +9,8 @@ from chardet.pipeline import DetectionResult
 
 # (prefix_bytes, mime_type) — longest prefix first to avoid shorter prefixes
 # shadowing longer ones. All entries match at offset 0.
-# Formats with sub-type logic (ftyp, RIFF, FORM, ZIP) are handled separately.
+# Formats with sub-type logic (ftyp, RIFF, FORM, ZIP) are handled separately,
+# and so is BMP, whose two-letter signature needs a header check.
 _MAGIC_NUMBERS: tuple[tuple[bytes, str], ...] = (
     # Images
     (b"\x89PNG\r\n\x1a\n", "image/png"),
@@ -87,10 +88,14 @@ _FORM_SUBTYPES: dict[bytes, str] = {
 # BMP: "BM", the rest of the 14-byte file header, then a DIB header that
 # starts with its own size (little-endian uint32).  The two-letter
 # signature also starts ordinary text ("BMW", "BMI"), so the DIB header
-# size must name a known variant too, as file(1) checks it.
+# size must name a known variant too, as file(1) checks it: OS/2 1.x (12),
+# OS/2 2.x (16, 24, 48, 64), and Windows (40, 52, 56, 108, 124).  Text
+# cannot match, because each size is one byte followed by three NULs.
 _BMP_SIGNATURE = b"BM"
 _BMP_DIB_SIZE_OFFSET = 14
-_BMP_DIB_HEADER_SIZES: frozenset[int] = frozenset({12, 16, 40, 52, 56, 64, 108, 124})
+_BMP_DIB_HEADER_SIZES: frozenset[int] = frozenset(
+    {12, 16, 24, 40, 48, 52, 56, 64, 108, 124}
+)
 
 # ZIP-based format detection — scan the first 4 KB for local file headers
 # and classify based on entry filenames or content.  Many ZIP generators
@@ -259,14 +264,6 @@ def detect_magic(data: bytes) -> DetectionResult | None:
         if subtype is not None:
             return _make_result(subtype)
 
-    # BMP — the signature alone matches text, so check the DIB header size
-    if data.startswith(_BMP_SIGNATURE) and len(data) >= _BMP_DIB_SIZE_OFFSET + 4:
-        dib_size = int.from_bytes(
-            data[_BMP_DIB_SIZE_OFFSET : _BMP_DIB_SIZE_OFFSET + 4], "little"
-        )
-        if dib_size in _BMP_DIB_HEADER_SIZES:
-            return _make_result("image/bmp")
-
     # ZIP-based format detection
     if data.startswith(_ZIP_SIGNATURE):
         return _make_result(_classify_zip(data))
@@ -288,5 +285,16 @@ def detect_magic(data: bytes) -> DetectionResult | None:
         tar_sig = data[_TAR_OFFSET : _TAR_OFFSET + 6]
         if tar_sig in _TAR_SIGNATURES:
             return _make_result("application/x-tar")
+
+    # BMP — the signature alone matches text, so check the DIB header size.
+    # It comes after TAR: a tar whose first member name is 15 bytes long and
+    # starts with "BM" puts the name's last byte and three NULs at offset
+    # 14, which can read as a DIB header size ("l" is 108, "4" is 52).
+    if data.startswith(_BMP_SIGNATURE) and len(data) >= _BMP_DIB_SIZE_OFFSET + 4:
+        dib_size = int.from_bytes(
+            data[_BMP_DIB_SIZE_OFFSET : _BMP_DIB_SIZE_OFFSET + 4], "little"
+        )
+        if dib_size in _BMP_DIB_HEADER_SIZES:
+            return _make_result("image/bmp")
 
     return None

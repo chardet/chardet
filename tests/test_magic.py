@@ -21,6 +21,9 @@ from chardet.pipeline.magic import detect_magic
         (b"BM" + b"\x00" * 12 + b"\x28\x00\x00\x00", "image/bmp"),
         (b"BM" + b"\x00" * 12 + b"\x0c\x00\x00\x00", "image/bmp"),
         (b"BM" + b"\x00" * 12 + b"\x7c\x00\x00\x00", "image/bmp"),
+        # BMP: OS/2 2.x headers of 24 and 48 bytes
+        (b"BM" + b"\x00" * 12 + b"\x18\x00\x00\x00", "image/bmp"),
+        (b"BM" + b"\x00" * 12 + b"\x30\x00\x00\x00", "image/bmp"),
         (b"MM\x00\x2a" + b"\x00" * 8, "image/tiff"),
         (b"II\x2a\x00" + b"\x00" * 8, "image/tiff"),
         (b"8BPS" + b"\x00" * 8, "image/vnd.adobe.photoshop"),
@@ -159,6 +162,9 @@ def test_detect_magic_ftyp_ascii_prefix_rejected() -> None:
         b"BM",
         b"BMI = weight / height^2\n",
         b"BMW 320i, 2019, 45000 km\n",
+        # Byte 14 is a known size ("0" is 48, "l" is 108), but no NULs follow
+        b"BM-2024-11-14 03:00 build log\n",
+        b"BMW_export.html is ready\n",
         b"BM" + b"\x00" * 12 + b"\x29\x00\x00\x00",
     ],
 )
@@ -171,9 +177,20 @@ def test_detect_magic_bmp_text_false_positive(data: bytes) -> None:
     assert detect_magic(data) is None
 
 
-def test_detect_magic_bm_tar_member_is_tar() -> None:
+@pytest.mark.parametrize(
+    "name",
+    [
+        b"BMW/readme.txt",
+        # 15 bytes: the last one and the name field's NULs sit at offset 14
+        # and read as a DIB header size ("l" is 108, "4" is 52)
+        b"BMW/config.yaml",
+        b"BMI_results.xml",
+        b"BMX/tracks_2024",
+    ],
+)
+def test_detect_magic_bm_tar_member_is_tar(name: bytes) -> None:
     """A TAR whose first member name starts with "BM" is still a TAR."""
-    data = b"BMW/readme.txt".ljust(257, b"\x00") + b"ustar\x00" + b"\x00" * 8
+    data = name.ljust(257, b"\x00") + b"ustar\x00" + b"\x00" * 8
     result = detect_magic(data)
     assert result is not None
     assert result.mime_type == "application/x-tar"
