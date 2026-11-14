@@ -13,7 +13,6 @@ import math
 import operator
 import sys
 import warnings
-from typing import cast
 
 from chardet import _kernel
 from chardet._kernel import dot_packed, pack_profile
@@ -61,37 +60,6 @@ _GATHER_DOT = sys.implementation.name == "cpython"
 # call for each pair. Integer inputs retain exact, arbitrary-precision sums.
 _PYTHON_MODULE = not __file__.endswith((".so", ".pyd"))
 _sumprod = getattr(math, "sumprod", None) if _PYTHON_MODULE else None
-
-# Only the most recently checked immutable tuple is retained. This avoids
-# rescanning its types for every model while preserving the original floating
-# arithmetic if a caller replaces a profile's weights or gather callable.
-# Length and integer-size limits bound the retained payload to a few MiB;
-# larger integers still score exactly through the original path.
-_INTEGER_INPUTS: tuple[object, tuple[int, ...]] | None = None
-
-
-def _has_integer_inputs(gather: object, values: tuple[int, ...]) -> bool:
-    global _INTEGER_INPUTS  # noqa: PLW0603
-    if type(values) is not tuple:
-        return False
-    cached = _INTEGER_INPUTS
-    if cached is not None and cached[0] is gather and cached[1] is values:
-        return True
-    indices = cast("tuple[int, ...]", gather.__reduce__()[1])
-    if (
-        2 <= len(values) <= 65536
-        and len(indices) == len(values)
-        and set(map(type, indices)) == {int}
-        and min(indices) >= 0
-        and max(indices) < 65536
-        and set(map(type, values)) == {int}
-        and min(values).bit_length() <= 128
-        and max(values).bit_length() <= 128
-    ):
-        _INTEGER_INPUTS = (gather, values)
-        return True
-    return False
-
 
 # 256-entry membership table for whitespace bytes whose runs training
 # collapsed — native byte indexing under mypyc, used in the bigram-profile
@@ -626,16 +594,22 @@ def score_with_profile(
         # because a list returns a cached int where array('i') boxes a new one.
         gather = profile.gather
         if gather is not None:
+            dense_vals = profile.dense_vals
+            # Constant-time checks only: this runs once per model, and
+            # scanning the weights on every call gave back about half of
+            # what sumprod saves.  _finish always builds dense_vals as an int
+            # tuple parallel to nonzero, which sumprod sums exactly.
             if (
                 _sumprod is not None
                 and type(profile) is BigramProfile
                 and type(model) is bytes
                 and type(gather) is operator.itemgetter
-                and _has_integer_inputs(gather, profile.dense_vals)
+                and type(dense_vals) is tuple
+                and len(dense_vals) == len(nonzero)
             ):
-                dot = _sumprod(gather(model), profile.dense_vals)
+                dot = _sumprod(gather(model), dense_vals)
             else:
-                dot = sum(map(operator.mul, gather(model), profile.dense_vals))
+                dot = sum(map(operator.mul, gather(model), dense_vals))
         else:
             dot = 0
             freq = profile.freq

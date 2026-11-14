@@ -830,21 +830,6 @@ def test_gather_dot_preserves_bytes_subclass_indexing(
     assert models_mod.score_with_profile(profile, model) == expected
 
 
-def test_gather_dot_preserves_replaced_float_weights(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setattr(models_mod, "_KERNEL_COMPILED", False)
-    monkeypatch.setattr(models_mod, "_GATHER_DOT", True)
-    profile = models_mod.BigramProfile(b"abcd")
-    model = bytes([3]) * 65536
-    # Exercise replacement after an integer tuple has been validated.
-    models_mod.score_with_profile(profile, model)
-    profile.dense_vals = (1e16, -(1e16 + 2), 0.0)
-    actual = models_mod.score_with_profile(profile, model)
-    monkeypatch.setattr(models_mod, "_sumprod", None)
-    assert actual == models_mod.score_with_profile(profile, model)
-
-
 def test_gather_dot_preserves_replaced_callable(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
