@@ -76,20 +76,20 @@ def test_prefer_superset_respects_encoding_filters(
     assert all(result["encoding"] == expected for result in results)
 
 
-_RUSSIAN_ISO_8859_5 = (
-    "Москва является столицей России и крупнейшим городом страны. "
-    "Город расположен на реке Москве и насчитывает более восьми "
-    "столетий истории, начиная с первого упоминания в летописи."
-).encode("iso8859-5")
+_TURKISH_ISO_8859_9 = (
+    "İstanbul, Türkiye'nin en kalabalık şehri ve ülkenin ekonomik, tarihî "
+    "ve kültürel merkezidir. Şehir, Boğaziçi'nin iki yakasına yayılmıştır "
+    "ve yüzyıllar boyunca birçok imparatorluğa başkentlik yapmıştır.\n"
+).encode("iso8859-9")
 
 
 @pytest.mark.parametrize("api", ["detect", "detect_all", "stream"])
 @pytest.mark.parametrize(
     ("era", "expected"),
     [
-        (EncodingEra.LEGACY_ISO, "iso8859-5"),
-        (EncodingEra.LEGACY_ISO | EncodingEra.MODERN_WEB, "cp1251"),
-        (EncodingEra.ALL, "cp1251"),
+        (EncodingEra.LEGACY_ISO, "iso8859-9"),
+        (EncodingEra.LEGACY_ISO | EncodingEra.MODERN_WEB, "cp1254"),
+        (EncodingEra.ALL, "cp1254"),
     ],
     ids=["legacy_iso", "legacy_iso_and_modern_web", "all"],
 )
@@ -100,14 +100,42 @@ def test_prefer_superset_respects_encoding_era(
     kwargs = {"encoding_era": era, "prefer_superset": True, "compat_names": False}
     if api == "stream":
         detector = UniversalDetector(**kwargs)
-        detector.feed(_RUSSIAN_ISO_8859_5)
+        detector.feed(_TURKISH_ISO_8859_9)
         results = [detector.close()]
     elif api == "detect_all":
-        results = chardet.detect_all(_RUSSIAN_ISO_8859_5, **kwargs)
+        results = chardet.detect_all(_TURKISH_ISO_8859_9, **kwargs)
     else:
-        results = [chardet.detect(_RUSSIAN_ISO_8859_5, **kwargs)]
+        results = [chardet.detect(_TURKISH_ISO_8859_9, **kwargs)]
     assert results[0]["encoding"] == expected
     assert all(REGISTRY[result["encoding"]].era & era for result in results)
+
+
+_HEBREW = (
+    "ירושלים היא עיר הבירה של מדינת ישראל והעיר הגדולה ביותר בה. "
+    "העיר שוכנת בהרי יהודה, בין הים התיכון לבין ים המלח, והיא אחת "
+    "הערים העתיקות בעולם. תושבים רבים מגיעים אליה מכל רחבי הארץ."
+)
+
+
+@pytest.mark.parametrize("prefer_superset", [False, True])
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [(_HEBREW, "Windows-1255"), (_HEBREW[::-1], "ISO-8859-8")],
+    ids=["logical", "visual"],
+)
+def test_hebrew_name_tells_storage_order(
+    text: str, expected: str, *, prefer_superset: bool
+):
+    """ISO-8859-8 means visual-order Hebrew and Windows-1255 logical order.
+
+    The two codecs read the letters alike, so the name is the only place
+    the storage order shows.  ``prefer_superset`` must not rename the
+    visual answer to Windows-1255, which would tell a caller to display
+    the text the wrong way round.
+    """
+    data = text.encode("iso8859-8")
+    result = chardet.detect(data, prefer_superset=prefer_superset)
+    assert result["encoding"] == expected
 
 
 def test_detect_utf8_bom():
@@ -1125,15 +1153,15 @@ def test_utf8_not_reported_for_garbage_final_sequence(prefix: bytes):
 def test_detect_all_prefer_superset_lists_each_name_once():
     """The superset remap must not list one name at two confidences.
 
-    ISO-8859-7 and Windows-1253 both become Windows-1253 under
+    ISO-8859-9 and Windows-1254 both become Windows-1254 under
     ``prefer_superset``; the entry kept is the higher-confidence one.
     """
-    data = "Καλημέρα κόσμε, αυτό είναι δοκιμή. ".encode("iso8859-7") * 40
+    data = _TURKISH_ISO_8859_9
     plain = chardet.detect_all(data)
-    assert [d["encoding"] for d in plain][:2] == ["ISO-8859-7", "Windows-1253"]
+    assert [d["encoding"] for d in plain][:2] == ["ISO-8859-9", "Windows-1254"]
     ranked = chardet.detect_all(data, prefer_superset=True)
     names = [d["encoding"] for d in ranked]
-    assert names[0] == "Windows-1253"
+    assert names[0] == "Windows-1254"
     assert len(names) == len(set(names))
     assert ranked[0]["confidence"] == plain[0]["confidence"]
     assert len(ranked) == len(plain) - 1

@@ -146,8 +146,8 @@ def main(argv: list[str] | None = None) -> None:
         action="store_true",
         help=(
             "Report detected subset encodings under their Windows/CP superset "
-            "(ISO-8859-1 as Windows-1252, EUC-KR as CP949), so the name is safe "
-            "to decode with past the examined bytes.  The Python API makes "
+            "(ISO-8859-1 as Windows-1252, EUC-KR as CP949), the name browsers "
+            "decode them as.  The Python API makes "
             "this the default in chardet 8.0"
         ),
     )

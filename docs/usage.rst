@@ -52,7 +52,7 @@ By default, results at or below the minimum confidence threshold (0.20)
 are filtered out; if no result clears it, the full list is returned so
 there is always at least one. Pass ``ignore_threshold=True`` to see all
 candidates. With ``prefer_superset=True`` two candidates can map to one
-name (ISO-8859-7 and Windows-1253 both become Windows-1253); only the
+name (ISO-8859-9 and Windows-1254 both become Windows-1254); only the
 higher-confidence one is listed.
 
 Streaming Detection
@@ -129,7 +129,11 @@ how encoding names are returned:
   Python codec names (e.g., ``"shift_jis_2004"`` instead of ``"SHIFT_JIS"``).
 - ``prefer_superset`` (default ``False``) — remap legacy ISO/subset encodings
   to their modern Windows/CP superset equivalents (e.g., ASCII →
-  Windows-1252, ISO-8859-1 → Windows-1252).  The remap is skipped when
+  Windows-1252, ISO-8859-1 → Windows-1252).  Only true supersets are
+  remapped, the same ones browsers merge: ASCII, ISO-8859-1, ISO-8859-9,
+  TIS-620 and EUC-KR.  ISO-8859-2, -5, -6, -7, -8 and -13 keep their
+  names, because Windows-1250, -1251, -1256, -1253, -1255 and -1257 put
+  some of their characters on different bytes.  The remap is skipped when
   the superset cannot decode the examined bytes, or when
   ``include_encodings``/``exclude_encodings`` or ``encoding_era`` rule the
   superset out; the detected name is kept in those cases.
@@ -154,6 +158,13 @@ how encoding names are returned:
 
 These parameters apply to :func:`~chardet.detect`, :func:`~chardet.detect_all`,
 and :class:`~chardet.UniversalDetector`.
+
+For Hebrew, the name also tells the storage order.  ``ISO-8859-8`` means
+visual order (the bytes are stored as displayed, left to right, as on
+1990s Hebrew pages) and ``Windows-1255`` means logical order.  Both codecs
+decode the letters the same way, so a caller that displays the text needs
+the name to know whether to reorder it.  ``prefer_superset`` leaves both
+names alone.
 
 The deprecated ``should_rename_legacy=True`` parameter is equivalent to
 ``prefer_superset=True`` and is still accepted with a deprecation warning.
@@ -288,33 +299,33 @@ otherwise.
    * - iso8859-13
      - ``ISO-8859-13``
      - ``iso8859-13``
-     - ``Windows-1257``
-     - ``cp1257``
+     - ``ISO-8859-13``
+     - ``iso8859-13``
    * - iso8859-2
      - ``ISO-8859-2``
      - ``iso8859-2``
-     - ``Windows-1250``
-     - ``cp1250``
+     - ``ISO-8859-2``
+     - ``iso8859-2``
    * - iso8859-5
      - ``ISO-8859-5``
      - ``iso8859-5``
-     - ``Windows-1251``
-     - ``cp1251``
+     - ``ISO-8859-5``
+     - ``iso8859-5``
    * - iso8859-6
      - ``ISO-8859-6``
      - ``iso8859-6``
-     - ``Windows-1256``
-     - ``cp1256``
+     - ``ISO-8859-6``
+     - ``iso8859-6``
    * - iso8859-7
      - ``ISO-8859-7``
      - ``iso8859-7``
-     - ``Windows-1253``
-     - ``cp1253``
+     - ``ISO-8859-7``
+     - ``iso8859-7``
    * - iso8859-8
      - ``ISO-8859-8``
      - ``iso8859-8``
-     - ``Windows-1255``
-     - ``cp1255``
+     - ``ISO-8859-8``
+     - ``iso8859-8``
    * - iso8859-9
      - ``ISO-8859-9``
      - ``iso8859-9``
