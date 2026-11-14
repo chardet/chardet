@@ -1086,15 +1086,15 @@ def lookup_encoding(name: str) -> EncodingName | None:
     return None
 
 
-def _validate_encoding(name: str, param_name: str) -> str:
+def _validate_encoding(name: object, param_name: str) -> str:
     """Validate and normalize a single encoding name.
 
     :param name: The encoding name to validate.
     :param param_name: Parameter name for error messages.
     :returns: The canonical encoding name.
-    :raises ValueError: If the encoding name is unknown.
+    :raises ValueError: If the name is not a string or is unknown.
     """
-    canonical = lookup_encoding(name)
+    canonical = lookup_encoding(name) if isinstance(name, str) else None
     if canonical is None:
         msg = f"Unknown encoding {name!r} in {param_name}"
         raise ValueError(msg)
