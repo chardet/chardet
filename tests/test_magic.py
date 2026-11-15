@@ -17,7 +17,13 @@ from chardet.pipeline.magic import detect_magic
         (b"GIF87a" + b"\x00" * 8, "image/gif"),
         (b"GIF89a" + b"\x00" * 8, "image/gif"),
         (b"RIFF\x00\x00\x00\x00WEBP", "image/webp"),
-        (b"BM" + b"\x00" * 12, "image/bmp"),
+        # BMP: 14-byte file header, then the DIB header size
+        (b"BM" + b"\x00" * 12 + b"\x28\x00\x00\x00", "image/bmp"),
+        (b"BM" + b"\x00" * 12 + b"\x0c\x00\x00\x00", "image/bmp"),
+        (b"BM" + b"\x00" * 12 + b"\x7c\x00\x00\x00", "image/bmp"),
+        # BMP: OS/2 2.x headers of 24 and 48 bytes
+        (b"BM" + b"\x00" * 12 + b"\x18\x00\x00\x00", "image/bmp"),
+        (b"BM" + b"\x00" * 12 + b"\x30\x00\x00\x00", "image/bmp"),
         (b"MM\x00\x2a" + b"\x00" * 8, "image/tiff"),
         (b"II\x2a\x00" + b"\x00" * 8, "image/tiff"),
         (b"8BPS" + b"\x00" * 8, "image/vnd.adobe.photoshop"),
@@ -148,6 +154,46 @@ def test_detect_magic_ftyp_ascii_prefix_rejected() -> None:
     # "abcd" = 0x61626364 = ~1.6 billion, far exceeding the 16-byte input
     result = detect_magic(b"abcdftypisom" + b"\x00" * 4)
     assert result is None
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        b"BM",
+        b"BMI = weight / height^2\n",
+        b"BMW 320i, 2019, 45000 km\n",
+        # Byte 14 is a known size ("0" is 48, "l" is 108), but no NULs follow
+        b"BM-2024-11-14 03:00 build log\n",
+        b"BMW_export.html is ready\n",
+        b"BM" + b"\x00" * 12 + b"\x29\x00\x00\x00",
+    ],
+)
+def test_detect_magic_bmp_text_false_positive(data: bytes) -> None:
+    """Text that starts with "BM" is not a BMP image.
+
+    Without a known DIB header size at offset 14, the two-letter signature
+    is just the start of a word.
+    """
+    assert detect_magic(data) is None
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        b"BMW/readme.txt",
+        # 15 bytes: the last one and the name field's NULs sit at offset 14
+        # and read as a DIB header size ("l" is 108, "4" is 52)
+        b"BMW/config.yaml",
+        b"BMI_results.xml",
+        b"BMX/tracks_2024",
+    ],
+)
+def test_detect_magic_bm_tar_member_is_tar(name: bytes) -> None:
+    """A TAR whose first member name starts with "BM" is still a TAR."""
+    data = name.ljust(257, b"\x00") + b"ustar\x00" + b"\x00" * 8
+    result = detect_magic(data)
+    assert result is not None
+    assert result.mime_type == "application/x-tar"
 
 
 def _make_zip_local_entry(filename: bytes, content: bytes = b"") -> bytes:
