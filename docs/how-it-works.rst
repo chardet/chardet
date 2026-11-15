@@ -47,6 +47,14 @@ order:
    ASCII. A ``+`` inside an email address, as in
    ``user+detail@example.com``, is never read as a shift.
 
+   A run of one character has no neighbor to share a script with, so
+   the character has to be a plausible one by itself. Its script must be
+   one of the Recommended Scripts of UAX #31, the ones in widespread
+   modern use. Han and Hangul are on that list and are large enough that
+   stray ASCII lands in them often, so a lone character of either must
+   also be in GB 2312, Big5, JIS X 0208 or KS X 1001. That keeps
+   ``WxH+X+Y`` and ``U+039A`` as ASCII.
+
 4. **Magic Number Detection** — Identifies binary file types (PNG, JPEG,
    PDF, ZIP, etc.) by their magic number signatures. A match returns
    immediately with ``encoding=None`` and a specific ``mime_type`` (e.g.,

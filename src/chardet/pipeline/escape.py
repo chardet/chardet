@@ -293,17 +293,98 @@ def _single_unit(b64_data: bytes) -> int:
     ) >> 2
 
 
-def _plausible_lone_unit(unit: int) -> bool:
-    """Script ranges where a lone shifted character plausibly occurs."""
+# The scripts in widespread modern use: Table 5, Recommended Scripts, of
+# UAX #31 for Unicode 17.0.0.  ``Common`` and ``Inherited`` are in the
+# table too, which is what admits punctuation, symbols, and combining
+# marks.
+_RECOMMENDED_SCRIPTS: frozenset[str] = frozenset(
+    {
+        "Common",
+        "Inherited",
+        "Arabic",
+        "Armenian",
+        "Bengali",
+        "Cyrillic",
+        "Devanagari",
+        "Ethiopic",
+        "Georgian",
+        "Greek",
+        "Gujarati",
+        "Gurmukhi",
+        "Hangul",
+        "Han",
+        "Hebrew",
+        "Hiragana",
+        "Katakana",
+        "Kannada",
+        "Khmer",
+        "Lao",
+        "Latin",
+        "Malayalam",
+        "Myanmar",
+        "Oriya",
+        "Sinhala",
+        "Tamil",
+        "Telugu",
+        "Thaana",
+        "Thai",
+        "Tibetan",
+    }
+)
+# Scripts too large for the script alone to say much about one character:
+# accidental ASCII decodes into them more often than into everything else
+# put together.
+_LARGE_SCRIPTS: frozenset[str] = frozenset({"Han", "Hangul"})
+# Codecs for the national character sets a lone character of a large
+# script must belong to: GB 2312, Big5, JIS X 0208, and KS X 1001.  Each
+# set is the two-byte part of its codec.  ``euc_jp`` spends three bytes on
+# JIS X 0212, and ``euc_kr`` spells a syllable outside KS X 1001 as an
+# eight-byte sequence of its letters.
+_NATIONAL_SET_CODECS: tuple[str, ...] = ("gb2312", "big5", "euc_jp", "euc_kr")
+_NATIONAL_SET_WIDTH: int = 2
+
+
+@functools.cache
+def _lone_unit_scripts() -> tuple[bytes, bytes]:
+    """Flag each script index as recommended, and as a large script."""
     return (
-        0x0080 <= unit <= 0x07FF  # Latin supp. .. Arabic
-        or 0x0E00 <= unit <= 0x0FFF  # Thai, Lao, Tibetan
-        or 0x2000 <= unit <= 0x2BFF  # punctuation .. arrows (em dash, euro)
-        or 0x3000 <= unit <= 0x30FF  # CJK punctuation, kana
-        or 0x4E00 <= unit <= 0x9FFF  # CJK unified
-        or 0xAC00 <= unit <= 0xD7A3  # Hangul
-        or 0xFF00 <= unit <= 0xFFEF  # fullwidth forms
+        bytes(name in _RECOMMENDED_SCRIPTS for name in SCRIPTS),
+        bytes(name in _LARGE_SCRIPTS for name in SCRIPTS),
     )
+
+
+def _plausible_lone_unit(unit: int) -> bool:
+    """Check that *unit* is a character a one-character run plausibly holds.
+
+    A run of one character has no neighbor to share a script with, so the
+    question is whether the character is one text is written in.  Its
+    script must be a Recommended Script of UAX #31, which leaves out the
+    historic and limited-use ones (``+LAY`` decodes to a Glagolitic
+    letter, issue #371).  Han and Hangul are recommended and hold more
+    than half the assigned BMP between them, so a character of either
+    must also be in one of the national character sets, the ones their
+    languages picked as the characters in common use.
+
+    The caller has already ruled out surrogates.
+    """
+    if unit < 0x80:
+        return False
+    unit_scripts, _ = _script_sets()
+    recommended, large = _lone_unit_scripts()
+    script = unit_scripts[unit]
+    if not recommended[script]:
+        return False
+    if not large[script]:
+        return True
+    char = chr(unit)
+    for codec in _NATIONAL_SET_CODECS:
+        try:
+            encoded = char.encode(codec)
+        except UnicodeEncodeError:
+            continue
+        if len(encoded) == _NATIONAL_SET_WIDTH:
+            return True
+    return False
 
 
 def _has_valid_utf7_sequences(data: bytes, max_start: int, max_end: int) -> bool:
@@ -382,17 +463,11 @@ def _has_valid_utf7_sequences(data: bytes, max_start: int, max_end: int) -> bool
         # prevents false positives).  Terminator can be '-', any non-Base64
         # byte, or end of data — all per RFC 2152.
         if b64_len >= 3 and _is_valid_utf7_b64(b64_data):
-            # Guard D: a block encoding a *single* code unit — with or
-            # without a dash terminator — must decode into a script range
-            # where a lone shifted character plausibly occurs.  The corpus's
-            # single-unit blocks live in Latin/Greek/Cyrillic/Hebrew/Arabic
-            # supplements, Thai, general punctuation through arrows (em
-            # dashes and ellipses dominate), CJK, kana, Hangul, and
-            # fullwidth forms.  An accidental uppercase run like "+LAY"
-            # (issue #371) decodes to U+2C06, Glagolitic — no genuine lone
-            # block in 149 corpus files lands in such a range.  Multi-unit
-            # blocks are left to the shared-script check in
-            # ``_is_valid_utf7_b64``.
+            # Guard D: a block encoding a *single* code unit, with or
+            # without a dash terminator, has no neighbor to share a script
+            # with, so the character itself must be a plausible one (see
+            # ``_plausible_lone_unit``).  Multi-unit blocks are left to the
+            # shared-script check in ``_is_valid_utf7_b64``.
             if (b64_len * 6) // 16 == 1:
                 unit = _single_unit(b64_data)
                 if not _plausible_lone_unit(unit):

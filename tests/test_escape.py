@@ -9,12 +9,15 @@ import time
 import pytest
 
 from chardet import detect
+from chardet._unicode_scripts import SCRIPTS
 from chardet.pipeline.escape import (
+    _RECOMMENDED_SCRIPTS,
     _has_valid_hz_regions,
     _has_valid_utf7_sequences,
     _is_email_subaddress,
     _is_embedded_in_base64,
     _is_valid_utf7_b64,
+    _plausible_lone_unit,
     detect_escape_encoding,
 )
 
@@ -647,3 +650,72 @@ def test_utf7_email_shaped_run_leaves_other_runs_alone() -> None:
     result = detect_escape_encoding(data)
     assert result is not None
     assert result.encoding == "utf-7"
+
+
+def test_recommended_scripts_are_all_in_the_script_table() -> None:
+    assert set(SCRIPTS) >= _RECOMMENDED_SCRIPTS
+
+
+@pytest.mark.parametrize(
+    "char",
+    [
+        "\u00e9",  # Latin
+        "\u1ec7",  # Latin Extended Additional, a Vietnamese letter
+        "\u043f",  # Cyrillic
+        "\u0915",  # Devanagari
+        "\u10d0",  # Georgian
+        "\u2014",  # Common: em dash
+        "\u20ac",  # Common: euro sign
+        "\u0301",  # Inherited: combining acute
+        "\u3042",  # Hiragana
+        "\u4e2d",  # Han in every national set
+        "\ud55c",  # Hangul syllable in KS X 1001
+        "\u3131",  # Hangul compatibility jamo, also in KS X 1001
+    ],
+)
+def test_lone_unit_accepts_characters_in_common_use(char: str) -> None:
+    assert _plausible_lone_unit(ord(char))
+
+
+@pytest.mark.parametrize(
+    "unit",
+    [
+        0x0041,  # ASCII is never shifted alone
+        0x2C06,  # Glagolitic, an excluded script (+LAY, issue #371)
+        0x2846,  # Braille
+        0x1820,  # Mongolian, excluded
+        0x13A0,  # Cherokee, limited use
+        0x0378,  # unassigned
+        0xE000,  # private use
+        0xFDD0,  # noncharacter
+        0x38D1,  # Han Extension A (+ONE)
+        0x5FE6,  # Han outside every national set (+X+Y)
+        0x4E02,  # Han in JIS X 0212 only, three bytes in euc_jp
+        0xB620,  # Hangul syllable outside KS X 1001
+        0x1100,  # conjoining Hangul jamo, never written alone
+    ],
+)
+def test_lone_unit_rejects_characters_text_rarely_holds_alone(unit: int) -> None:
+    assert not _plausible_lone_unit(unit)
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        b".B \\-crop WxH+X+Y",  # man page geometry: a Han character no set lists
+        b"return _v(m1, m2, h+ONE_THIRD)",  # Han Extension A
+        b"r'SCREEN)|COMMENT|FUNCTION\\s+KEY|'",  # Braille
+        b"truncate -s +10M test_file",  # Hangul syllable outside KS X 1001
+        b"greek capital letter kappa, U+039A",  # the same, from U+ notation
+    ],
+)
+def test_utf7_lone_unit_in_ascii_text_is_not_a_shift(data: bytes) -> None:
+    assert not _has_valid_utf7_sequences(data, len(data), len(data))
+    assert detect(data)["encoding"] == "ascii"
+
+
+def test_utf7_lone_vietnamese_letter_is_utf7() -> None:
+    """A lone letter from Latin Extended Additional is a real shifted run."""
+    data = "item \u1ec7 done".encode("utf-7")
+    assert data == b"item +Hsc done"
+    assert detect(data)["encoding"] == "utf-7"
