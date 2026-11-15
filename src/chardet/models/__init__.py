@@ -9,13 +9,14 @@ import array
 import functools
 import hashlib
 import importlib.resources
+import itertools
 import math
 import operator
 import sys
 import warnings
 
 from chardet import _kernel
-from chardet._kernel import dot_packed, pack_profile
+from chardet._kernel import dot_packed, pack_profile, seen_packed
 from chardet.models._format import (
     langnorm_from_table,
     parse_langnorm_bin,
@@ -70,6 +71,25 @@ _sumprod = getattr(math, "sumprod", None) if _PYTHON_MODULE else None
 # where the byte happens to be a letter.  0x85 (NEL in the ISO family) is
 # deliberately absent: it decodes to the ellipsis in windows-1252, whose
 # models legitimately carry ellipsis-run weight.
+# Bytes whose bigrams count as coverage evidence: ASCII letters, the
+# whitespace between words, and every high byte.  A high byte beside a
+# digit or ASCII punctuation (``;`` in delimited rows, a closing bracket)
+# is a fact about the document's layout, and no language model can be
+# expected to have seen it.
+_EVIDENCE_BYTE = bytes(
+    1 if (0x41 <= b <= 0x5A or 0x61 <= b <= 0x7A or b >= 0x80 or b in b" \t\r\n") else 0
+    for b in range(256)
+)
+# The same test for a whole bigram, indexed like a model table: both bytes
+# are evidence bytes and at least one is a high byte.  One lookup per
+# distinct bigram keeps the evidence pass cheap on text dense in high bytes.
+_EVIDENCE_PAIR = b"".join(
+    bytes(256)
+    if not _EVIDENCE_BYTE[b1]
+    else (_EVIDENCE_BYTE if b1 >= 0x80 else bytes(128) + _EVIDENCE_BYTE[128:])
+    for b1 in range(256)
+)
+
 _ASCII_WHITESPACE_TABLE = bytes(
     1 if b in (0x20, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0xA0) else 0 for b in range(256)
 )
@@ -324,6 +344,22 @@ class BigramProfile:
       ``nonzero`` and the weights it picks out of the dense table, filled
       for a streaming profile only when the kernel is not compiled and
       the interpreter is CPython.
+
+    ``cov_idx``/``cov_vals``/``cov_total`` hold the evidence
+    :func:`coverage_with_profile` reads: the bigrams with a high byte whose
+    other byte is a letter, whitespace, or another high byte, with their
+    weights and the weights' sum.  Only the streaming constructor fills
+    them; the language tiers and confusion resolution do not ask.
+    ``cov_idx_arr``/``cov_val_arr`` are the same evidence packed for the
+    compiled kernel, filled only when it is compiled, like
+    ``idx_arr``/``val_arr``.  The streaming constructor lists the
+    evidence bigrams first in ``nonzero``, so the entries ``gather``
+    reads from a model begin with the evidence ones:
+    :func:`score_with_profile` leaves them in ``last_gathered`` beside
+    the ``last_model`` they came from, and a coverage call for the same
+    model, which is how statistical scoring always asks, reads them
+    there with no gather of its own.
+
     ``row_freq`` aggregates the weights by lead byte (256 entries) and
     ``nonzero_rows`` lists the lead bytes with non-zero total; together with
     per-model row maxima (:func:`get_rowmax`) they let statistical scoring
@@ -337,11 +373,18 @@ class BigramProfile:
     """
 
     __slots__ = (
+        "cov_idx",
+        "cov_idx_arr",
+        "cov_total",
+        "cov_val_arr",
+        "cov_vals",
         "dense_vals",
         "freq",
         "gather",
         "idx_arr",
         "input_norm",
+        "last_gathered",
+        "last_model",
         "nonzero",
         "nonzero_rows",
         "row_freq",
@@ -359,6 +402,12 @@ class BigramProfile:
 
         :param data: The raw byte data to profile.
         """
+        self.cov_idx: list[int] = []
+        self.cov_vals: list[int] = []
+        self.cov_total: int = 0
+        self.cov_idx_arr, self.cov_val_arr = _EMPTY_PACKED
+        self.last_model: bytes | None = None
+        self.last_gathered: tuple[int, ...] = ()
         total_bigrams = len(data) - 1
         if total_bigrams <= 0:
             # Empty lists, not [0]*65536: a no-op profile allocates nothing.
@@ -373,8 +422,12 @@ class BigramProfile:
             return
 
         idf = get_idf_weights()
+        evidence = _EVIDENCE_PAIR
         freq: list[int] = [0] * 65536
-        nonzero: list[int] = []
+        # Distinct bigrams in first-encounter order, the evidence ones
+        # apart from the rest.
+        cov_idx: list[int] = []
+        rest: list[int] = []
         w_sum = 0
         for i in range(total_bigrams):
             b1 = data[i]
@@ -388,9 +441,20 @@ class BigramProfile:
             idx = (b1 << 8) | b2
             w = idf[idx]
             if freq[idx] == 0:
-                nonzero.append(idx)
+                if evidence[idx]:
+                    cov_idx.append(idx)
+                else:
+                    rest.append(idx)
             freq[idx] += w
             w_sum += w
+        nonzero = cov_idx + rest
+        cov_vals = [freq[idx] for idx in cov_idx]
+        self.cov_idx = cov_idx
+        self.cov_vals = cov_vals
+        self.cov_total = sum(cov_vals)
+        if _KERNEL_COMPILED and cov_idx:
+            self.cov_idx_arr = array.array("i", cov_idx)
+            self.cov_val_arr = array.array("i", cov_vals)
         # No ``values``: this path already has the dense table, and
         # materializing a parallel list over every nonzero bigram costs
         # more than the sparse constructor's allocation saves.
@@ -607,7 +671,10 @@ def score_with_profile(
                 and type(dense_vals) is tuple
                 and len(dense_vals) == len(nonzero)
             ):
-                dot = _sumprod(gather(model), dense_vals)
+                gathered = gather(model)
+                profile.last_model = model
+                profile.last_gathered = gathered
+                dot = _sumprod(gathered, dense_vals)
             else:
                 dot = sum(map(operator.mul, gather(model), dense_vals))
         else:
@@ -616,6 +683,52 @@ def score_with_profile(
             for idx in nonzero:
                 dot += model[idx] * freq[idx]
     return dot / (model_norm * profile.input_norm)
+
+
+def coverage_with_profile(profile: BigramProfile, model: bytes) -> float:
+    """Return the share of the profile's weight *model* could have seen.
+
+    The cosine in :func:`score_with_profile` only rewards matches: a bigram
+    the model has never seen adds nothing and costs nothing.  On a short
+    input that lets one coincidence decide.  The bytes of German ``aß``
+    read as a common Turkish pair in MacTurkish, and that one match
+    outscored a German model that knew all fourteen of the input's
+    non-ASCII bigrams (issue #434).  Coverage is the missing negative
+    evidence: the weight of the evidence bigrams this model has never
+    seen, taken out of the weight of the whole input.
+
+    Measuring against the whole input, not against the evidence alone,
+    is what keeps long text with a few accents safe.  A Dutch page with
+    three stress accents has bigrams no Dutch model knows, but they are a
+    sliver of the page's weight and cost it almost nothing; in a row of
+    German names the non-ASCII bigrams are most of the weight, and a
+    model that knows none of them loses most of its score.
+
+    A profile with no evidence bigrams is fully covered.
+
+    :param profile: A profile from the streaming constructor.
+    :param model: A 65536-byte model table.
+    :returns: A value in ``[0.0, 1.0]``.
+    """
+    total = profile.cov_total
+    if total == 0:
+        return 1.0
+    cov_idx = profile.cov_idx
+    cov_vals = profile.cov_vals
+    seen: int
+    if _KERNEL_COMPILED:
+        seen = seen_packed(profile.cov_idx_arr, profile.cov_val_arr, model)
+    elif profile.last_model is model:
+        # The cosine for this model just gathered its entries, evidence
+        # first; compress stops where the evidence weights run out.
+        seen = sum(itertools.compress(cov_vals, profile.last_gathered))
+    else:
+        seen = 0
+        for i in range(len(cov_idx)):
+            if model[cov_idx[i]]:
+                seen += cov_vals[i]
+    weight_sum = profile.weight_sum
+    return (weight_sum - (total - seen)) / weight_sum
 
 
 #: ADR-0005's hand-audited rare-language set, shared with the encoding-side

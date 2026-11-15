@@ -614,3 +614,25 @@ class TestIssue380:
             assert result["encoding"] is not None, word
             decoded = data.decode(result["encoding"])
             assert decoded, word
+
+
+class TestIssue434:
+    """Short Windows-1252 rows read as MacTurkish and CP862.
+
+    The bigram cosine only rewards matches.  One coincidence, German
+    ``aß`` reading as a common Turkish pair, or a euro sign reading as a
+    word-initial alef, outscored a German model that knew nearly every
+    non-ASCII bigram in the input.
+    """
+
+    def test_german_rows_are_windows_1252(self) -> None:
+        data = (
+            "Vorname;Nachname;Straße;PLZ;Ort\r\n"
+            "Jürgen;Größe;Hauptstraße 5;80331;München\r\n"
+            "Änne;Schäfer;Bahnhofstraße 12;50667;Köln\r\n"
+        ).encode("cp1252")
+        _assert_detection(data, "windows-1252")
+
+    def test_names_with_a_euro_amount_are_windows_1252(self) -> None:
+        data = "Name;City;Amount\r\nJosé Müller;Zürich;1.234,50 €\r\n".encode("cp1252")
+        _assert_detection(data, "windows-1252")

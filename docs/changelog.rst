@@ -90,6 +90,26 @@ Unreleased
 
 **Bug Fixes:**
 
+- Short Windows-1252 text is no longer reported as MacTurkish or CP862.
+  A few rows of German names, or a line with a euro sign, could lose to
+  an encoding whose model matched one byte pair strongly and had never
+  seen the rest.  The statistical stage only rewarded matches, so the
+  pairs a model had never seen cost it nothing.  A candidate's score is
+  now scaled down by the share of the input's weight that falls on
+  non-ASCII byte pairs its model has never seen.  The bigram models are
+  also retrained on text where one document in four uses its language's
+  own quotation marks, curly apostrophes, en dashes, and ellipses, so
+  the Windows and Mac models know the punctuation real documents use.
+  On held-out text (Tatoeba sentences and the Universal Declaration of
+  Human Rights, neither used in training) short inputs detected right
+  went from 93.7% to 96.6% and from 98.3% to 99.0%, and text whose only
+  non-ASCII characters are typographic marks from 66.5% to 78.1%.
+  Confidence values for statistical results are lower than before on
+  inputs with pairs the winning model has not seen, and the reported
+  language follows the model that wins after the scaling.  Thanks to
+  `jayhemnani9910 <https://github.com/jayhemnani9910>`_ for the report.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude,
+  `#434 <https://github.com/chardet/chardet/issues/434>`_)
 - The warning for an excluded ``no_match_encoding`` now points at the
   caller's line when the fallback is reached past the evidence cap.  It
   used to name ``chardet/__init__.py`` on that one path.
