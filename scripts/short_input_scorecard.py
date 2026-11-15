@@ -97,18 +97,22 @@ def build_samples(per_pair: int, seed: int) -> list[tuple[str, str, bytes]]:
                 continue
             for kind in ("prose", "rows"):
                 made = 0
+                # A language with few usable sentences would otherwise fill
+                # its samples with repeats of one line.
+                used: set[str] = set()
                 for _ in range(per_pair * _ATTEMPTS_PER_SAMPLE):
                     if made == per_pair:
                         break
                     text = (
                         rng.choice(sentences) if kind == "prose" else _rows(words, rng)
                     )
-                    if _non_ascii(text) < _MIN_NON_ASCII:
+                    if text in used or _non_ascii(text) < _MIN_NON_ASCII:
                         continue
                     try:
                         data = text.encode(encoding)
                     except (UnicodeEncodeError, LookupError):
                         continue
+                    used.add(text)
                     samples.append(
                         (f"{encoding}/{language}/{kind}/{made}", encoding, data)
                     )
