@@ -5,7 +5,8 @@ this module is compiled with mypyc, which does not support PEP 563 string
 annotations.
 """
 
-from chardet.pipeline import DetectionResult
+from chardet._utils import count_deleted
+from chardet.pipeline import ASCII_TEXT_BYTES, DetectionResult
 
 # (prefix_bytes, mime_type) — longest prefix first to avoid shorter prefixes
 # shadowing longer ones. All entries match at offset 0.
@@ -67,6 +68,32 @@ _MAGIC_NUMBERS: tuple[tuple[bytes, str], ...] = (
     (b"OTTO", "font/otf"),
     (b"\x00\x01\x00\x00", "font/ttf"),
 )
+
+# Signatures of four printable bytes or fewer ("MZ", "ID3", "OTTO") can
+# also be the first word of a text file.  Real files in these formats put
+# a null or other control byte in the fixed header fields right after the
+# signature, so one of these counts only when the first _TEXT_GATE_BYTES
+# of the window hold such a byte.  Otherwise the stage gives no answer and
+# the later stages decide.
+_TEXT_PLAUSIBLE_PREFIXES: frozenset[bytes] = frozenset(
+    prefix
+    for prefix, _mime in _MAGIC_NUMBERS
+    if len(prefix) <= 4 and not prefix.translate(None, ASCII_TEXT_BYTES)
+)
+# The bytes that gate looks for: every ASCII byte outside ASCII_TEXT_BYTES,
+# which is the C0 controls other than tab, LF and CR, plus DEL.  Text can
+# still hold one (the ASCII stage allows sparse nulls, and the binary stage
+# counts vertical tab and form feed as text), which is why the gate reads
+# only the start of the window.
+_NON_TEXT_ASCII: bytes = bytes(range(0x80)).translate(None, ASCII_TEXT_BYTES)
+# How much of the window the gate reads.  In 1,383 real files with these
+# signatures the first such byte is within the first 5 bytes, and bzip2
+# always has one within the first 15 (the high bits of the first block's
+# origPtr).  64 also reaches the end of the DOS header, whose e_lfanew field
+# (bytes 60 to 63) has a null in its high byte even when every field before
+# it happens to be printable.  Reading no further keeps the check
+# constant-time and lets text with a later form feed or null through.
+_TEXT_GATE_BYTES = 64
 
 # TAR archives have "ustar" at offset 257
 _TAR_OFFSET = 257
@@ -278,6 +305,11 @@ def detect_magic(data: bytes) -> DetectionResult | None:
     # Fixed-offset magic numbers (all at offset 0)
     for prefix, mime in _MAGIC_NUMBERS:
         if data.startswith(prefix):
+            if (
+                prefix in _TEXT_PLAUSIBLE_PREFIXES
+                and count_deleted(data[:_TEXT_GATE_BYTES], _NON_TEXT_ASCII) == 0
+            ):
+                return None
             return _make_result(mime)
 
     # TAR archive — "ustar" at offset 257
