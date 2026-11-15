@@ -174,12 +174,10 @@ def test_ratio_detect_vs_detect_all():
     assert ratio < 5, f"detect_all too slow vs detect: {ratio:.1f}x (max 5x)"
 
 
-def test_ratio_cold_vs_warm_model_loading():
-    # Ensure models are loaded first (warm state)
+def test_cold_start_ceiling():
+    # Load everything once so the samples below time a reload, not first
+    # imports.
     chardet.detect(CYRILLIC_WIN1251)
-
-    # Measure warm median
-    warm = _median_time(lambda: chardet.detect(CYRILLIC_WIN1251), _ITERS_RATIO)
 
     # Best of several cold starts, each after clearing every cache.  A single
     # sample is at the mercy of the runner: one macOS 3.13t CI job measured
@@ -188,18 +186,15 @@ def test_ratio_cold_vs_warm_model_loading():
     # hits one sample; a real regression slows every one of them.
     cold = min(_cold_time() for _ in range(_COLD_SAMPLES))
 
-    # Absolute ceiling first: this is the assertion that actually guards cold
-    # start.  The ratio below inflates with every warm-path win -- pruning
-    # doubled it once, the packed kernel again -- so on its own it loosens
-    # exactly when detection gets faster, which is backwards for a regression
-    # guard.  Cold start is model loading: ~0.01s untraced and ~0.03s for pure
-    # Python under coverage, so 0.5s leaves well over a 10x cushion.
+    # Cold start is model loading: ~0.01s untraced and ~0.03s for pure Python
+    # under coverage, so 0.5s leaves well over a 10x cushion.
+    #
+    # This used to also bound cold / warm.  That ratio inflates with every
+    # warm-path win -- pruning doubled it once, the packed kernel again, and
+    # faster pure-Python scoring pushed a free-threaded 3.15 job past the
+    # bound with cold start unchanged -- so it failed exactly when detection
+    # got faster, which is backwards for a regression guard.
     assert cold < 0.5, f"Cold start too slow in absolute terms: {cold:.3f}s"
-
-    ratio = cold / warm
-    # Kept as a shape check rather than a tight bound.  Measured after the
-    # packed kernel: ~47x compiled under `-n auto`, ~45x standalone, ~13x pure.
-    assert ratio < 75, f"Cold start too slow vs warm: {ratio:.1f}x (max 75x)"
 
 
 # ---------------------------------------------------------------------------

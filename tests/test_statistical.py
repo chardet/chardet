@@ -10,6 +10,7 @@ from utils import collect_test_files
 from chardet.enums import EncodingEra
 from chardet.models import BigramProfile, _get_model_norms, get_enc_index
 from chardet.pipeline import DetectionResult
+from chardet.pipeline import statistical as statistical_mod
 from chardet.pipeline.orchestrator import _STAT_SCORE_MAX_BYTES
 from chardet.pipeline.postprocess import forced_encodings, scoring_floor
 from chardet.pipeline.statistical import (
@@ -18,6 +19,84 @@ from chardet.pipeline.statistical import (
     score_candidates,
 )
 from chardet.registry import REGISTRY, get_candidates
+
+#: mypyc checks native types at runtime, so a compiled build raises
+#: TypeError on the float row weights some tests use to reach the row-bound
+#: fallback.  That fallback guards the sumprod branch, which only an
+#: interpreted build takes.
+_needs_interpreted_build = pytest.mark.skipif(
+    statistical_mod.__file__.endswith((".so", ".pyd")),
+    reason="uses values the compiled module's native types reject",
+)
+
+
+@pytest.mark.parametrize(
+    ("row_type", "takes_sumprod"),
+    [(int, True), pytest.param(float, False, marks=_needs_interpreted_build)],
+)
+def test_row_bound_sumprod_branch_matches_loop(
+    monkeypatch: pytest.MonkeyPatch, row_type: type, *, takes_sumprod: bool
+) -> None:
+    """Run the row-bound sumprod branch on every Python through a stand-in.
+
+    ``math.sumprod`` is new in 3.12, so on 3.10 and 3.11 the branch never
+    runs on its own.  The stand-in is a plain loop; non-integer row weights
+    must skip it and keep the original arithmetic.
+    """
+    calls: list[int] = []
+
+    def stand_in(p: tuple[int, ...], q: tuple[int, ...]) -> int:
+        calls.append(len(q))
+        return sum(a * b for a, b in zip(p, q, strict=True))
+
+    monkeypatch.setattr(statistical_mod, "_GATHER_DOT", True)
+    monkeypatch.setattr(statistical_mod, "_KERNEL_COMPILED", False)
+    monkeypatch.setattr(statistical_mod, "_sumprod", stand_in)
+    profile = BigramProfile.from_weighted_freq({0x6162: 3, 0xE961: 5, 0xFF80: 7})
+    profile.row_freq = [row_type(v) for v in profile.row_freq]
+    candidates = get_candidates(EncodingEra.ALL)
+    expected = _split_variants(candidates, profile)
+    assert bool(calls) is takes_sumprod
+    monkeypatch.setattr(statistical_mod, "_GATHER_DOT", False)
+    assert _split_variants(candidates, profile) == expected
+
+
+@pytest.mark.parametrize("weight", [1, 2**32, 2**80])
+@pytest.mark.parametrize("indices", [[0x6162], [0x6162, 0xE961, 0xFF80]])
+def test_row_bound_gather_matches_loop(
+    monkeypatch: pytest.MonkeyPatch, weight: int, indices: list[int]
+) -> None:
+    monkeypatch.setattr(statistical_mod, "_GATHER_DOT", True)
+    monkeypatch.setattr(statistical_mod, "_KERNEL_COMPILED", False)
+    profile = BigramProfile.from_weighted_freq(
+        {idx: weight + i for i, idx in enumerate(indices)}
+    )
+    candidates = get_candidates(EncodingEra.ALL)
+    expected = _split_variants(candidates, profile)
+    monkeypatch.setattr(statistical_mod, "_GATHER_DOT", False)
+    assert _split_variants(candidates, profile) == expected
+
+
+@_needs_interpreted_build
+def test_row_bound_preserves_float_weight_arithmetic(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(statistical_mod, "_GATHER_DOT", True)
+    monkeypatch.setattr(statistical_mod, "_KERNEL_COMPILED", False)
+    profile = BigramProfile(b"abc")
+    profile.nonzero_rows = [0, 1]
+    profile.row_freq = [1e16, -(1e16 + 2)]
+    monkeypatch.setattr(
+        statistical_mod, "get_enc_index", lambda: {"cp1252": [("en", b"", "test")]}
+    )
+    monkeypatch.setattr(
+        statistical_mod, "get_rowmax", lambda: {"test": bytes([3]) * 256}
+    )
+    monkeypatch.setattr(statistical_mod, "_get_model_norms", lambda: {"test": 1.0})
+    candidates = (REGISTRY["cp1252"],)
+    expected = _split_variants(candidates, profile)
+    monkeypatch.setattr(statistical_mod, "_GATHER_DOT", False)
+    assert _split_variants(candidates, profile) == expected
 
 
 def test_score_candidates_returns_sorted_results():

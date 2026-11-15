@@ -14,6 +14,15 @@ import chardet.models as models_mod
 from chardet.models import _format
 from chardet.models._format import read_models, write_model_artifacts
 
+#: mypyc checks native types at runtime, so a compiled build raises
+#: TypeError on the float weights, list-typed fields and subclasses some
+#: tests use to reach the scoring fallbacks.  Those fallbacks guard the
+#: sumprod branch, which only an interpreted build takes.
+_needs_interpreted_build = pytest.mark.skipif(
+    models_mod.__file__.endswith((".so", ".pyd")),
+    reason="uses values the compiled module's native types reject",
+)
+
 
 def test_enc_index_resolves_aliases() -> None:
     index = models_mod.get_enc_index()
@@ -792,6 +801,130 @@ def test_single_bigram_profile_scores_without_gather(
     model = bytearray(65536)
     model[0xE961] = 3
     assert models_mod.score_with_profile(profile, bytes(model)) == pytest.approx(1.0)
+
+
+@pytest.mark.parametrize("weight", [1, 2**32, 2**80])
+def test_gather_dot_preserves_large_integer_sums(
+    monkeypatch: pytest.MonkeyPatch, weight: int
+) -> None:
+    monkeypatch.setattr(models_mod, "_KERNEL_COMPILED", False)
+    monkeypatch.setattr(models_mod, "_GATHER_DOT", True)
+    profile = models_mod.BigramProfile(b"")
+    freq = [0] * 65536
+    nonzero = [0xE961, 0x61E9, 0x6162]
+    for i, idx in enumerate(nonzero):
+        freq[idx] = weight + i
+    profile._finish(freq, nonzero, [], sum(freq))
+    model = bytes(range(256)) * 256
+    expected = models_mod.score_with_profile(profile, model)
+    monkeypatch.setattr(models_mod, "_sumprod", None)
+    assert models_mod.score_with_profile(profile, model) == expected
+    profile.gather = None
+    assert models_mod.score_with_profile(profile, model) == expected
+
+
+def test_gather_dot_sumprod_branch_matches_loop(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Run the sumprod branch on every Python through a pure-Python stand-in.
+
+    ``math.sumprod`` is new in 3.12, so on 3.10 and 3.11 the branch never
+    runs on its own.  The stand-in is a plain loop, so this also pins what
+    the branch passes it to the original arithmetic.
+    """
+    calls: list[int] = []
+
+    def stand_in(p: tuple[int, ...], q: tuple[int, ...]) -> int:
+        calls.append(len(q))
+        return sum(a * b for a, b in zip(p, q, strict=True))
+
+    monkeypatch.setattr(models_mod, "_KERNEL_COMPILED", False)
+    monkeypatch.setattr(models_mod, "_GATHER_DOT", True)
+    monkeypatch.setattr(models_mod, "_sumprod", stand_in)
+    data = ("du texte français avec des accents é è ê " * 8).encode("cp1252")
+    profile = models_mod.BigramProfile(data)
+    model = bytes(range(256)) * 256
+    actual = models_mod.score_with_profile(profile, model)
+    assert calls == [len(profile.nonzero)]
+    monkeypatch.setattr(models_mod, "_sumprod", None)
+    assert models_mod.score_with_profile(profile, model) == actual
+    profile.gather = None
+    assert models_mod.score_with_profile(profile, model) == actual
+
+
+@_needs_interpreted_build
+def test_gather_dot_preserves_bytes_subclass_indexing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FloatBytes(bytes):
+        def __getitem__(self, key: int) -> float:
+            return float(super().__getitem__(key)) + 0.1
+
+    monkeypatch.setattr(models_mod, "_KERNEL_COMPILED", False)
+    monkeypatch.setattr(models_mod, "_GATHER_DOT", True)
+    profile = models_mod.BigramProfile(b"accents \xe9\xe0 and words " * 10)
+    model = FloatBytes(bytes(range(256)) * 256)
+    expected = models_mod.score_with_profile(profile, model)
+    monkeypatch.setattr(models_mod, "_sumprod", None)
+    assert models_mod.score_with_profile(profile, model) == expected
+
+
+@_needs_interpreted_build
+def test_gather_dot_preserves_replaced_callable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(models_mod, "_KERNEL_COMPILED", False)
+    monkeypatch.setattr(models_mod, "_GATHER_DOT", True)
+    profile = models_mod.BigramProfile(b"abcd")
+    profile.dense_vals = (3, 3, 3)
+    profile.gather = lambda _model: (1e16, -(1e16 + 2), 0.0)
+    model = bytes([1]) * 65536
+    actual = models_mod.score_with_profile(profile, model)
+    monkeypatch.setattr(models_mod, "_sumprod", None)
+    assert actual == models_mod.score_with_profile(profile, model)
+
+
+@_needs_interpreted_build
+def test_gather_dot_preserves_profile_subclass_accesses(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class Profile(models_mod.BigramProfile):
+        reads = 0
+
+        def __getattribute__(self, name: str) -> object:
+            if name == "dense_vals":
+                self.reads += 1
+            return super().__getattribute__(name)
+
+    monkeypatch.setattr(models_mod, "_KERNEL_COMPILED", False)
+    monkeypatch.setattr(models_mod, "_GATHER_DOT", True)
+    profile = Profile(b"abcd")
+    models_mod.score_with_profile(profile, bytes([1]) * 65536)
+    assert profile.reads == 1
+
+
+@pytest.mark.parametrize(
+    "weights",
+    [
+        pytest.param([], marks=_needs_interpreted_build),
+        pytest.param([1, 2, 3], marks=_needs_interpreted_build),
+        (),
+        (1,),
+        (1, 2, 3, 4),
+        (2**129,) * 3,
+    ],
+)
+def test_gather_dot_preserves_nonstandard_weight_sequences(
+    monkeypatch: pytest.MonkeyPatch, weights: list[int] | tuple[int, ...]
+) -> None:
+    monkeypatch.setattr(models_mod, "_KERNEL_COMPILED", False)
+    monkeypatch.setattr(models_mod, "_GATHER_DOT", True)
+    profile = models_mod.BigramProfile(b"abcd")
+    profile.dense_vals = weights
+    model = bytes([1]) * 65536
+    actual = models_mod.score_with_profile(profile, model)
+    monkeypatch.setattr(models_mod, "_sumprod", None)
+    assert actual == models_mod.score_with_profile(profile, model)
 
 
 def test_decompress_tables_truncated_streams_raise() -> None:
