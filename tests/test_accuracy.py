@@ -48,14 +48,6 @@ _KNOWN_ERA_FILTERED_FAILURES: frozenset[str] = frozenset(
     {
         "cp500-es/culturax_mC4_87070.txt",
         "cp850-fi/culturax_00001.txt",
-        # Contains no u-double-acute bytes at all, so nothing in it can
-        # separate iso8859-2 from iso8859-16 the way Hungarian normally
-        # does.  Its only distinguishing bytes are five stray 0xA9/0xAB/
-        # 0xBB, which read as capital S-caron, T-caron, and t-caron under
-        # iso8859-2 but as copyright and guillemet punctuation under
-        # iso8859-16, and Windows-1250 takes the file on the surrounding
-        # prose regardless.
-        "iso-8859-2-hu/torokorszag.blogspot.com.xml",
         # One 0xDD is the pair's whole distinguishing evidence, and the
         # rescore reads it under mac-turkish's Turkish model (a very
         # common dotless i) rather than mac-roman's Danish one — the pair
@@ -67,6 +59,11 @@ _KNOWN_ERA_FILTERED_FAILURES: frozenset[str] = frozenset(
         # re-enable single-byte overrides across every in-band pair,
         # which is exactly what those constants exist to prevent.
         "macroman-da/culturax_mC4_83469.txt",
+        # Declares iso-8859-9 but holds a 0x99 trademark sign, so it is
+        # Windows-1254.  Under MODERN_WEB the declared name is filtered
+        # out, the markup stage gives no answer, and the page is mostly
+        # ASCII markup, so Windows-1252 edges out Windows-1254 at 0.10.
+        "windows-1254-tr/cc_www.hukukwork.com_fc78ab0a611d.html",
     }
 )
 

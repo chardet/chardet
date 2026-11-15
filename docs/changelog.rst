@@ -188,6 +188,14 @@ Unreleased
   formats does.
   (`Samina <https://github.com/Samin061>`_,
   `#437 <https://github.com/chardet/chardet/pull/437>`_)
+- ``chardet.evaluation`` no longer counts a Windows code page as a
+  correct answer for ISO-8859-2, -5, -6, -7, -8 or -13 text by name
+  alone, matching the ``prefer_superset`` change above.  The Windows
+  name still passes for a file both names decode to the same text.  30
+  test-data files that were really Windows-1250, -1252, -1254 or -1255
+  moved to the right directories.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude,
+  `#441 <https://github.com/chardet/chardet/pull/441>`_)
 
 **Build:**
 

@@ -63,15 +63,14 @@ SUPERSETS: dict[str, frozenset[str]] = {
     "ISO-2022-JP": frozenset({"iso2022_jp_2", "iso2022_jp_2004", "iso2022_jp_ext"}),
     "ISO2022-JP-1": frozenset({"iso2022_jp_2", "iso2022_jp_ext"}),
     "ISO2022-JP-3": frozenset({"iso2022_jp_2004"}),
-    # ISO/Windows superset pairs
+    # ISO/Windows superset pairs.  Only the two whose Windows page reads
+    # every printable ISO byte alike.  The lookalikes (ISO-8859-2 and
+    # cp1250, -5 and cp1251, -6 and cp1256, -7 and cp1253, -8 and cp1255,
+    # -13 and cp1257) are not supersets, so the Windows name is accepted
+    # for them only when it decodes this file to the same text, which
+    # is_equivalent_detection checks.
     "ISO-8859-1": frozenset({"cp1252"}),
-    "ISO-8859-2": frozenset({"cp1250"}),
-    "ISO-8859-5": frozenset({"cp1251"}),
-    "ISO-8859-6": frozenset({"cp1256"}),
-    "ISO-8859-7": frozenset({"cp1253"}),
-    "ISO-8859-8": frozenset({"cp1255"}),
     "ISO-8859-9": frozenset({"cp1254"}),
-    "ISO-8859-13": frozenset({"cp1257"}),
     # UTF-16/32: bare form (BOM-aware) is interchangeable with either endianness,
     # but LE and BE are NOT interchangeable with each other.
     "UTF-16": frozenset({"utf-16-le", "utf-16-be"}),
