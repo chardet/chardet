@@ -32,7 +32,7 @@ def test_parse_reads_the_version_and_the_bmp_ranges() -> None:
 
 
 def test_parse_rejects_another_file() -> None:
-    with pytest.raises(ValueError, match="not a Scripts.txt file"):
+    with pytest.raises(ValueError, match=r"not a Scripts\.txt file"):
         parse("0041..005A ; Latin\n")
 
 
