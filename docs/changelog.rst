@@ -128,6 +128,14 @@ Unreleased
   the declared name.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude,
   `#438 <https://github.com/chardet/chardet/pull/438>`_)
+- A ``<!-- -->`` comment no longer joins the text on either side of it
+  into a charset declaration.  ``<me<!-- -->ta charset="cp1251">`` over
+  ASCII text used to get Windows-1251 at 0.95, though the page has no
+  meta tag, and that made-up declaration beat any real one after it.
+  A comment before a declaration or between its attributes still
+  leaves it in place.
+  (`Parijat Biswas <https://github.com/parijat1222q>`_,
+  `#423 <https://github.com/chardet/chardet/pull/423>`_)
 
 **Build:**
 
