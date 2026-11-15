@@ -34,6 +34,12 @@ _UNIVERSAL_SUBSTITUTIONS: dict[str, str] = {
     "\u201d": '"',  # RIGHT DOUBLE QUOTATION MARK
     "\u201e": '"',  # DOUBLE LOW-9 QUOTATION MARK
     "\u201f": '"',  # DOUBLE HIGH-REVERSED-9 QUOTATION MARK
+    # Guillemets: without these a target that lacks them (KOI8-R) had them
+    # dropped from its text, where a writer would have typed a straight quote.
+    "\u00ab": '"',  # LEFT-POINTING DOUBLE ANGLE QUOTATION MARK
+    "\u00bb": '"',  # RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
+    "\u2039": "'",  # SINGLE LEFT-POINTING ANGLE QUOTATION MARK
+    "\u203a": "'",  # SINGLE RIGHT-POINTING ANGLE QUOTATION MARK
     # Ellipsis
     "\u2026": "...",  # HORIZONTAL ELLIPSIS
     # Spaces
