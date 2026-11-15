@@ -60,8 +60,10 @@ order:
    ``# -*- coding: ... -*-`` cookies in the first two lines of Python
    source, where line 2 counts only when line 1 is blank or a comment.
    Markup declarations are read the way the WHATWG prescan reads them:
-   comments are skipped, a UTF-16 label found in ASCII bytes is read as
-   UTF-8, and ``x-user-defined`` means Windows-1252. A ``utf-7`` or
+   comments are skipped, a ``<meta`` inside another tag's quoted
+   attribute value is not a tag, a UTF-16 label found in ASCII
+   bytes is read as UTF-8, and ``x-user-defined`` means
+   Windows-1252. A ``utf-7`` or
    ``hz-gb-2312`` label is ignored in every scanner, the PEP 263 cookie
    included, because both decoders can turn inert ASCII into tags; a
    genuine stream in either is still found by the escape stage. A
