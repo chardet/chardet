@@ -196,6 +196,22 @@ Unreleased
   moved to the right directories.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude,
   `#441 <https://github.com/chardet/chardet/pull/441>`_)
+- ASCII with a ``+`` in it is far less often reported as UTF-7.  A
+  shifted run now has to decode to text that shares a script, checked
+  against a table generated from Unicode's ``Scripts.txt``, and a ``+``
+  inside an email address like ``user+detail@example.com`` is never read
+  as a shift.  ``qt6-webengine-6.8.2+dfsg/LICENSES/Qt-GPL-exception-1.0.txt``
+  used to get UTF-7 at 0.95; its run decodes to Han, Hangul and Georgian
+  letters and two code points that are not characters at all.  On
+  40,000 real source paths under ``+dfsg``-style directories, false
+  UTF-7 answers fell from 1,173 to 8, with no real UTF-7 lost in 49
+  languages.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude;
+  `inchang-ing <https://github.com/inchang-ing>`_;
+  reported by `Stefan Rehm <https://github.com/srehm>`_,
+  `#432 <https://github.com/chardet/chardet/issues/432>`_,
+  `#433 <https://github.com/chardet/chardet/pull/433>`_,
+  `#443 <https://github.com/chardet/chardet/pull/443>`_)
 
 **Build:**
 

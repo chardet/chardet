@@ -36,6 +36,17 @@ order:
    one exception is an ISO-2022 answer on a page that declares an
    ISO-2022 name, where the escape sequences pick the variant.
 
+   A ``+`` followed by letters is common in plain ASCII, so a UTF-7
+   shifted run counts only when it decodes to text that shares a script.
+   Each decoded character's Unicode Script is looked up in a table
+   generated from ``Scripts.txt``, and the run has to have one in
+   common: Cyrillic with punctuation and digits passes, Han with kana
+   passes, and Han next to Georgian does not. Neither does a run with an
+   unassigned or private-use code point. The file path
+   ``pkg-1.0+dfsg/LICENSES/Qt-`` decodes to four scripts, so it stays
+   ASCII. A ``+`` inside an email address, as in
+   ``user+detail@example.com``, is never read as a shift.
+
 4. **Magic Number Detection** — Identifies binary file types (PNG, JPEG,
    PDF, ZIP, etc.) by their magic number signatures. A match returns
    immediately with ``encoding=None`` and a specific ``mime_type`` (e.g.,

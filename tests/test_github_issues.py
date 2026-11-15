@@ -228,6 +228,19 @@ class TestEscapeSequences:
             "ascii",
         )
 
+    def test_plus_dfsg_path_not_utf7(self) -> None:
+        """Issue #432: a path under a ``+dfsg`` directory must stay ASCII.
+
+        ``+dfsg/LICENSES/Qt-`` is a 16-character base64 run that passes the
+        uppercase, padding, and surrogate checks.  It decodes to six code
+        units from four scripts plus one unassigned and one private-use
+        code point, which no text does.
+        """
+        _assert_detection(
+            b"qt6-webengine-6.8.2+dfsg/LICENSES/Qt-GPL-exception-1.0.txt",
+            "ascii",
+        )
+
     def test_lone_accent_still_utf7(self) -> None:
         """Guard D must keep genuine sparse utf-7: lone accents amid ASCII.
 
