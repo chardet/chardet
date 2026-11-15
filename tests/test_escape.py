@@ -3,12 +3,16 @@
 
 from __future__ import annotations
 
+import base64
 import time
+
+import pytest
 
 from chardet import detect
 from chardet.pipeline.escape import (
     _has_valid_hz_regions,
     _has_valid_utf7_sequences,
+    _is_email_subaddress,
     _is_embedded_in_base64,
     _is_valid_utf7_b64,
     detect_escape_encoding,
@@ -450,7 +454,13 @@ def test_utf7_b64_decode_is_linear_in_run_length() -> None:
     run quadruples a linear decode and multiplies the old one by about
     15, so the bound sits between them with a 2x margin for noise, and
     the best of three runs keeps a busy runner from inflating one side.
+
+    The run timed here is Russian text, which every check accepts, so
+    the whole decode runs.  ``+A+A...`` itself now stops at its second
+    code unit, which shares no script with the first.
     """
+    russian = "Привет".encode("utf-7")[1:-1]
+    assert len(russian) == 16
 
     def best_of_three(run: bytes) -> float:
         best = float("inf")
@@ -460,8 +470,8 @@ def test_utf7_b64_decode_is_linear_in_run_length() -> None:
             best = min(best, time.perf_counter() - start)
         return best
 
-    short = best_of_three(b"A+" * 8192)
-    quadrupled = best_of_three(b"A+" * 32768)
+    short = best_of_three(russian * 1024)
+    quadrupled = best_of_three(russian * 4096)
     assert quadrupled / short < 8
 
 
@@ -509,3 +519,131 @@ def test_jis_x0213_2000_designation_falls_through() -> None:
 def test_hz_with_stray_tilde_falls_through() -> None:
     data = "你好世界".encode("hz") + b" ok " * 30 + b" a~b end"
     assert detect_escape_encoding(data) is None
+
+
+def _shifted(text: str) -> bytes:
+    """Return the base64 of *text* as one UTF-7 shifted run, without ``+`` and ``-``.
+
+    RFC 2152 lets an encoder keep ASCII inside a run, which Python's does
+    not do, so the run is built from the UTF-16 directly.
+    """
+    return base64.b64encode(text.encode("utf-16-be")).rstrip(b"=")
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        b"qt6-webengine-6.8.2+dfsg/LICENSES/Qt-GPL-exception-1.0.txt",
+        b"foo-1.0+dfsg/README.md",
+        b"qt6-webengine-6.8.2+dfsg/Gui.txt",
+        b"pkg-1.2.3+dfsg/LICENSE/README-file.txt",
+    ],
+)
+def test_utf7_rejects_path_under_a_plus_version_directory(path: bytes) -> None:
+    """A source path like ``pkg-1.0+dfsg/LICENSES/Qt-`` is ASCII (issue #432).
+
+    The run after the ``+`` has valid length, padding, and surrogates, but
+    it decodes to code units from unrelated scripts: the first of these to
+    a Han character, an unassigned code point, a Hangul syllable, a
+    Georgian letter, another Han character, and a private-use code point.
+    """
+    assert detect_escape_encoding(path) is None
+    assert detect(path)["encoding"] == "ascii"
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Привет",  # Cyrillic
+        "Ελληνικά",  # Greek
+        "שלום",  # Hebrew
+        "مرحبا",  # Arabic
+        "สวัสดี",  # Thai, letters with combining marks
+        "日本語のテキストとカタカナ",  # Han, Hiragana, Katakana
+        "中文ㄅㄆㄇ",  # Han with Bopomofo
+        "한국어漢字",  # Hangul with Han
+        "ＡＶ機器の説明",  # fullwidth Latin in Japanese
+        "Ｗｅｂ사이트",  # fullwidth Latin in Korean
+        "Привет, мир! № 5 — «да»",  # one script with punctuation and digits
+        "naïve café",  # Latin with encoded ASCII
+        "😀 Привет 🎉",  # surrogate pairs beside one script
+        "—",  # punctuation alone
+    ],
+)
+def test_utf7_b64_accepts_text_that_shares_a_script(text: str) -> None:
+    assert _is_valid_utf7_b64(_shifted(text))
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Привет日本",  # Cyrillic with Han
+        "Ελλάδα한국",  # Greek with Hangul
+        "かな한글",  # kana with Hangul: no language writes both
+        "ㄅㄆかな",  # Bopomofo with kana
+        "Привет\ue000",  # private use
+        "中\u20fc文",  # unassigned
+        "日本\ufdd0",  # noncharacter
+        "Кириллица with latin é",  # Cyrillic with a Latin letter
+    ],
+)
+def test_utf7_b64_rejects_text_without_a_shared_script(text: str) -> None:
+    assert not _is_valid_utf7_b64(_shifted(text))
+
+
+def test_utf7_run_of_mixed_scripts_does_not_hide_a_real_run() -> None:
+    """One run that fails the script check does not veto the others."""
+    data = b"pkg-1.0+dfsg/LICENSES/Qt-notes: " + "Привет".encode("utf-7")
+    result = detect_escape_encoding(data)
+    assert result is not None
+    assert result.encoding == "utf-7"
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        b"Contact: dan+API@example.com",
+        b"dan+LICENSES@example.com",
+        b"<jane.doe+NEWSList@mail.example.co.uk>",
+        b"To: first_last+Work-2024@example.org\n",
+        b"mailto:bob+Q4Report@example.com for details.",
+    ],
+)
+def test_utf7_rejects_email_subaddress(line: bytes) -> None:
+    """``user+detail@example.com`` is an address, not a shift (issue #432).
+
+    ``+API`` alone passes every other check: it decodes to U+00F2, one
+    Latin-1 letter.
+    """
+    assert detect_escape_encoding(line) is None
+    assert detect(line)["encoding"] == "ascii"
+
+
+@pytest.mark.parametrize(
+    ("data", "pos", "expected"),
+    [
+        (b"dan+API@example.com", 3, True),
+        (b"a+b@c.d", 1, True),
+        (b"+API@example.com", 0, False),  # nothing before the plus
+        (b"see +API@example.com", 4, False),  # a space before the plus
+        (b"dan+API example.com", 3, False),  # no @
+        (b"dan+API@", 3, False),  # no domain
+        (b"dan+API@example", 3, False),  # no dot in the domain
+        (b"dan+API@example.", 3, False),  # nothing after the dot
+        (b"dan+API@.com", 3, False),  # empty first label
+        (b"dan+API", 3, False),  # ends inside the local part
+        (b"dan+" + b"x" * 65 + b"@example.com", 3, False),  # past 64 bytes
+        (b"dan+" + b"x" * 64 + b"@example.com", 3, True),
+    ],
+)
+def test_is_email_subaddress(data: bytes, pos: int, *, expected: bool) -> None:
+    assert data[pos] == ord("+")
+    assert _is_email_subaddress(data, pos) is expected
+
+
+def test_utf7_email_shaped_run_leaves_other_runs_alone() -> None:
+    """Real UTF-7 beside a plus address is still UTF-7."""
+    data = "Привет".encode("utf-7") + b", dan+API@example.com"
+    result = detect_escape_encoding(data)
+    assert result is not None
+    assert result.encoding == "utf-7"
