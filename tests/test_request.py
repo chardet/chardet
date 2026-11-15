@@ -157,15 +157,15 @@ def test_render_lists_each_name_once():
     """Two candidates remapped onto one superset name keep the first."""
     request = DetectionRequest(prefer_superset=True)
     results = [
-        DetectionResult("iso8859-7", 0.6, "el", "text/plain"),
-        DetectionResult("cp1253", 0.5, "el", "text/plain"),
+        DetectionResult("iso8859-9", 0.6, "tr", "text/plain"),
+        DetectionResult("cp1254", 0.5, "tr", "text/plain"),
         DetectionResult("iso8859-1", 0.1, "en", "text/plain"),
     ]
     rendered = request.render(results, b"abc", all_results=True)
-    assert [d["encoding"] for d in rendered] == ["Windows-1253"]
+    assert [d["encoding"] for d in rendered] == ["Windows-1254"]
     rendered = request.render(results, b"abc", all_results=True, ignore_threshold=True)
     assert [(d["encoding"], d["confidence"]) for d in rendered] == [
-        ("Windows-1253", 0.6),
+        ("Windows-1254", 0.6),
         ("Windows-1252", 0.1),
     ]
 
@@ -242,12 +242,12 @@ def test_render_all_results_decodes_once_per_result_at_most(
 ):
     request = DetectionRequest(prefer_superset=True)
     results = [
-        DetectionResult("iso8859-7", 0.6, "el", "text/plain"),
-        DetectionResult("cp1253", 0.5, "el", "text/plain"),
+        DetectionResult("iso8859-9", 0.6, "tr", "text/plain"),
+        DetectionResult("cp1254", 0.5, "tr", "text/plain"),
         DetectionResult("euc_jis_2004", 0.4, "ja", "text/plain"),
     ]
     request.render(results, _GREEK, all_results=True)
-    assert window_decodes == ["cp1253", "EUC-JP"]
+    assert window_decodes == ["cp1254", "EUC-JP"]
 
 
 def test_universal_detector_renders_once_per_close(window_decodes: list[str]):

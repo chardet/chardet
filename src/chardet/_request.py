@@ -214,8 +214,8 @@ class DetectionRequest:
     def _rank_unique(dicts: list[DetectionDict]) -> list[DetectionDict]:
         """Sort by confidence and keep the first dict for each name."""
         dicts.sort(key=lambda d: d["confidence"], reverse=True)
-        # The superset remap can land two candidates on one name (ISO-8859-7
-        # and Windows-1253 both become Windows-1253).  Keep the first, which
+        # The superset remap can land two candidates on one name (ISO-8859-9
+        # and Windows-1254 both become Windows-1254).  Keep the first, which
         # carries the higher confidence; the sort is stable, so ties keep the
         # pipeline's order.
         seen: set[str | None] = set()

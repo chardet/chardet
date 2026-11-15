@@ -501,22 +501,24 @@ def test_cli_invalid_include_encoding(
     assert "detection failed" in captured.err
 
 
-_GREEK = "Καλημέρα κόσμε, αυτό είναι ένα δοκιμαστικό κείμενο στα ελληνικά.\n".encode(
-    "iso8859-7"
-)
+_TURKISH = (
+    "İstanbul, Türkiye'nin en kalabalık şehri ve ülkenin ekonomik, tarihî "
+    "ve kültürel merkezidir. Şehir, Boğaziçi'nin iki yakasına yayılmıştır "
+    "ve yüzyıllar boyunca birçok imparatorluğa başkentlik yapmıştır.\n"
+).encode("iso8859-9")
 _JAPANESE = "日本語のテキストです。文字コードを判定します。\n".encode("euc_jp")
 
 
 def test_cli_prefer_superset(tmp_path: Path, capsys: pytest.CaptureFixture[str]):
     """--prefer-superset reports the Windows superset of a detected subset."""
-    f = tmp_path / "greek.txt"
-    f.write_bytes(_GREEK)
+    f = tmp_path / "turkish.txt"
+    f.write_bytes(_TURKISH)
     main(["--minimal", str(f)])
     main(["--minimal", "--prefer-superset", str(f)])
     default, superset = capsys.readouterr().out.split()
-    assert default == chardet.detect(_GREEK)["encoding"] == "ISO-8859-7"
-    assert superset == chardet.detect(_GREEK, prefer_superset=True)["encoding"]
-    assert superset == "Windows-1253"
+    assert default == chardet.detect(_TURKISH)["encoding"] == "ISO-8859-9"
+    assert superset == chardet.detect(_TURKISH, prefer_superset=True)["encoding"]
+    assert superset == "Windows-1254"
 
 
 def test_cli_no_compat_names(tmp_path: Path, capsys: pytest.CaptureFixture[str]):
@@ -535,7 +537,7 @@ def test_cli_superset_and_raw_names_on_stdin(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ):
     """Both flags combine, and apply to stdin as well as files."""
-    monkeypatch.setattr(sys, "stdin", io.TextIOWrapper(io.BytesIO(_GREEK)))
+    monkeypatch.setattr(sys, "stdin", io.TextIOWrapper(io.BytesIO(_TURKISH)))
     main(["--prefer-superset", "--no-compat-names"])
     out = capsys.readouterr().out
-    assert out.startswith("stdin: cp1253 with confidence ")
+    assert out.startswith("stdin: cp1254 with confidence ")

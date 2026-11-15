@@ -40,6 +40,7 @@ from __future__ import annotations
 import pytest
 
 import chardet
+from chardet.output_names import PREFERRED_SUPERSET
 from chardet.registry import REGISTRY, lookup_encoding
 
 # Source: https://encoding.spec.whatwg.org/encodings.json
@@ -383,6 +384,25 @@ def test_whatwg_equivalence_map_references_real_canonicals() -> None:
         "_WHATWG_TO_CHARDET references canonicals not in chardet.registry:\n"
         + "\n".join(f"  {whatwg!r} -> {canon!r}" for whatwg, canon in unknown)
     )
+
+
+@pytest.mark.parametrize(("subset", "superset"), sorted(PREFERRED_SUPERSET.items()))
+def test_preferred_superset_pairs_are_whatwg_merges(subset: str, superset: str) -> None:
+    """``prefer_superset`` renames only what the Encoding Standard also merges.
+
+    WHATWG decodes ``iso-8859-1`` as windows-1252, ``iso-8859-9`` as
+    windows-1254 and ``tis-620`` as windows-874, and keeps ISO-8859-2, -5,
+    -6, -7, -8 and -13 as encodings of their own.  The option follows the
+    same split.
+    """
+    canonical = lookup_encoding(subset)
+    assert canonical is not None
+    merged = [
+        name
+        for name, members in _WHATWG_TO_CHARDET.items()
+        if canonical in members and superset in members
+    ]
+    assert merged, f"WHATWG does not merge {subset} with {superset}"
 
 
 def _html_with_meta_charset(label: str) -> bytes:
