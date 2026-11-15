@@ -130,9 +130,9 @@ superset is the correct answer.** Detection examines at most the first
 200 KB of a file (``max_bytes``). A byte past that window can require
 the superset --- a C1 curly quote in what looked like ISO-8859-1, an
 extension character in what looked like EUC-KR --- and if it does, the
-subset answer breaks the eventual ``.decode()`` while the superset
-answer never can: the superset decodes everything the subset does,
-identically. Erring toward the superset is the only choice that is safe
+subset answer garbles or breaks the eventual ``.decode()`` while the
+superset reads it correctly: a true superset decodes everything the
+subset does, identically. Erring toward the superset is the safer choice
 under partial evidence. The web platform reached the same conclusion
 for the same reason: the WHATWG/W3C Encoding Standard requires
 browsers to decode content labelled ``ascii`` or ``iso-8859-1`` as
