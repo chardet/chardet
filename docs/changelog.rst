@@ -205,7 +205,11 @@ Unreleased
   letters and two code points that are not characters at all.  On
   40,000 real source paths under ``+dfsg``-style directories, false
   UTF-7 answers fell from 1,173 to 8, with no real UTF-7 lost in 49
-  languages.
+  languages.  A run of one character is now judged by Unicode's list
+  of Recommended Scripts, and by the national character sets for Han
+  and Hangul, in place of a hand-picked list of ranges: ``WxH+X+Y`` and
+  ``U+039A`` stay ASCII, and a lone Vietnamese letter like ``ệ`` is
+  UTF-7.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude;
   `inchang-ing <https://github.com/inchang-ing>`_;
   reported by `Stefan Rehm <https://github.com/srehm>`_,
