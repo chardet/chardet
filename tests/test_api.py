@@ -860,6 +860,76 @@ def test_detect_unknown_empty_input_raises():
         chardet.detect(b"Hello", empty_input_encoding="not-real")
 
 
+# What a fallback excluded by the filters has always returned: no encoding,
+# and the MIME type every result without one gets.
+_NO_ENCODING = {
+    "encoding": None,
+    "confidence": 0.0,
+    "language": None,
+    "mime_type": "application/octet-stream",
+}
+_UNDECODABLE_AS_ASCII = b"\x80\x81\x82\x83\x84\x85"
+
+
+def _run_api(api: str, data: bytes, **kwargs: object) -> dict[str, object]:
+    """Run *data* through one of the three public entry points."""
+    if api == "stream":
+        detector = UniversalDetector(**kwargs)
+        if data:
+            detector.feed(data)
+        return dict(detector.close())
+    if api == "detect_all":
+        results = chardet.detect_all(data, **kwargs)
+        assert len(results) == 1
+        return dict(results[0])
+    return dict(chardet.detect(data, **kwargs))
+
+
+@pytest.mark.parametrize("api", ["detect", "detect_all", "stream"])
+def test_empty_input_encoding_none_reports_no_encoding(api: str):
+    """``empty_input_encoding=None`` asks for no answer on empty input (#435)."""
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        assert _run_api(api, b"", empty_input_encoding=None) == _NO_ENCODING
+
+
+@pytest.mark.parametrize("api", ["detect", "detect_all", "stream"])
+def test_no_match_encoding_none_reports_no_encoding(api: str):
+    """``no_match_encoding=None`` asks for no answer when nothing fits (#435)."""
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        result = _run_api(
+            api,
+            _UNDECODABLE_AS_ASCII,
+            include_encodings=["ascii"],
+            no_match_encoding=None,
+        )
+    assert result == _NO_ENCODING
+
+
+@pytest.mark.parametrize("option", ["empty_input_encoding", "no_match_encoding"])
+def test_none_fallback_leaves_other_results_alone(option: str):
+    """A ``None`` fallback changes nothing when the fallback is not reached."""
+    data = "Héllo wörld café résumé naïve".encode()
+    assert chardet.detect(data, **{option: None}) == chardet.detect(data)
+
+
+@pytest.mark.parametrize("api", ["detect", "detect_all", "stream"])
+@pytest.mark.parametrize("option", ["empty_input_encoding", "no_match_encoding"])
+@pytest.mark.parametrize("bad", [123, b"utf-8", 1.5, ("utf-8",)])
+def test_non_string_fallback_raises_value_error(api: str, option: str, bad: object):
+    """A fallback that is not a name fails like any other unknown name."""
+    with pytest.raises(ValueError, match=f"Unknown encoding .* in {option}"):
+        _run_api(api, b"Hello", **{option: bad})
+
+
+@pytest.mark.parametrize("option", ["include_encodings", "exclude_encodings"])
+@pytest.mark.parametrize("bad", [None, 123, b"utf-8"])
+def test_non_string_filter_entry_raises_value_error(option: str, bad: object):
+    with pytest.raises(ValueError, match=f"Unknown encoding .* in {option}"):
+        chardet.detect(b"Hello", **{option: ["utf-8", bad]})
+
+
 def test_detect_all_with_exclude():
     """detect_all respects exclude_encodings."""
     data = "Héllo wörld café résumé naïve".encode()

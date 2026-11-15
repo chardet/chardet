@@ -57,8 +57,8 @@ def detect(  # noqa: PLR0913
     compat_names: bool = True,
     include_encodings: Iterable[str] | None = None,
     exclude_encodings: Iterable[str] | None = None,
-    no_match_encoding: str = "cp1252",
-    empty_input_encoding: str = "utf-8",
+    no_match_encoding: str | None = "cp1252",
+    empty_input_encoding: str | None = "utf-8",
 ) -> DetectionDict:
     """Detect the encoding of the given byte string.
 
@@ -102,8 +102,10 @@ def detect(  # noqa: PLR0913
         the pipeline.  Defaults to ``"cp1252"``.  It is returned as given,
         at confidence 0.10, and is the one answer that is not checked
         against the data: it is the caller's sentinel for "nothing fit".
+        Pass ``None`` to get ``encoding=None`` at confidence 0.0 instead.
     :param empty_input_encoding: Encoding to return for empty input.  Defaults
-        to ``"utf-8"``.
+        to ``"utf-8"``.  Pass ``None`` to get ``encoding=None`` at
+        confidence 0.0 instead.
     :returns: A dictionary with keys ``"encoding"``, ``"confidence"``,
         ``"language"``, and ``"mime_type"``.
     """
@@ -136,8 +138,8 @@ def detect_all(  # noqa: PLR0913
     compat_names: bool = True,
     include_encodings: Iterable[str] | None = None,
     exclude_encodings: Iterable[str] | None = None,
-    no_match_encoding: str = "cp1252",
-    empty_input_encoding: str = "utf-8",
+    no_match_encoding: str | None = "cp1252",
+    empty_input_encoding: str | None = "utf-8",
 ) -> list[DetectionDict]:
     """Detect all possible encodings of the given byte string.
 
@@ -167,9 +169,11 @@ def detect_all(  # noqa: PLR0913
     :param exclude_encodings: If given, remove these encodings from the
         candidate set.
     :param no_match_encoding: Encoding to return when no candidate survives
-        the pipeline.  Defaults to ``"cp1252"``.
+        the pipeline.  Defaults to ``"cp1252"``.  Pass ``None`` to get
+        ``encoding=None`` at confidence 0.0 instead.
     :param empty_input_encoding: Encoding to return for empty input.  Defaults
-        to ``"utf-8"``.
+        to ``"utf-8"``.  Pass ``None`` to get ``encoding=None`` at
+        confidence 0.0 instead.
     :returns: A list of dictionaries, sorted by descending confidence, one
         per encoding name.
     """

@@ -49,8 +49,8 @@ class UniversalDetector:
         compat_names: bool = True,
         include_encodings: Iterable[str] | None = None,
         exclude_encodings: Iterable[str] | None = None,
-        no_match_encoding: str = "cp1252",
-        empty_input_encoding: str = "utf-8",
+        no_match_encoding: str | None = "cp1252",
+        empty_input_encoding: str | None = "utf-8",
     ) -> None:
         """Initialize the detector.
 
@@ -75,9 +75,11 @@ class UniversalDetector:
         :param exclude_encodings: If given, remove these encodings from the
             candidate set.
         :param no_match_encoding: Encoding to return when no candidate
-            survives the pipeline.  Defaults to ``"cp1252"``.
+            survives the pipeline.  Defaults to ``"cp1252"``.  Pass
+            ``None`` to get ``encoding=None`` at confidence 0.0 instead.
         :param empty_input_encoding: Encoding to return for empty input.
-            Defaults to ``"utf-8"``.
+            Defaults to ``"utf-8"``.  Pass ``None`` to get
+            ``encoding=None`` at confidence 0.0 instead.
         """
         if lang_filter != LanguageFilter.ALL:
             warnings.warn(

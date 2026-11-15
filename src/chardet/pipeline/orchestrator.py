@@ -54,18 +54,23 @@ _STAT_SCORE_MAX_BYTES = 16384
 
 
 def _make_fallback_or_none(
-    encoding: str,
+    encoding: str | None,
     allowed: frozenset[str],
     param_name: str,
     stacklevel: int = 6,
 ) -> list[DetectionResult]:
     """Return a low-confidence result for *encoding*, or ``encoding=None`` if filtered out.
 
+    An *encoding* of ``None`` is the caller asking for ``encoding=None``
+    in this case, so it gets that result with no warning.
+
     The default ``stacklevel=6`` targets the public caller: detect() ->
     DetectionRequest.run() -> run_pipeline() -> _run_pipeline_core() ->
     _make_fallback_or_none().  A caller one frame deeper
     (:func:`_hold_validity_past_cap`) passes 7.
     """
+    if encoding is None:
+        return [_NONE_RESULT]
     if encoding not in allowed:
         warnings.warn(
             f"{param_name} {encoding!r} is excluded by "
@@ -82,7 +87,7 @@ def _hold_validity_past_cap(
     evidence: bytes,
     results: list[DetectionResult],
     allowed: frozenset[str],
-    no_match_encoding: str,
+    no_match_encoding: str | None,
 ) -> list[DetectionResult]:
     """Keep the validity contract for the part of the window past the evidence cap.
 
@@ -271,8 +276,8 @@ def _run_pipeline_core(  # noqa: PLR0913, PLR0915
     *,
     include_encodings: frozenset[str] | None = None,
     exclude_encodings: frozenset[str] | None = None,
-    no_match_encoding: str = "cp1252",
-    empty_input_encoding: str = "utf-8",
+    no_match_encoding: str | None = "cp1252",
+    empty_input_encoding: str | None = "utf-8",
     full_ranking: bool = False,
     input_truncated: bool = False,
 ) -> list[DetectionResult]:
@@ -482,8 +487,8 @@ def run_pipeline(  # noqa: PLR0913
     *,
     include_encodings: frozenset[str] | None = None,
     exclude_encodings: frozenset[str] | None = None,
-    no_match_encoding: str = "cp1252",
-    empty_input_encoding: str = "utf-8",
+    no_match_encoding: str | None = "cp1252",
+    empty_input_encoding: str | None = "utf-8",
     full_ranking: bool = False,
     input_truncated: bool = False,
 ) -> list[DetectionResult]:
@@ -494,8 +499,10 @@ def run_pipeline(  # noqa: PLR0913
     :param max_bytes: Maximum number of bytes to process.
     :param include_encodings: If not ``None``, only return these encodings.
     :param exclude_encodings: If not ``None``, never return these encodings.
-    :param no_match_encoding: Encoding returned when no candidate survives.
-    :param empty_input_encoding: Encoding returned for empty input.
+    :param no_match_encoding: Encoding returned when no candidate survives,
+        or ``None`` for an ``encoding=None`` result.
+    :param empty_input_encoding: Encoding returned for empty input, or
+        ``None`` for an ``encoding=None`` result.
     :param full_ranking: When ``True``, statistical scoring evaluates every
         candidate so the returned list is complete (``detect_all`` needs
         this).  When ``False``, candidates that provably cannot affect the

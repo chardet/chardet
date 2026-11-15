@@ -21,6 +21,17 @@ Unreleased
   ``EUC-JP``.  Output without the flags is unchanged.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude,
   `#407 <https://github.com/chardet/chardet/pull/407>`_)
+- ``no_match_encoding`` and ``empty_input_encoding`` now take ``None``,
+  which returns ``encoding=None`` at confidence 0.0 for that case, as
+  chardet 6 did.  ``None`` used to raise ``AttributeError`` on every
+  call, even for input that never reached the fallback.  Any other
+  value that is not a string, here or in ``include_encodings`` and
+  ``exclude_encodings``, now raises the same ``ValueError`` as an
+  unknown name.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude;
+  reported by `Rahul <https://github.com/rahul05ranjan>`_,
+  `#435 <https://github.com/chardet/chardet/issues/435>`_,
+  `#442 <https://github.com/chardet/chardet/pull/442>`_)
 
 **Improvements:**
 
