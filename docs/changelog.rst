@@ -64,6 +64,29 @@ Unreleased
   ``detect()`` never builds this table, so detection speed is unchanged.
   (`Dex Hünter <https://github.com/dexhunter>`_,
   `#415 <https://github.com/chardet/chardet/pull/415>`_)
+- Statistical scoring is faster on pure-Python installs under CPython
+  3.12 and later.  The per-model dot products and pruning bounds now go
+  through ``math.sumprod`` instead of one Python-level multiply per
+  bigram.  Text that reaches that stage was detected about 1.5x faster
+  in our runs on 3.12, 3.14, and free-threaded 3.14t.  Every score is
+  identical.  Compiled wheels and PyPy take the same path as before.
+  (`Dickson Wu <https://github.com/DicksonWu654>`_,
+  `#429 <https://github.com/chardet/chardet/pull/429>`_)
+- The UTF-16/32 stage now returns right away for input with no null
+  byte, which is most input, and on pure-Python installs it counts
+  nulls with slices instead of a loop.  Pure Python is about 1.35x
+  faster on ASCII and 1.13x on UTF-16/32; compiled wheels save about 4%
+  on short ASCII.  No result changed.
+  (`Dickson Wu <https://github.com/DicksonWu654>`_,
+  `#430 <https://github.com/chardet/chardet/pull/430>`_)
+- The validity stage no longer decodes the window once per single-byte
+  candidate.  A single-byte codec fails only on a byte it leaves
+  undefined, so the stage looks for those bytes instead; codecs with
+  more than 16 of them keep the decode, which is faster there.
+  ``detect()`` on 200 KB of ISO-8859-1 went from 6.4 ms to 3.6 ms on the
+  compiled build.  No result changed.
+  (`Afonso Ribeiro <https://github.com/deadstrobe5>`_,
+  `#431 <https://github.com/chardet/chardet/pull/431>`_)
 
 **Bug Fixes:**
 
@@ -149,6 +172,22 @@ Unreleased
   `nk-batman21 <https://github.com/nk-batman21>`_,
   `#439 <https://github.com/chardet/chardet/pull/439>`_,
   `#426 <https://github.com/chardet/chardet/pull/426>`_)
+- Text that starts with "BM" is no longer reported as a BMP image.
+  ``detect(b"BMW 320i, 2019, 45000 km\n")`` used to return no encoding
+  and ``image/bmp``.  A BMP now also needs a known DIB header size after
+  its 14-byte file header, and a tar archive whose first member name
+  starts with "BM" is a tar again.
+  (`Enes Uygur <https://github.com/Enesuygurs>`_,
+  `#424 <https://github.com/chardet/chardet/pull/424>`_)
+- Text that starts with another short printable file signature, like
+  ``MZ``, ``ID3``, ``BZh``, ``OTTO``, ``OggS`` or ``fLaC``, is no longer
+  reported as binary.  An HTML page beginning with "MZ" used to come
+  back as a Windows executable, and its charset declaration was never
+  read.  Signatures of four printable bytes or fewer now count only when
+  the first 64 bytes hold a control byte, as every real file in those
+  formats does.
+  (`Samina <https://github.com/Samin061>`_,
+  `#437 <https://github.com/chardet/chardet/pull/437>`_)
 
 **Build:**
 
