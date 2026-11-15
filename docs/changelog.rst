@@ -128,6 +128,27 @@ Unreleased
   the declared name.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude,
   `#438 <https://github.com/chardet/chardet/pull/438>`_)
+- A ``<!-- -->`` comment no longer joins the text on either side of it
+  into a charset declaration.  ``<me<!-- -->ta charset="cp1251">`` over
+  ASCII text used to get Windows-1251 at 0.95, though the page has no
+  meta tag, and that made-up declaration beat any real one after it.
+  A comment before a declaration or between its attributes still
+  leaves it in place.
+  (`Parijat Biswas <https://github.com/parijat1222q>`_,
+  `#423 <https://github.com/chardet/chardet/pull/423>`_)
+- ``prefer_superset=True`` no longer renames ISO-8859-2, -5, -6, -7, -8
+  or -13 to a Windows code page.  Those were never supersets: Windows-1251
+  reads 94 bytes differently from ISO-8859-5, so correctly detected
+  Russian came back under a name that garbles it, and Arabic, Polish,
+  Czech and Slovak text lost letters the same way.  For Hebrew the rename
+  hid the storage order, since ISO-8859-8 is how visual-order text is
+  told from logical-order Windows-1255.  The option now covers only the
+  pairs browsers also merge: ASCII, ISO-8859-1, ISO-8859-9, TIS-620 and
+  EUC-KR.  ``UniversalDetector.LEGACY_MAP`` loses the six entries.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude;
+  `nk-batman21 <https://github.com/nk-batman21>`_,
+  `#439 <https://github.com/chardet/chardet/pull/439>`_,
+  `#426 <https://github.com/chardet/chardet/pull/426>`_)
 
 **Build:**
 

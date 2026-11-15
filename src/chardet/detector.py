@@ -61,8 +61,8 @@ class UniversalDetector:
         :param encoding_era: Restrict candidate encodings to the given era.
         :param max_bytes: Maximum number of bytes to buffer from
             :meth:`feed` calls before stopping accumulation.
-        :param prefer_superset: If ``True``, remap subset encodings in the
-            result to their decode-safe Windows/CP superset equivalents
+        :param prefer_superset: If ``True``, report a subset encoding
+            in the result under its Windows/CP superset
             (e.g., ISO-8859-1 -> Windows-1252).  If ``False`` (default),
             skip the renaming --- not a promise of the smallest matching
             encoding.  The default will change to ``True`` in chardet 8.0.

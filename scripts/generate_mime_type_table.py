@@ -29,7 +29,11 @@ _KNOWN_FORMATS: list[tuple[bytes, str, str]] = [
     (b"\x89PNG\r\n\x1a\n" + b"\x00" * 8, "Magic (89 50 4e 47)", "Images"),
     (b"\xff\xd8\xff" + b"\x00" * 8, "Magic (ff d8 ff)", "Images"),
     (b"GIF89a" + b"\x00" * 8, "Magic (GIF89a)", "Images"),
-    (b"BM" + b"\x00" * 12, "Magic (42 4d)", "Images"),
+    (
+        b"BM" + b"\x00" * 12 + b"\x28\x00\x00\x00",
+        "Magic (42 4d, known DIB header size)",
+        "Images",
+    ),
     (b"MM\x00\x2a" + b"\x00" * 8, "Magic (4d 4d 00 2a)", "Images"),
     (b"II\x2a\x00" + b"\x00" * 8, "Magic (49 49 2a 00)", "Images"),
     (b"8BPS" + b"\x00" * 8, "Magic (38 42 50 53)", "Images"),

@@ -68,12 +68,17 @@ def detect(  # noqa: PLR0913
     :param chunk_size: Deprecated -- accepted for backward compatibility but
         has no effect.
     :param max_bytes: Maximum number of bytes to examine from *byte_str*.
-    :param prefer_superset: If ``True``, remap subset encodings in the result
-        to their decode-safe Windows/CP superset equivalents (e.g.,
-        ISO-8859-1 -> Windows-1252, EUC-KR -> CP949).  Recommended when the
-        result will be used to decode: detection examines at most
-        *max_bytes* of input, and only the superset is guaranteed to decode
-        bytes beyond that window.  The remap is skipped when the superset
+        The reported name always decodes the examined bytes, and the
+        default (200,000) is enough to identify a real document.
+    :param prefer_superset: If ``True``, report a subset encoding under
+        the Windows/CP superset that browsers decode it as: ISO-8859-1
+        and ASCII as Windows-1252, ISO-8859-9 as Windows-1254, TIS-620 as
+        CP874, EUC-KR as CP949.  Only true supersets are renamed.  The
+        superset reads the subset's text the same way and also covers the
+        characters the subset lacks, such as curly quotes.  ISO-8859-2,
+        -5, -6, -7, -8 and -13 keep their own names, because their
+        Windows look-alikes put some characters on different bytes.  The
+        remap is skipped when the superset
         cannot decode the examined window itself (the Windows code pages
         leave a few C1 positions undefined that the ISO subsets map), so
         the reported name always decodes what was examined.  It is also
@@ -149,8 +154,8 @@ def detect_all(  # noqa: PLR0913
     :param chunk_size: Deprecated -- accepted for backward compatibility but
         has no effect.
     :param max_bytes: Maximum number of bytes to examine from *byte_str*.
-    :param prefer_superset: If ``True``, remap subset encodings in the
-        results to their decode-safe Windows/CP superset equivalents.
+    :param prefer_superset: If ``True``, report subset encodings in the
+        results under their Windows/CP supersets.
         If ``False`` (default), skip the renaming --- not a promise of the
         smallest matching encoding.  The default will change to ``True``
         in chardet 8.0.  See :func:`detect` for details.

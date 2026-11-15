@@ -866,3 +866,64 @@ def test_promotion_table_derives_from_the_registry():
         "shift_jis_2004": ("shift_jis", "cp932"),
         "euc_kr": ("euc_kr", "cp949"),
     }
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        b'<me<!-- comment -->ta charset="cp1251">Hello world',
+        b'<meta char<!-- comment -->set="cp1251">Hello world',
+        b'<meta charset="cp<!-- comment -->1251">Hello world',
+        b'<?xm<!-- comment -->l encoding="cp1251"?>Hello world',
+        b'<?xml encod<!-- comment -->ing="cp1251"?>Hello world',
+        b'<?xml encoding="cp<!-- comment -->1251"?>Hello world',
+        # Codec lookup folds punctuation into "_", and windows_1251 is a
+        # cp1251 alias, so a split label must not come back as one.
+        b'<meta charset="windows<!-- comment -->1251">Hello world',
+        b'<?xml encoding="windows<!-- comment -->1251"?>Hello world',
+        b'<?xml encoding="utf<!-- comment -->8"?>Hello world',
+        b'<?xml encoding="koi8<!-- comment -->r"?>Hello world',
+        b'<?xml encoding="euc<!-- comment -->kr"?>Hello world',
+        b'<?xml encoding="iso<!-- comment -->8859-5"?>Hello world',
+        b'<?xml encoding="shift<!-- comment -->jis"?>Hello world',
+        b'<?xml encoding="latin<!-- comment -->1"?>Hello world',
+    ],
+)
+def test_comments_do_not_join_declaration_fragments(data: bytes):
+    assert _declarations(data) == []
+    result = detect(data)
+    assert result["encoding"] == "ascii"
+    live = b'<meta charset="iso-8859-1">'
+    assert _declarations(data + live) == _html("iso8859-1")
+    assert detect(data + live)["encoding"] == "ISO-8859-1"
+
+
+@pytest.mark.parametrize(
+    "tag",
+    [
+        b'<meta charset="cp1251" content="<!-- c -->">',
+        b'<meta charset="cp1251" <!-- c -->>',
+        b'<meta http-equiv="Content-Type" content="text/html; <!-- c --> charset=cp1251">',
+        b'<meta http-equiv="Content-Type" content="text/html; charset=cp1251 <!-- c -->">',
+    ],
+)
+def test_a_comment_inside_a_meta_tag_keeps_its_declaration(tag: bytes):
+    """A comment splits nothing here, so the tag's declaration stands."""
+    page = tag + b"Hello world"
+    assert _declarations(page) == _html("cp1251")
+    assert detect(page)["encoding"] == "Windows-1251"
+
+
+@pytest.mark.parametrize(
+    "lead",
+    [
+        pytest.param(b"<!-- banner -->", id="comment"),
+        pytest.param(b"<!-- banner -->\r\n", id="comment-whitespace"),
+        pytest.param(b"\n  <!-- banner -->\n", id="whitespace-comment-whitespace"),
+        pytest.param(b"\xef\xbb\xbf<!-- banner -->", id="bom-comment"),
+        pytest.param(b"\xef\xbb\xbf<!-- banner -->\r\n", id="bom-comment-whitespace"),
+    ],
+)
+def test_xml_declaration_after_a_comment(lead: bytes):
+    data = lead + b'<?xml version="1.0" encoding="iso-8859-5"?><a/>'
+    assert _declarations(data) == [Declaration("iso8859-5", "text/xml")]

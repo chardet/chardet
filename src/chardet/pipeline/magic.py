@@ -5,11 +5,13 @@ this module is compiled with mypyc, which does not support PEP 563 string
 annotations.
 """
 
-from chardet.pipeline import DetectionResult
+from chardet._utils import count_deleted
+from chardet.pipeline import ASCII_TEXT_BYTES, DetectionResult
 
 # (prefix_bytes, mime_type) — longest prefix first to avoid shorter prefixes
 # shadowing longer ones. All entries match at offset 0.
-# Formats with sub-type logic (ftyp, RIFF, FORM, ZIP) are handled separately.
+# Formats with sub-type logic (ftyp, RIFF, FORM, ZIP) are handled separately,
+# and so is BMP, whose two-letter signature needs a header check.
 _MAGIC_NUMBERS: tuple[tuple[bytes, str], ...] = (
     # Images
     (b"\x89PNG\r\n\x1a\n", "image/png"),
@@ -19,7 +21,6 @@ _MAGIC_NUMBERS: tuple[tuple[bytes, str], ...] = (
     (b"II\x2a\x00", "image/tiff"),
     (b"8BPS", "image/vnd.adobe.photoshop"),
     (b"qoif", "image/qoi"),
-    (b"BM", "image/bmp"),
     (b"\xff\xd8\xff", "image/jpeg"),
     # JPEG XL: 12-byte container signature (must precede the 2-byte codestream)
     (
@@ -68,6 +69,32 @@ _MAGIC_NUMBERS: tuple[tuple[bytes, str], ...] = (
     (b"\x00\x01\x00\x00", "font/ttf"),
 )
 
+# Signatures of four printable bytes or fewer ("MZ", "ID3", "OTTO") can
+# also be the first word of a text file.  Real files in these formats put
+# a null or other control byte in the fixed header fields right after the
+# signature, so one of these counts only when the first _TEXT_GATE_BYTES
+# of the window hold such a byte.  Otherwise the stage gives no answer and
+# the later stages decide.
+_TEXT_PLAUSIBLE_PREFIXES: frozenset[bytes] = frozenset(
+    prefix
+    for prefix, _mime in _MAGIC_NUMBERS
+    if len(prefix) <= 4 and not prefix.translate(None, ASCII_TEXT_BYTES)
+)
+# The bytes that gate looks for: every ASCII byte outside ASCII_TEXT_BYTES,
+# which is the C0 controls other than tab, LF and CR, plus DEL.  Text can
+# still hold one (the ASCII stage allows sparse nulls, and the binary stage
+# counts vertical tab and form feed as text), which is why the gate reads
+# only the start of the window.
+_NON_TEXT_ASCII: bytes = bytes(range(0x80)).translate(None, ASCII_TEXT_BYTES)
+# How much of the window the gate reads.  In 1,383 real files with these
+# signatures the first such byte is within the first 5 bytes, and bzip2
+# always has one within the first 15 (the high bits of the first block's
+# origPtr).  64 also reaches the end of the DOS header, whose e_lfanew field
+# (bytes 60 to 63) has a null in its high byte even when every field before
+# it happens to be printable.  Reading no further keeps the check
+# constant-time and lets text with a later form feed or null through.
+_TEXT_GATE_BYTES = 64
+
 # TAR archives have "ustar" at offset 257
 _TAR_OFFSET = 257
 _TAR_SIGNATURES: tuple[bytes, ...] = (b"ustar\x00", b"ustar ")
@@ -84,6 +111,18 @@ _FORM_SUBTYPES: dict[bytes, str] = {
     b"AIFF": "audio/aiff",
     b"AIFC": "audio/aiff",
 }
+
+# BMP: "BM", the rest of the 14-byte file header, then a DIB header that
+# starts with its own size (little-endian uint32).  The two-letter
+# signature also starts ordinary text ("BMW", "BMI"), so the DIB header
+# size must name a known variant too, as file(1) checks it: OS/2 1.x (12),
+# OS/2 2.x (16, 24, 48, 64), and Windows (40, 52, 56, 108, 124).  Text
+# cannot match, because each size is one byte followed by three NULs.
+_BMP_SIGNATURE = b"BM"
+_BMP_DIB_SIZE_OFFSET = 14
+_BMP_DIB_HEADER_SIZES: frozenset[int] = frozenset(
+    {12, 16, 24, 40, 48, 52, 56, 64, 108, 124}
+)
 
 # ZIP-based format detection — scan the first 4 KB for local file headers
 # and classify based on entry filenames or content.  Many ZIP generators
@@ -266,6 +305,11 @@ def detect_magic(data: bytes) -> DetectionResult | None:
     # Fixed-offset magic numbers (all at offset 0)
     for prefix, mime in _MAGIC_NUMBERS:
         if data.startswith(prefix):
+            if (
+                prefix in _TEXT_PLAUSIBLE_PREFIXES
+                and count_deleted(data[:_TEXT_GATE_BYTES], _NON_TEXT_ASCII) == 0
+            ):
+                return None
             return _make_result(mime)
 
     # TAR archive — "ustar" at offset 257
@@ -273,5 +317,16 @@ def detect_magic(data: bytes) -> DetectionResult | None:
         tar_sig = data[_TAR_OFFSET : _TAR_OFFSET + 6]
         if tar_sig in _TAR_SIGNATURES:
             return _make_result("application/x-tar")
+
+    # BMP — the signature alone matches text, so check the DIB header size.
+    # It comes after TAR: a tar whose first member name is 15 bytes long and
+    # starts with "BM" puts the name's last byte and three NULs at offset
+    # 14, which can read as a DIB header size ("l" is 108, "4" is 52).
+    if data.startswith(_BMP_SIGNATURE) and len(data) >= _BMP_DIB_SIZE_OFFSET + 4:
+        dib_size = int.from_bytes(
+            data[_BMP_DIB_SIZE_OFFSET : _BMP_DIB_SIZE_OFFSET + 4], "little"
+        )
+        if dib_size in _BMP_DIB_HEADER_SIZES:
+            return _make_result("image/bmp")
 
     return None

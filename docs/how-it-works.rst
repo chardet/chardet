@@ -37,10 +37,16 @@ order:
    ISO-2022 name, where the escape sequences pick the variant.
 
 4. **Magic Number Detection** — Identifies binary file types (PNG, JPEG,
-   PDF, ZIP, etc.) by their magic number signatures. Returns immediately
-   with ``encoding=None`` and a specific ``mime_type`` (e.g.,
+   PDF, ZIP, etc.) by their magic number signatures. A match returns
+   immediately with ``encoding=None`` and a specific ``mime_type`` (e.g.,
    ``"image/png"``). ZIP-based formats like XLSX, DOCX, and EPUB are
-   further distinguished by inspecting entry filenames.
+   further distinguished by inspecting entry filenames. A signature of
+   four printable bytes or fewer, such as ``MZ`` or ``ID3``, can also be
+   the first word of a text file, so it only counts when the first 64
+   bytes hold a null or another control byte other than tab, line feed,
+   or carriage return. Real files in those formats always have one in
+   their header. Without one, the stage gives no answer and the later
+   stages decide.
 
 5. **Binary Detection** — If more than 1% of the bytes are control
    bytes other than whitespace (nulls included), and the data is neither
@@ -73,12 +79,16 @@ order:
    checking multi-byte sequence structure. UTF-8 has very distinctive
    byte patterns that are unlikely to occur in other encodings.
 
-9. **Byte Validity Filtering** — Attempts to decode the data with each
-   candidate encoding's Python codec. Any encoding that raises a decode
-   error is eliminated. An incomplete multi-byte sequence at the very end
-   of the data does not count as an error: detection input is usually a
-   prefix of a larger whole, so a partial trailing character means the
-   input was cut mid-character rather than that the encoding is wrong.
+9. **Byte Validity Filtering** — Eliminates every candidate encoding
+   that cannot decode the data. A single-byte codec that leaves only a
+   few byte values undefined is checked by looking for those bytes, which
+   gives the same answer as decoding and is much faster. Every other
+   candidate is decoded with its Python codec, and any that raises a
+   decode error is eliminated. An incomplete multi-byte sequence at the
+   very end of the data does not count as an error: detection input is
+   usually a prefix of a larger whole, so a partial trailing character
+   means the input was cut mid-character rather than that the encoding
+   is wrong.
    This stage and the four after it read at most the first 256 KiB of
    the window, which is above the default ``max_bytes``; past that cap
    the winner is still decoded over the whole window, and a winner that

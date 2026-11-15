@@ -19,7 +19,9 @@ How do I increase accuracy?
 ----------------------------
 
 - **Provide more data.** The default limit of 200,000 bytes is generous
-  and most detections converge well within that.  If you are passing very
+  and most detections converge well within that.  The name returned always
+  decodes the bytes examined, and 200 KB is enough to identify the encoding
+  of a real document.  If you are passing very
   short strings (under a few hundred bytes), providing more data may help.
 - **Restrict the encoding era.** By default, chardet considers all
   supported encodings. If you know your data only uses modern web
@@ -31,9 +33,10 @@ How do I increase accuracy?
 - **Use encoding filters.** If you know exactly which encodings are
   possible, pass ``include_encodings`` to restrict the candidate set.
   Alternatively, use ``exclude_encodings`` to remove known false positives.
-- **Pass prefer_superset=True when decoding.** Detection examines at most
-  the first 200 KB, and only a superset encoding is guaranteed to decode
-  bytes beyond that window; the remap makes the result decode-safe.  The
+- **Pass prefer_superset=True when decoding.** It reports ASCII,
+  ISO-8859-1, ISO-8859-9, TIS-620 and EUC-KR results under the Windows
+  superset browsers decode them as.  The superset reads the same text and
+  also the characters the subset lacks, such as curly quotes.  The
   default (``False``) skips the renaming and reports the detected
   encoding under its own name --- note it is not a promise of the
   *smallest* matching encoding, since detection may natively choose a
@@ -80,9 +83,9 @@ The measured differences:
 - **Accuracy convention:** our 99.7% credits supersets (Windows-1252 for
   ISO-8859-1); scored on exact matches only it is 82.4% against
   charset-normalizer's 78.2%. Both columns are published, but we
-  consider the superset the correct answer: detection reads at most the
-  first 200 KB, and only the superset is guaranteed to decode the rest
-  of the file --- the same reasoning behind the WHATWG/W3C Encoding
+  consider the superset the correct answer: it reads the subset's text
+  the same way and also the characters the subset lacks.  That is the
+  reasoning behind the WHATWG/W3C Encoding
   Standard's rule that browsers decode ``ascii`` and ``iso-8859-1``
   content as ``windows-1252``. The strict gap is the convention, not
   the detector: with superset remapping disabled

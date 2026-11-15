@@ -155,14 +155,8 @@ def test_preferred_superset_is_the_frozen_selection() -> None:
         "ascii": "cp1252",
         "euc_kr": "cp949",
         "iso8859-1": "cp1252",
-        "iso8859-2": "cp1250",
-        "iso8859-5": "cp1251",
-        "iso8859-6": "cp1256",
-        "iso8859-7": "cp1253",
-        "iso8859-8": "cp1255",
         "iso8859-9": "cp1254",
         "iso8859-11": "cp874",
-        "iso8859-13": "cp1257",
         "tis-620": "cp874",
     }
 
@@ -176,6 +170,64 @@ def test_preferred_superset_agrees_with_registry(subset: str, superset: str) -> 
     canonical = lookup_encoding(subset)
     assert canonical is not None
     assert REGISTRY[canonical].superset == superset
+
+
+def _printable_high_bytes(codec: str) -> dict[int, str]:
+    """Map each byte from 0xA0 up that *codec* defines to its character."""
+    table = {}
+    for byte in range(0xA0, 0x100):
+        try:
+            table[byte] = bytes([byte]).decode(codec)
+        except UnicodeDecodeError:
+            continue
+    return table
+
+
+@pytest.mark.parametrize(
+    ("subset", "superset"),
+    sorted(
+        (subset, superset)
+        for subset, superset in PREFERRED_SUPERSET.items()
+        if not REGISTRY[lookup_encoding(subset) or subset].is_multibyte_cjk
+    ),
+)
+def test_preferred_superset_reads_printable_bytes_alike(
+    subset: str, superset: str
+) -> None:
+    """A selected superset reads every printable byte the way its subset does.
+
+    The Windows code pages differ from their ISO subsets in the C1 range
+    (0x80-0x9F), which is the point of the remap.  From 0xA0 up they must
+    agree on every byte both define, or the remap changes the text.
+    """
+    below = _printable_high_bytes(subset)
+    above = _printable_high_bytes(superset)
+    assert {b: ch for b, ch in below.items() if above.get(b, ch) != ch} == {}
+
+
+@pytest.mark.parametrize(
+    ("iso", "windows"),
+    [
+        ("iso8859-2", "cp1250"),
+        ("iso8859-5", "cp1251"),
+        ("iso8859-6", "cp1256"),
+        ("iso8859-7", "cp1253"),
+        ("iso8859-8", "cp1255"),
+        ("iso8859-13", "cp1257"),
+    ],
+)
+def test_lookalike_windows_code_pages_are_not_supersets(iso: str, windows: str) -> None:
+    """These ISO encodings move printable characters, so they are not remapped.
+
+    Each pair shares most of a script, but some byte from 0xA0 up reads as
+    a different character under the Windows code page (most of them under
+    cp1251), and browsers keep each ISO encoding apart.
+    """
+    below = _printable_high_bytes(iso)
+    above = _printable_high_bytes(windows)
+    assert any(above.get(b, ch) != ch for b, ch in below.items())
+    assert iso not in PREFERRED_SUPERSET
+    assert REGISTRY[iso].superset is None
 
 
 def test_display_codec_resolves_the_display_name() -> None:

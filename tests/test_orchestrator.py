@@ -116,6 +116,27 @@ def test_binary_content():
     assert result[0].confidence == 0.95
 
 
+def test_short_magic_signature_on_text_falls_through():
+    """Text starting with a signature word is detected as text."""
+    result = run_pipeline(b"BMW makes cars.\n", EncodingEra.ALL)
+    assert result[0].encoding == "ascii"
+    assert result[0].mime_type == "text/plain"
+
+
+def test_short_magic_signature_cut_to_bare_signature_reads_as_text():
+    """A window cut down to a bare short signature reads as text.
+
+    Accepted on purpose: the same header is an executable when the window
+    reaches its control bytes.
+    """
+    data = b"MZ\x90\x00\x03\x00\x00\x00\x04\x00\x00\x00\xff\xff\x00\x00"
+    full = run_pipeline(data, EncodingEra.ALL)
+    assert full[0].mime_type == "application/vnd.microsoft.portable-executable"
+    cut = run_pipeline(data, EncodingEra.ALL, max_bytes=2)
+    assert cut[0].encoding == "ascii"
+    assert cut[0].mime_type == "text/plain"
+
+
 def test_xml_charset_declaration():
     data = b'<?xml version="1.0" encoding="iso-8859-1"?><root>Hello</root>'
     result = run_pipeline(data, EncodingEra.ALL)
