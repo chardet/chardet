@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+import itertools
+
 import pytest
 
 from chardet._unicode_scripts import BMP_SCRIPT_RUNS, SCRIPTS, UNICODE_VERSION
@@ -26,7 +28,7 @@ def test_runs_cover_the_bmp_in_order() -> None:
 
 def test_adjacent_runs_differ() -> None:
     indexes = [index for _, index in BMP_SCRIPT_RUNS]
-    assert all(a != b for a, b in zip(indexes, indexes[1:], strict=False))
+    assert all(a != b for a, b in itertools.pairwise(indexes))
     assert all(0 <= index < len(SCRIPTS) for index in indexes)
 
 
