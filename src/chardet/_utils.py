@@ -26,11 +26,13 @@ MINIMUM_THRESHOLD: float = 0.20
 
 #: Cache of incremental-decoder classes, keyed by encoding name.
 #:
-#: :func:`decodes_without_error` is called once per candidate encoding per
-#: detection -- roughly 86 times for :attr:`~chardet.enums.EncodingEra.ALL` --
-#: and the factory lookup is a sixth of each call.  The class is immutable and
-#: shared; only the per-call *instance* carries decoder state, so caching the
-#: class is thread-safe while caching an instance would not be.
+#: :func:`decodes_without_error` is called for every candidate the validity
+#: filter does not settle by scanning for undefined bytes (32 of the 86 under
+#: :attr:`~chardet.enums.EncodingEra.ALL`), and again wherever a stage checks
+#: one answer against the window; the factory lookup is a sixth of each call.
+#: The class is immutable and shared; only the per-call *instance* carries
+#: decoder state, so caching the class is thread-safe while caching an
+#: instance would not be.
 #:
 #: Only successful lookups are cached, which bounds the cache by the number of
 #: installed codecs.  A failed lookup returns ``False`` without storing
