@@ -14,9 +14,9 @@ Python 3.10+, zero runtime dependencies, works on PyPy.
 
 ## Why chardet 7?
 
-**99.7% accuracy** on 3,138 test files. **359x faster** than chardet 6.0.0,
-and **+13.1pp more accurate** than charset-normalizer 3.5.2 while being
-1.3x faster. **Language detection** for every text result. **MIME type detection** for
+**99.7% accuracy** on 3,137 test files. **433x faster** than chardet 6.0.0,
+and **+13.8pp more accurate** than charset-normalizer 3.5.2 while being
+1.7x faster. **Language detection** for every text result. **MIME type detection** for
 binary files. **0BSD licensed.**
 
 Raising the byte cap on large inputs doesn't make detection slow:
@@ -26,12 +26,12 @@ sampled. The default 200 KB cap is still the fastest path. See
 [the performance docs](https://chardet.readthedocs.io/en/latest/performance.html)
 for the full large-input tables.
 
-|                        | chardet 7.7.0 (compiled) | chardet 6.0.0 | [charset-normalizer] 3.5.2 |
+|                        | chardet 7.7.1.dev (compiled) | chardet 6.0.0 | [charset-normalizer] 3.5.2 |
 | ---------------------- | :--------------------: | :-----------: | :-------------------------: |
-| Accuracy (3,138 files) |       **99.7%**        |     84.4%     |            86.6%            |
-| Speed                  | **3,125 files/s** (771 pure) |  9 files/s   |        2,438 files/s        |
-| Language detection     |       **93.0%**        |     38.7%     |            54.8%            |
-| Peak memory            |     **28.2 MiB**       |      n/a      |          71.0 MiB           |
+| Accuracy (3,137 files) |       **99.7%**        |     81.6%     |            85.9%            |
+| Speed                  | **4,172 files/s** (1,357 pure) |  10 files/s  |        2,424 files/s        |
+| Language detection     |       **92.9%**        |     38.7%     |            54.8%            |
+| Peak memory            |     **28.6 MiB**       |      n/a      |          71.0 MiB           |
 | Streaming detection    |        **yes**         |      yes      |             no              |
 | Encoding era filtering |        **yes**         |      no       |             no              |
 | Encoding filters       |        **yes**         |      no       |             yes             |
@@ -154,13 +154,13 @@ cat somefile.txt | chardetect
 
 - **0BSD license** (previous versions were LGPL)
 - **Ground-up rewrite:** 13-stage detection pipeline using BOM detection, magic number identification, structural probing, byte validity filtering, and bigram statistical models
-- **359x faster** than chardet 6.0.0 when compiled, and 1.3x faster than charset-normalizer 3.5.2 overall (2.0x at the median) while being far more accurate
-- **99.7% accuracy:** +15.3pp vs chardet 6.0.0, +13.1pp vs charset-normalizer 3.5.2
-- **Language detection:** 93.0% accuracy across 49 languages, returned with every result
+- **433x faster** than chardet 6.0.0 when compiled, and 1.7x faster than charset-normalizer 3.5.2 overall (2.2x at the median) while being far more accurate
+- **99.7% accuracy:** +18.1pp vs chardet 6.0.0, +13.8pp vs charset-normalizer 3.5.2
+- **Language detection:** 92.9% accuracy across 49 languages, returned with every result
 - **MIME type detection:** identifies 40+ binary file formats (images, audio/video, archives, documents, executables, fonts) via magic number signatures, plus `text/html`, `text/xml`, and `text/x-python` for markup
 - **Encoding filters:** `include_encodings` and `exclude_encodings` parameters to restrict or exclude specific encodings from the candidate set
 - **99 encodings:** 86 detection targets covering 99 Python codecs, including the EBCDIC, Mac, DOS, and Baltic/Central European families
-- **Optional compiled builds:** mypyc plus a Cython scoring kernel, about 4.5x additional speedup on CPython
+- **Optional compiled builds:** mypyc plus a Cython scoring kernel, a further 3x to 5x speedup on CPython, depending on the version
 - **Thread-safe:** `detect()` and `detect_all()` are safe to call concurrently; scales on free-threaded Python
 - **Same API:** `detect()`, `detect_all()`, `UniversalDetector`, and the `chardetect` CLI all work as before
 

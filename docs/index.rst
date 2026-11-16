@@ -19,10 +19,10 @@ chardet 7 is a ground-up, 0BSD-licensed rewrite. Same package name, same
 public API, drop-in replacement for chardet 5.x/6.x. Python 3.10+, zero
 runtime dependencies, works on PyPy.
 
-- **99.7% accuracy** on 3,138 test files
-- **359x faster** than chardet 6.0.0 when compiled
-- **+13.1pp more accurate** than charset-normalizer 3.5.2, and 1.3x faster
-- **Language detection** for every text result (93.0% accuracy)
+- **99.7% accuracy** on 3,137 test files
+- **433x faster** than chardet 6.0.0 when compiled
+- **+13.8pp more accurate** than charset-normalizer 3.5.2, and 1.7x faster
+- **Language detection** for every text result (92.9% accuracy)
 - **99 encodings** across six encoding eras
 - **Encoding filters** — include/exclude specific encodings
 - **Thread-safe** ``detect()`` and ``detect_all()``
