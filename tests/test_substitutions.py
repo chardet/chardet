@@ -61,8 +61,40 @@ class TestEncodingAwareFiltering:
     def test_cp866_cyrillic_subs_kept(self):
         """CP866 Cyrillic substitutions survive — source chars are not in CP866."""
         subs = get_substitutions("cp866", ["ru"])
-        # Ukrainian U+0456 -> U+0438 -- U+0456 is NOT in CP866
+        # Ukrainian U+0456 is NOT in CP866
         assert "\u0456" in subs
+
+    def test_cp866_period_stand_ins_are_the_default(self):
+        """CP866 spells missing letters the way period writers did."""
+        subs = get_substitutions("cp866", ["sr"])
+        assert subs["\u0456"] == "i"
+        assert subs["\u0459"] == "\u043b\u044c"
+        assert subs["\u045a"] == "\u043d\u044c"
+        assert subs["\u045b"] == "h"
+        assert subs["\u045f"] == "\u0434\u0436"
+
+    def test_cp866_base_letters_on_request(self):
+        """The base-letter share keeps the closest-Russian-letter stand-ins."""
+        subs = get_substitutions("cp866", ["sr"], base_letters=True)
+        assert subs["\u0456"] == "\u0438"
+        assert subs["\u0459"] == "\u043b"
+        assert subs["\u045b"] == "\u0442"
+        # Letters with no period evidence are the same in both tables.
+        assert subs["\u0452"] == "\u0434"
+        assert subs["\u0458"] == "j"
+
+    def test_cp866_keeps_ukrainian_letters_it_holds(self):
+        """CP866 holds U+0457 and U+0454, and writers used them."""
+        subs = get_substitutions("cp866", ["uk"])
+        assert "\u0457" not in subs
+        assert "\u0454" not in subs
+
+    def test_base_letters_changes_only_cp866(self):
+        """Other encodings get the same table either way."""
+        for enc, langs in [("cp855", ["sr"]), ("koi8-r", ["ru"]), ("cp1251", ["uk"])]:
+            assert get_substitutions(enc, langs) == get_substitutions(
+                enc, langs, base_letters=True
+            )
 
     def test_invalid_codec_raises(self):
         """Invalid charset_name should raise LookupError, not silently degrade."""

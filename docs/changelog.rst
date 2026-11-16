@@ -60,6 +60,21 @@ Unreleased
   `#408 <https://github.com/chardet/chardet/pull/408>`_,
   `#411 <https://github.com/chardet/chardet/pull/411>`_)
 
+- Short Ukrainian and Serbian text in cp866 gets the right language
+  more often.  cp866 is a Russian code page, so writers of other
+  Cyrillic languages typed something else for the letters it lacks, and
+  the models had only seen the closest Russian letter.  One training
+  document in four now uses the spellings found in FidoNet and Usenet
+  archives instead: a Latin ``i`` for Ukrainian and Belarusian ``і``,
+  and ``ль``, ``нь``, ``дж``, and a Latin ``h`` for Serbian ``љ``,
+  ``њ``, ``џ``, and ``ћ``.  On held-out single sentences spelled that
+  way, the language is right for 85.9% of Ukrainian (was 72.8%) and
+  82.0% of Serbian (was 73.5%).  Only cp866 models changed: the four
+  for Ukrainian, Belarusian, Serbian, and Macedonian, and one bigram
+  in the Russian one.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude,
+  `#452 <https://github.com/chardet/chardet/pull/452>`_)
+
 **Performance:**
 
 - A long base64 run after a ``+`` no longer makes the UTF-7 check
