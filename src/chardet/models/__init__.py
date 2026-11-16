@@ -663,6 +663,10 @@ def score_with_profile(
             # scanning the weights on every call gave back about half of
             # what sumprod saves.  _finish always builds dense_vals as an int
             # tuple parallel to nonzero, which sumprod sums exactly.
+            # Kept for coverage_with_profile, with or without sumprod.
+            gathered = gather(model)
+            profile.last_model = model
+            profile.last_gathered = gathered
             if (
                 _sumprod is not None
                 and type(profile) is BigramProfile
@@ -671,12 +675,9 @@ def score_with_profile(
                 and type(dense_vals) is tuple
                 and len(dense_vals) == len(nonzero)
             ):
-                gathered = gather(model)
-                profile.last_model = model
-                profile.last_gathered = gathered
                 dot = _sumprod(gathered, dense_vals)
             else:
-                dot = sum(map(operator.mul, gather(model), dense_vals))
+                dot = sum(map(operator.mul, gathered, dense_vals))
         else:
             dot = 0
             freq = profile.freq
