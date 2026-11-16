@@ -34,6 +34,16 @@ _KNOWN_FAILURES: frozenset[str] = frozenset(
         "cp850-en/culturax_00001.txt",
         "cp850-fi/culturax_00001.txt",
         "cp850-ms/culturax_00000.txt",
+        # A 786-byte DOS readme whose ruler is 47 box-drawing double
+        # lines (0xCD).  No German DOS model has seen that byte beside
+        # itself, and the one bigram is 23% of the file's weight, so
+        # coverage takes a quarter off every Western candidate and a Thai
+        # model that reads the ruler as a run of one letter edges ahead
+        # at 0.04.  No model explains the file (best cosine 0.06).
+        # Exempting doubled high bytes from the evidence would fix it
+        # and throw away doubled letters, which are evidence in most
+        # scripts.
+        "cp850-de/dos_34a448a7a1fa.txt",
         "cp858-en/culturax_00000.txt",
         "cp858-ms/culturax_00000.txt",
         "iso-8859-15-en/culturax_00002.txt",

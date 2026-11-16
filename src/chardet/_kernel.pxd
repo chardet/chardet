@@ -6,6 +6,9 @@ cimport cython
 @cython.locals(dot=cython.ulonglong, n=cython.Py_ssize_t, i=cython.Py_ssize_t)
 cpdef unsigned long long dot_packed(int[::1] idx, int[::1] vals, bytes model)
 
+@cython.locals(seen=cython.ulonglong, n=cython.Py_ssize_t, i=cython.Py_ssize_t)
+cpdef unsigned long long seen_packed(int[::1] idx, int[::1] vals, bytes model)
+
 # ``vals`` is deliberately left untyped.  Declaring it ``int[::1]`` would make
 # the compiled build return a memoryview where the interpreted build returns
 # an ``array.array``, and this function's result is stored on the profile and

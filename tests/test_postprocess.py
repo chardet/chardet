@@ -492,6 +492,13 @@ def test_high_byte_evidence_without_variants_is_absent():
     assert postprocess._has_high_byte_evidence(b"\xe9ab", "not-a-codec", None) is False
 
 
+def test_high_byte_evidence_is_false_when_the_winning_model_knows_none():
+    """High bytes the winning variant has no weight for are not evidence."""
+    data = b"plain words \xcd\xcd\xcd\xcd plain words"
+    assert postprocess._has_high_byte_evidence(data, "cp850", "de") is False
+    assert postprocess._has_high_byte_evidence(b"gr\x81n", "cp850", "de") is True
+
+
 def test_prevalent_dead_heat_arbitrates_a_top_with_evidence():
     """Weight on one high-byte bigram does not put the top beyond the prior.
 

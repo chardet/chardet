@@ -105,8 +105,14 @@ order:
 
 12. **Statistical Scoring** — Scores remaining candidates using pre-trained
     bigram frequency models. Each model captures the characteristic byte
-    pair frequencies of a language written in a specific encoding. The
-    candidate with the highest score wins.
+    pair frequencies of a language written in a specific encoding. A
+    candidate's score is the cosine similarity between the input's byte
+    pairs and its model, scaled down by the share of the input's weight
+    that falls on non-ASCII byte pairs the model has never seen. The
+    cosine alone only rewards matches, which on a short input lets one
+    coincidence beat a model that knows every pair in it. Candidates
+    whose cosines are tied keep their tie, and post-processing breaks
+    it. The candidate with the highest score wins.
 
 13. **Post-processing** — Resolves confusion groups (encodings that are
     statistically hard to distinguish), demotes niche Latin encodings

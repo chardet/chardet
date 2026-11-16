@@ -59,6 +59,7 @@ from substitutions import (
     normalize_text,
     transliterate_serbian_to_latin,
 )
+from typography import restyle_share
 
 from chardet.models._format import read_models, write_model_artifacts
 from chardet.registry import REGISTRY
@@ -648,7 +649,9 @@ def _build_one_model(
             texts.extend(load_cached_articles(source_dir, max_samples - len(texts)))
             if len(texts) >= max_samples:
                 break
-        _worker_text_cache[lang] = texts[:max_samples]
+        # Restyled once per language, before the HTML wrappers are added, so
+        # the markup's own quotes stay straight (see typography.py).
+        _worker_text_cache[lang] = restyle_share(texts[:max_samples], lang)
     texts = _worker_text_cache[lang]
 
     if not texts:
