@@ -70,8 +70,8 @@ Cython.
 
 The measured differences:
 
-- **Accuracy:** chardet achieves 99.7% vs charset-normalizer's 85.9% on
-  the same test suite --- 90.0% for charset-normalizer once the
+- **Accuracy:** chardet achieves 99.7% vs charset-normalizer's 85.7% on
+  the same test suite --- 89.8% for charset-normalizer once the
   BOM-less utf-7 files it documents as out of scope are set aside (see
   :doc:`performance`).
 - **Speed:** chardet leads at every percentile we publish --- 1.7x in
@@ -81,23 +81,23 @@ The measured differences:
   still has the better tail on legacy CJK, where their p99 is 1.57ms
   against our 4.17ms. See :doc:`performance`.
 - **Accuracy convention:** our 99.7% credits supersets (Windows-1252 for
-  ISO-8859-1); scored on exact matches only it is 88.1% against
-  charset-normalizer's 78.5%. Both columns are published, but we
+  ISO-8859-1); scored on exact matches only it is 88.2% against
+  charset-normalizer's 78.4%. Both columns are published, but we
   consider the superset the correct answer: it reads the subset's text
   the same way and also the characters the subset lacks.  That is the
   reasoning behind the WHATWG/W3C Encoding
   Standard's rule that browsers decode ``ascii`` and ``iso-8859-1``
   content as ``windows-1252``. The strict gap is the convention, not
   the detector: with superset remapping disabled
-  (``prefer_superset=False``) chardet scores 92.2% strict, still ahead
+  (``prefer_superset=False``) chardet scores 92.4% strict, still ahead
   of charset-normalizer. See :doc:`performance`.
 - **Memory:** chardet uses 2.5x less peak memory (28.6 vs 71.0 MiB) and
   1.6x less RSS. Per ``detect()`` call the ordering reverses ---
   charset-normalizer allocates 58 KiB at the median against chardet's
   545 KiB, but its p99 grows 14x to 784 KiB while chardet's rises to
   917 KiB. See :doc:`performance` for the full distribution.
-- **Language detection:** chardet detects language with 92.9% accuracy vs
-  charset-normalizer's 54.8%.
+- **Language detection:** chardet detects language with 93.1% accuracy vs
+  charset-normalizer's 54.7%.
 - **Binary files and MIME types:** both detectors decline binary input
   (``encoding=None``), but chardet also identifies *what* the file is:
   every result carries a ``mime_type``, matched against 40+ magic-number
@@ -112,7 +112,7 @@ How is chardet different from cchardet?
 `cchardet <https://github.com/faust-streaming/faust-cchardet>`_ wraps
 Mozilla's uchardet C/C++ library. Key differences:
 
-- **Accuracy:** chardet achieves 99.7% vs cchardet's 60.0%.
+- **Accuracy:** chardet achieves 99.7% vs cchardet's 59.8%.
 - **Speed:** the two are about level in aggregate (0.75s for chardet
   vs 0.79s for cchardet 3.2.0 across 3,137 files). cchardet has the
   lower median (0.04 vs 0.13ms); chardet has the better tail (p99 1.70

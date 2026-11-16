@@ -15,7 +15,7 @@ Python 3.10+, zero runtime dependencies, works on PyPy.
 ## Why chardet 7?
 
 **99.7% accuracy** on 3,137 test files. **433x faster** than chardet 6.0.0,
-and **+13.8pp more accurate** than charset-normalizer 3.5.2 while being
+and **+14.0pp more accurate** than charset-normalizer 3.5.2 while being
 1.7x faster. **Language detection** for every text result. **MIME type detection** for
 binary files. **0BSD licensed.**
 
@@ -28,9 +28,9 @@ for the full large-input tables.
 
 |                        | chardet 7.7.1.dev (compiled) | chardet 6.0.0 | [charset-normalizer] 3.5.2 |
 | ---------------------- | :--------------------: | :-----------: | :-------------------------: |
-| Accuracy (3,137 files) |       **99.7%**        |     81.6%     |            85.9%            |
+| Accuracy (3,137 files) |       **99.7%**        |     81.3%     |            85.7%            |
 | Speed                  | **4,172 files/s** (1,357 pure) |  10 files/s  |        2,424 files/s        |
-| Language detection     |       **92.9%**        |     38.7%     |            54.8%            |
+| Language detection     |       **93.1%**        |     38.7%     |            54.7%            |
 | Peak memory            |     **28.6 MiB**       |      n/a      |          71.0 MiB           |
 | Streaming detection    |        **yes**         |      yes      |             no              |
 | Encoding era filtering |        **yes**         |      no       |             no              |
@@ -155,8 +155,8 @@ cat somefile.txt | chardetect
 - **0BSD license** (previous versions were LGPL)
 - **Ground-up rewrite:** 13-stage detection pipeline using BOM detection, magic number identification, structural probing, byte validity filtering, and bigram statistical models
 - **433x faster** than chardet 6.0.0 when compiled, and 1.7x faster than charset-normalizer 3.5.2 overall (2.2x at the median) while being far more accurate
-- **99.7% accuracy:** +18.1pp vs chardet 6.0.0, +13.8pp vs charset-normalizer 3.5.2
-- **Language detection:** 92.9% accuracy across 49 languages, returned with every result
+- **99.7% accuracy:** +18.4pp vs chardet 6.0.0, +14.0pp vs charset-normalizer 3.5.2
+- **Language detection:** 93.1% accuracy across 49 languages, returned with every result
 - **MIME type detection:** identifies 40+ binary file formats (images, audio/video, archives, documents, executables, fonts) via magic number signatures, plus `text/html`, `text/xml`, and `text/x-python` for markup
 - **Encoding filters:** `include_encodings` and `exclude_encodings` parameters to restrict or exclude specific encodings from the candidate set
 - **99 encodings:** 86 detection targets covering 99 Python codecs, including the EBCDIC, Mac, DOS, and Baltic/Central European families

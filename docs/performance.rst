@@ -54,16 +54,16 @@ Accuracy
      - **99.7%**
      - **4,172 files/s**
    * - chardet 6.0.0
-     - 2559/3137
-     - 81.6%
+     - 2551/3137
+     - 81.3%
      - 10 files/s
    * - charset-normalizer 3.5.2 (mypyc)
-     - 2695/3137
-     - 85.9%
+     - 2689/3137
+     - 85.7%
      - 2,424 files/s
    * - cchardet 3.2.0
-     - 1881/3137
-     - 60.0%
+     - 1877/3137
+     - 59.8%
      - 3,991 files/s
 
 The suite's 8 binary files count as correct for any detector that
@@ -73,10 +73,10 @@ their format --- every result carries a ``mime_type``, matched against
 That is a capability rather than an accuracy difference, so it appears
 nowhere else in these tables; see :doc:`supported-mime-types`.
 
-chardet leads all detectors on accuracy: **+18.1pp** vs chardet 6.0.0,
-**+13.8pp** vs charset-normalizer 3.5.2, and **+39.8pp** vs cchardet 3.2.0.
+chardet leads all detectors on accuracy: **+18.4pp** vs chardet 6.0.0,
+**+14.0pp** vs charset-normalizer 3.5.2, and **+39.9pp** vs cchardet 3.2.0.
 No detector here has higher aggregate throughput. cchardet comes within
-5% and has the lowest median, and it detects 39.8pp fewer files
+5% and has the lowest median, and it detects 39.9pp fewer files
 correctly.
 
 One capability difference is big enough to move that headline: 144 of
@@ -85,9 +85,9 @@ documents as out of scope for detection (utf-7 sits in its
 supported-encodings inventory, but is only identified when a signature
 announces it --- the four *signed* utf-7 files in the suite it does
 detect).  chardet detects all 144; charset-normalizer detects none of
-them.  Scored without those files, charset-normalizer reaches 90.0%
-(2695/2993) while chardet stays at 99.7% (2984/2993), so the +13.8pp
-lead reads as +9.7pp for anyone who takes BOM-less utf-7 off the
+them.  Scored without those files, charset-normalizer reaches 89.8%
+(2689/2993) while chardet stays at 99.7% (2984/2993), so the +14.0pp
+lead reads as +9.9pp for anyone who takes BOM-less utf-7 off the
 table.
 
 Strict (Exact-Match) Scoring
@@ -108,21 +108,21 @@ ours. Both conventions, on the same files:
      - Concession
    * - **chardet 7.7.1.dev (mypyc)**
      - **99.7%**
-     - **88.1%**
-     - +11.6pp
+     - **88.2%**
+     - +11.5pp
    * - charset-normalizer 3.5.2 (mypyc)
-     - 85.9%
-     - 78.5%
+     - 85.7%
+     - 78.4%
      - +7.4pp
    * - cchardet 3.2.0
-     - 60.0%
+     - 59.8%
      - 53.1%
-     - +6.8pp
+     - +6.7pp
 
 "Concession" is the share of files a detector wins only under lenient
 rules. **chardet benefits from lenient scoring more than the others
-do** --- 364 files, against charset-normalizer's 231. Our lead survives
-the stricter convention but narrows from +13.8pp to +9.6pp.
+do** --- 360 files, against charset-normalizer's 231. Our lead survives
+the stricter convention but narrows from +14.0pp to +9.9pp.
 
 The largest groups are a subset reported under its Windows code page
 (56 ``iso-8859-1`` -> ``windows-1252``, 40 ``iso-8859-9`` ->
@@ -147,8 +147,8 @@ browsers to decode content labelled ``ascii`` or ``iso-8859-1`` as
 
 Nor does the strict column measure a detection weakness. The gap it
 shows is the output convention itself: run with superset remapping
-disabled (``prefer_superset=False``), chardet scores **92.2% strict**
-(2893/3137) --- ahead of charset-normalizer's 78.5% --- while giving up
+disabled (``prefer_superset=False``), chardet scores **92.4% strict**
+(2898/3137) --- ahead of charset-normalizer's 78.4% --- while giving up
 12 files of lenient accuracy (3128 of 3137 to 3116). Exact subset
 names are available to callers who want them; the tables on this page
 use superset output because we consider it the right answer to ship,
@@ -223,7 +223,7 @@ CJK tail; see `Latency by Script Family`_.
 Against cchardet 3.2.0, aggregate throughput is about level (4,172 vs
 3,991 files/s). cchardet has much the lower median (0.04ms vs 0.13ms);
 chardet has the better tail from p90 up (p99 1.70ms vs 2.15ms) and a
-worst case 3.4x lower (7.4ms vs 25.2ms). cchardet detects 39.8pp fewer
+worst case 3.4x lower (7.4ms vs 25.2ms). cchardet detects 39.9pp fewer
 files correctly, and reports no language at all.
 
 Relative orderings can shift with microarchitecture, so the repo carries
@@ -562,20 +562,20 @@ Language Detection
      - Correct
      - Accuracy
    * - **chardet 7.7.1.dev**
-     - **2907/3129**
-     - **92.9%**
+     - **2913/3129**
+     - **93.1%**
    * - charset-normalizer 3.5.2
-     - 1714/3129
-     - 54.8%
+     - 1713/3129
+     - 54.7%
    * - chardet 6.0.0
-     - 1211/3129
+     - 1210/3129
      - 38.7%
    * - cchardet 3.2.0
      - 0/3129
      - 0.0%
 
-chardet detects language with **92.9% accuracy** --- +38.1pp vs
-charset-normalizer 3.5.2 and +54.2pp vs chardet 6.0.0. cchardet 3.2.0 does
+chardet detects language with **93.1% accuracy** --- +38.4pp vs
+charset-normalizer 3.5.2 and +54.4pp vs chardet 6.0.0. cchardet 3.2.0 does
 not report language. The denominator excludes binary files, which have
 no language to detect.
 
@@ -956,7 +956,7 @@ Benchmarked chardet 7.7.1.dev across all supported Python versions
 (macOS aarch64, 3,137 files, ``encoding_era=ALL``). CPython versions
 install compiled wheels automatically; PyPy receives the pure-Python
 wheel. Encoding accuracy is identical on every interpreter and both
-builds (99.7%), and language accuracy is 92.9% everywhere except PyPy,
+builds (99.7%), and language accuracy is 93.1% everywhere except PyPy,
 where two files of 3,129 land on a different label because the
 weighted-cosine ties resolve differently in its floating point; only
 speed varies.
