@@ -109,7 +109,8 @@ Unreleased
   language follows the model that wins after the scaling.  Thanks to
   `jayhemnani9910 <https://github.com/jayhemnani9910>`_ for the report.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude,
-  `#434 <https://github.com/chardet/chardet/issues/434>`_)
+  `#434 <https://github.com/chardet/chardet/issues/434>`_,
+  `#445 <https://github.com/chardet/chardet/pull/445>`_)
 - The warning for an excluded ``no_match_encoding`` now points at the
   caller's line when the fallback is reached past the evidence cap.  It
   used to name ``chardet/__init__.py`` on that one path.
