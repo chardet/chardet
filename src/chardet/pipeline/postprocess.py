@@ -187,6 +187,16 @@ _HP_ROMAN8_DISTINGUISHING: frozenset[int] = frozenset(
     }
 )
 
+# Bytes HP-Roman8 reads as punctuation where ISO-8859-1 reads something
+# else.  The letter set above cannot see text whose only non-ASCII bytes
+# are guillemets or an em dash, so these get their own arbitration.
+#   {b for b in range(0x80, 0x100)
+#    if (unicodedata.category(bytes([b]).decode('hp-roman8'))[0] == 'P'
+#        and bytes([b]).decode('hp-roman8') != bytes([b]).decode('iso-8859-1'))}
+_HP_ROMAN8_MARKS: frozenset[int] = frozenset(
+    {0xB8, 0xB9, 0xBD, 0xF2, 0xF4, 0xF6, 0xFB, 0xFD}
+)
+
 # Encodings that are often false positives when their distinguishing bytes
 # are absent.  Keyed by encoding name -> frozenset of byte values where
 # that encoding differs from iso-8859-1 (or windows-1252 in the case of
@@ -214,6 +224,7 @@ _KOI8_T_DISTINGUISHING: frozenset[int] = frozenset(
 _DEMOTION_DELETE: dict[str, bytes] = {
     enc: bytes(byte_set) for enc, byte_set in _DEMOTION_CANDIDATES.items()
 }
+_HP_ROMAN8_MARK_DELETE: bytes = bytes(_HP_ROMAN8_MARKS)
 _KOI8_T_DELETE: bytes = bytes(_KOI8_T_DISTINGUISHING)
 
 
@@ -225,6 +236,15 @@ def _should_demote(data: bytes, top: DetectionResult, target: DetectionResult) -
     candidate decodes differently from ISO-8859-1?  If not, the data is
     equally valid under both encodings, nothing at the byte level favors
     the candidate, and it is demoted.
+
+    HP-Roman8 gets one more look before that verdict.  Its distinguishing
+    set lists letters only, so text whose only non-ASCII bytes are
+    guillemets or an em dash has none of them, yet the two encodings read
+    it differently: ``«Mamm»`` in HP-Roman8 is ``ûMammý`` in Windows-1252.
+    When :data:`_HP_ROMAN8_MARKS` bytes are present, the same arbitration
+    runs on those bytes, whatever the lead, and HP-Roman8 stays only if it
+    wins.  A German ``schön`` carries 0xF6 too, which HP-Roman8 reads as an
+    em dash inside a word, and the arbitration sends that to Windows-1252.
 
     If such bytes are present, do they favor the candidate?  Presence
     alone is symmetric evidence: a Windows-1252 file whose only non-ASCII
@@ -250,15 +270,20 @@ def _should_demote(data: bytes, top: DetectionResult, target: DetectionResult) -
     with hundreds of distinguishing bytes and a lead of 0.2.
     """
     encoding = top.encoding or ""
+    diff_bytes = _DEMOTION_CANDIDATES[encoding]
     if len(data.translate(None, _DEMOTION_DELETE[encoding])) == len(data):
-        return True
-    if top.confidence - target.confidence > CONFUSION_BAND:
+        if encoding != "hp-roman8" or len(
+            data.translate(None, _HP_ROMAN8_MARK_DELETE)
+        ) == len(data):
+            return True
+        diff_bytes = _HP_ROMAN8_MARKS
+    elif top.confidence - target.confidence > CONFUSION_BAND:
         return False
     winner = arbitrate_distinguishing_bytes(
         data,
         encoding,
         target.encoding or "",
-        _DEMOTION_CANDIDATES[encoding],
+        diff_bytes,
         languages_a=None if top.language is None else frozenset((top.language,)),
         languages_b=None if target.language is None else frozenset((target.language,)),
     )
@@ -291,6 +316,8 @@ def _demote_niche_latin(
     Some bigram models (iso-8859-10, iso-8859-14, windows-1254, hp-roman8)
     can win on data that contains only bytes shared with the common Western
     Latin encodings, or on a lone shared byte the models cannot arbitrate.
+    HP-Roman8 text whose only high bytes are punctuation is arbitrated on
+    those bytes instead of demoted outright (see :func:`_should_demote`).
     When :func:`_should_demote` finds no byte-level evidence for the
     winning encoding, promote the swap target :func:`_swap_target` picks
     among the common Latin candidates and push the demoted encoding to

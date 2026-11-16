@@ -511,6 +511,13 @@ def test_detect_cp273():
     assert result["encoding"].upper().startswith("CP")
 
 
+def test_detect_hp_roman8_with_only_guillemets():
+    """hp-roman8 text whose only high bytes are quotation marks stays hp-roman8."""
+    data = "«Mamm, naon am eus-me !»".encode("hp-roman8")
+    result = chardet.detect(data, encoding_era=EncodingEra.ALL)
+    assert result["encoding"] == "hp-roman8"
+
+
 def test_detect_hp_roman8():
     data = (
         "Les élèves français étudient la littérature européenne avec "

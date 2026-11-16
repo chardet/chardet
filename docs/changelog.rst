@@ -101,6 +101,17 @@ Unreleased
 
 **Bug Fixes:**
 
+- HP-Roman8 text whose only non-ASCII characters are guillemets or an
+  em dash is no longer reported as Windows-1252.  ``«Mamm»`` came back
+  as ``ûMammý``.  The rule that demotes HP-Roman8 when the input has
+  none of its telltale bytes only counted letters, so punctuation was
+  never weighed.  Those bytes now go to the same arbitration the
+  letters get, and HP-Roman8 stays only if it wins.  On held-out
+  HP-Roman8 sentences with only typographic marks, 106 of 141 are now
+  right, up from none, and no held-out Windows-1252 or ISO-8859-1
+  sample changed.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude,
+  `#447 <https://github.com/chardet/chardet/pull/447>`_)
 - Short Windows-1252 text is no longer reported as MacTurkish or CP862.
   A few rows of German names, or a line with a euro sign, could lose to
   an encoding whose model matched one byte pair strongly and had never
