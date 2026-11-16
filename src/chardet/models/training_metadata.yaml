@@ -1,7 +1,7 @@
-training_date: "2026-11-15T18:57:52Z"
+training_date: "2026-11-16T18:43:24Z"
 max_samples: 25000
-exclusion_set_hash: "d50dbd02d40533ed17542defe6168c27a514da7c1ecd0e2077045edd9c8c4a76"
-test_data_commit: "0ff0f82ae3b403e734770e8e193ebf0db70b2ee7"
+exclusion_set_hash: "9fafd5bbb2660615aee379c236dfafdd734d4cebb41bb7a95567dfb1f13fc3b1"
+test_data_commit: "632c0af091d13dd3d81e06789dacf7255505c1e9"
 models:
   ar/cp1256:
     language: ar
@@ -84,7 +84,7 @@ models:
     language: be
     encoding: cp866
     samples_used: 25000
-    bigram_entries: 2195
+    bigram_entries: 2223
     sources:
       culturax: 25000
       madlad400: 0
@@ -2482,7 +2482,7 @@ models:
     language: mk
     encoding: cp866
     samples_used: 25000
-    bigram_entries: 1556
+    bigram_entries: 1566
     sources:
       culturax: 25000
       madlad400: 0
@@ -3175,7 +3175,7 @@ models:
     language: ru
     encoding: cp866
     samples_used: 25000
-    bigram_entries: 2401
+    bigram_entries: 2402
     sources:
       culturax: 25000
       madlad400: 0
@@ -3395,7 +3395,7 @@ models:
     language: sr
     encoding: cp866
     samples_used: 25000
-    bigram_entries: 1918
+    bigram_entries: 1952
     sources:
       culturax: 25000
       madlad400: 0
@@ -3736,7 +3736,7 @@ models:
     language: uk
     encoding: cp866
     samples_used: 25000
-    bigram_entries: 2092
+    bigram_entries: 2188
     sources:
       culturax: 25000
       madlad400: 0
