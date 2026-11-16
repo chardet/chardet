@@ -116,6 +116,13 @@ Unreleased
 
 **Bug Fixes:**
 
+- A valueless first attribute in an HTML meta tag now blocks later
+  duplicates, just like an explicitly empty value. This prevents
+  ``<meta charset charset=shift_jis>`` from adopting the later charset,
+  and also applies to ``http-equiv``, ``content``, and ``name``.
+  (`Nash Aschenbath <https://github.com/Aschenbath>`_ via Codex,
+  `#449 <https://github.com/chardet/chardet/issues/449>`_)
+
 - HP-Roman8 text whose only non-ASCII characters are guillemets or an
   em dash is no longer reported as Windows-1252.  ``«Mamm»`` came back
   as ``ûMammý``.  The rule that demotes HP-Roman8 when the input has
