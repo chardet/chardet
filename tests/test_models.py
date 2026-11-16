@@ -1209,7 +1209,7 @@ def test_coverage_reuses_the_entries_the_cosine_gathered(
     expected = models_mod.coverage_with_profile(profile, table)
     assert 0.0 < expected < 1.0
     models_mod.score_with_profile(profile, table)
-    if profile.gather is not None and models_mod._sumprod is not None:
+    if profile.gather is not None:
         assert profile.last_model is table
         assert profile.last_gathered[: len(profile.cov_idx)] == tuple(
             table[idx] for idx in profile.cov_idx
