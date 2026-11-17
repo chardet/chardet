@@ -142,6 +142,8 @@ _EMAIL_DOMAIN: frozenset[int] = frozenset(
 )
 # Longest local part RFC 5321 allows, which bounds the scan for the ``@``.
 _EMAIL_LOCAL_MAX: int = 64
+# Longest label RFC 1035 allows, which bounds the scan for the dot after it.
+_EMAIL_LABEL_MAX: int = 63
 
 
 def _is_email_subaddress(data: bytes, pos: int) -> bool:
@@ -152,8 +154,8 @@ def _is_email_subaddress(data: bytes, pos: int) -> bool:
     that can pass every UTF-7 check by accident (``+API`` decodes to one
     Latin-1 letter).  The shape asked for is a local-part byte before the
     ``+``, local-part bytes up to an ``@``, and a domain with a dot in it.
-    The scan stops at the longest local part an address may have, so it
-    costs a constant amount per ``+``.
+    The scan stops at the longest local part and the longest first label
+    an address may have, so it costs a constant amount per ``+``.
     """
     if pos == 0 or data[pos - 1] not in _EMAIL_LOCAL:
         return False
@@ -166,7 +168,8 @@ def _is_email_subaddress(data: bytes, pos: int) -> bool:
         return False
     i += 1
     label = i
-    while i < n and data[i] in _EMAIL_DOMAIN:
+    stop = min(n, i + _EMAIL_LABEL_MAX)
+    while i < stop and data[i] in _EMAIL_DOMAIN:
         i += 1
     if i == label or i + 1 >= n or data[i] != 0x2E:  # '.'
         return False
