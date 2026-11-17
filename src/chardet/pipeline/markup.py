@@ -78,6 +78,16 @@ _XML_ENCODING_RE = re.compile(
     rb"""<\?xml\s[^<>]*encoding\s*=\s*['"]([^'"]+)['"]""", re.IGNORECASE
 )
 _META_TAG_RE = re.compile(rb"<meta\b([^<>]*)>", re.IGNORECASE)
+# The same meta tags, but every other tag matches the second branch, so its
+# quoted attribute values are stepped over as the WHATWG prescan steps over
+# them: in ``<img alt="<meta charset=x>">`` the meta is alt text, not a tag.
+# As in the prescan, a quote opens a value only right after ``=``.  The
+# branch cannot fail once it has a letter, so the scan stays linear; outside
+# a quoted value, ``<`` still ends the tag.
+_TAG_RE = re.compile(
+    rb"""<meta\b([^<>]*)>|<(?!meta\b)/?[a-z](?:[^<>=]+|=\s*(?:"[^"]*"|'[^']*')?)*""",
+    re.IGNORECASE,
+)
 # DOTALL so a quoted value may span lines.
 _ATTR_RE = re.compile(
     rb"""([^\s=/>]+)(?:\s*=\s*(?:(["'])(.*?)\2|([^\s>"']+)))?""",
@@ -291,10 +301,19 @@ def _iter_html_charsets(head: bytes) -> Iterator[bytes]:
     is not a declaration. A declaration is a ``charset`` attribute, or the
     ``charset`` parameter of an ``http-equiv="content-type"`` tag.
     ``name="content-type"`` is wrong by the spec but common enough in the
-    wild that it counts too.
+    wild that it counts too.  A ``<meta`` inside another tag's attribute
+    value is not a tag at all.
     """
-    for tag in _META_TAG_RE.finditer(head):
-        attrs = _meta_attributes(tag.group(1))
+    # Walking every tag costs far more than finding ``<meta``, so a head
+    # with no meta tag skips the walk, and a page whose declaration comes
+    # first walks only the tags before it.
+    if _META_TAG_RE.search(head) is None:
+        return
+    for tag in _TAG_RE.finditer(head):
+        body = tag.group(1)
+        if body is None:
+            continue
+        attrs = _meta_attributes(body)
         charset = attrs.get(b"charset")
         if charset is not None and charset.strip():
             yield charset

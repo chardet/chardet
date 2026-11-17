@@ -70,6 +70,44 @@ def test_charset_inside_another_attribute_is_not_a_declaration():
     assert _declarations(data) == _html("utf-8")
 
 
+@pytest.mark.parametrize(
+    "tag",
+    [
+        b'<img alt="<meta charset=shift_jis>" src="a.png">',
+        b"<img alt='<meta charset=shift_jis>' src='a.png'>",
+        # The image's own > closes the meta for a scan that ignores quotes.
+        b'<img alt="<meta charset=shift_jis " src="a.png">',
+        b'<img alt = "<b>" title="1 > 0" src="<meta charset=shift_jis>">',
+        b'<a href="/" title="<meta charset=shift_jis>">x</a>',
+    ],
+)
+def test_meta_inside_an_attribute_value_is_not_a_declaration(tag: bytes):
+    """The WHATWG prescan steps over another tag's attribute values.
+
+    Text like alt or title is often user input, and an HTML serializer
+    may leave ``<`` unescaped inside a quoted value, so honoring a meta
+    found there lets that input choose the page's encoding.
+    """
+    assert _declarations(b"<html><body>" + tag + b"</body></html>") == []
+    data = b"<html><head>" + tag + b'<meta charset="iso-8859-1">' + _LATIN1_TEXT
+    assert _declarations(data) == _html("iso8859-1")
+
+
+def test_attribute_value_meta_does_not_pick_the_encoding():
+    """A string escaped for windows-1252 stays escaped under the answer."""
+    page = (
+        b'<html><body><img alt="<meta charset=shift_jis " src="a.png">'
+        b'<script>var q = "\x83\\"; alert(1)//";</script></body></html>'
+    )
+    assert detect(page)["encoding"] != "SHIFT_JIS"
+
+
+def test_unquoted_equals_does_not_open_a_value():
+    """A quote opens a value only right after ``=``, as in the prescan."""
+    data = b'<a b"c><meta charset="iso-8859-1">' + _LATIN1_TEXT
+    assert _declarations(data) == _html("iso8859-1")
+
+
 def test_name_content_type_is_accepted():
     """``name='content-type'`` is wrong by the spec but common in the wild."""
     data = (
