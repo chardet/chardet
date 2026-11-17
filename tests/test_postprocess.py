@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import re
+import unicodedata
 from collections.abc import Callable
 from unittest.mock import patch
 
@@ -17,6 +18,7 @@ from chardet.pipeline.confusion import (
     STRICT_TIER_MAX_CONF,
 )
 from chardet.pipeline.postprocess import (
+    _HP_ROMAN8_MARKS,
     _demote_niche_latin,
     _promote_koi8t,
     forced_encodings,
@@ -130,6 +132,48 @@ def test_demote_niche_latin_does_not_second_guess_a_decided_win():
     data = b"St\xd6rung? s\xf6mething."
     demoted = _demote_niche_latin(data, results)
     assert demoted[0].encoding == "hp-roman8"
+
+
+def test_demote_niche_latin_keeps_hp_roman8_guillemets():
+    """Guillemets are evidence for hp-roman8 even with no letter bytes.
+
+    0xFB and 0xFD are outside hp-roman8's letter set.  Windows-1252 reads
+    them as ``û`` and ``ý`` glued to the outside of words, which its Breton
+    model has not seen, so hp-roman8 keeps the top slot whatever its lead.
+    """
+    data = "«Mamm, naon am eus-me !»".encode("hp-roman8")
+    for lead in (0.0, 2 * CONFUSION_BAND):
+        results = [
+            DetectionResult("hp-roman8", 0.3 + lead, "br"),
+            DetectionResult("cp1252", 0.3, "br"),
+        ]
+        assert _demote_niche_latin(data, results)[0].encoding == "hp-roman8"
+
+
+def test_demote_niche_latin_reads_a_mid_word_mark_as_a_letter():
+    """A mark byte inside a word argues for the swap target.
+
+    German ``schön`` carries 0xF6, which hp-roman8 reads as an em dash in
+    the middle of a word.  The arbitration sends it to Windows-1252 even
+    when hp-roman8 leads by more than the band.
+    """
+    data = "Das ist sehr schön und möglich.".encode("cp1252")
+    results = [
+        DetectionResult("hp-roman8", 0.3 + 2 * CONFUSION_BAND, "de"),
+        DetectionResult("cp1252", 0.3, "de"),
+    ]
+    assert _demote_niche_latin(data, results)[0].encoding == "cp1252"
+
+
+def test_hp_roman8_marks_match_the_codec():
+    """The mark set is what its comment says it is."""
+    expected = {
+        b
+        for b in range(0x80, 0x100)
+        if unicodedata.category(bytes([b]).decode("hp-roman8", "replace"))[0] == "P"
+        and bytes([b]).decode("hp-roman8") != bytes([b]).decode("iso-8859-1")
+    }
+    assert expected == _HP_ROMAN8_MARKS
 
 
 def test_promote_koi8t_with_tajik_bytes():
@@ -490,6 +534,13 @@ def test_era_rank_unknown_encoding_ranks_last():
 def test_high_byte_evidence_without_variants_is_absent():
     """An encoding with no model variants has no high-byte evidence."""
     assert postprocess._has_high_byte_evidence(b"\xe9ab", "not-a-codec", None) is False
+
+
+def test_high_byte_evidence_is_false_when_the_winning_model_knows_none():
+    """High bytes the winning variant has no weight for are not evidence."""
+    data = b"plain words \xcd\xcd\xcd\xcd plain words"
+    assert postprocess._has_high_byte_evidence(data, "cp850", "de") is False
+    assert postprocess._has_high_byte_evidence(b"gr\x81n", "cp850", "de") is True
 
 
 def test_prevalent_dead_heat_arbitrates_a_top_with_evidence():

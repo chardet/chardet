@@ -290,8 +290,7 @@ def _meta_attributes(body: bytes) -> dict[bytes, bytes]:
         value = match.group(3)
         if value is None:
             value = match.group(4)
-        if value is not None:
-            attrs[name] = value
+        attrs[name] = value if value is not None else b""
     return attrs
 
 

@@ -58,6 +58,13 @@ def _resolve_prefer_superset(
     return prefer_superset
 
 
+def _validate_fallback(name: str | None, param_name: str) -> str | None:
+    """Canonicalize a fallback encoding; ``None`` asks for no answer at all."""
+    if name is None:
+        return None
+    return _validate_encoding(name, param_name)
+
+
 @dataclasses.dataclass(frozen=True, slots=True)
 class DetectionRequest:
     """The resolved options of one detection, and the work they drive.
@@ -72,8 +79,8 @@ class DetectionRequest:
     compat_names: bool = True
     include_encodings: frozenset[str] | None = None
     exclude_encodings: frozenset[str] | None = None
-    no_match_encoding: str = "cp1252"
-    empty_input_encoding: str = "utf-8"
+    no_match_encoding: str | None = "cp1252"
+    empty_input_encoding: str | None = "utf-8"
 
     @classmethod
     def resolve(  # noqa: PLR0913
@@ -87,8 +94,8 @@ class DetectionRequest:
         compat_names: bool = True,
         include_encodings: Iterable[str] | None = None,
         exclude_encodings: Iterable[str] | None = None,
-        no_match_encoding: str = "cp1252",
-        empty_input_encoding: str = "utf-8",
+        no_match_encoding: str | None = "cp1252",
+        empty_input_encoding: str | None = "utf-8",
         stacklevel: int = 2,
     ) -> DetectionRequest:
         """Validate the public options and resolve them into a request.
@@ -123,10 +130,10 @@ class DetectionRequest:
             exclude_encodings=normalize_encodings(
                 exclude_encodings, "exclude_encodings"
             ),
-            no_match_encoding=_validate_encoding(
+            no_match_encoding=_validate_fallback(
                 no_match_encoding, "no_match_encoding"
             ),
-            empty_input_encoding=_validate_encoding(
+            empty_input_encoding=_validate_fallback(
                 empty_input_encoding, "empty_input_encoding"
             ),
         )

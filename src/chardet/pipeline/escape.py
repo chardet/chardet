@@ -10,6 +10,9 @@ this module is compiled with mypyc, which does not support PEP 563 string
 annotations.
 """
 
+import functools
+
+from chardet._unicode_scripts import BMP_SCRIPT_RUNS, SCRIPTS
 from chardet._utils import (
     EVIDENCE_CAP_BYTES,
     count_deleted,
@@ -71,6 +74,104 @@ _B64_DECODE: dict[int, int] = {c: i for i, c in enumerate(_B64_CHARS)}
 # base64 stream rather than a UTF-7 shift.
 _EMBEDDED_B64_RUN: int = 4
 
+# Scripts that are written together, from UTS #39: the augmented script
+# sets of section 5.1 (Han with kana is Japanese, Han with Bopomofo is
+# Chinese, Han with Hangul is Korean), plus Latin in each of the three,
+# which is what the Highly Restrictive level of section 5.2 allows.
+# East Asian text is full of Latin, and its fullwidth letters have to be
+# shifted.  Each script joins the named sets beside its own, so a run of
+# Han and Hiragana still shares one.
+_AUGMENTED_SCRIPT_SETS: dict[str, tuple[str, ...]] = {
+    "Latin": ("Hanb", "Jpan", "Kore"),
+    "Han": ("Hanb", "Jpan", "Kore"),
+    "Bopomofo": ("Hanb",),
+    "Hiragana": ("Jpan",),
+    "Katakana": ("Jpan",),
+    "Hangul": ("Kore",),
+}
+
+# Scripts every script is written with: punctuation, digits, symbols, and
+# combining marks.
+_SHARED_SCRIPTS: frozenset[str] = frozenset({"Common", "Inherited"})
+
+
+@functools.cache
+def _script_sets() -> tuple[bytes, tuple[int, ...]]:
+    """Build the lookup the single-script check reads.
+
+    Returns the script index of each UTF-16 code unit, and for each script
+    index the script sets it belongs to as a bit mask.  Units that carry
+    no script evidence get the mask of a shared script: ASCII, which
+    UTF-7 may encode inside a run of any script, and surrogates, whose
+    pairing ``_is_valid_utf7_b64`` checks itself.  ``Unknown`` (unassigned,
+    private use, noncharacters) gets no set at all.
+    """
+    virtual: dict[str, int] = {}
+    for names in _AUGMENTED_SCRIPT_SETS.values():
+        for name in names:
+            virtual.setdefault(name, len(SCRIPTS) + len(virtual))
+    masks: list[int] = []
+    for i, name in enumerate(SCRIPTS):
+        if name == "Unknown":
+            masks.append(0)
+        elif name in _SHARED_SCRIPTS:
+            masks.append(-1)
+        else:
+            mask = 1 << i
+            for extra in _AUGMENTED_SCRIPT_SETS.get(name, ()):
+                mask |= 1 << virtual[extra]
+            masks.append(mask)
+    shared = SCRIPTS.index("Common")
+    units = bytearray(0x10000)
+    for j, (first, script) in enumerate(BMP_SCRIPT_RUNS):
+        end = BMP_SCRIPT_RUNS[j + 1][0] if j + 1 < len(BMP_SCRIPT_RUNS) else 0x10000
+        units[first:end] = bytes([script]) * (end - first)
+    units[0x00:0x80] = bytes([shared]) * 0x80
+    units[0xD800:0xE000] = bytes([shared]) * 0x800
+    return bytes(units), tuple(masks)
+
+
+# The bytes of an email local part: RFC 5322 ``atext`` and the dot.
+_EMAIL_LOCAL: frozenset[int] = frozenset(
+    b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+    b"!#$%&'*+-/=?^_`{|}~."
+)
+# The bytes of a domain label.
+_EMAIL_DOMAIN: frozenset[int] = frozenset(
+    b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-"
+)
+# Longest local part RFC 5321 allows, which bounds the scan for the ``@``.
+_EMAIL_LOCAL_MAX: int = 64
+
+
+def _is_email_subaddress(data: bytes, pos: int) -> bool:
+    """Return True if the ``+`` at *pos* starts the detail of an email address.
+
+    ``user+detail@example.com`` is subaddressing (RFC 5233): the ``+`` is
+    a separator inside the local part, and the detail after it is ASCII
+    that can pass every UTF-7 check by accident (``+API`` decodes to one
+    Latin-1 letter).  The shape asked for is a local-part byte before the
+    ``+``, local-part bytes up to an ``@``, and a domain with a dot in it.
+    The scan stops at the longest local part an address may have, so it
+    costs a constant amount per ``+``.
+    """
+    if pos == 0 or data[pos - 1] not in _EMAIL_LOCAL:
+        return False
+    n = len(data)
+    i = pos + 1
+    stop = min(n, i + _EMAIL_LOCAL_MAX)
+    while i < stop and data[i] in _EMAIL_LOCAL:
+        i += 1
+    if i >= n or data[i] != 0x40:  # '@'
+        return False
+    i += 1
+    label = i
+    while i < n and data[i] in _EMAIL_DOMAIN:
+        i += 1
+    if i == label or i + 1 >= n or data[i] != 0x2E:  # '.'
+        return False
+    return data[i + 1] in _EMAIL_DOMAIN
+
 
 def _is_valid_utf7_b64(b64_bytes: bytes) -> bool:
     """Check if base64 bytes decode to valid UTF-16BE with correct padding.
@@ -81,9 +182,17 @@ def _is_valid_utf7_b64(b64_bytes: bytes) -> bool:
     2. Have zero-valued trailing padding bits (the unused low bits of the last
        Base64 sextet after the last complete 16-bit code unit).
     3. Decode to valid UTF-16BE — no lone surrogates.
+    4. Decode to text that shares a script.  Each code unit's Unicode
+       Script property is looked up, and the run must have one script set
+       in common (see ``_script_sets``): Cyrillic with punctuation and
+       digits passes, Han with kana passes, Han with Georgian does not,
+       and neither does any run holding an unassigned or private-use code
+       point.  Accidental ASCII decodes to code units scattered across the
+       whole plane, so a long run of it almost never passes (issue #432).
 
     This rejects accidental ``+<alphanum>-`` patterns found in URLs, MIME
-    boundaries, hex-encoded hashes (e.g. SHA-1 git refs), and other ASCII data.
+    boundaries, hex-encoded hashes (e.g. SHA-1 git refs), file paths like
+    ``pkg-1.0+dfsg/LICENSES/Qt-``, and other ASCII data.
 
     The caller (``_has_valid_utf7_sequences``) already checks ``b64_len >= 3``
     before calling this function, so *b64_bytes* is always at least 3 bytes.
@@ -119,9 +228,14 @@ def _is_valid_utf7_b64(b64_bytes: bytes) -> bool:
             raw[out_idx] = (bit_buf >> bit_count) & 0xFF
             bit_buf &= (1 << bit_count) - 1
             out_idx += 1
+    unit_scripts, script_masks = _script_sets()
+    shared_sets = -1
     prev_high = False
     for i in range(0, num_bytes - 1, 2):
         code_unit = (raw[i] << 8) | raw[i + 1]
+        shared_sets &= script_masks[unit_scripts[code_unit]]
+        if not shared_sets:
+            return False  # no script in common, or not a character at all
         if 0xD800 <= code_unit <= 0xDBFF:  # high surrogate
             if prev_high:
                 return False  # consecutive high surrogates
@@ -179,17 +293,98 @@ def _single_unit(b64_data: bytes) -> int:
     ) >> 2
 
 
-def _plausible_lone_unit(unit: int) -> bool:
-    """Script ranges where a lone shifted character plausibly occurs."""
+# The scripts in widespread modern use: Table 5, Recommended Scripts, of
+# UAX #31 for Unicode 17.0.0.  ``Common`` and ``Inherited`` are in the
+# table too, which is what admits punctuation, symbols, and combining
+# marks.
+_RECOMMENDED_SCRIPTS: frozenset[str] = frozenset(
+    {
+        "Common",
+        "Inherited",
+        "Arabic",
+        "Armenian",
+        "Bengali",
+        "Cyrillic",
+        "Devanagari",
+        "Ethiopic",
+        "Georgian",
+        "Greek",
+        "Gujarati",
+        "Gurmukhi",
+        "Hangul",
+        "Han",
+        "Hebrew",
+        "Hiragana",
+        "Katakana",
+        "Kannada",
+        "Khmer",
+        "Lao",
+        "Latin",
+        "Malayalam",
+        "Myanmar",
+        "Oriya",
+        "Sinhala",
+        "Tamil",
+        "Telugu",
+        "Thaana",
+        "Thai",
+        "Tibetan",
+    }
+)
+# Scripts too large for the script alone to say much about one character:
+# accidental ASCII decodes into them more often than into everything else
+# put together.
+_LARGE_SCRIPTS: frozenset[str] = frozenset({"Han", "Hangul"})
+# Codecs for the national character sets a lone character of a large
+# script must belong to: GB 2312, Big5, JIS X 0208, and KS X 1001.  Each
+# set is the two-byte part of its codec.  ``euc_jp`` spends three bytes on
+# JIS X 0212, and ``euc_kr`` spells a syllable outside KS X 1001 as an
+# eight-byte sequence of its letters.
+_NATIONAL_SET_CODECS: tuple[str, ...] = ("gb2312", "big5", "euc_jp", "euc_kr")
+_NATIONAL_SET_WIDTH: int = 2
+
+
+@functools.cache
+def _lone_unit_scripts() -> tuple[bytes, bytes]:
+    """Flag each script index as recommended, and as a large script."""
     return (
-        0x0080 <= unit <= 0x07FF  # Latin supp. .. Arabic
-        or 0x0E00 <= unit <= 0x0FFF  # Thai, Lao, Tibetan
-        or 0x2000 <= unit <= 0x2BFF  # punctuation .. arrows (em dash, euro)
-        or 0x3000 <= unit <= 0x30FF  # CJK punctuation, kana
-        or 0x4E00 <= unit <= 0x9FFF  # CJK unified
-        or 0xAC00 <= unit <= 0xD7A3  # Hangul
-        or 0xFF00 <= unit <= 0xFFEF  # fullwidth forms
+        bytes(name in _RECOMMENDED_SCRIPTS for name in SCRIPTS),
+        bytes(name in _LARGE_SCRIPTS for name in SCRIPTS),
     )
+
+
+def _plausible_lone_unit(unit: int) -> bool:
+    """Check that *unit* is a character a one-character run plausibly holds.
+
+    A run of one character has no neighbor to share a script with, so the
+    question is whether the character is one text is written in.  Its
+    script must be a Recommended Script of UAX #31, which leaves out the
+    historic and limited-use ones (``+LAY`` decodes to a Glagolitic
+    letter, issue #371).  Han and Hangul are recommended and hold more
+    than half the assigned BMP between them, so a character of either
+    must also be in one of the national character sets, the ones their
+    languages picked as the characters in common use.
+
+    The caller has already ruled out surrogates.
+    """
+    if unit < 0x80:
+        return False
+    unit_scripts, _ = _script_sets()
+    recommended, large = _lone_unit_scripts()
+    script = unit_scripts[unit]
+    if not recommended[script]:
+        return False
+    if not large[script]:
+        return True
+    char = chr(unit)
+    for codec in _NATIONAL_SET_CODECS:
+        try:
+            encoded = char.encode(codec)
+        except UnicodeEncodeError:
+            continue
+        if len(encoded) == _NATIONAL_SET_WIDTH:
+            return True
+    return False
 
 
 def _has_valid_utf7_sequences(data: bytes, max_start: int, max_end: int) -> bool:
@@ -233,6 +428,11 @@ def _has_valid_utf7_sequences(data: bytes, max_start: int, max_end: int) -> bool
         if _is_embedded_in_base64(data, shift_pos):
             start = pos
             continue
+        # Guard E: a '+' that separates the detail of an email address
+        # (user+detail@example.com) is not a shift character either.
+        if _is_email_subaddress(data, shift_pos):
+            start = pos
+            continue
         # Collect consecutive Base64 characters
         i = pos
         while i < limit and data[i] in _UTF7_BASE64:
@@ -263,17 +463,11 @@ def _has_valid_utf7_sequences(data: bytes, max_start: int, max_end: int) -> bool
         # prevents false positives).  Terminator can be '-', any non-Base64
         # byte, or end of data — all per RFC 2152.
         if b64_len >= 3 and _is_valid_utf7_b64(b64_data):
-            # Guard D: a block encoding a *single* code unit — with or
-            # without a dash terminator — must decode into a script range
-            # where a lone shifted character plausibly occurs.  The corpus's
-            # single-unit blocks live in Latin/Greek/Cyrillic/Hebrew/Arabic
-            # supplements, Thai, general punctuation through arrows (em
-            # dashes and ellipses dominate), CJK, kana, Hangul, and
-            # fullwidth forms.  An accidental uppercase run like "+LAY"
-            # (issue #371) decodes to U+2C06, Glagolitic — no genuine lone
-            # block in 149 corpus files lands in such a range.  Multi-unit
-            # blocks are untouched: accidental ASCII does not survive the
-            # padding and surrogate checks for long runs.
+            # Guard D: a block encoding a *single* code unit, with or
+            # without a dash terminator, has no neighbor to share a script
+            # with, so the character itself must be a plausible one (see
+            # ``_plausible_lone_unit``).  Multi-unit blocks are left to the
+            # shared-script check in ``_is_valid_utf7_b64``.
             if (b64_len * 6) // 16 == 1:
                 unit = _single_unit(b64_data)
                 if not _plausible_lone_unit(unit):

@@ -70,34 +70,34 @@ Cython.
 
 The measured differences:
 
-- **Accuracy:** chardet achieves 99.7% vs charset-normalizer's 86.6% on
-  the same test suite --- 90.8% for charset-normalizer once the
+- **Accuracy:** chardet achieves 99.7% vs charset-normalizer's 85.7% on
+  the same test suite --- 89.8% for charset-normalizer once the
   BOM-less utf-7 files it documents as out of scope are set aside (see
   :doc:`performance`).
-- **Speed:** chardet leads everywhere except the far tail --- 1.3x in
-  aggregate (3,125 vs 2,438 files/s), 2.0x at the median (0.14 vs
-  0.28ms), 1.5x at p90 and 1.6x at p95, with a worst case 3.1x lower
-  (10.8 vs 33.6ms). charset-normalizer keeps p99 (2.41 vs our 3.22ms),
-  a gap concentrated in legacy CJK where their p99 is 1.57ms against
-  our 6.96ms. See :doc:`performance`.
+- **Speed:** chardet leads at every percentile we publish --- 1.7x in
+  aggregate (4,172 vs 2,424 files/s), 2.2x at the median (0.13 vs
+  0.28ms), 1.9x at p90, 2.1x at p95, and 1.4x at p99 (1.70 vs 2.37ms),
+  with a worst case 4.6x lower (7.4 vs 34.0ms). charset-normalizer
+  still has the better tail on legacy CJK, where their p99 is 1.57ms
+  against our 4.17ms. See :doc:`performance`.
 - **Accuracy convention:** our 99.7% credits supersets (Windows-1252 for
-  ISO-8859-1); scored on exact matches only it is 82.4% against
-  charset-normalizer's 78.2%. Both columns are published, but we
+  ISO-8859-1); scored on exact matches only it is 88.2% against
+  charset-normalizer's 78.4%. Both columns are published, but we
   consider the superset the correct answer: it reads the subset's text
   the same way and also the characters the subset lacks.  That is the
   reasoning behind the WHATWG/W3C Encoding
   Standard's rule that browsers decode ``ascii`` and ``iso-8859-1``
   content as ``windows-1252``. The strict gap is the convention, not
   the detector: with superset remapping disabled
-  (``prefer_superset=False``) chardet scores 91.8% strict, still ahead
+  (``prefer_superset=False``) chardet scores 92.4% strict, still ahead
   of charset-normalizer. See :doc:`performance`.
-- **Memory:** chardet uses 2.5x less peak memory (28.2 vs 71.0 MiB) and
+- **Memory:** chardet uses 2.5x less peak memory (28.6 vs 71.0 MiB) and
   1.6x less RSS. Per ``detect()`` call the ordering reverses ---
   charset-normalizer allocates 58 KiB at the median against chardet's
-  544 KiB, but its p99 grows 14x to 784 KiB while chardet's rises to
+  545 KiB, but its p99 grows 14x to 784 KiB while chardet's rises to
   917 KiB. See :doc:`performance` for the full distribution.
-- **Language detection:** chardet detects language with 93.0% accuracy vs
-  charset-normalizer's 54.8%.
+- **Language detection:** chardet detects language with 93.1% accuracy vs
+  charset-normalizer's 54.7%.
 - **Binary files and MIME types:** both detectors decline binary input
   (``encoding=None``), but chardet also identifies *what* the file is:
   every result carries a ``mime_type``, matched against 40+ magic-number
@@ -112,12 +112,13 @@ How is chardet different from cchardet?
 `cchardet <https://github.com/faust-streaming/faust-cchardet>`_ wraps
 Mozilla's uchardet C/C++ library. Key differences:
 
-- **Accuracy:** chardet achieves 99.7% vs cchardet's 60.1%.
-- **Speed:** cchardet 3.2.0 is 1.3x faster in aggregate (0.79s vs
-  1.00s across 3,138 files) and holds the better tail (p99 2.14ms vs
-  our 3.22ms), but chardet's worst case is 2.3x lower (10.8 vs 25.4ms).
-- **Memory:** chardet's peak footprint is 2.3x smaller (28.2 vs
-  64.5 MiB traced) with lower RSS (160 vs 187 MiB).
+- **Accuracy:** chardet achieves 99.7% vs cchardet's 59.8%.
+- **Speed:** the two are about level in aggregate (0.75s for chardet
+  vs 0.79s for cchardet 3.2.0 across 3,137 files). cchardet has the
+  lower median (0.04 vs 0.13ms); chardet has the better tail (p99 1.70
+  vs 2.15ms) and a worst case 3.4x lower (7.4 vs 25.2ms).
+- **Memory:** chardet's peak footprint is 2.3x smaller (28.6 vs
+  64.5 MiB traced) with lower RSS (161 vs 186 MiB).
 - **Encoding breadth:** chardet supports 49 more encodings than cchardet,
   including EBCDIC, Mac, Baltic, and BOM-less UTF-16/32.
 - **Binary files:** chardet declines binary input with a ``mime_type``

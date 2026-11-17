@@ -36,6 +36,25 @@ order:
    one exception is an ISO-2022 answer on a page that declares an
    ISO-2022 name, where the escape sequences pick the variant.
 
+   A ``+`` followed by letters is common in plain ASCII, so a UTF-7
+   shifted run counts only when it decodes to text that shares a script.
+   Each decoded character's Unicode Script is looked up in a table
+   generated from ``Scripts.txt``, and the run has to have one in
+   common: Cyrillic with punctuation and digits passes, Han with kana
+   passes, and Han next to Georgian does not. Neither does a run with an
+   unassigned or private-use code point. The file path
+   ``pkg-1.0+dfsg/LICENSES/Qt-`` decodes to four scripts, so it stays
+   ASCII. A ``+`` inside an email address, as in
+   ``user+detail@example.com``, is never read as a shift.
+
+   A run of one character has no neighbor to share a script with, so
+   the character has to be a plausible one by itself. Its script must be
+   one of the Recommended Scripts of UAX #31, the ones in widespread
+   modern use. Han and Hangul are on that list and are large enough that
+   stray ASCII lands in them often, so a lone character of either must
+   also be in GB 2312, Big5, JIS X 0208 or KS X 1001. That keeps
+   ``WxH+X+Y`` and ``U+039A`` as ASCII.
+
 4. **Magic Number Detection** — Identifies binary file types (PNG, JPEG,
    PDF, ZIP, etc.) by their magic number signatures. A match returns
    immediately with ``encoding=None`` and a specific ``mime_type`` (e.g.,
@@ -107,8 +126,14 @@ order:
 
 12. **Statistical Scoring** — Scores remaining candidates using pre-trained
     bigram frequency models. Each model captures the characteristic byte
-    pair frequencies of a language written in a specific encoding. The
-    candidate with the highest score wins.
+    pair frequencies of a language written in a specific encoding. A
+    candidate's score is the cosine similarity between the input's byte
+    pairs and its model, scaled down by the share of the input's weight
+    that falls on non-ASCII byte pairs the model has never seen. The
+    cosine alone only rewards matches, which on a short input lets one
+    coincidence beat a model that knows every pair in it. Candidates
+    whose cosines are tied keep their tie, and post-processing breaks
+    it. The candidate with the highest score wins.
 
 13. **Post-processing** — Resolves confusion groups (encodings that are
     statistically hard to distinguish), demotes niche Latin encodings

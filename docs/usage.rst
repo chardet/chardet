@@ -433,7 +433,13 @@ display-renamed like any other result, so ``no_match_encoding="latin-1"``
 reports ``ISO-8859-1``.  If even that encoding is excluded by the
 filters, chardet returns ``encoding=None`` with a warning.  Similarly,
 ``empty_input_encoding``
-(default ``"utf-8"``) controls the result for empty input:
+(default ``"utf-8"``) controls the result for empty input.
+
+Either option also takes ``None``, which asks for no answer in that
+case: the result is ``encoding=None`` at confidence 0.0, with no
+warning.  That is how chardet 6 reported empty and inconclusive input,
+and it gives "nothing fit" a result you can test for directly instead of
+recognizing it by its confidence:
 
 .. code-block:: python
 
@@ -444,6 +450,11 @@ filters, chardet returns ``encoding=None`` with a warning.  Similarly,
        no_match_encoding="utf-8",
        empty_input_encoding="shift_jis",
    )
+
+   # No answer at all when nothing fits
+   result = chardet.detect(data, no_match_encoding=None)
+   if result["encoding"] is None and result["confidence"] == 0.0:
+       ...
 
 These parameters apply to :func:`~chardet.detect`,
 :func:`~chardet.detect_all`, and :class:`~chardet.UniversalDetector`.

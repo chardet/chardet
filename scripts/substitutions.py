@@ -34,6 +34,12 @@ _UNIVERSAL_SUBSTITUTIONS: dict[str, str] = {
     "\u201d": '"',  # RIGHT DOUBLE QUOTATION MARK
     "\u201e": '"',  # DOUBLE LOW-9 QUOTATION MARK
     "\u201f": '"',  # DOUBLE HIGH-REVERSED-9 QUOTATION MARK
+    # Guillemets: without these a target that lacks them (KOI8-R) had them
+    # dropped from its text, where a writer would have typed a straight quote.
+    "\u00ab": '"',  # LEFT-POINTING DOUBLE ANGLE QUOTATION MARK
+    "\u00bb": '"',  # RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
+    "\u2039": "'",  # SINGLE LEFT-POINTING ANGLE QUOTATION MARK
+    "\u203a": "'",  # SINGLE RIGHT-POINTING ANGLE QUOTATION MARK
     # Ellipsis
     "\u2026": "...",  # HORIZONTAL ELLIPSIS
     # Spaces
@@ -169,40 +175,74 @@ _CP1006_URDU_SUBSTITUTIONS: dict[str, str] = {
 # Cyrillic substitutions
 # ---------------------------------------------------------------------------
 
-# CP866: Belarusian/Ukrainian/Serbian/Macedonian workaround.
-# CP866 is a Russian Cyrillic code page.  Other Cyrillic languages have
-# letters not in CP866 that were historically approximated with the
-# closest Russian letter (or Latin letter in the case of Serbian ј).
-# Note: Serbians primarily used CP855 (which has all Serbian letters
-# natively) rather than CP866.  These substitutions are plausible
-# approximations for the rare case of Serbian text on CP866 systems.
+# CP866: Belarusian/Ukrainian/Serbian/Macedonian stand-ins.
+# CP866 is a Russian Cyrillic code page.  Writers of other Cyrillic
+# languages had to type something else for the letters it lacks.  Two
+# tables cover that: the spellings found in period text, and the older
+# closest-Russian-letter guesses.  Training uses the base-letter table
+# for most documents and the period table for a share of them (see
+# PERIOD_EVERY).  A larger period share was tried and read short Latin
+# text as CP866: a Latin i beside high bytes is what accented Latin
+# text looks like.
+#
+# The period spellings come from Usenet and FidoNet-gateway archives:
+# Ukrainian and Belarusian writers typed a Latin i for і (85 authors
+# across 43 groups, against a handful of spelling variants with и),
+# and Serbian writers typed ль, нь, дж and a Latin h.  No period
+# text turned up for ђ, ќ, ѓ or ѕ, so those keep their base letters
+# in both tables.
+#
+# Ukrainian ї and є are in CP866 and writers used them, so they stay.
+# The gateways that relayed FidoNet to Usenet in KOI8-R turned those two
+# bytes into ⌡ and ≤; read the archives with that in mind.
 _CP866_SUBSTITUTIONS: dict[str, str] = {
     # Ukrainian/Belarusian
-    "\u0456": "\u0438",  # і → и
-    "\u0406": "\u0418",  # І → И
-    "\u0491": "\u0433",  # ґ → г (reintroduced 1990, missing from Soviet-era CP866)
-    "\u0490": "\u0413",  # Ґ → Г
-    # Serbian-specific Cyrillic → closest Russian/Latin equivalents
-    "\u0452": "\u0434",  # ђ (DJE) → д (DE) — visual base letter
-    "\u0402": "\u0414",  # Ђ → Д
-    "\u0458": "j",  # ј (JE) → Latin j (identical appearance)
-    "\u0408": "J",  # Ј → J
-    "\u0459": "\u043b",  # љ (LJE) → л (EL) — visual base letter
-    "\u0409": "\u041b",  # Љ → Л
-    "\u045a": "\u043d",  # њ (NJE) → н (EN) — visual base letter
-    "\u040a": "\u041d",  # Њ → Н
-    "\u045b": "\u0442",  # ћ (TSHE) → т (TE) — visual base letter
-    "\u040b": "\u0422",  # Ћ → Т
-    "\u045f": "\u0446",  # џ (DZHE) → ц (TSE) — visually more similar than д
-    "\u040f": "\u0426",  # Џ → Ц
-    # Macedonian-specific Cyrillic → closest Russian equivalents
-    "\u0453": "\u0433",  # ѓ (GJE) → г (GHE)
-    "\u0403": "\u0413",  # Ѓ → Г
-    "\u045c": "\u043a",  # ќ (KJE) → к (KA)
-    "\u040c": "\u041a",  # Ќ → К
-    "\u0455": "\u0437",  # ѕ (DZE) → з (ZE) — closest sound
-    "\u0405": "\u0417",  # Ѕ → З
+    "\u0456": "i",  # і -> Latin i
+    "\u0406": "I",  # І -> Latin I
+    "\u0491": "\u0433",  # ґ -> г (reintroduced 1990, missing from Soviet-era CP866)
+    "\u0490": "\u0413",  # Ґ -> Г
+    # Serbian
+    "\u0452": "\u0434",  # ђ (DJE) -> д (DE), no period evidence
+    "\u0402": "\u0414",  # Ђ -> Д
+    "\u0458": "j",  # ј (JE) -> Latin j (identical appearance)
+    "\u0408": "J",  # Ј -> J
+    "\u0459": "\u043b\u044c",  # љ (LJE) -> ль
+    "\u0409": "\u041b\u044c",  # Љ -> Ль
+    "\u045a": "\u043d\u044c",  # њ (NJE) -> нь
+    "\u040a": "\u041d\u044c",  # Њ -> Нь
+    "\u045b": "h",  # ћ (TSHE) -> Latin h
+    "\u040b": "H",  # Ћ -> Latin H
+    "\u045f": "\u0434\u0436",  # џ (DZHE) -> дж
+    "\u040f": "\u0414\u0436",  # Џ -> Дж
+    # Macedonian, no period evidence
+    "\u0453": "\u0433",  # ѓ (GJE) -> г (GHE)
+    "\u0403": "\u0413",  # Ѓ -> Г
+    "\u045c": "\u043a",  # ќ (KJE) -> к (KA)
+    "\u040c": "\u041a",  # Ќ -> К
+    "\u0455": "\u0437",  # ѕ (DZE) -> з (ZE)
+    "\u0405": "\u0417",  # Ѕ -> З
 }
+
+# The older guesses: the closest Russian letter by shape.  Applied over
+# the period table for the documents outside the period share.
+_CP866_BASE_LETTER_SUBSTITUTIONS: dict[str, str] = {
+    "\u0456": "\u0438",  # і -> и
+    "\u0406": "\u0418",  # І -> И
+    "\u0459": "\u043b",  # љ (LJE) -> л (EL)
+    "\u0409": "\u041b",  # Љ -> Л
+    "\u045a": "\u043d",  # њ (NJE) -> н (EN)
+    "\u040a": "\u041d",  # Њ -> Н
+    "\u045b": "\u0442",  # ћ (TSHE) -> т (TE)
+    "\u040b": "\u0422",  # Ћ -> Т
+    "\u045f": "\u0446",  # џ (DZHE) -> ц (TSE)
+    "\u040f": "\u0426",  # Џ -> Ц
+}
+
+#: Every Nth document gets the period table instead of the base-letter one.
+PERIOD_EVERY = 4
+#: Which document of each N.  Not 0, so the share does not coincide with
+#: the documents ``typography.restyle_share`` restyles.
+PERIOD_OFFSET = 2
 
 # ---------------------------------------------------------------------------
 # Farsi substitutions
@@ -409,12 +449,18 @@ _VIETNAMESE_DECOMPOSITION: dict[str, str] = {
 # ---------------------------------------------------------------------------
 
 
-def get_substitutions(charset_name: str, langs: list[str]) -> dict[str, str]:
+def get_substitutions(
+    charset_name: str, langs: list[str], *, base_letters: bool = False
+) -> dict[str, str]:
     """Build the character substitution table for a given encoding.
 
     Only includes substitutions for characters the encoding cannot represent.
     Characters the encoding supports natively are left intact so training
     data preserves their actual byte patterns.
+
+    *base_letters* selects the closest-Russian-letter stand-ins for CP866
+    in place of the spellings found in period text.  It changes nothing
+    for any other encoding.
     """
     subs = dict(_UNIVERSAL_SUBSTITUTIONS)
 
@@ -442,6 +488,8 @@ def get_substitutions(charset_name: str, langs: list[str]) -> dict[str, str]:
         subs.update(_CP1006_URDU_SUBSTITUTIONS)
     if upper == "CP866":
         subs.update(_CP866_SUBSTITUTIONS)
+        if base_letters:
+            subs.update(_CP866_BASE_LETTER_SUBSTITUTIONS)
     # Romanian comma-below → cedilla for all encodings except ISO-8859-16,
     # which gets the reverse fold (it encodes only the modern forms).
     # Compare hyphen-insensitively: the registry's canonical spelling is

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import array
 import hashlib
 import math
 import struct
@@ -1021,6 +1022,7 @@ def test_langnorm_bad_file_falls_back_with_warning(failure: str) -> None:
     else:
         contents["langnorm.bin"] = FileNotFoundError("langnorm.bin")
     models_mod.load_models()  # keep the models cache warm past the patch
+    models_mod.get_idf_weights()  # and the IDF table the fallback reads
     models_mod.get_language_norms.cache_clear()
     try:
         with (
@@ -1052,7 +1054,9 @@ def test_language_profile_weights_and_norm() -> None:
     data = "Café  résumé\n\n naïve".encode()  # whitespace runs collapse
     profile = models_mod.BigramProfile.for_language(data)
     plain = models_mod.BigramProfile(data)
-    assert profile.nonzero == plain.nonzero
+    # Same bigrams; the streaming profile lists its evidence ones first.
+    assert sorted(profile.nonzero) == sorted(plain.nonzero)
+    assert plain.nonzero[: len(plain.cov_idx)] == plain.cov_idx
     counts: dict[int, int] = {}
     for i in range(len(data) - 1):
         b1, b2 = data[i], data[i + 1]
@@ -1107,3 +1111,119 @@ def test_score_best_language_builds_the_language_profile_itself() -> None:
     ) == models_mod.score_best_language(
         data, "utf-8", profile=profile, language_weighting=True
     )
+
+
+def test_profile_evidence_keeps_high_bigrams_beside_letters_and_spaces() -> None:
+    """Coverage evidence skips a high byte beside a digit or ASCII punctuation."""
+    profile = models_mod.BigramProfile(b"caf\xe9 ok;\xe9t\xe9 9\xe9")
+    pairs = {bytes([idx >> 8, idx & 0xFF]) for idx in profile.cov_idx}
+    assert pairs == {b"f\xe9", b"\xe9 ", b"\xe9t", b"t\xe9"}
+    assert len(profile.cov_vals) == len(profile.cov_idx)
+    assert profile.cov_total == sum(profile.cov_vals) > 0
+
+
+def test_profile_evidence_is_empty_without_high_bytes() -> None:
+    profile = models_mod.BigramProfile(b"plain ascii text")
+    assert profile.cov_idx == []
+    assert profile.cov_total == 0
+
+
+def test_only_the_streaming_profile_carries_evidence() -> None:
+    data = b"caf\xe9 au lait"
+    assert models_mod.BigramProfile.for_language(data).cov_total == 0
+    assert models_mod.BigramProfile.from_weighted_freq({0x66E9: 5}).cov_total == 0
+
+
+def test_coverage_is_full_without_evidence() -> None:
+    profile = models_mod.BigramProfile(b"plain ascii text")
+    assert models_mod.coverage_with_profile(profile, bytes(65536)) == 1.0
+
+
+def test_coverage_is_full_when_the_model_knows_every_bigram() -> None:
+    profile = models_mod.BigramProfile(b"caf\xe9 au lait")
+    assert models_mod.coverage_with_profile(profile, bytes([1]) * 65536) == 1.0
+
+
+def test_coverage_of_an_all_evidence_input_no_model_knows_is_zero() -> None:
+    profile = models_mod.BigramProfile(b"a\xe9b\xe8c")
+    assert len(profile.cov_idx) == 4
+    assert profile.cov_total == profile.weight_sum
+    assert models_mod.coverage_with_profile(profile, bytes(65536)) == 0.0
+
+
+def test_coverage_takes_unseen_weight_out_of_the_whole_input() -> None:
+    """Unseen evidence is measured against every bigram, ASCII ones included."""
+    profile = models_mod.BigramProfile(b"plain words, then a\xe9b")
+    seen_idx, _ = profile.cov_idx
+    model = bytearray(65536)
+    model[seen_idx] = 7
+    _, unseen = profile.cov_vals
+    expected = (profile.weight_sum - unseen) / profile.weight_sum
+    assert 0.0 < expected < 1.0
+    assert models_mod.coverage_with_profile(profile, bytes(model)) == pytest.approx(
+        expected
+    )
+
+
+def test_seen_packed_adds_the_weights_a_model_has_entries_for() -> None:
+    from chardet._kernel import seen_packed  # noqa: PLC0415
+
+    idx = array.array("i", [0x61E9, 0xE962, 0xE9E8])
+    vals = array.array("i", [3, 5, 11])
+    model = bytearray(65536)
+    model[0x61E9] = 1
+    model[0xE9E8] = 200
+    assert seen_packed(idx, vals, bytes(model)) == 14
+    assert seen_packed(array.array("i"), array.array("i"), bytes(model)) == 0
+
+
+def test_coverage_is_the_same_through_the_packed_kernel(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The compiled build's packed evidence gives the interpreted answer."""
+    data = b"plain words, then a\xe9b and \xe8c"
+    model = bytearray(65536)
+    model[0x61E9] = 7
+    model[0xE863] = 9
+    expected = models_mod.coverage_with_profile(
+        models_mod.BigramProfile(data), bytes(model)
+    )
+    assert 0.0 < expected < 1.0
+    monkeypatch.setattr(models_mod, "_KERNEL_COMPILED", True)
+    packed = models_mod.BigramProfile(data)
+    assert list(packed.cov_idx_arr) == packed.cov_idx
+    assert list(packed.cov_val_arr) == packed.cov_vals
+    assert models_mod.coverage_with_profile(packed, bytes(model)) == expected
+
+
+def test_coverage_reuses_the_entries_the_cosine_gathered(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """After a cosine for the same model, coverage needs no gather of its own."""
+    monkeypatch.setattr(models_mod, "_KERNEL_COMPILED", False)
+    profile = models_mod.BigramProfile(b"plain words, then a\xe9b and \xe8c")
+    model = bytearray(65536)
+    model[0x61E9] = 7
+    model[0xE863] = 9
+    table = bytes(model)
+    expected = models_mod.coverage_with_profile(profile, table)
+    assert 0.0 < expected < 1.0
+    models_mod.score_with_profile(profile, table)
+    if profile.gather is not None:
+        assert profile.last_model is table
+        assert profile.last_gathered[: len(profile.cov_idx)] == tuple(
+            table[idx] for idx in profile.cov_idx
+        )
+    assert models_mod.coverage_with_profile(profile, table) == expected
+    assert models_mod.coverage_with_profile(profile, bytes(model)) == expected
+
+
+def test_coverage_barely_moves_for_a_few_accents_in_long_text() -> None:
+    """The same unseen bigrams cost a long input far less than a short one."""
+    short = models_mod.BigramProfile(b"d\xe1\xe1rin")
+    long = models_mod.BigramProfile(
+        b"plain words go on and on. " * 40 + b"d\xe1\xe1rin"
+    )
+    blank = bytes(65536)
+    assert models_mod.coverage_with_profile(short, blank) < 0.5
+    assert models_mod.coverage_with_profile(long, blank) > 0.95

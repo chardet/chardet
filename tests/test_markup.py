@@ -123,6 +123,45 @@ def test_first_value_wins_when_attribute_repeats():
     assert _declarations(data) == _html("iso8859-5")
 
 
+@pytest.mark.parametrize(
+    ("attribute", "rest"),
+    [
+        (b"charset", b"charset=shift_jis"),
+        (
+            b"http-equiv",
+            b"http-equiv=content-type content='text/html; charset=shift_jis'",
+        ),
+        (
+            b"content",
+            b"content='text/html; charset=shift_jis' http-equiv=content-type",
+        ),
+        (b"name", b"name=content-type content='text/html; charset=shift_jis'"),
+    ],
+)
+@pytest.mark.parametrize("separator", [b" ", b"\t", b"\n", b"\f", b"\r"])
+@pytest.mark.parametrize("case", ["lower", "upper"])
+def test_valueless_first_attribute_blocks_duplicates(
+    attribute: bytes, rest: bytes, separator: bytes, case: str
+):
+    if case == "upper":
+        attribute = attribute.upper()
+    bare = b"<meta " + attribute + separator + rest + b">test"
+    empty = b"<meta " + attribute + b'=""' + separator + rest + b">test"
+
+    assert _declarations(empty) == []
+    assert _declarations(bare) == []
+
+
+def test_valueless_charset_does_not_override_ascii():
+    assert detect(b"<meta charset charset=shift_jis>test")["encoding"] == "ascii"
+
+
+def test_unrelated_valueless_attribute_keeps_charset_declaration():
+    assert _declarations(b"<meta data-test charset=shift_jis>") == _html(
+        "shift_jis_2004"
+    )
+
+
 def test_unquoted_charset_value():
     assert _declarations(b"<meta charset=koi8-r>") == _html("koi8-r")
 

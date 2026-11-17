@@ -53,12 +53,15 @@ from data_sources import (
 from data_sources import get_texts as get_texts_multi
 from exclusions import build_exclusion_set, content_hash, overlaps_exclusions
 from substitutions import (
+    PERIOD_EVERY,
+    PERIOD_OFFSET,
     apply_substitutions,
     collapse_whitespace_runs,
     get_substitutions,
     normalize_text,
     transliterate_serbian_to_latin,
 )
+from typography import restyle_share
 
 from chardet.models._format import read_models, write_model_artifacts
 from chardet.registry import REGISTRY
@@ -648,7 +651,9 @@ def _build_one_model(
             texts.extend(load_cached_articles(source_dir, max_samples - len(texts)))
             if len(texts) >= max_samples:
                 break
-        _worker_text_cache[lang] = texts[:max_samples]
+        # Restyled once per language, before the HTML wrappers are added, so
+        # the markup's own quotes stay straight (see typography.py).
+        _worker_text_cache[lang] = restyle_share(texts[:max_samples], lang)
     texts = _worker_text_cache[lang]
 
     if not texts:
@@ -662,6 +667,10 @@ def _build_one_model(
 
     # Prepare substitutions for this encoding
     subs = get_substitutions(enc_name, [lang])
+    # Most documents get the older base-letter stand-ins and a share gets
+    # the period spellings.  Only CP866 has either; the two tables are
+    # equal for every other encoding.
+    base_subs = get_substitutions(enc_name, [lang], base_letters=True)
 
     # Serbian is digraphic: for Latin-script targets, transliterate the
     # (predominantly Cyrillic) corpus to Gaj's Latin alphabet (ADR-0004).
@@ -687,11 +696,12 @@ def _build_one_model(
     encoded: list[bytes] = []
     kept_alpha = 0
     total_alpha = 0
-    for text in all_texts:
+    for i, text in enumerate(all_texts):
         if transliterate:
             text = transliterate_serbian_to_latin(text)
         text = normalize_text(text, enc_name)
-        text = apply_substitutions(text, subs)
+        use_period = i % PERIOD_EVERY == PERIOD_OFFSET
+        text = apply_substitutions(text, subs if use_period else base_subs)
         if shaped_visual:
             text = shape_for_codec(text, codec)
         filtered, kept, total = _filter_encodable(text, codec, enc_cache)

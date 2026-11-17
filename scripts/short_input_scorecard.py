@@ -50,9 +50,14 @@ def _non_ascii(text: str) -> int:
     return sum(ord(ch) > 0x7F for ch in text)
 
 
-def _load_language(language: str, rng: random.Random) -> tuple[list[str], list[str]]:
-    """Return sentences and words for *language* from the training cache."""
-    files = sorted((_DATA_DIR / language).glob("*.txt"))
+def _load_language(
+    language: str,
+    rng: random.Random,
+    data_dir: Path,
+    prose_chars: tuple[int, int],
+) -> tuple[list[str], list[str]]:
+    """Return sentences and words for *language* from *data_dir*."""
+    files = sorted((data_dir / language).glob("*.txt"))
     if not files:
         return [], []
     sentences: list[str] = []
@@ -62,7 +67,7 @@ def _load_language(language: str, rng: random.Random) -> tuple[list[str], list[s
         for raw in _SENTENCE_SPLIT.split(text):
             sentence = raw.strip()
             if (
-                _PROSE_CHARS[0] <= len(sentence) <= _PROSE_CHARS[1]
+                prose_chars[0] <= len(sentence) <= prose_chars[1]
                 and _non_ascii(sentence) >= _MIN_NON_ASCII
             ):
                 sentences.append(sentence)
@@ -80,8 +85,17 @@ def _rows(words: list[str], rng: random.Random) -> str:
     return "\r\n".join(lines) + "\r\n"
 
 
-def build_samples(per_pair: int, seed: int) -> list[tuple[str, str, bytes]]:
-    """Return ``(sample id, encoding, data)`` for every encoding-language pair."""
+def build_samples(
+    per_pair: int,
+    seed: int,
+    data_dir: Path = _DATA_DIR,
+    prose_chars: tuple[int, int] = _PROSE_CHARS,
+) -> list[tuple[str, str, bytes]]:
+    """Return ``(sample id, encoding, data)`` for every encoding-language pair.
+
+    *data_dir* holds one directory of ``.txt`` files per language; the
+    default is the training cache.
+    """
     samples: list[tuple[str, str, bytes]] = []
     by_language: dict[str, tuple[list[str], list[str]]] = {}
     for encoding, info in sorted(REGISTRY.items()):
@@ -91,6 +105,8 @@ def build_samples(per_pair: int, seed: int) -> list[tuple[str, str, bytes]]:
                 by_language[language] = _load_language(
                     language,
                     random.Random(f"{seed}/{language}"),  # noqa: S311
+                    data_dir,
+                    prose_chars,
                 )
             sentences, words = by_language[language]
             if not sentences or not words:

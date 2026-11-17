@@ -36,6 +36,26 @@ def dot_packed(idx: array.array, vals: array.array, model: bytes) -> int:
     return dot
 
 
+def seen_packed(idx: array.array, vals: array.array, model: bytes) -> int:
+    """Return the weight of the packed bigrams a model table has an entry for.
+
+    The coverage half of statistical scoring: the same walk as
+    :func:`dot_packed` over the profile's evidence bigrams, adding a
+    bigram's weight when the model's entry for it is non-zero.
+
+    :param idx: ``array('i')`` of bigram indices.
+    :param vals: ``array('i')`` of weights, parallel to *idx*.
+    :param model: 65536-byte model lookup table.
+    :returns: Sum of ``vals[k]`` over the ``k`` where ``model[idx[k]]`` is non-zero.
+    """
+    seen = 0
+    n = len(idx)
+    for i in range(n):
+        if model[idx[i]]:
+            seen += vals[i]
+    return seen
+
+
 def pack_profile(nonzero: list, freq: list) -> tuple:
     """Return parallel ``array('i')`` index/value buffers for a dense profile.
 

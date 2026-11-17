@@ -1092,9 +1092,12 @@ def _validate_encoding(name: str, param_name: str) -> str:
     :param name: The encoding name to validate.
     :param param_name: Parameter name for error messages.
     :returns: The canonical encoding name.
-    :raises ValueError: If the encoding name is unknown.
+    :raises ValueError: If the encoding name is unknown or not a string.
     """
-    canonical = lookup_encoding(name)
+    # A non-string is rejected here like any other unknown name.  Left to
+    # lookup_encoding it surfaced as an AttributeError or TypeError from
+    # deep inside, naming neither the value nor the option (#435).
+    canonical = lookup_encoding(name) if isinstance(name, str) else None
     if canonical is None:
         msg = f"Unknown encoding {name!r} in {param_name}"
         raise ValueError(msg)
