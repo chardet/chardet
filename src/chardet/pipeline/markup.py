@@ -80,10 +80,15 @@ _IGNORED_LABELS = frozenset({"utf-7", "hz"})
 # step looks, so this regex is matched rather than searched.  Further in
 # it is page content (a string in a script, an attribute value), and the
 # prolog is scanned ahead of every meta, so it would outrank the page's
-# real declaration.  A byte order mark, and the leading whitespace a
-# template often emits, can still come first.
+# real declaration.  A byte order mark, the leading whitespace a template
+# often emits, and comments (a license banner, say) can still come first.
+# The regex runs on a head whose comments are already one
+# ``_COMMENT_SEPARATOR`` byte each, so that byte is stepped over with the
+# whitespace.
+_COMMENT_SEPARATOR = b"\xff"
 _XML_ENCODING_RE = re.compile(
-    rb"""(?:\xef\xbb\xbf)?\s*<\?xml\s[^<>]*encoding\s*=\s*['"]([^'"]+)['"]""",
+    rb"""(?:\xef\xbb\xbf)?[\s%b]*<\?xml\s[^<>]*encoding\s*=\s*['"]([^'"]+)['"]"""
+    % re.escape(_COMMENT_SEPARATOR),
     re.IGNORECASE,
 )
 _META_TAG_RE = re.compile(rb"<meta\b([^<>]*)>", re.IGNORECASE)

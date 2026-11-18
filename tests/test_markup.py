@@ -506,8 +506,10 @@ def test_xml_prolog_may_follow_a_bom_and_whitespace(lead: bytes):
     [
         pytest.param(b"<?xml " * 600, id="unclosed-prologs"),
         pytest.param(b"<!doctype html>", id="doctype"),
+        pytest.param(b"<!-- banner --><!doctype html>", id="comment-doctype"),
         pytest.param(b"<html>", id="tag"),
         pytest.param(b"text ", id="text"),
+        pytest.param(b"text <!-- banner -->", id="text-comment"),
     ],
 )
 def test_xml_prolog_past_the_start_is_not_a_declaration(lead: bytes):
@@ -536,6 +538,19 @@ def test_xml_prolog_in_page_content_does_not_outrank_the_meta(fragment: bytes):
     result = detect(page)
     assert result["encoding"] == "ISO-8859-1"
     assert result["mime_type"] == "text/html"
+
+
+def test_xml_prolog_after_comments_still_beats_a_later_meta():
+    """Leading comments do not move the prolog off the start of the document."""
+    data = (
+        b"<!-- banner -->\r\n<!-- license -->\r\n"
+        b'<?xml version="1.0" encoding="iso-8859-5"?>'
+        b'<html><head><meta charset="koi8-r">'
+    )
+    assert _declarations(data) == [
+        Declaration("iso8859-5", "text/xml"),
+        Declaration("koi8-r", "text/html"),
+    ]
 
 
 def test_xml_prolog_in_a_script_cannot_swallow_an_escape():

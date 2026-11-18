@@ -116,6 +116,16 @@ Unreleased
 
 **Bug Fixes:**
 
+- An XML declaration now counts only at the start of the document,
+  where XML puts it and where browsers look for it.  A byte order
+  mark, whitespace, and comments may still come first.  An
+  ``<?xml encoding='shift_jis'?>`` further into the page, in an
+  attribute value or a script string, used to override the page's own
+  earlier ``<meta charset>`` and turn ``mime_type`` into ``text/xml``.
+  An XHTML page with the declaration after its DOCTYPE now reports
+  ``text/html``.
+  (`Samina <https://github.com/Samin061>`_,
+  `#427 <https://github.com/chardet/chardet/pull/427>`_)
 - A valueless first attribute in an HTML meta tag now blocks later
   duplicates, just like an explicitly empty value. This prevents
   ``<meta charset charset=shift_jis>`` from adopting the later charset,
