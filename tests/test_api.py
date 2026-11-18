@@ -76,20 +76,20 @@ def test_prefer_superset_respects_encoding_filters(
     assert all(result["encoding"] == expected for result in results)
 
 
-_RUSSIAN_ISO_8859_5 = (
-    "Москва является столицей России и крупнейшим городом страны. "
-    "Город расположен на реке Москве и насчитывает более восьми "
-    "столетий истории, начиная с первого упоминания в летописи."
-).encode("iso8859-5")
+_TURKISH_ISO_8859_9 = (
+    "İstanbul, Türkiye'nin en kalabalık şehri ve ülkenin ekonomik, tarihî "
+    "ve kültürel merkezidir. Şehir, Boğaziçi'nin iki yakasına yayılmıştır "
+    "ve yüzyıllar boyunca birçok imparatorluğa başkentlik yapmıştır.\n"
+).encode("iso8859-9")
 
 
 @pytest.mark.parametrize("api", ["detect", "detect_all", "stream"])
 @pytest.mark.parametrize(
     ("era", "expected"),
     [
-        (EncodingEra.LEGACY_ISO, "iso8859-5"),
-        (EncodingEra.LEGACY_ISO | EncodingEra.MODERN_WEB, "cp1251"),
-        (EncodingEra.ALL, "cp1251"),
+        (EncodingEra.LEGACY_ISO, "iso8859-9"),
+        (EncodingEra.LEGACY_ISO | EncodingEra.MODERN_WEB, "cp1254"),
+        (EncodingEra.ALL, "cp1254"),
     ],
     ids=["legacy_iso", "legacy_iso_and_modern_web", "all"],
 )
@@ -100,14 +100,42 @@ def test_prefer_superset_respects_encoding_era(
     kwargs = {"encoding_era": era, "prefer_superset": True, "compat_names": False}
     if api == "stream":
         detector = UniversalDetector(**kwargs)
-        detector.feed(_RUSSIAN_ISO_8859_5)
+        detector.feed(_TURKISH_ISO_8859_9)
         results = [detector.close()]
     elif api == "detect_all":
-        results = chardet.detect_all(_RUSSIAN_ISO_8859_5, **kwargs)
+        results = chardet.detect_all(_TURKISH_ISO_8859_9, **kwargs)
     else:
-        results = [chardet.detect(_RUSSIAN_ISO_8859_5, **kwargs)]
+        results = [chardet.detect(_TURKISH_ISO_8859_9, **kwargs)]
     assert results[0]["encoding"] == expected
     assert all(REGISTRY[result["encoding"]].era & era for result in results)
+
+
+_HEBREW = (
+    "ירושלים היא עיר הבירה של מדינת ישראל והעיר הגדולה ביותר בה. "
+    "העיר שוכנת בהרי יהודה, בין הים התיכון לבין ים המלח, והיא אחת "
+    "הערים העתיקות בעולם. תושבים רבים מגיעים אליה מכל רחבי הארץ."
+)
+
+
+@pytest.mark.parametrize("prefer_superset", [False, True])
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [(_HEBREW, "Windows-1255"), (_HEBREW[::-1], "ISO-8859-8")],
+    ids=["logical", "visual"],
+)
+def test_hebrew_name_tells_storage_order(
+    text: str, expected: str, *, prefer_superset: bool
+):
+    """ISO-8859-8 means visual-order Hebrew and Windows-1255 logical order.
+
+    The two codecs read the letters alike, so the name is the only place
+    the storage order shows.  ``prefer_superset`` must not rename the
+    visual answer to Windows-1255, which would tell a caller to display
+    the text the wrong way round.
+    """
+    data = text.encode("iso8859-8")
+    result = chardet.detect(data, prefer_superset=prefer_superset)
+    assert result["encoding"] == expected
 
 
 def test_detect_utf8_bom():
@@ -483,6 +511,13 @@ def test_detect_cp273():
     assert result["encoding"].upper().startswith("CP")
 
 
+def test_detect_hp_roman8_with_only_guillemets():
+    """hp-roman8 text whose only high bytes are quotation marks stays hp-roman8."""
+    data = "«Mamm, naon am eus-me !»".encode("hp-roman8")
+    result = chardet.detect(data, encoding_era=EncodingEra.ALL)
+    assert result["encoding"] == "hp-roman8"
+
+
 def test_detect_hp_roman8():
     data = (
         "Les élèves français étudient la littérature européenne avec "
@@ -832,6 +867,76 @@ def test_detect_unknown_empty_input_raises():
         chardet.detect(b"Hello", empty_input_encoding="not-real")
 
 
+# What a fallback excluded by the filters has always returned: no encoding,
+# and the MIME type every result without one gets.
+_NO_ENCODING = {
+    "encoding": None,
+    "confidence": 0.0,
+    "language": None,
+    "mime_type": "application/octet-stream",
+}
+_UNDECODABLE_AS_ASCII = b"\x80\x81\x82\x83\x84\x85"
+
+
+def _run_api(api: str, data: bytes, **kwargs: object) -> dict[str, object]:
+    """Run *data* through one of the three public entry points."""
+    if api == "stream":
+        detector = UniversalDetector(**kwargs)
+        if data:
+            detector.feed(data)
+        return dict(detector.close())
+    if api == "detect_all":
+        results = chardet.detect_all(data, **kwargs)
+        assert len(results) == 1
+        return dict(results[0])
+    return dict(chardet.detect(data, **kwargs))
+
+
+@pytest.mark.parametrize("api", ["detect", "detect_all", "stream"])
+def test_empty_input_encoding_none_reports_no_encoding(api: str):
+    """``empty_input_encoding=None`` asks for no answer on empty input (#435)."""
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        assert _run_api(api, b"", empty_input_encoding=None) == _NO_ENCODING
+
+
+@pytest.mark.parametrize("api", ["detect", "detect_all", "stream"])
+def test_no_match_encoding_none_reports_no_encoding(api: str):
+    """``no_match_encoding=None`` asks for no answer when nothing fits (#435)."""
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        result = _run_api(
+            api,
+            _UNDECODABLE_AS_ASCII,
+            include_encodings=["ascii"],
+            no_match_encoding=None,
+        )
+    assert result == _NO_ENCODING
+
+
+@pytest.mark.parametrize("option", ["empty_input_encoding", "no_match_encoding"])
+def test_none_fallback_leaves_other_results_alone(option: str):
+    """A ``None`` fallback changes nothing when the fallback is not reached."""
+    data = "Héllo wörld café résumé naïve".encode()
+    assert chardet.detect(data, **{option: None}) == chardet.detect(data)
+
+
+@pytest.mark.parametrize("api", ["detect", "detect_all", "stream"])
+@pytest.mark.parametrize("option", ["empty_input_encoding", "no_match_encoding"])
+@pytest.mark.parametrize("bad", [123, b"utf-8", 1.5, ("utf-8",)])
+def test_non_string_fallback_raises_value_error(api: str, option: str, bad: object):
+    """A fallback that is not a name fails like any other unknown name."""
+    with pytest.raises(ValueError, match=f"Unknown encoding .* in {option}"):
+        _run_api(api, b"Hello", **{option: bad})
+
+
+@pytest.mark.parametrize("option", ["include_encodings", "exclude_encodings"])
+@pytest.mark.parametrize("bad", [None, 123, b"utf-8"])
+def test_non_string_filter_entry_raises_value_error(option: str, bad: object):
+    with pytest.raises(ValueError, match=f"Unknown encoding .* in {option}"):
+        chardet.detect(b"Hello", **{option: ["utf-8", bad]})
+
+
 def test_detect_all_with_exclude():
     """detect_all respects exclude_encodings."""
     data = "Héllo wörld café résumé naïve".encode()
@@ -1125,15 +1230,15 @@ def test_utf8_not_reported_for_garbage_final_sequence(prefix: bytes):
 def test_detect_all_prefer_superset_lists_each_name_once():
     """The superset remap must not list one name at two confidences.
 
-    ISO-8859-7 and Windows-1253 both become Windows-1253 under
+    ISO-8859-9 and Windows-1254 both become Windows-1254 under
     ``prefer_superset``; the entry kept is the higher-confidence one.
     """
-    data = "Καλημέρα κόσμε, αυτό είναι δοκιμή. ".encode("iso8859-7") * 40
+    data = _TURKISH_ISO_8859_9
     plain = chardet.detect_all(data)
-    assert [d["encoding"] for d in plain][:2] == ["ISO-8859-7", "Windows-1253"]
+    assert [d["encoding"] for d in plain][:2] == ["ISO-8859-9", "Windows-1254"]
     ranked = chardet.detect_all(data, prefer_superset=True)
     names = [d["encoding"] for d in ranked]
-    assert names[0] == "Windows-1253"
+    assert names[0] == "Windows-1254"
     assert len(names) == len(set(names))
     assert ranked[0]["confidence"] == plain[0]["confidence"]
     assert len(ranked) == len(plain) - 1

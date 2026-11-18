@@ -1,13 +1,18 @@
 # tests/test_evaluation.py
 from __future__ import annotations
 
+import pytest
+
 from chardet.evaluation import (
+    SUPERSETS,
     is_acceptable,
     is_correct,
     is_equivalent_detection,
     is_exact_match,
     is_language_equivalent,
 )
+from chardet.output_names import PREFERRED_SUPERSET
+from chardet.registry import lookup_encoding
 
 
 def test_identical_decode_returns_true():
@@ -209,6 +214,41 @@ def test_is_acceptable_rejects_differing_decodes():
     """Neither half accepts encodings that read this data differently."""
     data = "Привет мир".encode("cp1251")
     assert is_acceptable(data, "cp1251", "cp1252") is False
+
+
+@pytest.mark.parametrize(
+    ("iso", "windows", "text"),
+    [
+        ("iso-8859-2", "cp1250", "Zażółć gęślą jaźń"),
+        ("iso-8859-5", "cp1251", "Привет мир"),
+        ("iso-8859-6", "cp1256", "مرحبا بالعالم"),
+        ("iso-8859-7", "cp1253", "Ώρα για καφέ"),
+        ("iso-8859-8", "cp1255", "שלום עולם"),
+        ("iso-8859-13", "cp1257", "Žalia žolė"),
+    ],
+)
+def test_lookalike_windows_page_is_accepted_only_on_equal_text(
+    iso: str, windows: str, text: str
+):
+    """A lookalike Windows page is no superset, so its name alone is wrong.
+
+    It still passes for a file both names decode to the same text, which
+    is what plain ASCII stands in for here.
+    """
+    assert is_correct(iso, windows) is False
+    assert is_acceptable(b"plain ascii text", iso, windows) is True
+    data = text.encode(iso)
+    same_text = data.decode(iso) == data.decode(windows, "replace")
+    assert is_acceptable(data, iso, windows) is same_text
+
+
+def test_single_byte_supersets_match_the_prefer_superset_table():
+    """Every single-byte pair the evaluation accepts by name is a real remap."""
+    for subset, supersets in SUPERSETS.items():
+        codec = lookup_encoding(subset)
+        if codec is None or not codec.startswith("iso8859"):
+            continue
+        assert supersets == {PREFERRED_SUPERSET[codec]}
 
 
 def test_is_exact_match_none_expected():

@@ -49,8 +49,8 @@ class UniversalDetector:
         compat_names: bool = True,
         include_encodings: Iterable[str] | None = None,
         exclude_encodings: Iterable[str] | None = None,
-        no_match_encoding: str = "cp1252",
-        empty_input_encoding: str = "utf-8",
+        no_match_encoding: str | None = "cp1252",
+        empty_input_encoding: str | None = "utf-8",
     ) -> None:
         """Initialize the detector.
 
@@ -61,8 +61,8 @@ class UniversalDetector:
         :param encoding_era: Restrict candidate encodings to the given era.
         :param max_bytes: Maximum number of bytes to buffer from
             :meth:`feed` calls before stopping accumulation.
-        :param prefer_superset: If ``True``, remap subset encodings in the
-            result to their decode-safe Windows/CP superset equivalents
+        :param prefer_superset: If ``True``, report a subset encoding
+            in the result under its Windows/CP superset
             (e.g., ISO-8859-1 -> Windows-1252).  If ``False`` (default),
             skip the renaming --- not a promise of the smallest matching
             encoding.  The default will change to ``True`` in chardet 8.0.
@@ -75,9 +75,11 @@ class UniversalDetector:
         :param exclude_encodings: If given, remove these encodings from the
             candidate set.
         :param no_match_encoding: Encoding to return when no candidate
-            survives the pipeline.  Defaults to ``"cp1252"``.
+            survives the pipeline.  Defaults to ``"cp1252"``.  Pass
+            ``None`` to get ``encoding=None`` at confidence 0.0 instead.
         :param empty_input_encoding: Encoding to return for empty input.
-            Defaults to ``"utf-8"``.
+            Defaults to ``"utf-8"``.  Pass ``None`` to get
+            ``encoding=None`` at confidence 0.0 instead.
         """
         if lang_filter != LanguageFilter.ALL:
             warnings.warn(

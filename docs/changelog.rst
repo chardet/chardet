@@ -21,6 +21,17 @@ Unreleased
   ``EUC-JP``.  Output without the flags is unchanged.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude,
   `#407 <https://github.com/chardet/chardet/pull/407>`_)
+- ``no_match_encoding`` and ``empty_input_encoding`` now take ``None``,
+  which returns ``encoding=None`` at confidence 0.0 for that case, as
+  chardet 6 did.  ``None`` used to raise ``AttributeError`` on every
+  call, even for input that never reached the fallback.  Any other
+  value that is not a string, here or in ``include_encodings`` and
+  ``exclude_encodings``, now raises the same ``ValueError`` as an
+  unknown name.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude;
+  reported by `Rahul <https://github.com/rahul05ranjan>`_,
+  `#435 <https://github.com/chardet/chardet/issues/435>`_,
+  `#442 <https://github.com/chardet/chardet/pull/442>`_)
 
 **Improvements:**
 
@@ -49,6 +60,21 @@ Unreleased
   `#408 <https://github.com/chardet/chardet/pull/408>`_,
   `#411 <https://github.com/chardet/chardet/pull/411>`_)
 
+- Short Ukrainian and Serbian text in cp866 gets the right language
+  more often.  cp866 is a Russian code page, so writers of other
+  Cyrillic languages typed something else for the letters it lacks, and
+  the models had only seen the closest Russian letter.  One training
+  document in four now uses the spellings found in FidoNet and Usenet
+  archives instead: a Latin ``i`` for Ukrainian and Belarusian ``і``,
+  and ``ль``, ``нь``, ``дж``, and a Latin ``h`` for Serbian ``љ``,
+  ``њ``, ``џ``, and ``ћ``.  On held-out single sentences spelled that
+  way, the language is right for 85.9% of Ukrainian (was 72.8%) and
+  82.0% of Serbian (was 73.5%).  Only cp866 models changed: the four
+  for Ukrainian, Belarusian, Serbian, and Macedonian, and one bigram
+  in the Russian one.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude,
+  `#452 <https://github.com/chardet/chardet/pull/452>`_)
+
 **Performance:**
 
 - A long base64 run after a ``+`` no longer makes the UTF-7 check
@@ -64,9 +90,71 @@ Unreleased
   ``detect()`` never builds this table, so detection speed is unchanged.
   (`Dex Hünter <https://github.com/dexhunter>`_,
   `#415 <https://github.com/chardet/chardet/pull/415>`_)
+- Statistical scoring is faster on pure-Python installs under CPython
+  3.12 and later.  The per-model dot products and pruning bounds now go
+  through ``math.sumprod`` instead of one Python-level multiply per
+  bigram.  Text that reaches that stage was detected about 1.5x faster
+  in our runs on 3.12, 3.14, and free-threaded 3.14t.  Every score is
+  identical.  Compiled wheels and PyPy take the same path as before.
+  (`Dickson Wu <https://github.com/DicksonWu654>`_,
+  `#429 <https://github.com/chardet/chardet/pull/429>`_)
+- The UTF-16/32 stage now returns right away for input with no null
+  byte, which is most input, and on pure-Python installs it counts
+  nulls with slices instead of a loop.  Pure Python is about 1.35x
+  faster on ASCII and 1.13x on UTF-16/32; compiled wheels save about 4%
+  on short ASCII.  No result changed.
+  (`Dickson Wu <https://github.com/DicksonWu654>`_,
+  `#430 <https://github.com/chardet/chardet/pull/430>`_)
+- The validity stage no longer decodes the window once per single-byte
+  candidate.  A single-byte codec fails only on a byte it leaves
+  undefined, so the stage looks for those bytes instead; codecs with
+  more than 16 of them keep the decode, which is faster there.
+  ``detect()`` on 200 KB of ISO-8859-1 went from 6.4 ms to 3.6 ms on the
+  compiled build.  No result changed.
+  (`Afonso Ribeiro <https://github.com/deadstrobe5>`_,
+  `#431 <https://github.com/chardet/chardet/pull/431>`_)
 
 **Bug Fixes:**
 
+- A valueless first attribute in an HTML meta tag now blocks later
+  duplicates, just like an explicitly empty value. This prevents
+  ``<meta charset charset=shift_jis>`` from adopting the later charset,
+  and also applies to ``http-equiv``, ``content``, and ``name``.
+  (`Nash Aschenbath <https://github.com/Aschenbath>`_ via Codex,
+  `#449 <https://github.com/chardet/chardet/issues/449>`_)
+
+- HP-Roman8 text whose only non-ASCII characters are guillemets or an
+  em dash is no longer reported as Windows-1252.  ``«Mamm»`` came back
+  as ``ûMammý``.  The rule that demotes HP-Roman8 when the input has
+  none of its telltale bytes only counted letters, so punctuation was
+  never weighed.  Those bytes now go to the same arbitration the
+  letters get, and HP-Roman8 stays only if it wins.  On held-out
+  HP-Roman8 sentences with only typographic marks, 106 of 141 are now
+  right, up from none, and no held-out Windows-1252 or ISO-8859-1
+  sample changed.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude,
+  `#447 <https://github.com/chardet/chardet/pull/447>`_)
+- Short Windows-1252 text is no longer reported as MacTurkish or CP862.
+  A few rows of German names, or a line with a euro sign, could lose to
+  an encoding whose model matched one byte pair strongly and had never
+  seen the rest.  The statistical stage only rewarded matches, so the
+  pairs a model had never seen cost it nothing.  A candidate's score is
+  now scaled down by the share of the input's weight that falls on
+  non-ASCII byte pairs its model has never seen.  The bigram models are
+  also retrained on text where one document in four uses its language's
+  own quotation marks, curly apostrophes, en dashes, and ellipses, so
+  the Windows and Mac models know the punctuation real documents use.
+  On held-out text (Tatoeba sentences and the Universal Declaration of
+  Human Rights, neither used in training) short inputs detected right
+  went from 93.7% to 96.6% and from 98.3% to 99.0%, and text whose only
+  non-ASCII characters are typographic marks from 66.5% to 78.1%.
+  Confidence values for statistical results are lower than before on
+  inputs with pairs the winning model has not seen, and the reported
+  language follows the model that wins after the scaling.  Thanks to
+  `jayhemnani9910 <https://github.com/jayhemnani9910>`_ for the report.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude,
+  `#434 <https://github.com/chardet/chardet/issues/434>`_,
+  `#445 <https://github.com/chardet/chardet/pull/445>`_)
 - The warning for an excluded ``no_match_encoding`` now points at the
   caller's line when the fallback is reached past the evidence cap.  It
   used to name ``chardet/__init__.py`` on that one path.
@@ -113,11 +201,86 @@ Unreleased
   does not have.  ``<meta charset="utf-8">`` over a body holding
   ``+ADwAcwBjAHIAaQBwAHQAPg-`` used to get UTF-7 at 0.95, and decoding
   with that answer turned inert text into a ``<script>`` tag; the
-  declaration now stands, as it does in every browser.  UTF-7 that
-  shifts only non-ASCII text still wins over a stale declaration, and
-  undeclared UTF-7 is unchanged.
+  declaration now stands, as it does in every browser.  Undeclared
+  UTF-7 is unchanged.
   (`Samina <https://github.com/Samin061>`_,
   `#419 <https://github.com/chardet/chardet/pull/419>`_)
+- A charset declaration that decodes the page now beats every escape
+  sequence answer: UTF-7 (with or without the ``+/v8-`` signature),
+  HZ-GB-2312, and ISO-2022-JP/KR.  Escape sequences are ASCII bytes
+  that any page can hold, so the declaration is the better evidence.
+  #419 above did this only for a UTF-7 reading that added markup.  A
+  page that declares an ISO-2022 name still gets the variant its escape
+  sequences call for, and pages with no declaration are unchanged.  The
+  cost: UTF-7, HZ, or ISO-2022 text under a wrong declaration now gets
+  the declared name.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude,
+  `#438 <https://github.com/chardet/chardet/pull/438>`_)
+- A ``<!-- -->`` comment no longer joins the text on either side of it
+  into a charset declaration.  ``<me<!-- -->ta charset="cp1251">`` over
+  ASCII text used to get Windows-1251 at 0.95, though the page has no
+  meta tag, and that made-up declaration beat any real one after it.
+  A comment before a declaration or between its attributes still
+  leaves it in place.
+  (`Parijat Biswas <https://github.com/parijat1222q>`_,
+  `#423 <https://github.com/chardet/chardet/pull/423>`_)
+- ``prefer_superset=True`` no longer renames ISO-8859-2, -5, -6, -7, -8
+  or -13 to a Windows code page.  Those were never supersets: Windows-1251
+  reads 94 bytes differently from ISO-8859-5, so correctly detected
+  Russian came back under a name that garbles it, and Arabic, Polish,
+  Czech and Slovak text lost letters the same way.  For Hebrew the rename
+  hid the storage order, since ISO-8859-8 is how visual-order text is
+  told from logical-order Windows-1255.  The option now covers only the
+  pairs browsers also merge: ASCII, ISO-8859-1, ISO-8859-9, TIS-620 and
+  EUC-KR.  ``UniversalDetector.LEGACY_MAP`` loses the six entries.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude;
+  `nk-batman21 <https://github.com/nk-batman21>`_,
+  `#439 <https://github.com/chardet/chardet/pull/439>`_,
+  `#426 <https://github.com/chardet/chardet/pull/426>`_)
+- Text that starts with "BM" is no longer reported as a BMP image.
+  ``detect(b"BMW 320i, 2019, 45000 km\n")`` used to return no encoding
+  and ``image/bmp``.  A BMP now also needs a known DIB header size after
+  its 14-byte file header, and a tar archive whose first member name
+  starts with "BM" is a tar again.
+  (`Enes Uygur <https://github.com/Enesuygurs>`_,
+  `#424 <https://github.com/chardet/chardet/pull/424>`_)
+- Text that starts with another short printable file signature, like
+  ``MZ``, ``ID3``, ``BZh``, ``OTTO``, ``OggS`` or ``fLaC``, is no longer
+  reported as binary.  An HTML page beginning with "MZ" used to come
+  back as a Windows executable, and its charset declaration was never
+  read.  Signatures of four printable bytes or fewer now count only when
+  the first 64 bytes hold a control byte, as every real file in those
+  formats does.
+  (`Samina <https://github.com/Samin061>`_,
+  `#437 <https://github.com/chardet/chardet/pull/437>`_)
+- ``chardet.evaluation`` no longer counts a Windows code page as a
+  correct answer for ISO-8859-2, -5, -6, -7, -8 or -13 text by name
+  alone, matching the ``prefer_superset`` change above.  The Windows
+  name still passes for a file both names decode to the same text.  30
+  test-data files that were really Windows-1250, -1252, -1254 or -1255
+  moved to the right directories.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude,
+  `#441 <https://github.com/chardet/chardet/pull/441>`_)
+- ASCII with a ``+`` in it is far less often reported as UTF-7.  A
+  shifted run now has to decode to text that shares a script, checked
+  against a table generated from Unicode's ``Scripts.txt``, and a ``+``
+  inside an email address like ``user+detail@example.com`` is never read
+  as a shift.  ``qt6-webengine-6.8.2+dfsg/LICENSES/Qt-GPL-exception-1.0.txt``
+  used to get UTF-7 at 0.95; its run decodes to Han, Hangul and Georgian
+  letters and two code points that are not characters at all.  On
+  40,000 real source paths under ``+dfsg``-style directories, false
+  UTF-7 answers fell from 1,173 to 8, with no real UTF-7 lost in 49
+  languages.  A run of one character is now judged by Unicode's list
+  of Recommended Scripts, and by the national character sets for Han
+  and Hangul, in place of a hand-picked list of ranges: ``WxH+X+Y`` and
+  ``U+039A`` stay ASCII, and a lone Vietnamese letter like ``ệ`` is
+  UTF-7.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude;
+  `inchang-ing <https://github.com/inchang-ing>`_;
+  reported by `Stefan Rehm <https://github.com/srehm>`_,
+  `#432 <https://github.com/chardet/chardet/issues/432>`_,
+  `#433 <https://github.com/chardet/chardet/pull/433>`_,
+  `#443 <https://github.com/chardet/chardet/pull/443>`_)
 
 **Build:**
 

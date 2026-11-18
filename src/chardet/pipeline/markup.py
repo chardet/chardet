@@ -87,6 +87,16 @@ _XML_ENCODING_RE = re.compile(
     re.IGNORECASE,
 )
 _META_TAG_RE = re.compile(rb"<meta\b([^<>]*)>", re.IGNORECASE)
+# The same meta tags, but every other tag matches the second branch, so its
+# quoted attribute values are stepped over as the WHATWG prescan steps over
+# them: in ``<img alt="<meta charset=x>">`` the meta is alt text, not a tag.
+# As in the prescan, a quote opens a value only right after ``=``.  The
+# branch cannot fail once it has a letter, so the scan stays linear; outside
+# a quoted value, ``<`` still ends the tag.
+_TAG_RE = re.compile(
+    rb"""<meta\b([^<>]*)>|<(?!meta\b)/?[a-z](?:[^<>=]+|=\s*(?:"[^"]*"|'[^']*')?)*""",
+    re.IGNORECASE,
+)
 # DOTALL so a quoted value may span lines.
 _ATTR_RE = re.compile(
     rb"""([^\s=/>]+)(?:\s*=\s*(?:(["'])(.*?)\2|([^\s>"']+)))?""",
@@ -232,13 +242,24 @@ def _pep263_declaration(data: bytes) -> Declaration | None:
     return Declaration(_pep263_encoding(raw_name), "text/x-python")
 
 
+_COMMENT_SEPARATOR = b"\xff"
+
+
 def _strip_comments(head: bytes) -> bytes:
-    """Return *head* without its ``<!-- -->`` comments.
+    """Return *head* with each ``<!-- -->`` comment replaced by one byte.
 
     A declaration inside a comment is not a declaration, and the WHATWG
     prescan skips comments for that reason.  As in the prescan, the dashes
     that open a comment may also close it (``<!-->`` is a whole comment),
     and a comment that never closes runs to the end of the head.
+
+    The byte left in a comment's place, :data:`_COMMENT_SEPARATOR`, keeps
+    the text on either side apart: ``<me<!-- -->ta`` is not a meta tag and
+    ``cp<!-- -->1251`` is not a label.  It is not ASCII, so it cannot
+    complete a tag or attribute name, and a label that holds it fails the
+    ASCII check before any codec lookup could fold it into ``_``.  It is
+    not ``<`` or ``>`` either, so a tag with a comment inside it still
+    matches and keeps its declaration.
     """
     start = head.find(b"<!--")
     if start < 0:
@@ -249,11 +270,11 @@ def _strip_comments(head: bytes) -> bytes:
         parts.append(head[pos:start])
         end = head.find(b"-->", start + 2)
         if end < 0:
-            return b"".join(parts)
+            return _COMMENT_SEPARATOR.join(parts)
         pos = end + 3
         start = head.find(b"<!--", pos)
     parts.append(head[pos:])
-    return b"".join(parts)
+    return _COMMENT_SEPARATOR.join(parts)
 
 
 def _markup_encoding(raw_name: str) -> str | None:
@@ -278,8 +299,7 @@ def _meta_attributes(body: bytes) -> dict[bytes, bytes]:
         value = match.group(3)
         if value is None:
             value = match.group(4)
-        if value is not None:
-            attrs[name] = value
+        attrs[name] = value if value is not None else b""
     return attrs
 
 
@@ -290,10 +310,19 @@ def _iter_html_charsets(head: bytes) -> Iterator[bytes]:
     is not a declaration. A declaration is a ``charset`` attribute, or the
     ``charset`` parameter of an ``http-equiv="content-type"`` tag.
     ``name="content-type"`` is wrong by the spec but common enough in the
-    wild that it counts too.
+    wild that it counts too.  A ``<meta`` inside another tag's attribute
+    value is not a tag at all.
     """
-    for tag in _META_TAG_RE.finditer(head):
-        attrs = _meta_attributes(tag.group(1))
+    # Walking every tag costs far more than finding ``<meta``, so a head
+    # with no meta tag skips the walk, and a page whose declaration comes
+    # first walks only the tags before it.
+    if _META_TAG_RE.search(head) is None:
+        return
+    for tag in _TAG_RE.finditer(head):
+        body = tag.group(1)
+        if body is None:
+            continue
+        attrs = _meta_attributes(body)
         charset = attrs.get(b"charset")
         if charset is not None and charset.strip():
             yield charset

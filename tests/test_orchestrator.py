@@ -6,7 +6,9 @@ import pytest
 import chardet.pipeline.orchestrator as _orchestrator_mod
 from chardet.enums import EncodingEra
 from chardet.pipeline import DetectionResult
+from chardet.pipeline.markup import detect_markup_charset
 from chardet.pipeline.orchestrator import run_pipeline
+from chardet.registry import get_candidates
 
 #: mypyc compiles a module's calls to functions defined in (or imported
 #: into) that same module into direct native calls, so replacing those
@@ -114,6 +116,27 @@ def test_binary_content():
     assert result[0].confidence == 0.95
 
 
+def test_short_magic_signature_on_text_falls_through():
+    """Text starting with a signature word is detected as text."""
+    result = run_pipeline(b"BMW makes cars.\n", EncodingEra.ALL)
+    assert result[0].encoding == "ascii"
+    assert result[0].mime_type == "text/plain"
+
+
+def test_short_magic_signature_cut_to_bare_signature_reads_as_text():
+    """A window cut down to a bare short signature reads as text.
+
+    Accepted on purpose: the same header is an executable when the window
+    reaches its control bytes.
+    """
+    data = b"MZ\x90\x00\x03\x00\x00\x00\x04\x00\x00\x00\xff\xff\x00\x00"
+    full = run_pipeline(data, EncodingEra.ALL)
+    assert full[0].mime_type == "application/vnd.microsoft.portable-executable"
+    cut = run_pipeline(data, EncodingEra.ALL, max_bytes=2)
+    assert cut[0].encoding == "ascii"
+    assert cut[0].mime_type == "text/plain"
+
+
 def test_xml_charset_declaration():
     data = b'<?xml version="1.0" encoding="iso-8859-1"?><root>Hello</root>'
     result = run_pipeline(data, EncodingEra.ALL)
@@ -170,15 +193,166 @@ def test_declaration_beats_utf7_escape_cut_at_window_edge(tail: bytes, smuggled:
     assert result[0].mime_type == "text/html"
 
 
-def test_utf7_under_stale_declaration_still_utf7():
-    """UTF-7 that shifts only non-ASCII text outranks a stale declaration."""
-    data = (
-        b'<?xml version="1.0" encoding="utf-8"?><r>'
-        + "Héllo, 世界".encode("utf-7")
-        + b"</r>"
-    )
+def test_declaration_beats_utf7_text():
+    """UTF-7 that shifts only non-ASCII text still yields to a declaration."""
+    body = "Héllo, 世界".encode("utf-7")
+    assert run_pipeline(b"<r>" + body + b"</r>", EncodingEra.ALL)[0].encoding == "utf-7"
+    data = b'<?xml version="1.0" encoding="utf-8"?><r>' + body + b"</r>"
     result = run_pipeline(data, EncodingEra.ALL)
-    assert result[0].encoding == "utf-7"
+    assert result[0].encoding == "utf-8"
+    assert result[0].mime_type == "text/xml"
+
+
+_UTF8_HEAD = b'<html><head><meta charset="utf-8"></head><body>'
+
+
+@pytest.mark.parametrize(
+    ("stream", "smuggled"),
+    [
+        # One run per tag, and one run per character.
+        (b"+/v8-<p>+ADwAcwBjAHIAaQBwAHQAPg-alert(1)", "<script>alert(1)"),
+        (b"+/v8-<p>+ADw-script+AD4-alert(1)", "<script>alert(1)"),
+        # The signature's own run carries on into the tag.
+        (b"+/v8APABzAGMAcgBpAHAAdAA+-alert(1)", "<script>alert(1)"),
+    ],
+)
+def test_declaration_beats_utf7_signature(stream: bytes, smuggled: str):
+    """A UTF-7 signature does not carry a page past its declaration."""
+    assert smuggled in stream.decode("utf-7")
+    # Without a declaration the signature names the encoding.
+    undeclared = run_pipeline(stream, EncodingEra.ALL)
+    assert undeclared[0].encoding == "utf-7"
+    assert undeclared[0].confidence == 1.0
+    data = stream + _UTF8_HEAD
+    assert smuggled in data.decode("utf-7")
+    result = run_pipeline(data, EncodingEra.ALL)
+    assert result[0].encoding == "utf-8"
+    assert result[0].mime_type == "text/html"
+    assert smuggled not in data.decode("utf-8")
+
+
+def test_declaration_beats_utf7_signature_on_text():
+    """Signed UTF-7 that shifts only non-ASCII text yields to a declaration too."""
+    body = b"+/v8-" + "<p>Héllo, 世界</p>".encode("utf-7")
+    undeclared = run_pipeline(body, EncodingEra.ALL)
+    assert undeclared[0].encoding == "utf-7"
+    assert undeclared[0].confidence == 1.0
+    result = run_pipeline(body + _UTF8_HEAD, EncodingEra.ALL)
+    assert result[0].encoding == "utf-8"
+
+
+@pytest.mark.parametrize(
+    ("body", "escape_encoding", "escape_reading"),
+    [
+        # HZ drops "~" plus a newline, joining the two halves of a tag.
+        (
+            b"<p>~{<:Ky2;~}</p><scr~\nipt>alert(1)</scr~\nipt>",
+            "hz",
+            "<script>alert(1)</script>",
+        ),
+        # A two-byte run that swallows the quote closing an attribute.
+        (
+            b'<p>~{<:Ky~}</p><img alt="~{0!"><p~}" onerror=alert(1) src=x>',
+            "hz",
+            '<img alt="啊⒕拣" onerror=alert(1) src=x>',
+        ),
+        (
+            b'<img alt="\x1b$B!!"><p\x1b(B" onerror=alert(1) src=x>',
+            "iso2022_jp_2",
+            '<img alt="\u3000⊂腫" onerror=alert(1) src=x>',
+        ),
+        (
+            b'\x1b$)C<img alt="\x0e0!"><p\x0f" onerror=alert(1) src=x>',
+            "iso2022_kr",
+            '<img alt="가♥숀" onerror=alert(1) src=x>',
+        ),
+        # JIS X 0201 Roman reads the backslash escaping a quote as a yen sign.
+        (
+            b"<script>var a='\x1b(J\\';alert(1)//\x1b(B';</script>",
+            "iso2022_jp_2",
+            "var a='\u00a5';alert(1)//",
+        ),
+    ],
+)
+@pytest.mark.parametrize(
+    ("head", "expected", "mime_type"),
+    [
+        (_UTF8_HEAD, "utf-8", "text/html"),
+        (
+            b'<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">',
+            "iso8859-1",
+            "text/html",
+        ),
+        (b'<?xml version="1.0" encoding="UTF-8"?>', "utf-8", "text/xml"),
+    ],
+)
+def test_declaration_beats_hz_and_iso2022_escape(  # noqa: PLR0913
+    head: bytes,
+    expected: str,
+    mime_type: str,
+    body: bytes,
+    escape_encoding: str,
+    escape_reading: str,
+):
+    """A declared charset is not re-read as HZ or ISO-2022."""
+    # Without a declaration the escape stage answers, and its reading has
+    # markup the bytes do not.
+    undeclared = run_pipeline(body, EncodingEra.ALL)
+    assert undeclared[0].encoding == escape_encoding
+    assert escape_reading in body.decode(escape_encoding)
+    data = head + body
+    result = run_pipeline(data, EncodingEra.ALL)
+    assert result[0].encoding == expected
+    assert result[0].mime_type == mime_type
+    assert escape_reading not in data.decode(expected)
+
+
+@pytest.mark.parametrize(
+    ("label", "body", "declared", "expected"),
+    [
+        (
+            "iso-2022-jp",
+            "こんにちは世界".encode("iso2022_jp"),
+            "iso2022_jp_2",
+            "iso2022_jp_2",
+        ),
+        # Shift-out and shift-in make it JP-EXT, which the label's codec
+        # also decodes: the designations name the variant, not the label.
+        (
+            "iso-2022-jp",
+            "こんにちは".encode("iso2022_jp") + b" \x0e6@6E\x0f",
+            "iso2022_jp_2",
+            "iso2022_jp_ext",
+        ),
+        ("iso-2022-kr", "안녕하세요".encode("iso2022_kr"), "iso2022_kr", "iso2022_kr"),
+    ],
+)
+def test_declared_iso2022_keeps_escape_answer(
+    label: str, body: bytes, declared: str, expected: str
+):
+    """A page that declares ISO-2022 is answered by the escape stage."""
+    data = f'<meta charset="{label}"><p>'.encode() + body + b"</p>"
+    allowed = frozenset(e.name for e in get_candidates(EncodingEra.ALL))
+    declaration = detect_markup_charset(data, allowed)
+    assert declaration is not None
+    assert declaration.encoding == declared
+    result = run_pipeline(data, EncodingEra.ALL)
+    assert result[0].encoding == expected
+
+
+def test_undeclared_hz_and_iso2022_unchanged():
+    """With no declaration the escape stage still answers."""
+    hz = "<p>你好世界</p>".encode("hz")
+    assert run_pipeline(hz, EncodingEra.ALL)[0].encoding == "hz"
+    jis = "<p>こんにちは世界</p>".encode("iso2022_jp")
+    assert run_pipeline(jis, EncodingEra.ALL)[0].encoding == "iso2022_jp_2"
+
+
+def test_filtered_declaration_leaves_escape_answer():
+    """A declaration the caller's filters rule out does not replace the answer."""
+    data = b"# coding: latin-1\ns = '" + "こんにちは".encode("iso2022_jp") + b"'\n"
+    assert run_pipeline(data, EncodingEra.ALL)[0].encoding == "iso8859-1"
+    assert run_pipeline(data, EncodingEra.MODERN_WEB)[0].encoding == "iso2022_jp_2"
 
 
 # ---------------------------------------------------------------------------

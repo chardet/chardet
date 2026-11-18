@@ -4,7 +4,11 @@ import struct
 
 import pytest
 
-from chardet.pipeline.magic import detect_magic
+from chardet.pipeline.magic import (
+    _TEXT_GATE_BYTES,
+    _TEXT_PLAUSIBLE_PREFIXES,
+    detect_magic,
+)
 
 
 @pytest.mark.parametrize(
@@ -17,7 +21,13 @@ from chardet.pipeline.magic import detect_magic
         (b"GIF87a" + b"\x00" * 8, "image/gif"),
         (b"GIF89a" + b"\x00" * 8, "image/gif"),
         (b"RIFF\x00\x00\x00\x00WEBP", "image/webp"),
-        (b"BM" + b"\x00" * 12, "image/bmp"),
+        # BMP: 14-byte file header, then the DIB header size
+        (b"BM" + b"\x00" * 12 + b"\x28\x00\x00\x00", "image/bmp"),
+        (b"BM" + b"\x00" * 12 + b"\x0c\x00\x00\x00", "image/bmp"),
+        (b"BM" + b"\x00" * 12 + b"\x7c\x00\x00\x00", "image/bmp"),
+        # BMP: OS/2 2.x headers of 24 and 48 bytes
+        (b"BM" + b"\x00" * 12 + b"\x18\x00\x00\x00", "image/bmp"),
+        (b"BM" + b"\x00" * 12 + b"\x30\x00\x00\x00", "image/bmp"),
         (b"MM\x00\x2a" + b"\x00" * 8, "image/tiff"),
         (b"II\x2a\x00" + b"\x00" * 8, "image/tiff"),
         (b"8BPS" + b"\x00" * 8, "image/vnd.adobe.photoshop"),
@@ -143,11 +153,106 @@ def test_detect_magic_ftyp_text_false_positive() -> None:
     assert result is None
 
 
+@pytest.mark.parametrize(
+    "data",
+    [
+        b"BMW makes cars.\n",
+        b"MZ is a postcode area.\n",
+        b"ID3 tags hold the title.\n",
+        b"OTTO von Bismarck\n",
+        b"OggS and fLaC are containers.\n",
+        "BMW fährt schnell.\n".encode(),
+        "BMW fährt schnell.\n".encode("cp1252"),
+        b"BZh is where a bzip2 stream starts.\n",
+        b"MThd opens a MIDI file.\n",
+        b"PAR1 results are in.\n",
+        b"wOFF is the WOFF tag.\n",
+        b"wOF2 is the WOFF2 tag.\n",
+        b"8BPS opens a PSD file.\n",
+        b"qoif opens a QOI file.\n",
+        b"dex\nfiles hold Android bytecode.\n",
+        b"fLaC is lossless audio.\n",
+    ],
+)
+def test_detect_magic_short_signature_on_text_rejected(data: bytes) -> None:
+    """A short printable signature is a word when the window is plain text."""
+    assert detect_magic(data) is None
+
+
+_CONTROL_BYTES = [b"\x00", b"\x0b", b"\x0c", b"\x1b", b"\x7f"]
+
+
+@pytest.mark.parametrize("control", _CONTROL_BYTES)
+def test_detect_magic_short_signature_control_byte_in_gate(control: bytes) -> None:
+    """A control byte in the last byte the gate reads keeps the signature."""
+    data = b"MZ is a postcode area.".ljust(_TEXT_GATE_BYTES - 1) + control + b"\n"
+    result = detect_magic(data)
+    assert result is not None
+    assert result.mime_type == "application/vnd.microsoft.portable-executable"
+
+
+@pytest.mark.parametrize("control", _CONTROL_BYTES)
+def test_detect_magic_short_signature_control_byte_past_gate(control: bytes) -> None:
+    """A control byte past the bytes the gate reads leaves the text as text."""
+    data = b"MZ is a postcode area.".ljust(_TEXT_GATE_BYTES) + control + b"\n"
+    assert detect_magic(data) is None
+
+
+@pytest.mark.parametrize("signature", sorted(_TEXT_PLAUSIBLE_PREFIXES))
+def test_detect_magic_bare_short_signature_is_text(signature: bytes) -> None:
+    """A window holding only a short printable signature reads as text.
+
+    Accepted on purpose: with no header bytes after it, nothing tells the
+    signature apart from a word.
+    """
+    assert detect_magic(signature) is None
+
+
 def test_detect_magic_ftyp_ascii_prefix_rejected() -> None:
     """ASCII characters in bytes 0-3 produce box_size >> len(data)."""
     # "abcd" = 0x61626364 = ~1.6 billion, far exceeding the 16-byte input
     result = detect_magic(b"abcdftypisom" + b"\x00" * 4)
     assert result is None
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        b"BM",
+        b"BMI = weight / height^2\n",
+        b"BMW 320i, 2019, 45000 km\n",
+        # Byte 14 is a known size ("0" is 48, "l" is 108), but no NULs follow
+        b"BM-2024-11-14 03:00 build log\n",
+        b"BMW_export.html is ready\n",
+        b"BM" + b"\x00" * 12 + b"\x29\x00\x00\x00",
+    ],
+)
+def test_detect_magic_bmp_text_false_positive(data: bytes) -> None:
+    """Text that starts with "BM" is not a BMP image.
+
+    Without a known DIB header size at offset 14, the two-letter signature
+    is just the start of a word.
+    """
+    assert detect_magic(data) is None
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        b"BMW/readme.txt",
+        # 15 bytes: the last one and the name field's NULs sit at offset 14
+        # and read as a DIB header size ("l" is 108, "4" is 52)
+        b"BMW/config.yaml",
+        b"BMI_results.xml",
+        b"BMX/tracks_2024",
+    ],
+)
+def test_detect_magic_bm_tar_member_is_tar(name: bytes) -> None:
+    """A TAR whose first member name starts with "BM" is still a TAR."""
+    data = name.ljust(257, b"\x00") + b"ustar\x00" + b"\x00" * 8
+    result = detect_magic(data)
+    assert result is not None
+    assert result.mime_type == "application/x-tar"
 
 
 def _make_zip_local_entry(filename: bytes, content: bytes = b"") -> bytes:

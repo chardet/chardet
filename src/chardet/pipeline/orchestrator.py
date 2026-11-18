@@ -19,7 +19,7 @@ from chardet.pipeline import (
 from chardet.pipeline.ascii import detect_ascii
 from chardet.pipeline.binary import is_binary
 from chardet.pipeline.bom import detect_bom
-from chardet.pipeline.escape import detect_escape_encoding, utf7_shifts_markup
+from chardet.pipeline.escape import detect_escape_encoding
 from chardet.pipeline.language import fill_languages
 from chardet.pipeline.magic import detect_magic
 from chardet.pipeline.markup import detect_markup_charset
@@ -54,18 +54,23 @@ _STAT_SCORE_MAX_BYTES = 16384
 
 
 def _make_fallback_or_none(
-    encoding: str,
+    encoding: str | None,
     allowed: frozenset[str],
     param_name: str,
     stacklevel: int = 6,
 ) -> list[DetectionResult]:
     """Return a low-confidence result for *encoding*, or ``encoding=None`` if filtered out.
 
+    An *encoding* of ``None`` is the caller asking for ``encoding=None``
+    in this case, so it gets that result with no warning.
+
     The default ``stacklevel=6`` targets the public caller: detect() ->
     DetectionRequest.run() -> run_pipeline() -> _run_pipeline_core() ->
     _make_fallback_or_none().  A caller one frame deeper
     (:func:`_hold_validity_past_cap`) passes 7.
     """
+    if encoding is None:
+        return [_NONE_RESULT]
     if encoding not in allowed:
         warnings.warn(
             f"{param_name} {encoding!r} is excluded by "
@@ -82,7 +87,7 @@ def _hold_validity_past_cap(
     evidence: bytes,
     results: list[DetectionResult],
     allowed: frozenset[str],
-    no_match_encoding: str,
+    no_match_encoding: str | None,
 ) -> list[DetectionResult]:
     """Keep the validity contract for the part of the window past the evidence cap.
 
@@ -271,8 +276,8 @@ def _run_pipeline_core(  # noqa: PLR0913, PLR0915
     *,
     include_encodings: frozenset[str] | None = None,
     exclude_encodings: frozenset[str] | None = None,
-    no_match_encoding: str = "cp1252",
-    empty_input_encoding: str = "utf-8",
+    no_match_encoding: str | None = "cp1252",
+    empty_input_encoding: str | None = "utf-8",
     full_ranking: bool = False,
     input_truncated: bool = False,
 ) -> list[DetectionResult]:
@@ -296,6 +301,13 @@ def _run_pipeline_core(  # noqa: PLR0913, PLR0915
     # UTF-16/32 data looks binary due to null bytes)
     bom_result = detect_bom(data, input_truncated=input_truncated)
     if bom_result is not None and bom_result.encoding in allowed:
+        # The UTF-7 signature is five ASCII bytes, not a byte order mark
+        # no other charset would hold, so it yields to a declaration the
+        # way the escape stage's answers do below.
+        if bom_result.encoding == "utf-7":
+            declared = detect_markup_charset(data, allowed)
+            if declared is not None:
+                return [declared]
         return [bom_result]
 
     # Stage 1a+: UTF-16/32 null-byte pattern detection (for files without
@@ -322,15 +334,23 @@ def _run_pipeline_core(  # noqa: PLR0913, PLR0915
         and escape_result.encoding is not None
         and escape_result.encoding in allowed
     ):
-        # UTF-7 is the one escape encoding whose shifted runs can decode to
-        # ASCII, so ``+ADwAcwBjAHIAaQBwAHQAPg-`` reads as ``<script>``.  When
-        # the page declares a charset that decodes it, and reading it as
-        # UTF-7 instead would add markup the declared reading does not have,
-        # the declaration stands, as it does in every browser.
-        if escape_result.encoding == "utf-7":
-            declared = detect_markup_charset(data, allowed)
-            if declared is not None and utf7_shifts_markup(data):
-                return [declared]
+        # Escape sequences are ASCII bytes that a page in any charset can
+        # hold, so a declaration that decodes the window is the better
+        # evidence and wins, as it does in every browser.  The exception
+        # is an ISO-2022 answer under a declared ISO-2022 name: that is
+        # the same family, and the designations name the variant.  The
+        # head scan costs a few microseconds on a stream that declares
+        # nothing.
+        declared = detect_markup_charset(data, allowed)
+        if (
+            declared is not None
+            and declared.encoding is not None
+            and not (
+                escape_result.encoding.startswith("iso2022")
+                and declared.encoding.startswith("iso2022")
+            )
+        ):
+            return [declared]
         return [escape_result]
 
     # Magic number detection for known binary formats — runs before
@@ -467,8 +487,8 @@ def run_pipeline(  # noqa: PLR0913
     *,
     include_encodings: frozenset[str] | None = None,
     exclude_encodings: frozenset[str] | None = None,
-    no_match_encoding: str = "cp1252",
-    empty_input_encoding: str = "utf-8",
+    no_match_encoding: str | None = "cp1252",
+    empty_input_encoding: str | None = "utf-8",
     full_ranking: bool = False,
     input_truncated: bool = False,
 ) -> list[DetectionResult]:
@@ -479,8 +499,10 @@ def run_pipeline(  # noqa: PLR0913
     :param max_bytes: Maximum number of bytes to process.
     :param include_encodings: If not ``None``, only return these encodings.
     :param exclude_encodings: If not ``None``, never return these encodings.
-    :param no_match_encoding: Encoding returned when no candidate survives.
-    :param empty_input_encoding: Encoding returned for empty input.
+    :param no_match_encoding: Encoding returned when no candidate survives,
+        or ``None`` for an ``encoding=None`` result.
+    :param empty_input_encoding: Encoding returned for empty input, or
+        ``None`` for an ``encoding=None`` result.
     :param full_ranking: When ``True``, statistical scoring evaluates every
         candidate so the returned list is complete (``detect_all`` needs
         this).  When ``False``, candidates that provably cannot affect the

@@ -97,7 +97,7 @@ identified them, or default to ``text/plain``.
    * - ``image/avif``
      - ftyp brand (avif)
    * - ``image/bmp``
-     - Magic (42 4d)
+     - Magic (42 4d, known DIB header size)
    * - ``image/gif``
      - Magic (GIF89a)
    * - ``image/heic``

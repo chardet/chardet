@@ -80,7 +80,7 @@ WATCHLIST: tuple[str, ...] = (
     "cp858-ms/culturax_00000.txt",
     "iso-8859-15-en/culturax_00002.txt",
     # _KNOWN_ERA_FILTERED_FAILURES uniques
-    "iso-8859-2-hu/torokorszag.blogspot.com.xml",
+    "windows-1250-hu/torokorszag.blogspot.com.xml",
     "macroman-da/culturax_mC4_83469.txt",
     # fragile-five: green today, margins under 0.002 — watch for regressions
     "iso-8859-13-et/culturax_00000.txt",

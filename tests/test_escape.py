@@ -3,19 +3,22 @@
 
 from __future__ import annotations
 
+import base64
 import time
 
 import pytest
 
 from chardet import detect
-from chardet._utils import _DECODE_CHUNK_SIZE
+from chardet._unicode_scripts import SCRIPTS
 from chardet.pipeline.escape import (
+    _RECOMMENDED_SCRIPTS,
     _has_valid_hz_regions,
     _has_valid_utf7_sequences,
+    _is_email_subaddress,
     _is_embedded_in_base64,
     _is_valid_utf7_b64,
+    _plausible_lone_unit,
     detect_escape_encoding,
-    utf7_shifts_markup,
 )
 
 
@@ -454,7 +457,13 @@ def test_utf7_b64_decode_is_linear_in_run_length() -> None:
     run quadruples a linear decode and multiplies the old one by about
     15, so the bound sits between them with a 2x margin for noise, and
     the best of three runs keeps a busy runner from inflating one side.
+
+    The run timed here is Russian text, which every check accepts, so
+    the whole decode runs.  ``+A+A...`` itself now stops at its second
+    code unit, which shares no script with the first.
     """
+    russian = "Привет".encode("utf-7")[1:-1]
+    assert len(russian) == 16
 
     def best_of_three(run: bytes) -> float:
         best = float("inf")
@@ -464,8 +473,8 @@ def test_utf7_b64_decode_is_linear_in_run_length() -> None:
             best = min(best, time.perf_counter() - start)
         return best
 
-    short = best_of_three(b"A+" * 8192)
-    quadrupled = best_of_three(b"A+" * 32768)
+    short = best_of_three(russian * 1024)
+    quadrupled = best_of_three(russian * 4096)
     assert quadrupled / short < 8
 
 
@@ -515,34 +524,198 @@ def test_hz_with_stray_tilde_falls_through() -> None:
     assert detect_escape_encoding(data) is None
 
 
+def _shifted(text: str) -> bytes:
+    """Return the base64 of *text* as one UTF-7 shifted run, without ``+`` and ``-``.
+
+    RFC 2152 lets an encoder keep ASCII inside a run, which Python's does
+    not do, so the run is built from the UTF-16 directly.
+    """
+    return base64.b64encode(text.encode("utf-16-be")).rstrip(b"=")
+
+
 @pytest.mark.parametrize(
-    ("data", "expected"),
+    "path",
     [
-        # Markup written directly decodes to itself: nothing is added.
-        (b"<p>a + b = c</p>", False),
-        ("<p>Héllo, 世界</p>".encode("utf-7"), False),
-        # A shifted run that decodes to a non-markup ASCII letter.
-        (b"<p>+AEE-</p>", False),
-        # Each markup character smuggled through a shifted run.
-        (b"+ADw-script+AD4-", True),
-        (b"+ACY-amp;", True),
-        (b"+ACI-quoted+ACI-", True),
-        (b"+ACc-quoted+ACc-", True),
-        # The window ends inside the run, with and without a whole character.
-        (b"<p>+ADwAcwBjAHIAaQBwAHQAPg", True),
-        (b"<p>+ADwAcwBj", True),
-        # Too few bits for any character: replaced, and nothing to count.
-        (b"<p>+AD", False),
+        b"qt6-webengine-6.8.2+dfsg/LICENSES/Qt-GPL-exception-1.0.txt",
+        b"foo-1.0+dfsg/README.md",
+        b"qt6-webengine-6.8.2+dfsg/Gui.txt",
+        b"pkg-1.2.3+dfsg/LICENSE/README-file.txt",
     ],
 )
-def test_utf7_shifts_markup(data: bytes, *, expected: bool) -> None:
-    assert utf7_shifts_markup(data) is expected
+def test_utf7_rejects_path_under_a_plus_version_directory(path: bytes) -> None:
+    """A source path like ``pkg-1.0+dfsg/LICENSES/Qt-`` is ASCII (issue #432).
+
+    The run after the ``+`` has valid length, padding, and surrogates, but
+    it decodes to code units from unrelated scripts: the first of these to
+    a Han character, an unassigned code point, a Hangul syllable, a
+    Georgian letter, another Han character, and a private-use code point.
+    """
+    assert detect_escape_encoding(path) is None
+    assert detect(path)["encoding"] == "ascii"
 
 
-def test_utf7_shifts_markup_across_chunk_edge() -> None:
-    """A run straddling the decode chunk boundary is read as one run."""
-    data = b"a" * (_DECODE_CHUNK_SIZE - 3) + b"+ADw-"
-    assert data.decode("utf-7").endswith("a<")
-    assert utf7_shifts_markup(data) is True
-    data = b"a" * (_DECODE_CHUNK_SIZE + 3) + b"+ADw"
-    assert utf7_shifts_markup(data) is True
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Привет",  # Cyrillic
+        "Ελληνικά",  # Greek
+        "שלום",  # Hebrew
+        "مرحبا",  # Arabic
+        "สวัสดี",  # Thai, letters with combining marks
+        "日本語のテキストとカタカナ",  # Han, Hiragana, Katakana
+        "中文ㄅㄆㄇ",  # Han with Bopomofo
+        "한국어漢字",  # Hangul with Han
+        "ＡＶ機器の説明",  # fullwidth Latin in Japanese
+        "Ｗｅｂ사이트",  # fullwidth Latin in Korean
+        "Привет, мир! № 5 — «да»",  # one script with punctuation and digits
+        "naïve café",  # Latin with encoded ASCII
+        "😀 Привет 🎉",  # surrogate pairs beside one script
+        "—",  # punctuation alone
+    ],
+)
+def test_utf7_b64_accepts_text_that_shares_a_script(text: str) -> None:
+    assert _is_valid_utf7_b64(_shifted(text))
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Привет日本",  # Cyrillic with Han
+        "Ελλάδα한국",  # Greek with Hangul
+        "かな한글",  # kana with Hangul: no language writes both
+        "ㄅㄆかな",  # Bopomofo with kana
+        "Привет\ue000",  # private use
+        "中\u20fc文",  # unassigned
+        "日本\ufdd0",  # noncharacter
+        "Кириллица with latin é",  # Cyrillic with a Latin letter
+    ],
+)
+def test_utf7_b64_rejects_text_without_a_shared_script(text: str) -> None:
+    assert not _is_valid_utf7_b64(_shifted(text))
+
+
+def test_utf7_run_of_mixed_scripts_does_not_hide_a_real_run() -> None:
+    """One run that fails the script check does not veto the others."""
+    data = b"pkg-1.0+dfsg/LICENSES/Qt-notes: " + "Привет".encode("utf-7")
+    result = detect_escape_encoding(data)
+    assert result is not None
+    assert result.encoding == "utf-7"
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        b"Contact: dan+API@example.com",
+        b"dan+LICENSES@example.com",
+        b"<jane.doe+NEWSList@mail.example.co.uk>",
+        b"To: first_last+Work-2024@example.org\n",
+        b"mailto:bob+Q4Report@example.com for details.",
+    ],
+)
+def test_utf7_rejects_email_subaddress(line: bytes) -> None:
+    """``user+detail@example.com`` is an address, not a shift (issue #432).
+
+    ``+API`` alone passes every other check: it decodes to U+00F2, one
+    Latin-1 letter.
+    """
+    assert detect_escape_encoding(line) is None
+    assert detect(line)["encoding"] == "ascii"
+
+
+@pytest.mark.parametrize(
+    ("data", "pos", "expected"),
+    [
+        (b"dan+API@example.com", 3, True),
+        (b"a+b@c.d", 1, True),
+        (b"+API@example.com", 0, False),  # nothing before the plus
+        (b"see +API@example.com", 4, False),  # a space before the plus
+        (b"dan+API example.com", 3, False),  # no @
+        (b"dan+API@", 3, False),  # no domain
+        (b"dan+API@example", 3, False),  # no dot in the domain
+        (b"dan+API@example.", 3, False),  # nothing after the dot
+        (b"dan+API@.com", 3, False),  # empty first label
+        (b"dan+API", 3, False),  # ends inside the local part
+        (b"dan+" + b"x" * 65 + b"@example.com", 3, False),  # past 64 bytes
+        (b"dan+" + b"x" * 64 + b"@example.com", 3, True),
+    ],
+)
+def test_is_email_subaddress(data: bytes, pos: int, *, expected: bool) -> None:
+    assert data[pos] == ord("+")
+    assert _is_email_subaddress(data, pos) is expected
+
+
+def test_utf7_email_shaped_run_leaves_other_runs_alone() -> None:
+    """Real UTF-7 beside a plus address is still UTF-7."""
+    data = "Привет".encode("utf-7") + b", dan+API@example.com"
+    result = detect_escape_encoding(data)
+    assert result is not None
+    assert result.encoding == "utf-7"
+
+
+def test_recommended_scripts_are_all_in_the_script_table() -> None:
+    assert set(SCRIPTS) >= _RECOMMENDED_SCRIPTS
+
+
+@pytest.mark.parametrize(
+    "char",
+    [
+        "\u00e9",  # Latin
+        "\u1ec7",  # Latin Extended Additional, a Vietnamese letter
+        "\u043f",  # Cyrillic
+        "\u0915",  # Devanagari
+        "\u10d0",  # Georgian
+        "\u2014",  # Common: em dash
+        "\u20ac",  # Common: euro sign
+        "\u0301",  # Inherited: combining acute
+        "\u3042",  # Hiragana
+        "\u4e2d",  # Han in every national set
+        "\ud55c",  # Hangul syllable in KS X 1001
+        "\u3131",  # Hangul compatibility jamo, also in KS X 1001
+    ],
+)
+def test_lone_unit_accepts_characters_in_common_use(char: str) -> None:
+    assert _plausible_lone_unit(ord(char))
+
+
+@pytest.mark.parametrize(
+    "unit",
+    [
+        0x0041,  # ASCII is never shifted alone
+        0x2C06,  # Glagolitic, an excluded script (+LAY, issue #371)
+        0x2846,  # Braille
+        0x1820,  # Mongolian, excluded
+        0x13A0,  # Cherokee, limited use
+        0x0378,  # unassigned
+        0xE000,  # private use
+        0xFDD0,  # noncharacter
+        0x38D1,  # Han Extension A (+ONE)
+        0x5FE6,  # Han outside every national set (+X+Y)
+        0x4E02,  # Han in JIS X 0212 only, three bytes in euc_jp
+        0xB620,  # Hangul syllable outside KS X 1001
+        0x1100,  # conjoining Hangul jamo, never written alone
+    ],
+)
+def test_lone_unit_rejects_characters_text_rarely_holds_alone(unit: int) -> None:
+    assert not _plausible_lone_unit(unit)
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        b".B \\-crop WxH+X+Y",  # man page geometry: a Han character no set lists
+        b"return _v(m1, m2, h+ONE_THIRD)",  # Han Extension A
+        b"r'SCREEN)|COMMENT|FUNCTION\\s+KEY|'",  # Braille
+        b"truncate -s +10M test_file",  # Hangul syllable outside KS X 1001
+        b"greek capital letter kappa, U+039A",  # the same, from U+ notation
+    ],
+)
+def test_utf7_lone_unit_in_ascii_text_is_not_a_shift(data: bytes) -> None:
+    assert not _has_valid_utf7_sequences(data, len(data), len(data))
+    assert detect(data)["encoding"] == "ascii"
+
+
+def test_utf7_lone_vietnamese_letter_is_utf7() -> None:
+    """A lone letter from Latin Extended Additional is a real shifted run."""
+    data = "item \u1ec7 done".encode("utf-7")
+    assert data == b"item +Hsc done"
+    assert detect(data)["encoding"] == "utf-7"

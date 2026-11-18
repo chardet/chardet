@@ -15,7 +15,9 @@ order:
    data. If found, returns ``UTF-8-SIG``, ``UTF-16``, ``UTF-32``, or
    ``utf-7`` with confidence 1.0, but only when the rest of the examined
    window decodes under that encoding; a mark on bytes that do not
-   decode is passed over.
+   decode is passed over. The UTF-7 signature (``+/v8-``) is ASCII
+   bytes, so it yields to a charset declaration like the answers in
+   step 3.
 
 2. **UTF-16/32 Patterns** — Detects BOM-less UTF-16 and UTF-32 by
    analyzing null-byte patterns. Interleaved null bytes strongly indicate
@@ -28,17 +30,42 @@ order:
 3. **Escape Sequences** — Identifies escape-based encodings like
    ISO-2022-JP, ISO-2022-KR, HZ-GB-2312, and UTF-7 by matching their
    characteristic escape byte sequences, then decoding the whole window
-   to confirm. A UTF-7 answer also yields to a charset declaration (step
-   6) when the page has one that decodes it and the UTF-7 reading would
-   add a markup character, one of ``<`` ``>`` ``&`` ``"`` ``'``, that the
-   declared reading does not have: ``+ADw-`` is ``<`` in UTF-7, and
-   browsers keep the declaration there.
+   to confirm. Escape sequences are ASCII bytes that a page in any
+   charset can hold, so when the page has a charset declaration (step 6)
+   that decodes it, the declaration wins, as it does in a browser. The
+   one exception is an ISO-2022 answer on a page that declares an
+   ISO-2022 name, where the escape sequences pick the variant.
+
+   A ``+`` followed by letters is common in plain ASCII, so a UTF-7
+   shifted run counts only when it decodes to text that shares a script.
+   Each decoded character's Unicode Script is looked up in a table
+   generated from ``Scripts.txt``, and the run has to have one in
+   common: Cyrillic with punctuation and digits passes, Han with kana
+   passes, and Han next to Georgian does not. Neither does a run with an
+   unassigned or private-use code point. The file path
+   ``pkg-1.0+dfsg/LICENSES/Qt-`` decodes to four scripts, so it stays
+   ASCII. A ``+`` inside an email address, as in
+   ``user+detail@example.com``, is never read as a shift.
+
+   A run of one character has no neighbor to share a script with, so
+   the character has to be a plausible one by itself. Its script must be
+   one of the Recommended Scripts of UAX #31, the ones in widespread
+   modern use. Han and Hangul are on that list and are large enough that
+   stray ASCII lands in them often, so a lone character of either must
+   also be in GB 2312, Big5, JIS X 0208 or KS X 1001. That keeps
+   ``WxH+X+Y`` and ``U+039A`` as ASCII.
 
 4. **Magic Number Detection** — Identifies binary file types (PNG, JPEG,
-   PDF, ZIP, etc.) by their magic number signatures. Returns immediately
-   with ``encoding=None`` and a specific ``mime_type`` (e.g.,
+   PDF, ZIP, etc.) by their magic number signatures. A match returns
+   immediately with ``encoding=None`` and a specific ``mime_type`` (e.g.,
    ``"image/png"``). ZIP-based formats like XLSX, DOCX, and EPUB are
-   further distinguished by inspecting entry filenames.
+   further distinguished by inspecting entry filenames. A signature of
+   four printable bytes or fewer, such as ``MZ`` or ``ID3``, can also be
+   the first word of a text file, so it only counts when the first 64
+   bytes hold a null or another control byte other than tab, line feed,
+   or carriage return. Real files in those formats always have one in
+   their header. Without one, the stage gives no answer and the later
+   stages decide.
 
 5. **Binary Detection** — If more than 1% of the bytes are control
    bytes other than whitespace (nulls included), and the data is neither
@@ -52,9 +79,12 @@ order:
    ``# -*- coding: ... -*-`` cookies in the first two lines of Python
    source, where line 2 counts only when line 1 is blank or a comment.
    Markup declarations are read the way the WHATWG prescan reads them:
-   comments are skipped, a UTF-16 label found in ASCII bytes is read as
-   UTF-8, and ``x-user-defined`` means Windows-1252. An XML declaration
-   counts only at the start of the document. A ``utf-7`` or
+   comments are skipped, a ``<meta`` inside another tag's quoted
+   attribute value is not a tag, a UTF-16 label found in ASCII
+   bytes is read as UTF-8, and ``x-user-defined`` means
+   Windows-1252. An XML declaration counts only at the start of the
+   document, where a byte order mark, whitespace, and comments may
+   come before it. A ``utf-7`` or
    ``hz-gb-2312`` label is ignored in every scanner, the PEP 263 cookie
    included, because both decoders can turn inert ASCII into tags; a
    genuine stream in either is still found by the escape stage. A
@@ -72,12 +102,16 @@ order:
    checking multi-byte sequence structure. UTF-8 has very distinctive
    byte patterns that are unlikely to occur in other encodings.
 
-9. **Byte Validity Filtering** — Attempts to decode the data with each
-   candidate encoding's Python codec. Any encoding that raises a decode
-   error is eliminated. An incomplete multi-byte sequence at the very end
-   of the data does not count as an error: detection input is usually a
-   prefix of a larger whole, so a partial trailing character means the
-   input was cut mid-character rather than that the encoding is wrong.
+9. **Byte Validity Filtering** — Eliminates every candidate encoding
+   that cannot decode the data. A single-byte codec that leaves only a
+   few byte values undefined is checked by looking for those bytes, which
+   gives the same answer as decoding and is much faster. Every other
+   candidate is decoded with its Python codec, and any that raises a
+   decode error is eliminated. An incomplete multi-byte sequence at the
+   very end of the data does not count as an error: detection input is
+   usually a prefix of a larger whole, so a partial trailing character
+   means the input was cut mid-character rather than that the encoding
+   is wrong.
    This stage and the four after it read at most the first 256 KiB of
    the window, which is above the default ``max_bytes``; past that cap
    the winner is still decoded over the whole window, and a winner that
@@ -94,8 +128,14 @@ order:
 
 12. **Statistical Scoring** — Scores remaining candidates using pre-trained
     bigram frequency models. Each model captures the characteristic byte
-    pair frequencies of a language written in a specific encoding. The
-    candidate with the highest score wins.
+    pair frequencies of a language written in a specific encoding. A
+    candidate's score is the cosine similarity between the input's byte
+    pairs and its model, scaled down by the share of the input's weight
+    that falls on non-ASCII byte pairs the model has never seen. The
+    cosine alone only rewards matches, which on a short input lets one
+    coincidence beat a model that knows every pair in it. Candidates
+    whose cosines are tied keep their tie, and post-processing breaks
+    it. The candidate with the highest score wins.
 
 13. **Post-processing** — Resolves confusion groups (encodings that are
     statistically hard to distinguish), demotes niche Latin encodings

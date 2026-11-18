@@ -54,6 +54,10 @@ wrappers are synthesized at training time. Training writes `models.bin`,
 `idf.bin`, `rowmax.bin`, and `langnorm.bin` under `src/chardet/models/` as
 one digest-locked set. Test data articles are automatically excluded
 from training via content fingerprinting to prevent train/test overlap.
+Training restyles every fourth document (`scripts/typography.py`) with
+its language's CLDR quotation marks, curly apostrophes, en dashes, and
+ellipses; `scripts/quotation_marks.py` is generated from CLDR by
+`scripts/generate_quotation_marks.py`.
 
 ### Benchmarks & Diagnostics
 
@@ -62,6 +66,8 @@ uv run python scripts/benchmark_time.py     # latency benchmarks
 uv run python scripts/benchmark_memory.py   # memory usage benchmarks
 uv run python scripts/diagnose_accuracy.py  # detailed accuracy diagnostics
 uv run python scripts/compare_detectors.py  # compare against charset-normalizer, cchardet, chardet 6.0.0
+uv run python scripts/short_input_scorecard.py  # short inputs built from the training text
+uv run python scripts/heldout_scorecard.py  # text the models were not trained on (UDHR, Tatoeba); use for scoring changes
 ```
 
 ### Documentation
@@ -86,7 +92,7 @@ HATCH_BUILD_HOOK_ENABLE_MYPYC=true HATCH_BUILD_HOOK_ENABLE_CUSTOM=true uv build
 
 **mypyc** compiles 15 modules: `models/__init__.py`, `models/_format.py`, `pipeline/structural.py`, `pipeline/validity.py`, `pipeline/statistical.py`, `pipeline/utf1632.py`, `pipeline/utf8.py`, `pipeline/escape.py`, `pipeline/orchestrator.py`, `pipeline/confusion.py`, `pipeline/magic.py`, `pipeline/ascii.py`, `pipeline/language.py`, `pipeline/markup.py`, `pipeline/postprocess.py`. These cannot use `from __future__ import annotations` (FA100 is ignored for them in ruff config). Published Windows wheels leave `models/__init__.py` interpreted (`release.yml` drops it from the include list there).
 
-**Cython** compiles `_kernel.py` alone — the bigram scoring loop, ~36% of compiled runtime — using the build-time-only types in `_kernel.pxd`. Worth about 1.4x. The `.py` is the single implementation and runs interpreted on PyPy and in pure wheels; `models` detects which it has and picks the matching scoring path.
+**Cython** compiles `_kernel.py` alone — the bigram scoring loop (`dot_packed`) and its coverage twin (`seen_packed`), ~36% of compiled runtime — using the build-time-only types in `_kernel.pxd`. Worth about 1.4x. The `.py` is the single implementation and runs interpreted on PyPy and in pure wheels; `models` detects which it has and picks the matching scoring path.
 
 Both hooks are `enable-by-default = false` so their build dependencies stay off pure source installs. Keep the kernel small: an earlier version also held the profile builder and the row-max bound, and moving those out of their mypyc modules made a mypyc-only build **slower than compiling nothing**, because mypyc stopped seeing those loops.
 
@@ -100,7 +106,7 @@ All detection flows through `run_pipeline()`, which runs stages in order — eac
 
 1. **BOM** (`bom.py`) — byte order mark → confidence 1.0
 2. **UTF-16/32 patterns** (`utf1632.py`) — null-byte patterns for BOM-less Unicode
-3. **Escape sequences** (`escape.py`) — ISO-2022-JP/KR, HZ-GB-2312, UTF-7; each decode-checked over the window
+3. **Escape sequences** (`escape.py`) — ISO-2022-JP/KR, HZ-GB-2312, UTF-7; each decode-checked over the window. A UTF-7 shifted run must decode to text that shares a Unicode script (`_unicode_scripts.py`, generated from `Scripts.txt` by `scripts/generate_unicode_scripts.py`, never edited by hand), a run of one character must be in a UAX #31 Recommended Script (and, for Han and Hangul, in a national character set), and a `+` inside an email address is not a shift. A declared charset that decodes the window beats the answer (and the BOM stage's UTF-7 signature), unless both are ISO-2022 names; the orchestrator makes that call
 4. **Magic numbers** (`magic.py`) — file signature detection (e.g., PDF, images)
 5. **Binary detection** (`binary.py`) — null bytes / control chars → encoding=None
 6. **Markup charset** (`markup.py`) — two seams. `iter_declarations()` parses `<meta charset>` / `<?xml encoding>` / EBCDIC markup / PEP 263 labels without decoding. `detect_markup_charset(data, allowed, utf8_precheck)` owns the decision: the first declaration that decodes the window wins if the caller's filters allow it (if they don't, the stage gives no answer rather than trying a later declaration), promoted to its Windows superset (Shift_JIS→CP932, EUC-KR→CP949) when structural evidence supports it or the reported name cannot decode the window. Valid multi-byte UTF-8 beats any declaration; the UTF-8 result then carries the declaration's MIME type
@@ -109,7 +115,7 @@ All detection flows through `run_pipeline()`, which runs stages in order — eac
 9. **Byte validity** (`validity.py`) — eliminate encodings that can't decode the data
 10. **CJK gating** (in orchestrator) — eliminate CJK candidates lacking multi-byte structure
 11. **Structural probing** (`structural.py`) — score multi-byte encoding fit
-12. **Statistical scoring** (`statistical.py`) — bigram frequency models for final ranking
+12. **Statistical scoring** (`statistical.py`) — bigram frequency models for final ranking: each variant's cosine times its coverage to the 1.5 (`models.coverage_with_profile`: the share of the input's weight not on evidence bigrams the model has never seen). Encodings in a cosine dead heat with the top keep the tie for post-processing (`_keep_dead_heats`)
 13. **Post-processing** (`postprocess.py:postprocess_results()`) — eight chained rank corrections: Windows-superset and era-prevalence dead-heat promotion, rare-language arbitration, confusion-group resolution (delegated to `confusion.py`), niche Latin demotion, KOI8-T promotion, classic-Mac CR promotion, decode-safety flip
 14. **Language detection** (`language.py`) — three-tier fill of the `language` field on every result (single-language map → multi-language bigram → UTF-8 fallback). Runs in `run_pipeline` after the core pipeline.
 

@@ -8,8 +8,15 @@ import pytest
 from utils import collect_test_files
 
 from chardet.enums import EncodingEra
-from chardet.models import BigramProfile, _get_model_norms, get_enc_index
+from chardet.models import (
+    BigramProfile,
+    _get_model_norms,
+    coverage_with_profile,
+    get_enc_index,
+    score_with_profile,
+)
 from chardet.pipeline import DetectionResult
+from chardet.pipeline import statistical as statistical_mod
 from chardet.pipeline.orchestrator import _STAT_SCORE_MAX_BYTES
 from chardet.pipeline.postprocess import forced_encodings, scoring_floor
 from chardet.pipeline.statistical import (
@@ -18,6 +25,84 @@ from chardet.pipeline.statistical import (
     score_candidates,
 )
 from chardet.registry import REGISTRY, get_candidates
+
+#: mypyc checks native types at runtime, so a compiled build raises
+#: TypeError on the float row weights some tests use to reach the row-bound
+#: fallback.  That fallback guards the sumprod branch, which only an
+#: interpreted build takes.
+_needs_interpreted_build = pytest.mark.skipif(
+    statistical_mod.__file__.endswith((".so", ".pyd")),
+    reason="uses values the compiled module's native types reject",
+)
+
+
+@pytest.mark.parametrize(
+    ("row_type", "takes_sumprod"),
+    [(int, True), pytest.param(float, False, marks=_needs_interpreted_build)],
+)
+def test_row_bound_sumprod_branch_matches_loop(
+    monkeypatch: pytest.MonkeyPatch, row_type: type, *, takes_sumprod: bool
+) -> None:
+    """Run the row-bound sumprod branch on every Python through a stand-in.
+
+    ``math.sumprod`` is new in 3.12, so on 3.10 and 3.11 the branch never
+    runs on its own.  The stand-in is a plain loop; non-integer row weights
+    must skip it and keep the original arithmetic.
+    """
+    calls: list[int] = []
+
+    def stand_in(p: tuple[int, ...], q: tuple[int, ...]) -> int:
+        calls.append(len(q))
+        return sum(a * b for a, b in zip(p, q, strict=True))
+
+    monkeypatch.setattr(statistical_mod, "_GATHER_DOT", True)
+    monkeypatch.setattr(statistical_mod, "_KERNEL_COMPILED", False)
+    monkeypatch.setattr(statistical_mod, "_sumprod", stand_in)
+    profile = BigramProfile.from_weighted_freq({0x6162: 3, 0xE961: 5, 0xFF80: 7})
+    profile.row_freq = [row_type(v) for v in profile.row_freq]
+    candidates = get_candidates(EncodingEra.ALL)
+    expected = _split_variants(candidates, profile)
+    assert bool(calls) is takes_sumprod
+    monkeypatch.setattr(statistical_mod, "_GATHER_DOT", False)
+    assert _split_variants(candidates, profile) == expected
+
+
+@pytest.mark.parametrize("weight", [1, 2**32, 2**80])
+@pytest.mark.parametrize("indices", [[0x6162], [0x6162, 0xE961, 0xFF80]])
+def test_row_bound_gather_matches_loop(
+    monkeypatch: pytest.MonkeyPatch, weight: int, indices: list[int]
+) -> None:
+    monkeypatch.setattr(statistical_mod, "_GATHER_DOT", True)
+    monkeypatch.setattr(statistical_mod, "_KERNEL_COMPILED", False)
+    profile = BigramProfile.from_weighted_freq(
+        {idx: weight + i for i, idx in enumerate(indices)}
+    )
+    candidates = get_candidates(EncodingEra.ALL)
+    expected = _split_variants(candidates, profile)
+    monkeypatch.setattr(statistical_mod, "_GATHER_DOT", False)
+    assert _split_variants(candidates, profile) == expected
+
+
+@_needs_interpreted_build
+def test_row_bound_preserves_float_weight_arithmetic(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(statistical_mod, "_GATHER_DOT", True)
+    monkeypatch.setattr(statistical_mod, "_KERNEL_COMPILED", False)
+    profile = BigramProfile(b"abc")
+    profile.nonzero_rows = [0, 1]
+    profile.row_freq = [1e16, -(1e16 + 2)]
+    monkeypatch.setattr(
+        statistical_mod, "get_enc_index", lambda: {"cp1252": [("en", b"", "test")]}
+    )
+    monkeypatch.setattr(
+        statistical_mod, "get_rowmax", lambda: {"test": bytes([3]) * 256}
+    )
+    monkeypatch.setattr(statistical_mod, "_get_model_norms", lambda: {"test": 1.0})
+    candidates = (REGISTRY["cp1252"],)
+    expected = _split_variants(candidates, profile)
+    monkeypatch.setattr(statistical_mod, "_GATHER_DOT", False)
+    assert _split_variants(candidates, profile) == expected
 
 
 def test_score_candidates_returns_sorted_results():
@@ -261,3 +346,113 @@ def test_split_variants_zero_norm_bounds_at_zero():
         norms[key] = saved
     bounds = {entry[5]: entry[0] for entry in sb_entries}
     assert bounds[key] == 0.0
+
+
+def test_coverage_factor_is_a_power_of_coverage() -> None:
+    """German rows read as MacTurkish: a higher cosine, most bigrams unseen."""
+    data = "Jürgen;Größe;Hauptstraße 5;München".encode("cp1252")
+    profile = BigramProfile(data)
+    index = get_enc_index()
+    scores = {}
+    for encoding, language in (("cp1252", "de"), ("mac-turkish", "tr")):
+        table, key = next((t, k) for lang, t, k in index[encoding] if lang == language)
+        cosine = score_with_profile(profile, table, key)
+        coverage = coverage_with_profile(profile, table)
+        factor = statistical_mod._coverage_factor(profile, table)
+        assert factor == pytest.approx(coverage**1.5)
+        covered = cosine * factor
+        scores[encoding] = (covered, coverage)
+    assert scores["cp1252"][1] > scores["mac-turkish"][1]
+    assert scores["cp1252"][0] > scores["mac-turkish"][0]
+
+
+def test_coverage_factor_is_one_without_evidence() -> None:
+    profile = BigramProfile(b"plain ascii text with no high bytes")
+    _, table, _key = get_enc_index()["cp1252"][0]
+    assert statistical_mod._coverage_factor(profile, table) == 1.0
+
+
+def test_keep_dead_heats_raises_a_cosine_tie_to_the_top_score() -> None:
+    """Coverage does not separate encodings whose cosines are a dead heat."""
+    scores = [0.300, 0.290, 0.280, 0.100]
+    cosines = [0.40000, 0.40002, 0.39995, 0.35000]
+    kept = statistical_mod._keep_dead_heats(scores, cosines)
+    assert kept[0] == 0.300
+    assert kept[1] == pytest.approx(0.300)
+    assert kept[2] == pytest.approx(0.300 - 0.00007)
+    assert kept[3] == 0.100
+    assert max(kept) == 0.300
+
+
+def test_keep_dead_heats_skips_an_encoding_coverage_put_far_behind() -> None:
+    """A cosine tie that coverage separated by more than a sliver stands."""
+    scores = [0.300, 0.290, 0.100]
+    assert statistical_mod._keep_dead_heats(scores, [0.4, 0.3, 0.4]) is scores
+
+
+def test_keep_dead_heats_never_lowers_a_score() -> None:
+    kept = statistical_mod._keep_dead_heats([0.3, 0.29999], [0.4, 0.39995])
+    assert kept == [0.3, 0.29999]
+
+
+def test_keep_dead_heats_leaves_decided_rankings_alone() -> None:
+    scores = [0.2, 0.3, 0.1]
+    assert statistical_mod._keep_dead_heats(scores, [0.5, 0.31, 0.45]) is scores
+    assert statistical_mod._keep_dead_heats([0.2], [0.5]) == [0.2]
+    assert statistical_mod._keep_dead_heats([], []) == []
+    assert statistical_mod._keep_dead_heats([0.0], [0.0]) == [0.0]
+
+
+def test_pruned_and_full_scoring_agree_on_a_cosine_dead_heat() -> None:
+    """One capital in long ASCII text: both paths keep the heat for postprocess."""
+    sentence = (
+        b"This is a mostly ASCII file with plain sentences that go on "
+        b"and on, describing nothing in particular, just filling space "
+        b"the way source files and configuration files usually do. "
+    )
+    data = sentence * 6 + b"by \xc9tienne. " + sentence * 6
+    candidates = tuple(
+        REGISTRY[name] for name in ("cp1252", "mac-roman", "iso8859-1", "cp850")
+    )
+    profile = BigramProfile(data)
+    full = {n: s for n, s, _ in statistical_mod._score_all(candidates, profile)}
+    pruned = {n: s for n, s, _ in statistical_mod._score_pruned(candidates, profile)}
+    assert full == pruned
+    assert abs(full["cp1252"] - full["mac-roman"]) <= 1e-4
+
+
+def test_score_all_takes_the_variant_that_covers_the_input(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The best variant is chosen after coverage, not by cosine alone."""
+    profile = BigramProfile(b"a\xe9b\xe8c")
+    knows_one = bytearray(65536)
+    knows_one[profile.cov_idx[0]] = 255
+    knows_all = bytearray(65536)
+    for idx in profile.cov_idx:
+        knows_all[idx] = 100
+    monkeypatch.setattr(
+        statistical_mod,
+        "get_enc_index",
+        lambda: {
+            "cp1252": [
+                ("xx", bytes(knows_one), "xx/test"),
+                ("yy", bytes(knows_all), "yy/test"),
+            ]
+        },
+    )
+    scores = statistical_mod._score_all((REGISTRY["cp1252"],), profile)
+    assert [(name, lang) for name, _, lang in scores] == [("cp1252", "yy")]
+
+
+def test_score_all_skips_encodings_without_a_scoring_model(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    profile = BigramProfile(b"a\xe9b")
+    monkeypatch.setattr(
+        statistical_mod,
+        "get_enc_index",
+        lambda: {"cp1252": [("xx", bytes(65536), "xx/test")]},
+    )
+    candidates = (REGISTRY["cp1252"], REGISTRY["cp1251"])
+    assert statistical_mod._score_all(candidates, profile) == []

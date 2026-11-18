@@ -30,10 +30,16 @@ from chardet.registry import REGISTRY
 # API option.  When enabled, detected encoding names are replaced with the
 # Windows/CP superset that modern software actually uses (browsers, editors,
 # etc. treat these ISO subsets as their Windows counterparts).
+# Every pair is a true superset: the two codecs agree on each printable
+# byte both define, and the WHATWG Encoding Standard merges the same labels.
+# ISO-8859-2, -5, -6, -7, -8 and -13 are absent on purpose.  Their Windows
+# look-alikes put some characters on different bytes (nearly all of them
+# for ISO-8859-5 and cp1251), browsers keep them apart, and an ISO-8859-8
+# answer is how visual-order Hebrew is told from logical-order Windows-1255.
 # This is a *selection*, not the codec fact: the registry owns which
 # superset each encoding has (``EncodingInfo.superset``), and this table is
-# the frozen subset of those pairs the option applies.  It is public through
-# ``UniversalDetector.LEGACY_MAP``, so adding a pair changes
+# the subset of those pairs the option applies.  It is public through
+# ``UniversalDetector.LEGACY_MAP``, so changing a pair changes
 # ``prefer_superset=True`` output (ADR-0007).  ``iso8859-11`` is an alias of
 # the registry's ``tis-620``, which the pipeline reports instead.
 # Values are lowercase codec names, like the keys: this table only swaps one
@@ -44,14 +50,8 @@ PREFERRED_SUPERSET: dict[str, str] = {
     "ascii": "cp1252",
     "euc_kr": "cp949",
     "iso8859-1": "cp1252",
-    "iso8859-2": "cp1250",
-    "iso8859-5": "cp1251",
-    "iso8859-6": "cp1256",
-    "iso8859-7": "cp1253",
-    "iso8859-8": "cp1255",
     "iso8859-9": "cp1254",
     "iso8859-11": "cp874",
-    "iso8859-13": "cp1257",
     "tis-620": "cp874",
 }
 

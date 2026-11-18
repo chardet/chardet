@@ -151,7 +151,10 @@ class EncodingInfo:
     #: byte: the Windows code pages leave a few positions undefined that
     #: the ISO standards map, and cp932 is a superset of plain Shift_JIS
     #: rather than of JIS X 0213, so code that swaps one name for the other
-    #: checks the data first.  A codec fact only: which pairs the
+    #: checks the data first.  A code page that only resembles the
+    #: encoding is not one: cp1250, cp1251, cp1253, cp1255, cp1256 and
+    #: cp1257 move printable characters of their ISO counterparts, so
+    #: those entries have none.  A codec fact only: which pairs the
     #: ``prefer_superset`` option applies is
     #: :data:`chardet.output_names.PREFERRED_SUPERSET`'s call (ADR-0007).
     superset: str | None = None
@@ -563,7 +566,6 @@ _REGISTRY_ENTRIES = (
         era=EncodingEra.LEGACY_ISO,
         is_multibyte_cjk=False,
         languages=_CENTRAL_EU,
-        superset="cp1250",
     ),
     EncodingInfo(
         name="iso8859-3",
@@ -585,7 +587,6 @@ _REGISTRY_ENTRIES = (
         era=EncodingEra.LEGACY_ISO,
         is_multibyte_cjk=False,
         languages=_CYRILLIC,
-        superset="cp1251",
     ),
     EncodingInfo(
         # The -E ("explicit directionality") and -I ("implicit
@@ -607,7 +608,6 @@ _REGISTRY_ENTRIES = (
         era=EncodingEra.LEGACY_ISO,
         is_multibyte_cjk=False,
         languages=_ARABIC,
-        superset="cp1256",
     ),
     EncodingInfo(
         name="iso8859-7",
@@ -621,14 +621,16 @@ _REGISTRY_ENTRIES = (
         era=EncodingEra.LEGACY_ISO,
         is_multibyte_cjk=False,
         languages=("el",),
-        superset="cp1253",
     ),
     EncodingInfo(
         # WHATWG and IANA distinguish ISO-8859-8 ("visual", -E) from
         # ISO-8859-8-I ("logical", -I) to signal Hebrew bidi ordering, but
         # Python's stdlib has a single ``iso8859-8`` codec -- the bidi
         # distinction is a higher-layer concern.  All variants collapse
-        # onto this one canonical.
+        # onto this one canonical.  It has no ``superset``: cp1255 reads
+        # the letters alike, but an iso8859-8 answer is what marks
+        # visual-order text (the model trains on both orders, cp1255's on
+        # logical only), and renaming it would hide that from the caller.
         name="iso8859-8",
         aliases=(
             "ISO-8859-8",
@@ -645,7 +647,6 @@ _REGISTRY_ENTRIES = (
         era=EncodingEra.LEGACY_ISO,
         is_multibyte_cjk=False,
         languages=("he",),
-        superset="cp1255",
     ),
     EncodingInfo(
         name="iso8859-9",
@@ -675,7 +676,6 @@ _REGISTRY_ENTRIES = (
         era=EncodingEra.LEGACY_ISO,
         is_multibyte_cjk=False,
         languages=_BALTIC,
-        superset="cp1257",
     ),
     EncodingInfo(
         # ``iso-celtic`` is a Python stdlib alias, not a WHATWG/IANA name.
@@ -1092,9 +1092,12 @@ def _validate_encoding(name: str, param_name: str) -> str:
     :param name: The encoding name to validate.
     :param param_name: Parameter name for error messages.
     :returns: The canonical encoding name.
-    :raises ValueError: If the encoding name is unknown.
+    :raises ValueError: If the encoding name is unknown or not a string.
     """
-    canonical = lookup_encoding(name)
+    # A non-string is rejected here like any other unknown name.  Left to
+    # lookup_encoding it surfaced as an AttributeError or TypeError from
+    # deep inside, naming neither the value nor the option (#435).
+    canonical = lookup_encoding(name) if isinstance(name, str) else None
     if canonical is None:
         msg = f"Unknown encoding {name!r} in {param_name}"
         raise ValueError(msg)
