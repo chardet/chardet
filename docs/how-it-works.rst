@@ -82,7 +82,9 @@ order:
    comments are skipped, a ``<meta`` inside another tag's quoted
    attribute value is not a tag, a UTF-16 label found in ASCII
    bytes is read as UTF-8, and ``x-user-defined`` means
-   Windows-1252. A ``utf-7`` or
+   Windows-1252. An XML declaration counts only at the start of the
+   document, where a byte order mark, whitespace, and comments may
+   come before it. A ``utf-7`` or
    ``hz-gb-2312`` label is ignored in every scanner, the PEP 263 cookie
    included, because both decoders can turn inert ASCII into tags; a
    genuine stream in either is still found by the escape stage. A
