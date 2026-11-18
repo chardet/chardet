@@ -74,6 +74,12 @@ Unreleased
   in the Russian one.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude,
   `#452 <https://github.com/chardet/chardet/pull/452>`_)
+- The test data is closer to real legacy text.  670 files that were
+  converted into an encoding lacking some of the language's letters
+  now use the stand-in spellings writers of the time used, in place of
+  the nearest available letter.  The published accuracy numbers are
+  measured against the new files.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 
 **Performance:**
 
@@ -113,6 +119,12 @@ Unreleased
   compiled build.  No result changed.
   (`Afonso Ribeiro <https://github.com/deadstrobe5>`_,
   `#431 <https://github.com/chardet/chardet/pull/431>`_)
+- Pure-Python installs on CPython 3.10 and 3.11 no longer look up each
+  model's bigram entries twice per candidate.  The coverage step now
+  reuses what the cosine gathered, as it already did on 3.12 and
+  later.  No result changed.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude,
+  `#448 <https://github.com/chardet/chardet/pull/448>`_)
 
 **Bug Fixes:**
 
@@ -126,12 +138,19 @@ Unreleased
   ``text/html``.
   (`Samina <https://github.com/Samin061>`_,
   `#427 <https://github.com/chardet/chardet/pull/427>`_)
+- A ``<meta`` inside another tag's quoted attribute value is no longer
+  read as a tag, as in browsers.
+  ``<img alt="<meta charset=shift_jis " src="a.png">`` on a page with
+  no declaration of its own used to come back as Shift_JIS at 0.95.
+  (`Samina <https://github.com/Samin061>`_,
+  `#444 <https://github.com/chardet/chardet/pull/444>`_)
 - A valueless first attribute in an HTML meta tag now blocks later
   duplicates, just like an explicitly empty value. This prevents
   ``<meta charset charset=shift_jis>`` from adopting the later charset,
   and also applies to ``http-equiv``, ``content``, and ``name``.
   (`Nash Aschenbath <https://github.com/Aschenbath>`_ via Codex,
-  `#449 <https://github.com/chardet/chardet/issues/449>`_)
+  `#449 <https://github.com/chardet/chardet/issues/449>`_,
+  `#450 <https://github.com/chardet/chardet/pull/450>`_)
 
 - HP-Roman8 text whose only non-ASCII characters are guillemets or an
   em dash is no longer reported as Windows-1252.  ``«Mamm»`` came back
@@ -292,8 +311,28 @@ Unreleased
   `#433 <https://github.com/chardet/chardet/pull/433>`_,
   `#443 <https://github.com/chardet/chardet/pull/443>`_)
 
+**Documentation:**
+
+- The benchmark and accuracy numbers in the docs and README are
+  current for this release's code and test data.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude,
+  `#446 <https://github.com/chardet/chardet/pull/446>`_,
+  `#451 <https://github.com/chardet/chardet/pull/451>`_)
+
 **Build:**
 
+- Two new development scripts score ``detect()`` on text outside the
+  test suite, so a scoring change can be judged without fitting it to
+  the test data: ``scripts/short_input_scorecard.py`` (sentences from
+  the training text) and ``scripts/heldout_scorecard.py`` (Tatoeba and
+  the Universal Declaration of Human Rights).
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude,
+  `#445 <https://github.com/chardet/chardet/pull/445>`_)
+- The test that checks the UTF-7 decode stays linear now compares two
+  run lengths instead of using a one-second limit, which slow CI
+  runners sometimes missed.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude,
+  `#421 <https://github.com/chardet/chardet/pull/421>`_)
 - Prebuilt mypyc wheels are now published for Windows ARM64, and CI
   runs the test suite there on Python 3.14.  Python 3.10 on ARM64
   Windows gets the pure-Python wheel instead, because mypy's ``librt``
