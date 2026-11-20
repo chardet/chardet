@@ -102,6 +102,42 @@ def test_attribute_value_meta_does_not_pick_the_encoding():
     assert detect(page)["encoding"] != "SHIFT_JIS"
 
 
+@pytest.mark.parametrize(
+    "tag",
+    [
+        b'<meta name="description" content="<!--">',
+        b"<img alt='<!--' src='a.png'>",
+        b'<a href="/" title="<!-- x">x</a>',
+    ],
+)
+def test_comment_opener_inside_an_attribute_value_hides_nothing(tag: bytes):
+    """The WHATWG prescan does not open a comment inside a quoted value.
+
+    A comment opened there would run on to the next ``-->`` or to the end
+    of the head and take the page's real declaration with it.
+    """
+    data = b"<html><head>" + tag + b'<meta charset="iso-8859-1">' + _LATIN1_TEXT
+    assert _declarations(data) == _html("iso8859-1")
+    assert detect(data)["encoding"] == "ISO-8859-1"
+
+
+def test_attribute_value_comment_does_not_drop_the_declaration():
+    """A user string cannot hide the declaration and let the text choose."""
+    japanese = "日本語のテキストです これは文字コードの判定を試すための文章です"
+    # Shift_JIS bytes that windows-1252 also decodes, as user text would be.
+    text = b"".join(
+        c.encode("shift_jis")
+        for c in japanese
+        if not set(c.encode("shift_jis")) & {0x81, 0x8D, 0x8F, 0x90, 0x9D}
+    )
+    page = (
+        b'<html><head><meta name="description" content="<!--">'
+        b'<meta charset="windows-1252"></head><body><p>' + text * 4 + b"</p>"
+        b'<script>var q = "\x83\\"; alert(1)//";</script></body></html>'
+    )
+    assert detect(page)["encoding"] == "Windows-1252"
+
+
 def test_unquoted_equals_does_not_open_a_value():
     """A quote opens a value only right after ``=``, as in the prescan."""
     data = b'<a b"c><meta charset="iso-8859-1">' + _LATIN1_TEXT

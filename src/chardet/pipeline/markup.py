@@ -249,6 +249,51 @@ def _pep263_declaration(data: bytes) -> Declaration | None:
 
 _COMMENT_SEPARATOR = b"\xff"
 
+# A comment opener, or any tag with its quoted attribute values, using the
+# rule of the second branch of ``_TAG_RE``.  The comment scan steps over
+# tags with it, so a ``<!--`` inside a quoted value is value text, as it is
+# to the WHATWG prescan, and cannot hide the declarations after it.
+_COMMENT_OR_TAG_RE = re.compile(
+    rb"""<!--|</?[a-z](?:[^<>=]+|=\s*(?:"[^"]*"|'[^']*')?)*""",
+    re.IGNORECASE,
+)
+_QUOTED_VALUE_RE = re.compile(rb"""=\s*(?:"([^"]*)"|'([^']*)')""")
+
+
+def _strip_comment_runs(text: bytes) -> bytes:
+    """Replace each ``<!-- -->`` comment in *text* by one separator byte.
+
+    A comment that never closes runs to the end of *text*.
+    """
+    start = text.find(b"<!--")
+    if start < 0:
+        return text
+    parts: list[bytes] = []
+    pos = 0
+    while start >= 0:
+        parts.append(text[pos:start])
+        end = text.find(b"-->", start + 2)
+        if end < 0:
+            return _COMMENT_SEPARATOR.join(parts)
+        pos = end + 3
+        start = text.find(b"<!--", pos)
+    parts.append(text[pos:])
+    return _COMMENT_SEPARATOR.join(parts)
+
+
+def _strip_value_comments(tag: bytes) -> bytes:
+    """Strip comments inside each quoted value of *tag*, within that value."""
+    parts: list[bytes] = []
+    pos = 0
+    for value in _QUOTED_VALUE_RE.finditer(tag):
+        group = 1 if value.group(1) is not None else 2
+        start, end = value.span(group)
+        parts.append(tag[pos:start])
+        parts.append(_strip_comment_runs(tag[start:end]))
+        pos = end
+    parts.append(tag[pos:])
+    return b"".join(parts)
+
 
 def _strip_comments(head: bytes) -> bytes:
     """Return *head* with each ``<!-- -->`` comment replaced by one byte.
@@ -258,6 +303,13 @@ def _strip_comments(head: bytes) -> bytes:
     that open a comment may also close it (``<!-->`` is a whole comment),
     and a comment that never closes runs to the end of the head.
 
+    Also as in the prescan, a ``<!--`` inside a tag's quoted attribute
+    value does not open a comment.  Such values are often user input
+    (alt text, a description), and a comment opened there would run on
+    past the value and hide the page's real declaration.  A comment held
+    wholly inside one value is still stripped within that value, so a
+    meta tag carrying one keeps its declaration.
+
     The byte left in a comment's place, :data:`_COMMENT_SEPARATOR`, keeps
     the text on either side apart: ``<me<!-- -->ta`` is not a meta tag and
     ``cp<!-- -->1251`` is not a label.  It is not ASCII, so it cannot
@@ -266,20 +318,33 @@ def _strip_comments(head: bytes) -> bytes:
     not ``<`` or ``>`` either, so a tag with a comment inside it still
     matches and keeps its declaration.
     """
-    start = head.find(b"<!--")
-    if start < 0:
+    # Nothing past the last opener can be a comment, so the walk ends there.
+    last_opener = head.rfind(b"<!--")
+    if last_opener < 0:
         return head
     parts: list[bytes] = []
     pos = 0
-    while start >= 0:
-        parts.append(head[pos:start])
-        end = head.find(b"-->", start + 2)
-        if end < 0:
-            return _COMMENT_SEPARATOR.join(parts)
-        pos = end + 3
-        start = head.find(b"<!--", pos)
+    resume = 0
+    while resume >= 0:
+        scan_from, resume = resume, -1
+        for match in _COMMENT_OR_TAG_RE.finditer(head, scan_from):
+            start, stop = match.span()
+            if start > last_opener:
+                break
+            if head[start + 1] == 0x21:  # "<!--"; a tag has a letter or "/" here
+                parts.append(head[pos:start])
+                end = head.find(b"-->", start + 2)
+                if end < 0:
+                    return b"".join(parts)
+                parts.append(_COMMENT_SEPARATOR)
+                pos = resume = end + 3
+                break
+            if head.find(b"<!--", start, stop) >= 0:
+                parts.append(head[pos:start])
+                parts.append(_strip_value_comments(head[start:stop]))
+                pos = stop
     parts.append(head[pos:])
-    return _COMMENT_SEPARATOR.join(parts)
+    return b"".join(parts)
 
 
 def _markup_encoding(raw_name: str) -> str | None:
