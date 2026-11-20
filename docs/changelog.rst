@@ -314,10 +314,21 @@ Unreleased
 **Documentation:**
 
 - The benchmark and accuracy numbers in the docs and README are
-  current for this release's code and test data.
+  current for this release's code and test data, and every row of the
+  historical table was re-measured on the current test suite.
   (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude,
   `#446 <https://github.com/chardet/chardet/pull/446>`_,
   `#451 <https://github.com/chardet/chardet/pull/451>`_)
+- The speed comparisons against charset-normalizer and cchardet were
+  too favorable to chardet and are corrected.
+  ``scripts/compare_detectors.py`` timed several detectors at once,
+  which slowed each by about 13%, and reused cached results for the
+  others while chardet was timed alone.  Timed one at a time, chardet
+  is 1.5x faster than charset-normalizer in aggregate, not 1.7x, and
+  cchardet is about 10% faster than chardet in aggregate, not level
+  with it.  The script now times one detector at a time.  Accuracy
+  numbers were not affected.
+  (`Dan Blanchard <https://github.com/dan-blanchard>`_ via Claude)
 
 **Build:**
 

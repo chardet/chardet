@@ -16,7 +16,7 @@ Python 3.10+, zero runtime dependencies, works on PyPy.
 
 **99.7% accuracy** on 3,137 test files. **433x faster** than chardet 6.0.0,
 and **+14.0pp more accurate** than charset-normalizer 3.5.2 while being
-1.7x faster. **Language detection** for every text result. **MIME type detection** for
+1.5x faster. **Language detection** for every text result. **MIME type detection** for
 binary files. **0BSD licensed.**
 
 Raising the byte cap on large inputs doesn't make detection slow:
@@ -29,7 +29,7 @@ for the full large-input tables.
 |                        | chardet 7.7.1.dev (compiled) | chardet 6.0.0 | [charset-normalizer] 3.5.2 |
 | ---------------------- | :--------------------: | :-----------: | :-------------------------: |
 | Accuracy (3,137 files) |       **99.7%**        |     81.3%     |            85.7%            |
-| Speed                  | **4,172 files/s** (1,357 pure) |  10 files/s  |        2,424 files/s        |
+| Speed                  | **4,160 files/s** (1,352 pure) |  9 files/s   |        2,761 files/s        |
 | Language detection     |       **93.1%**        |     38.7%     |            54.7%            |
 | Peak memory            |     **28.6 MiB**       |      n/a      |          71.0 MiB           |
 | Streaming detection    |        **yes**         |      yes      |             no              |
@@ -154,7 +154,7 @@ cat somefile.txt | chardetect
 
 - **0BSD license** (previous versions were LGPL)
 - **Ground-up rewrite:** 13-stage detection pipeline using BOM detection, magic number identification, structural probing, byte validity filtering, and bigram statistical models
-- **433x faster** than chardet 6.0.0 when compiled, and 1.7x faster than charset-normalizer 3.5.2 overall (2.2x at the median) while being far more accurate
+- **433x faster** than chardet 6.0.0 when compiled, and 1.5x faster than charset-normalizer 3.5.2 overall (1.9x at the median) while being far more accurate
 - **99.7% accuracy:** +18.4pp vs chardet 6.0.0, +14.0pp vs charset-normalizer 3.5.2
 - **Language detection:** 93.1% accuracy across 49 languages, returned with every result
 - **MIME type detection:** identifies 40+ binary file formats (images, audio/video, archives, documents, executables, fonts) via magic number signatures, plus `text/html`, `text/xml`, and `text/x-python` for markup

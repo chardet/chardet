@@ -74,12 +74,12 @@ The measured differences:
   the same test suite --- 89.8% for charset-normalizer once the
   BOM-less utf-7 files it documents as out of scope are set aside (see
   :doc:`performance`).
-- **Speed:** chardet leads at every percentile we publish --- 1.7x in
-  aggregate (4,172 vs 2,424 files/s), 2.2x at the median (0.13 vs
-  0.28ms), 1.9x at p90, 2.1x at p95, and 1.4x at p99 (1.70 vs 2.37ms),
-  with a worst case 4.6x lower (7.4 vs 34.0ms). charset-normalizer
-  still has the better tail on legacy CJK, where their p99 is 1.57ms
-  against our 4.17ms. See :doc:`performance`.
+- **Speed:** chardet leads at every percentile we publish --- 1.5x in
+  aggregate (4,160 vs 2,761 files/s), 1.9x at the median (0.13 vs
+  0.25ms), 1.7x at p90, 1.8x at p95, and 1.2x at p99 (1.72 vs 2.11ms),
+  with a worst case 4.1x lower (7.1 vs 29.5ms). charset-normalizer
+  still has the better tail on legacy CJK, where their p99 is 1.41ms
+  against our 3.87ms. See :doc:`performance`.
 - **Accuracy convention:** our 99.7% credits supersets (Windows-1252 for
   ISO-8859-1); scored on exact matches only it is 88.2% against
   charset-normalizer's 78.4%. Both columns are published, but we
@@ -113,12 +113,12 @@ How is chardet different from cchardet?
 Mozilla's uchardet C/C++ library. Key differences:
 
 - **Accuracy:** chardet achieves 99.7% vs cchardet's 59.8%.
-- **Speed:** the two are about level in aggregate (0.75s for chardet
-  vs 0.79s for cchardet 3.2.0 across 3,137 files). cchardet has the
-  lower median (0.04 vs 0.13ms); chardet has the better tail (p99 1.70
-  vs 2.15ms) and a worst case 3.4x lower (7.4 vs 25.2ms).
+- **Speed:** cchardet is about 10% faster in aggregate (0.69s for
+  cchardet 3.2.0 vs 0.75s for chardet across 3,137 files) and has the
+  lower median (0.04 vs 0.13ms); chardet has the better tail (p99 1.72
+  vs 1.88ms) and a worst case 3.1x lower (7.1 vs 22.3ms).
 - **Memory:** chardet's peak footprint is 2.3x smaller (28.6 vs
-  64.5 MiB traced) with lower RSS (161 vs 186 MiB).
+  64.5 MiB traced) with lower RSS (162 vs 186 MiB).
 - **Encoding breadth:** chardet supports 49 more encodings than cchardet,
   including EBCDIC, Mac, Baltic, and BOM-less UTF-16/32.
 - **Binary files:** chardet declines binary input with a ``mime_type``
@@ -152,7 +152,7 @@ data layout it introduces, so an interpreted install takes the same path
 it always did.
 
 PyPy is best judged by percentile rather than throughput. Its median
-detection (0.22ms) is close to compiled CPython, but its p99 is
-72--77ms against 2.8--3.0ms, because the JIT never warms up on rare,
+detection (0.18--0.19ms) is close to compiled CPython, but its p99 is
+7.3--7.5ms against 1.5--1.7ms, because the JIT never warms up on rare,
 large inputs. On typical documents it is competitive with the compiled
-wheel; on a corpus with a heavy tail it is several times slower overall.
+wheel; over the whole test suite it is about 2.7x slower.
