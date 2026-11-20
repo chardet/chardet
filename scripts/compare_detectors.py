@@ -895,7 +895,7 @@ def run_comparison(  # noqa: PLR0913
             f"{fp.parent.name}/{fp.name}" for _, _, fp in test_files
         )
 
-    # --- Parallel timing benchmarks ---
+    # --- Timing benchmarks ---
     import_times: dict[str, float] = {}
     first_detect_times: dict[str, float] = {}
 
@@ -972,8 +972,11 @@ def run_comparison(  # noqa: PLR0913
 
         return label, timing
 
-    max_workers = max(1, (os.cpu_count() or 2) // 2)
-    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+    # One detector at a time.  Timing several at once made each about 13%
+    # slower than timing it alone, and a cached detector is not rerun, so a
+    # table could pair one detector's uncontended time with another's
+    # contended one.
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
         futures = {
             executor.submit(
                 _run_timing_for_detector, label, detector_type, python_exe, era
