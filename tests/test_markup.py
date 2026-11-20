@@ -362,6 +362,23 @@ def test_ebcdic_page_yields_only_the_mainframe_name():
     assert _declarations(html.encode("cp500")) == _html("cp500")
 
 
+def test_cjk_text_spelling_an_ebcdic_declaration_is_not_one():
+    """CJK text in an ASCII-compatible page is not scanned as EBCDIC.
+
+    A GB18030 page is dominated by high bytes, and two-byte characters can
+    spell ``<meta charset=cp037><script>`` once read through cp037.  The
+    page's ASCII markup holds bytes EBCDIC text never uses, so the head is
+    not EBCDIC and has no declaration; reporting cp1140 would decode the
+    comment into a script element the page does not contain.
+    """
+    comment = "<meta charset=cp037><script>alert(1)</script>".encode("cp037")
+    comment.decode("gb18030")  # the comment is ordinary GB18030 text
+    text = "这是一个中文网页，下面是用户的评论。".encode("gb18030") * 30
+    data = b"<html><body><p>" + text + b"</p><div>" + comment + b"</div></body></html>"
+    assert _declarations(data) == []
+    assert detect(data)["encoding"] == "GB18030"
+
+
 def test_ebcdic_xml_declaration_reports_xml():
     xml = (
         '<?xml version="1.0" encoding="cp500"?>'
