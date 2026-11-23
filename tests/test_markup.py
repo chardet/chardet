@@ -102,6 +102,53 @@ def test_attribute_value_meta_does_not_pick_the_encoding():
     assert detect(page)["encoding"] != "SHIFT_JIS"
 
 
+@pytest.mark.parametrize(
+    "tag",
+    [
+        b'<meta name="description" content="<meta charset=shift_jis>">',
+        b"<meta name='description' content='<meta charset=shift_jis>'>",
+        # The description's own > closes the meta for a scan that ignores quotes.
+        b'<meta name="description" content="<meta charset=shift_jis ">',
+        b'<meta property="og:description" content="1 > 0 <meta charset=shift_jis>">',
+    ],
+)
+def test_meta_inside_a_meta_attribute_value_is_not_a_declaration(tag: bytes):
+    """A meta tag's own quoted values are stepped over like any other tag's.
+
+    A description meta's content is user input on most sites.  A scan
+    that cut the tag at the first ``<`` or ``>`` resumed inside that
+    content and read it as tags.
+    """
+    assert _declarations(b"<html><head>" + tag + b"</head></html>") == []
+    data = b"<html><head>" + tag + b'<meta charset="iso-8859-1">' + _LATIN1_TEXT
+    assert _declarations(data) == _html("iso8859-1")
+
+
+def test_meta_attribute_value_does_not_pick_the_encoding():
+    """A string escaped for windows-1252 stays escaped under the answer."""
+    page = (
+        b'<html><head><meta name="description" content="<meta charset=shift_jis>">'
+        b'<meta charset="windows-1252"></head><body>'
+        b'<script>var q = "\x83\\"; alert(1)//";</script></body></html>'
+    )
+    assert detect(page)["encoding"] == "Windows-1252"
+
+
+def test_a_quote_inside_a_meta_value_does_not_hide_a_later_declaration():
+    """Resuming inside a cut meta let its value open a quote that ran on."""
+    data = (
+        b'<html><head><meta name="description" content="<a b=\'">'
+        b"<meta charset='iso-8859-1'>" + _LATIN1_TEXT
+    )
+    assert _declarations(data) == _html("iso8859-1")
+
+
+def test_charset_after_a_quoted_value_holding_a_closing_bracket():
+    """The ``>`` inside a quoted value does not end the meta tag."""
+    data = b'<meta content="a > b" name="description" charset="iso-8859-1">'
+    assert _declarations(data + _LATIN1_TEXT) == _html("iso8859-1")
+
+
 def test_unquoted_equals_does_not_open_a_value():
     """A quote opens a value only right after ``=``, as in the prescan."""
     data = b'<a b"c><meta charset="iso-8859-1">' + _LATIN1_TEXT
