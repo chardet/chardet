@@ -310,6 +310,13 @@ Unreleased
   `#432 <https://github.com/chardet/chardet/issues/432>`_,
   `#433 <https://github.com/chardet/chardet/pull/433>`_,
   `#443 <https://github.com/chardet/chardet/pull/443>`_)
+- ``chardetect`` accepts ``-`` for stdin again, as chardet 6 did, so
+  piped input can be mixed with files, as in
+  ``cat a.txt | chardetect b.csv -``.  Since 7.0.0 it had tried to
+  open a file named ``-``.  Use ``./-`` for a file that is really
+  named that.
+  (`Aschenbath <https://github.com/Aschenbath>`_,
+  `#457 <https://github.com/chardet/chardet/pull/457>`_)
 
 **Documentation:**
 

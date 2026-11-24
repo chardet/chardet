@@ -552,3 +552,6 @@ chardet includes a ``chardetect`` command:
    # Read from stdin
    cat somefile.txt | chardetect
    # stdin: utf-8 with confidence 0.99
+
+   # Use - to include stdin alongside files (./- reads a file named -)
+   cat somefile.txt | chardetect anotherfile.csv -
