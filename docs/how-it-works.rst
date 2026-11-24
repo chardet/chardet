@@ -79,8 +79,8 @@ order:
    ``# -*- coding: ... -*-`` cookies in the first two lines of Python
    source, where line 2 counts only when line 1 is blank or a comment.
    Markup declarations are read the way the WHATWG prescan reads them:
-   comments are skipped, a ``<meta`` inside another tag's quoted
-   attribute value is not a tag, a UTF-16 label found in ASCII
+   comments are skipped, a ``<meta`` inside a tag's quoted attribute
+   value (another meta's included) is not a tag, a UTF-16 label found in ASCII
    bytes is read as UTF-8, and ``x-user-defined`` means
    Windows-1252. An XML declaration counts only at the start of the
    document, where a byte order mark, whitespace, and comments may

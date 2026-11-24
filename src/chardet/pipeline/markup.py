@@ -73,7 +73,7 @@ _IGNORED_LABELS = frozenset({"utf-7", "hz"})
 # closes is not a declaration either way, but with ``[^>]`` every unclosed
 # ``<meta`` ran to the end of the head before failing, and a head made of
 # nothing else cost a thousand times a normal one.  The price is a literal
-# ``<`` inside an attribute value, which hides that one tag.
+# ``<`` outside a quoted attribute value, which hides that one tag.
 #
 # An XML declaration only exists at the start of the document, which is
 # where XML puts it and the only place the WHATWG "get an XML encoding"
@@ -91,15 +91,18 @@ _XML_ENCODING_RE = re.compile(
     % re.escape(_COMMENT_SEPARATOR),
     re.IGNORECASE,
 )
-_META_TAG_RE = re.compile(rb"<meta\b([^<>]*)>", re.IGNORECASE)
-# The same meta tags, but every other tag matches the second branch, so its
-# quoted attribute values are stepped over as the WHATWG prescan steps over
-# them: in ``<img alt="<meta charset=x>">`` the meta is alt text, not a tag.
-# As in the prescan, a quote opens a value only right after ``=``.  The
-# branch cannot fail once it has a letter, so the scan stays linear; outside
-# a quoted value, ``<`` still ends the tag.
+_META_TAG_RE = re.compile(rb"<meta\b", re.IGNORECASE)
+# Every tag, read with its quoted attribute values stepped over as the WHATWG
+# prescan steps over them, a meta tag's own values included: in ``<img
+# alt="<meta charset=x>">`` the meta is alt text, and in ``<meta
+# name="description" content="<meta charset=x>">`` it is the description,
+# not a tag either way.  As in the prescan, a quote opens a value only right
+# after ``=``.  The pattern cannot fail once it has a letter, so the scan
+# stays linear and never resumes inside a tag it could not finish; outside
+# a quoted value, ``<`` still ends the tag.  A meta is told from its name
+# (group 1) and counts only when its ``>`` is there (group 3).
 _TAG_RE = re.compile(
-    rb"""<meta\b([^<>]*)>|<(?!meta\b)/?[a-z](?:[^<>=]+|=\s*(?:"[^"]*"|'[^']*')?)*""",
+    rb"""<(/?[a-z][^\s/<>=]*)((?:[^<>=]+|=\s*(?:"[^"]*"|'[^']*')?)*)(>?)""",
     re.IGNORECASE,
 )
 # DOTALL so a quoted value may span lines.
@@ -315,8 +318,8 @@ def _iter_html_charsets(head: bytes) -> Iterator[bytes]:
     is not a declaration. A declaration is a ``charset`` attribute, or the
     ``charset`` parameter of an ``http-equiv="content-type"`` tag.
     ``name="content-type"`` is wrong by the spec but common enough in the
-    wild that it counts too.  A ``<meta`` inside another tag's attribute
-    value is not a tag at all.
+    wild that it counts too.  A ``<meta`` inside a tag's quoted attribute
+    value, another meta's included, is not a tag at all.
     """
     # Walking every tag costs far more than finding ``<meta``, so a head
     # with no meta tag skips the walk, and a page whose declaration comes
@@ -324,10 +327,9 @@ def _iter_html_charsets(head: bytes) -> Iterator[bytes]:
     if _META_TAG_RE.search(head) is None:
         return
     for tag in _TAG_RE.finditer(head):
-        body = tag.group(1)
-        if body is None:
+        if tag.group(1).lower() != b"meta" or not tag.group(3):
             continue
-        attrs = _meta_attributes(body)
+        attrs = _meta_attributes(tag.group(2))
         charset = attrs.get(b"charset")
         if charset is not None and charset.strip():
             yield charset
