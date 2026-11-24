@@ -96,7 +96,9 @@ def main(argv: list[str] | None = None) -> None:
     :param argv: Command-line arguments.  Defaults to ``sys.argv[1:]``.
     """
     parser = argparse.ArgumentParser(description="Detect character encoding of files.")
-    parser.add_argument("files", nargs="*", help="Files to detect encoding of")
+    parser.add_argument(
+        "files", nargs="*", help="Files to detect encoding of (use - for stdin)"
+    )
     parser.add_argument(
         "--minimal", action="store_true", help="Output only the encoding name"
     )
@@ -193,50 +195,37 @@ def main(argv: list[str] | None = None) -> None:
             empty_input_encoding=args.empty_input_encoding,
         )
 
-    if args.files:
-        errors = 0
-        for filepath in args.files:
-            try:
+    filepaths = args.files or ["-"]
+    errors = 0
+    for filepath in filepaths:
+        label = "stdin" if filepath == "-" else filepath
+        try:
+            # One byte past the cap lets detect() distinguish truncated
+            # input from input that ends exactly at the cap.
+            if filepath == "-":
+                data = sys.stdin.buffer.read(DEFAULT_MAX_BYTES + 1)
+            else:
                 with Path(filepath).open("rb") as f:
-                    # One byte past the cap lets detect() tell truncated
-                    # input from input that ends exactly at the cap.  It
-                    # does its own slicing to max_bytes.
                     data = f.read(DEFAULT_MAX_BYTES + 1)
-            except OSError as e:
-                print(f"chardetect: {filepath}: {e}", file=sys.stderr)
-                errors += 1
-                continue
-            try:
-                result = detect_bytes(data)
-            except Exception as e:  # noqa: BLE001
-                print(f"chardetect: {filepath}: detection failed: {e}", file=sys.stderr)
-                errors += 1
-                continue
-            _print_result(
-                result,
-                filepath,
-                minimal=args.minimal,
-                language=args.language,
-                mime_type=args.mime_type,
-            )
-        if errors == len(args.files):
-            sys.exit(1)
-    else:
-        # Same reason as the file read above: one extra byte so detect()
-        # can see that the input was truncated.
-        data = sys.stdin.buffer.read(DEFAULT_MAX_BYTES + 1)
+        except OSError as e:
+            print(f"chardetect: {label}: {e}", file=sys.stderr)
+            errors += 1
+            continue
         try:
             result = detect_bytes(data)
         except Exception as e:  # noqa: BLE001
-            print(f"chardetect: stdin: detection failed: {e}", file=sys.stderr)
-            sys.exit(1)
+            print(f"chardetect: {label}: detection failed: {e}", file=sys.stderr)
+            errors += 1
+            continue
         _print_result(
             result,
-            "stdin",
+            label,
             minimal=args.minimal,
             language=args.language,
             mime_type=args.mime_type,
         )
+    if errors == len(filepaths):
+        sys.exit(1)
 
 
 if __name__ == "__main__":  # pragma: no cover
