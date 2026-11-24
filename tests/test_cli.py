@@ -36,17 +36,19 @@ def test_cli_detects_utf8_file(tmp_path: Path):
     assert "utf-8" in result.stdout.lower()
 
 
-def test_cli_stdin():
+@pytest.mark.parametrize("arguments", [[], ["-"]])
+def test_cli_stdin(arguments: list[str]):
     result = subprocess.run(
-        [sys.executable, "-m", "chardet.cli"],
+        [sys.executable, "-m", "chardet.cli", *arguments],
         input=b"Hello world",
         capture_output=True,
     )
     assert result.returncode == 0
     assert "ascii" in result.stdout.decode().lower()
+    assert result.stdout.decode().startswith("stdin: ")
 
 
-@pytest.mark.parametrize("source", ["file", "stdin"])
+@pytest.mark.parametrize("source", ["file", "stdin", "explicit-stdin"])
 @pytest.mark.parametrize(
     "data",
     [
@@ -77,6 +79,8 @@ def test_cli_preserves_input_truncation(
         argv.append(str(path))
     else:
         monkeypatch.setattr(sys, "stdin", io.TextIOWrapper(io.BytesIO(data)))
+        if source == "explicit-stdin":
+            argv.append("-")
 
     main(argv)
     captured = capsys.readouterr()
@@ -123,6 +127,33 @@ def test_cli_multiple_files(tmp_path: Path):
     assert result.returncode == 0
     lines = result.stdout.strip().split("\n")
     assert len(lines) == 2
+
+
+def test_cli_stdin_mixed_with_files(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+):
+    path = tmp_path / "test.txt"
+    path.write_bytes(b"Hello world")
+    stdin = io.TextIOWrapper(io.BytesIO("Hello é".encode()))
+    monkeypatch.setattr(sys, "stdin", stdin)
+    main(["--minimal", "--mime-type", str(path), "-", str(path)])
+    captured = capsys.readouterr()
+    assert captured.err == ""
+    assert captured.out.splitlines() == [
+        "ascii text/plain",
+        "utf-8 text/plain",
+        "ascii text/plain",
+    ]
+    assert not stdin.closed
+
+
+def test_cli_literal_dash_filename(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+):
+    (tmp_path / "-").write_bytes(b"Hello world")
+    monkeypatch.chdir(tmp_path)
+    main(["--minimal", "./-"])
+    assert capsys.readouterr().out.strip() == "ascii"
 
 
 def test_cli_nonexistent_file(capsys: pytest.CaptureFixture[str]) -> None:
@@ -187,8 +218,11 @@ def test_cli_detection_failure_on_file(
     assert "boom" in captured.err
 
 
+@pytest.mark.parametrize("arguments", [[], ["-"]])
 def test_cli_detection_failure_on_stdin(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+    arguments: list[str],
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
 ):
     """Detection exception on stdin should print error and exit 1."""
     fake_stdin = io.TextIOWrapper(io.BytesIO(b"Hello"))
@@ -199,7 +233,7 @@ def test_cli_detection_failure_on_stdin(
         lambda *_a, **_kw: (_ for _ in ()).throw(RuntimeError("boom")),
     )
     with pytest.raises(SystemExit, match="1"):
-        main([])
+        main(arguments)
     captured = capsys.readouterr()
     assert "detection failed" in captured.err
     assert "stdin" in captured.err
