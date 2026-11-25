@@ -637,11 +637,28 @@ def test_utf7_rejects_email_subaddress(line: bytes) -> None:
         (b"dan+API", 3, False),  # ends inside the local part
         (b"dan+" + b"x" * 65 + b"@example.com", 3, False),  # past 64 bytes
         (b"dan+" + b"x" * 64 + b"@example.com", 3, True),
+        (b"dan+API@" + b"x" * 64 + b".com", 3, False),  # label past 63 bytes
+        (b"dan+API@" + b"x" * 63 + b".com", 3, True),
     ],
 )
 def test_is_email_subaddress(data: bytes, pos: int, *, expected: bool) -> None:
     assert data[pos] == ord("+")
     assert _is_email_subaddress(data, pos) is expected
+
+
+def test_utf7_email_check_does_not_scan_a_long_label() -> None:
+    """Each email-shaped '+' reads a bounded amount of the window.
+
+    The scan for the dot after the first domain label ran to the end of
+    the window, so 31 pluses ahead of one ``@`` and a long label read the
+    label 31 times in a Python loop: 3s for a 1 MiB label.  Bounded at the
+    longest label an address may have, the label costs nothing and the
+    rest is one ``bytes.find``, so the budget is far from any runner.
+    """
+    data = b".+" * 31 + b".@" + b"a" * (1 << 20)
+    start = time.perf_counter()
+    assert not _has_valid_utf7_sequences(data, len(data), len(data))
+    assert time.perf_counter() - start < 1.0
 
 
 def test_utf7_email_shaped_run_leaves_other_runs_alone() -> None:
