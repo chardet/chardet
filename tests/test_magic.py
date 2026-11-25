@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import struct
+import tarfile
 
 import pytest
 
@@ -253,6 +254,44 @@ def test_detect_magic_bm_tar_member_is_tar(name: bytes) -> None:
     result = detect_magic(data)
     assert result is not None
     assert result.mime_type == "application/x-tar"
+
+
+@pytest.mark.parametrize(
+    "name", ["MZreadme.txt", "ID3notes.txt", "%PDF-report.txt", "PAR1.csv"]
+)
+@pytest.mark.parametrize("archive_format", [tarfile.USTAR_FORMAT, tarfile.GNU_FORMAT])
+def test_tar_member_signature_does_not_override_archive(
+    name: str, archive_format: int
+) -> None:
+    header = tarfile.TarInfo(name).tobuf(format=archive_format)
+    result = detect_magic(header)
+    assert result is not None
+    assert result.mime_type == "application/x-tar"
+
+
+def test_tar_with_legacy_signed_checksum_takes_precedence() -> None:
+    header = bytearray(
+        tarfile.TarInfo("ID3-caf\u00e9.txt").tobuf(format=tarfile.USTAR_FORMAT)
+    )
+    header[148:156] = b" " * 8
+    checksum = sum(byte if byte < 128 else byte - 256 for byte in header)
+    header[148:156] = f"{checksum:06o}\0 ".encode("ascii")
+    result = detect_magic(bytes(header))
+    assert result is not None
+    assert result.mime_type == "application/x-tar"
+
+
+@pytest.mark.parametrize("checksum", [b"invalid!", b"000000\0 "])
+def test_tar_marker_without_valid_checksum_does_not_override_png(
+    checksum: bytes,
+) -> None:
+    data = bytearray(512)
+    data[:8] = b"\x89PNG\r\n\x1a\n"
+    data[148:156] = checksum
+    data[257:263] = b"ustar\0"
+    result = detect_magic(bytes(data))
+    assert result is not None
+    assert result.mime_type == "image/png"
 
 
 def _make_zip_local_entry(filename: bytes, content: bytes = b"") -> bytes:

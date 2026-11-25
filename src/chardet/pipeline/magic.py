@@ -258,6 +258,22 @@ def detect_magic(data: bytes) -> DetectionResult | None:
     if not data:
         return None
 
+    # A TAR starts with its first member's name, which can itself begin with
+    # MZ, ID3, or another magic prefix. Only a checksummed full header should
+    # outrank a leading signature; an incidental "ustar" in binary data must not.
+    if len(data) >= 512 and data[_TAR_OFFSET : _TAR_OFFSET + 6] in _TAR_SIGNATURES:
+        try:
+            checksum = int(data[148:156].strip(b"\x00 "), 8)
+        except ValueError:
+            pass
+        else:
+            header = data[:148] + b" " * 8 + data[156:512]
+            if checksum in (
+                sum(header),
+                sum(byte if byte < 128 else byte - 256 for byte in header),
+            ):
+                return _make_result("application/x-tar")
+
     # Check ftyp box (MP4/MOV/HEIC/AVIF) — "ftyp" at offset 4.
     # Bytes 0-3 are the box size (big-endian uint32).  Valid ftyp boxes
     # have size >= 8 and <= file length.  The upper bound check prevents
