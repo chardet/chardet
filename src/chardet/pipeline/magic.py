@@ -144,13 +144,18 @@ _ZIP_FILENAME_PREFIXES: tuple[tuple[bytes, str], ...] = (
         b"ppt/",
         "application/vnd.openxmlformats-officedocument.presentationml.presentation",
     ),
-    # Java
-    (b"META-INF/MANIFEST.MF", "application/java-archive"),
-    # Android
-    (b"AndroidManifest.xml", "application/vnd.android.package-archive"),
-    # EPUB
-    (b"META-INF/container.xml", "application/epub+zip"),
 )
+
+# These are complete entry names, not directory prefixes.  A backup such as
+# AndroidManifest.xml.bak is not the APK's manifest.
+_ZIP_FILENAMES: dict[bytes, str] = {
+    # Java
+    b"META-INF/MANIFEST.MF": "application/java-archive",
+    # Android
+    b"AndroidManifest.xml": "application/vnd.android.package-archive",
+    # EPUB
+    b"META-INF/container.xml": "application/epub+zip",
+}
 
 # Filename suffix → MIME type (checked against each entry's filename)
 _ZIP_FILENAME_SUFFIXES: tuple[tuple[bytes, str], ...] = (
@@ -217,6 +222,9 @@ def _classify_zip(data: bytes) -> str:
         for prefix, mime in _ZIP_FILENAME_PREFIXES:
             if name.startswith(prefix):
                 return mime
+        exact_mime = _ZIP_FILENAMES.get(name)
+        if exact_mime is not None:
+            return exact_mime
         # Check filename suffixes
         for suffix, mime in _ZIP_FILENAME_SUFFIXES:
             if suffix in name:
