@@ -414,6 +414,20 @@ class TestZipSubtypeDetection:
 
     # --- False positive resistance ---
 
+    @pytest.mark.parametrize(
+        "filename",
+        [
+            b"META-INF/MANIFEST.MF.bak",
+            b"AndroidManifest.xml.bak",
+            b"META-INF/container.xml.bak",
+        ],
+    )
+    def test_backup_marker_is_not_a_subtype(self, filename: bytes) -> None:
+        """A backup of a format marker does not turn a plain ZIP into that format."""
+        result = detect_magic(_make_zip_local_entry(filename, b"backup"))
+        assert result is not None
+        assert result.mime_type == "application/zip"
+
     def test_zip_pk_in_file_content_not_misclassified(self) -> None:
         """PK signature inside stored file content must not cause false match.
 
