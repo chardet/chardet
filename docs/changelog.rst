@@ -317,6 +317,14 @@ Unreleased
   named that.
   (`Aschenbath <https://github.com/Aschenbath>`_,
   `#457 <https://github.com/chardet/chardet/pull/457>`_)
+- A ``<`` or ``>`` inside a ``<meta>`` tag's quoted attribute value no
+  longer ends the tag.  A page with
+  ``<meta name="description" content="<meta charset=shift_jis>">``
+  ahead of its real declaration used to come back as SHIFT_JIS at
+  0.95.  A tag also has to be named exactly ``meta`` now, so
+  ``<meta-data charset=...>`` is not a declaration.
+  (`Samin061 <https://github.com/Samin061>`_,
+  `#456 <https://github.com/chardet/chardet/pull/456>`_)
 
 **Documentation:**
 
