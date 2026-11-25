@@ -1,14 +1,31 @@
 from __future__ import annotations
 
+import io
 import struct
+import zipfile
 
 import pytest
 
+import chardet
 from chardet.pipeline.magic import (
     _TEXT_GATE_BYTES,
     _TEXT_PLAUSIBLE_PREFIXES,
     detect_magic,
 )
+
+
+@pytest.mark.parametrize("comment", [b"", b"No files matched the export filter"])
+def test_empty_zip_archive(comment: bytes) -> None:
+    """A ZIP with no members consists of its end-of-central-directory record."""
+    output = io.BytesIO()
+    with zipfile.ZipFile(output, "w") as archive:
+        archive.comment = comment
+    data = output.getvalue()
+
+    result = detect_magic(data)
+    assert result is not None
+    assert result.mime_type == "application/zip"
+    assert chardet.detect(data)["mime_type"] == "application/zip"
 
 
 @pytest.mark.parametrize(

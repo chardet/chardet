@@ -47,6 +47,9 @@ _MAGIC_NUMBERS: tuple[tuple[bytes, str], ...] = (
     (b"Rar!\x1a\x07\x01\x00", "application/vnd.rar"),
     (b"Rar!\x1a\x07\x00", "application/vnd.rar"),
     (b"\x28\xb5\x2f\xfd", "application/zstd"),
+    # An empty ZIP starts at its end-of-central-directory record: no local
+    # file header exists for the subtype scan below to find.
+    (b"PK\x05\x06", "application/zip"),
     # Documents / Data
     (b"%PDF-", "application/pdf"),
     (b"SQLite format 3\x00", "application/x-sqlite3"),
