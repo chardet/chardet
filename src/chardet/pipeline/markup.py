@@ -154,6 +154,17 @@ _MARKUP_HIGH_BYTES = bytes(range(0x80, 0x100))
 # worth attempting.
 _EBCDIC_SCAN_MIN_HIGH_FRACTION = 0.25
 
+# Bytes EBCDIC text does not hold.  0x00-0x3F is the control range of every
+# EBCDIC code page, and text uses only its whitespace there: HT, VT, FF, CR,
+# NEL, and LF at 0x05, 0x0B, 0x0C, 0x0D, 0x15, and 0x25, plus the ASCII LF
+# a file keeps when only its line ends were converted.  ASCII-compatible
+# text puts its space, digits, punctuation, and markup's ``<`` in that
+# range, so one of these bytes says the head is not EBCDIC, however many
+# high bytes its CJK or Cyrillic text brings.
+_NON_EBCDIC_BYTES = bytes(
+    b for b in range(0x40) if b not in {0x05, 0x0A, 0x0B, 0x0C, 0x0D, 0x15, 0x25}
+)
+
 
 class Declaration(NamedTuple):
     """One charset declaration found in the head of the data.
@@ -185,10 +196,17 @@ def _iter_ebcdic_declarations(data: bytes) -> Iterator[Declaration]:
     all variants, and scan the decoded text.  Only declarations naming a
     MAINFRAME-era encoding are yielded.  The MIME type follows the tag the
     declaration sits in.
+
+    High bytes alone do not make a head EBCDIC: a GBK or Shift_JIS page is
+    dominated by them too, and CJK text can spell an EBCDIC ``<meta
+    charset=cp037>`` in its two-byte characters.  A head holding a byte EBCDIC
+    text never uses (:data:`_NON_EBCDIC_BYTES`) is not scanned.
     """
     head = data[:_SCAN_LIMIT]
     high_count = len(head) - len(head.translate(None, _MARKUP_HIGH_BYTES))
     if high_count < len(head) * _EBCDIC_SCAN_MIN_HIGH_FRACTION:
+        return
+    if len(head.translate(None, _NON_EBCDIC_BYTES)) != len(head):
         return
     decoded = head.decode("cp037", errors="replace")
     # Scan every declaration token inside every anchor tag: an unrelated
