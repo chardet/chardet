@@ -6,6 +6,7 @@ annotations.
 """
 
 import array
+import collections
 import functools
 import hashlib
 import importlib.resources
@@ -93,6 +94,44 @@ _EVIDENCE_PAIR = b"".join(
 _ASCII_WHITESPACE_TABLE = bytes(
     1 if b in (0x20, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0xA0) else 0 for b in range(256)
 )
+
+#: Whether the :class:`BigramProfile` constructors count the byte pairs
+#: with :func:`_pair_counts` instead of walking them one by one.  Only on
+#: interpreted CPython, like ``_GATHER_DOT``; the compiled build and PyPy
+#: keep the walk.  The order of ``nonzero`` changes, not its contents, and
+#: every sum over it is an exact integer, so no score changes.
+_COUNT_PAIRS = _PYTHON_MODULE and _GATHER_DOT
+
+#: Fewest bigrams the constructors count with :func:`_pair_counts`.  Shorter
+#: inputs keep the walk: at 24 bytes or less, the two arrays and the counter
+#: made a whole ``detect()`` call 1-2% slower.
+_MIN_COUNTED_BIGRAMS = 64
+
+#: The repeated-whitespace bigrams the profile walks skip.
+_WHITESPACE_RUN_PAIRS = tuple(
+    (b << 8) | b for b in range(256) if _ASCII_WHITESPACE_TABLE[b]
+)
+
+
+def _pair_counts(data: bytes) -> collections.Counter[int]:
+    """Count the bigram indices of *data*, repeated whitespace left out.
+
+    The bigrams that start at even offsets are the big-endian 16-bit words
+    of the data, and the ones that start at odd offsets are the words of
+    ``data[1:]``, so ``collections.Counter`` counts both in C.
+    """
+    n = len(data)
+    even = array.array("H", data[: n & ~1])
+    odd = array.array("H", data[1 : 1 + ((n - 1) & ~1)])
+    if sys.byteorder == "little":
+        even.byteswap()
+        odd.byteswap()
+    counts = collections.Counter(even)
+    counts.update(odd)
+    for idx in _WHITESPACE_RUN_PAIRS:
+        counts.pop(idx, None)
+    return counts
+
 
 # Encodings that map to exactly one language, derived from the registry.
 # Keyed by canonical name only — callers always use canonical names.
@@ -328,8 +367,9 @@ class BigramProfile:
     Each bigram is weighted by its IDF (inverse document frequency) across all
     models — bigrams unique to few models get high weight, bigrams common to
     all models get weight 1.  ``nonzero`` lists the indices carrying weight,
-    in first-encounter order.  :meth:`for_language` builds the same profile
-    under the language tiers' heavier weighting instead.
+    in first-encounter order (in count order when ``_COUNT_PAIRS`` is set).
+    :meth:`for_language` builds the same profile under the language tiers'
+    heavier weighting instead.
 
     The weights are reachable two ways, and which one a profile fills
     depends on how it was built:
@@ -393,7 +433,7 @@ class BigramProfile:
         "weight_sum",
     )
 
-    def __init__(self, data: bytes) -> None:
+    def __init__(self, data: bytes) -> None:  # noqa: PLR0915
         """Compute the bigram frequency distribution for *data*.
 
         Each bigram is weighted by its IDF (inverse document frequency) across
@@ -429,24 +469,34 @@ class BigramProfile:
         cov_idx: list[int] = []
         rest: list[int] = []
         w_sum = 0
-        for i in range(total_bigrams):
-            b1 = data[i]
-            b2 = data[i + 1]
-            # Skip repeated-whitespace bigrams (equivalent to collapsing
-            # whitespace runs, which training does before counting): padding
-            # and indentation carry no encoding signal, and models trained
-            # on lossy transcodes can carry spurious weight for them.
-            if b1 == b2 and _ASCII_WHITESPACE_TABLE[b1]:
-                continue
-            idx = (b1 << 8) | b2
-            w = idf[idx]
-            if freq[idx] == 0:
+        if _COUNT_PAIRS and total_bigrams >= _MIN_COUNTED_BIGRAMS:
+            for idx, count in _pair_counts(data).items():
+                w = count * idf[idx]
                 if evidence[idx]:
                     cov_idx.append(idx)
                 else:
                     rest.append(idx)
-            freq[idx] += w
-            w_sum += w
+                freq[idx] = w
+                w_sum += w
+        else:
+            for i in range(total_bigrams):
+                b1 = data[i]
+                b2 = data[i + 1]
+                # Skip repeated-whitespace bigrams (equivalent to collapsing
+                # whitespace runs, which training does before counting): padding
+                # and indentation carry no encoding signal, and models trained
+                # on lossy transcodes can carry spurious weight for them.
+                if b1 == b2 and _ASCII_WHITESPACE_TABLE[b1]:
+                    continue
+                idx = (b1 << 8) | b2
+                w = idf[idx]
+                if freq[idx] == 0:
+                    if evidence[idx]:
+                        cov_idx.append(idx)
+                    else:
+                        rest.append(idx)
+                freq[idx] += w
+                w_sum += w
         nonzero = cov_idx + rest
         cov_vals = [freq[idx] for idx in cov_idx]
         self.cov_idx = cov_idx
@@ -487,15 +537,20 @@ class BigramProfile:
         idf = get_idf_weights()
         freq: list[int] = [0] * 65536
         nonzero: list[int] = []
-        for i in range(total_bigrams):
-            b1 = data[i]
-            b2 = data[i + 1]
-            if b1 == b2 and _ASCII_WHITESPACE_TABLE[b1]:
-                continue
-            idx = (b1 << 8) | b2
-            if freq[idx] == 0:
+        if _COUNT_PAIRS and total_bigrams >= _MIN_COUNTED_BIGRAMS:
+            for idx, count in _pair_counts(data).items():
                 nonzero.append(idx)
-            freq[idx] += idf[idx]
+                freq[idx] = count * idf[idx]
+        else:
+            for i in range(total_bigrams):
+                b1 = data[i]
+                b2 = data[i + 1]
+                if b1 == b2 and _ASCII_WHITESPACE_TABLE[b1]:
+                    continue
+                idx = (b1 << 8) | b2
+                if freq[idx] == 0:
+                    nonzero.append(idx)
+                freq[idx] += idf[idx]
         # The walk above is the streaming constructor's, under IDF alone.
         # The model-side factor (root IDF, scaled to a byte) is applied once
         # per distinct bigram rather than once per occurrence, and the

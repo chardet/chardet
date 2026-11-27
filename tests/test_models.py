@@ -791,6 +791,51 @@ def test_dense_profile_gather_matches_loop(monkeypatch: pytest.MonkeyPatch) -> N
     assert models_mod.score_with_profile(profile, model) == expected
 
 
+@pytest.mark.parametrize(
+    "data",
+    [
+        b"AB",
+        b"ABC",
+        b"caf\xe9  au  lait\n\n\t\t\xa0\xa0 ok",
+        "Grüße aus München, café crème.".encode(),
+        bytes(range(256)) * 3 + b"\x00",
+    ],
+)
+def test_counted_profile_matches_the_walk(
+    monkeypatch: pytest.MonkeyPatch, data: bytes
+) -> None:
+    """Counting the pairs builds the same profiles as the walk.
+
+    Only ``nonzero`` may come out in another order, so it is compared as a
+    set, with the evidence bigrams still first.
+    """
+
+    def build(*, count: bool) -> list[models_mod.BigramProfile]:
+        monkeypatch.setattr(models_mod, "_COUNT_PAIRS", count)
+        monkeypatch.setattr(models_mod, "_MIN_COUNTED_BIGRAMS", 1)
+        return [
+            models_mod.BigramProfile(data),
+            models_mod.BigramProfile.for_language(data),
+        ]
+
+    walked = build(count=False)
+    counted = build(count=True)
+    for w, c in zip(walked, counted, strict=True):
+        assert sorted(c.nonzero) == sorted(w.nonzero)
+        assert c.nonzero[: len(c.cov_idx)] == c.cov_idx
+        assert dict(zip(c.cov_idx, c.cov_vals, strict=True)) == dict(
+            zip(w.cov_idx, w.cov_vals, strict=True)
+        )
+        assert dict(zip(c.nonzero, c.dense_vals, strict=False)) == dict(
+            zip(w.nonzero, w.dense_vals, strict=False)
+        )
+        assert c.cov_total == w.cov_total
+        assert c.weight_sum == w.weight_sum
+        assert c.input_norm == w.input_norm
+        assert c.row_freq == w.row_freq
+        assert c.nonzero_rows == w.nonzero_rows
+
+
 def test_single_bigram_profile_scores_without_gather(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
