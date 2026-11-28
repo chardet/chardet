@@ -25,6 +25,14 @@ __all__ = [
 ]
 
 
+def _as_bytes(byte_str: bytes | bytearray, max_bytes: int) -> bytes:
+    """Bound plain bytearray copies, keeping one byte past the cap for truncation."""
+    if type(byte_str) is bytearray:
+        with memoryview(byte_str) as view, view[: max_bytes + 1] as window:
+            return bytes(window)
+    return byte_str if isinstance(byte_str, bytes) else bytes(byte_str)
+
+
 def __getattr__(name: str) -> object:
     """Resolve the deprecated ``chardet.equivalences`` submodule on demand.
 
@@ -122,7 +130,7 @@ def detect(  # noqa: PLR0913
         empty_input_encoding=empty_input_encoding,
         stacklevel=3,
     )
-    data = byte_str if isinstance(byte_str, bytes) else bytes(byte_str)
+    data = _as_bytes(byte_str, max_bytes)
     return request.render(request.run(data), data[:max_bytes])[0]
 
 
@@ -190,7 +198,7 @@ def detect_all(  # noqa: PLR0913
         empty_input_encoding=empty_input_encoding,
         stacklevel=3,
     )
-    data = byte_str if isinstance(byte_str, bytes) else bytes(byte_str)
+    data = _as_bytes(byte_str, max_bytes)
     return request.render(
         request.run(data, full_ranking=True),
         data[:max_bytes],
